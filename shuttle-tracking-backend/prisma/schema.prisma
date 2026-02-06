@@ -1,0 +1,159 @@
+// Prisma schema for University Shuttle Tracking System
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  extensions = [postgis]
+}
+
+// ============================================
+// 1. USERS - Admin Authentication
+// ============================================
+model User {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username      String   @unique @db.VarChar(50)
+  passwordHash  String   @map("password_hash") @db.VarChar(255)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  @@map("users")
+}
+
+// ============================================
+// 2. ROUTES - Shuttle Routes
+// ============================================
+model Route {
+  id        String   @id @db.VarChar(50)
+  name      String   @db.VarChar(255)
+  color     String   @db.VarChar(7)
+  status    String   @default("active") @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  // Relations
+  vehicles   Vehicle[]
+  routeStops RouteStop[]
+  trips      Trip[]
+
+  @@map("routes")
+}
+
+// ============================================
+// 3. VEHICLES - Shuttle Buses
+// ============================================
+model Vehicle {
+  id              String   @id @db.VarChar(50)
+  name            String   @db.VarChar(255)
+  type            String   @db.VarChar(50)
+  assignedRouteId String?  @map("assigned_route_id") @db.VarChar(50)
+  status          String   @default("inactive") @db.VarChar(50)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  // Relations
+  route     Route?     @relation(fields: [assignedRouteId], references: [id])
+  trips     Trip[]
+  gpsTracks GPSTrack[]
+
+  @@index([status])
+  @@index([assignedRouteId])
+  @@map("vehicles")
+}
+
+// ============================================
+// 4. STOPS - Bus Stop Locations
+// ============================================
+model Stop {
+  id        String                    @id @db.VarChar(50)
+  nameTh    String                    @map("name_th") @db.VarChar(255)
+  nameEn    String?                   @map("name_en") @db.VarChar(255)
+  location  Unsupported("geography")? // PostGIS geography type
+  imageUrl  String?                   @map("image_url") @db.VarChar(500)
+  status    String                    @default("active") @db.VarChar(50)
+  createdAt DateTime                  @default(now()) @map("created_at") @db.Timestamp(6)
+
+  // Relations
+  routeStops RouteStop[]
+
+  @@index([status])
+  @@map("stops")
+}
+
+// ============================================
+// 5. ROUTE_STOPS - Junction Table
+// ============================================
+model RouteStop {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  routeId   String @map("route_id") @db.VarChar(50)
+  stopId    String @map("stop_id") @db.VarChar(50)
+  stopOrder Int    @map("stop_order")
+
+  // Relations
+  route Route @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  stop  Stop  @relation(fields: [stopId], references: [id], onDelete: Restrict)
+
+  @@unique([routeId, stopOrder])
+  @@index([routeId])
+  @@index([stopId])
+  @@map("route_stops")
+}
+
+// ============================================
+// 6. TRIPS - Trip Records
+// ============================================
+model Trip {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vehicleId String    @map("vehicle_id") @db.VarChar(50)
+  routeId   String    @map("route_id") @db.VarChar(50)
+  startTime DateTime  @map("start_time") @db.Timestamp(6)
+  endTime   DateTime? @map("end_time") @db.Timestamp(6)
+  status    String    @default("in_progress") @db.VarChar(50)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+
+  // Relations
+  vehicle   Vehicle    @relation(fields: [vehicleId], references: [id])
+  route     Route      @relation(fields: [routeId], references: [id])
+  gpsTracks GPSTrack[]
+
+  @@index([vehicleId])
+  @@index([routeId])
+  @@index([status])
+  @@index([startTime(sort: Desc)])
+  @@map("trips")
+}
+
+// ============================================
+// 7. GPS_TRACKS - GPS Time-series Data
+// ============================================
+model GPSTrack {
+  id         BigInt                    @id @default(autoincrement())
+  tripId     String                    @map("trip_id") @db.Uuid
+  vehicleId  String                    @map("vehicle_id") @db.VarChar(50)
+  location   Unsupported("geography")? // PostGIS geography type
+  speed      Decimal?                  @db.Decimal(5, 2)
+  recordedAt DateTime                  @map("recorded_at") @db.Timestamp(6)
+
+  // Relations
+  trip    Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@index([tripId])
+  @@index([vehicleId, recordedAt(sort: Desc)])
+  @@map("gps_tracks")
+}
+
+// ============================================
+// 8. FEEDBACK - User Feedback
+// ============================================
+model Feedback {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type      String?  @db.VarChar(50)
+  message   String?  @db.Text
+  ipAddress String?  @map("ip_address") @db.Inet
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  @@index([createdAt(sort: Desc)])
+  @@index([type])
+  @@map("feedback")
+}
