@@ -14,9 +14,6 @@
     "db:generate": "npx prisma generate",
     "db:reset": "npx prisma migrate reset"
   },
-  "prisma": {
-    "seed": "ts-node-esm prisma/seed.ts"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
