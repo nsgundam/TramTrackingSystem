@@ -16,7 +16,7 @@ const prisma = new PrismaClient({
 async function main() {
   console.log('🌱 Seeding database...');
 
-  // 1. Create admin users
+  // Create admin users
   const hashedPassword = await bcrypt.hash('admin123', 12);
 
   await prisma.user.createMany({
@@ -27,7 +27,7 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // 2. Create routes
+  // Create routes
   await prisma.route.createMany({
     data: [
       { id: 'R01', name: 'วนภายในมหาลัย', color: '#EF4444', status: 'active' },
@@ -37,7 +37,7 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // 3. Create stops (using raw SQL for PostGIS)
+  // Create stops (using raw SQL for PostGIS)
   await prisma.$executeRaw`
     INSERT INTO stops (id, name_th, name_en, location, status)
     VALUES 
@@ -54,7 +54,7 @@ async function main() {
     ON CONFLICT (id) DO NOTHING
   `;
 
-  // 4. Create route-stop assignments
+  // Create route-stop assignments
   await prisma.routeStop.createMany({
     data: [
       // R01: Circular route
@@ -71,7 +71,7 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // 5. Create vehicles
+  // Create vehicles
   await prisma.vehicle.createMany({
     data: [
       { id: 'VH001', name: 'รถ A1', type: '1-ตอน', assignedRouteId: 'R01' },
