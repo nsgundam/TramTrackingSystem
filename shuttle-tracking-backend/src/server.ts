@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { prisma } from './config/prisma.js';
 import authRouter from './routes/auth.route.js';
+import vehiclesRouter from './routes/vehicles.route.js';
+import routeRouter from './routes/route.route.js';
 
 dotenv.config();
 
@@ -13,6 +15,8 @@ app.use(express.json());
 
 //Routes
 app.use('/api/auth', authRouter);
+app.use('/api/admin/vehicles', vehiclesRouter);
+app.use('/api/admin/routes', routeRouter);
 
 // Test route
 app.get('/health', async (req, res) => {
