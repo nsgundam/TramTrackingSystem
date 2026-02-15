@@ -55,7 +55,7 @@ export const createRoute = async (req: Request, res: Response) => {
 // Update Route
 export const updateRoute = async (req: Request, res: Response) => {
     try{
-        const id = req.query.id as string;
+        const id = req.params.id as string;
         const data = req.body;
         const updatedRoute = await prisma.route.update({
             where: { id },
@@ -71,7 +71,7 @@ export const updateRoute = async (req: Request, res: Response) => {
 // Delete Route
 export const deleteRoute = async (req: Request, res: Response) => {
     try{
-        const id = req.query.id as string;
+        const id = req.params.id as string;
         await prisma.route.delete({
             where: { id },
         });
@@ -79,5 +79,23 @@ export const deleteRoute = async (req: Request, res: Response) => {
     }catch (error) {
         console.error('Error deleting route:', error);
         res.status(500).json({ error: 'An error occurred while deleting the route' });
+    }
+};
+
+// Get Vehicles assigned to a Route
+export const getVehiclesByRouteId = async (req: Request, res: Response) => {
+    try{
+        const routeId = req.params.id as string;
+        const vehicles = await prisma.vehicle.findMany({
+            where: { assignedRouteId: routeId },
+        });
+        if (vehicles.length === 0) {
+            res.status(404).json({ error: 'No vehicles found for this route' });
+            return;
+        }
+        res.json(vehicles);
+    }catch (error) {
+        console.error('Error fetching vehicles for route:', error);
+        res.status(500).json({ error: 'An error occurred while fetching vehicles for the route' });
     }
 };
