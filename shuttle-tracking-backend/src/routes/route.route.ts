@@ -3,22 +3,22 @@ import { getRoutes, getRouteById, updateRoute, deleteRoute, getVehiclesByRouteId
 
 const router = Router();
 
-// GET api/routes
+// GET api/admin/routes
 router.get('/', getRoutes);
 
-// GET api/routes/:id
+// GET api/admin/routes/:id
 router.get('/:id', getRouteById);
 
-// POST api/routes
+// POST api/admin/routes
 router.post('/', createRoute);
 
-// PUT api/routes/:id
+// PUT api/admin/routes/:id
 router.put('/:id', updateRoute);
 
-// DELETE api/routes/:id
+// DELETE api/admin/routes/:id
 router.delete('/:id', deleteRoute);
 
-// GET api/routes/:id/vehicles
+// GET api/admin/routes/:id/vehicles
 router.get('/:id/vehicles', getVehiclesByRouteId);
 
 export default router;

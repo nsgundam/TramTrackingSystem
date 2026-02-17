@@ -3,19 +3,19 @@ import { createStop, getStopById, getStops, updateStop , deleteStop} from "../co
 
 const router = Router();
 
-// GET api/stops
+// GET api/admin/stops
 router.get('/', getStops);
 
-// GET api/stops/:id
+// GET api/admin/stops/:id
 router.get('/:id', getStopById);
 
-// POST api/stops
+// POST api/admin/stops
 router.post('/', createStop);
 
-// PUT api/stops/:id
+// PUT api/admin/stops/:id
 router.put('/:id', updateStop);
 
-// DELETE api/stops/:id
+// DELETE api/admin/stops/:id
 router.delete('/:id', deleteStop);
 
 export default router;

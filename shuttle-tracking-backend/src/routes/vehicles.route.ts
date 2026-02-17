@@ -3,19 +3,19 @@ import { createVehicle, getVehicleById, getVehicles, updateVehicle , deleteVehic
 
 const router = Router();
 
-// GET api/vehicles
+// GET api/admin/vehicles
 router.get('/', getVehicles);
 
-// GET api/vehicles/:id
+// GET api/admin/vehicles/:id
 router.get('/:id', getVehicleById);
 
-// POST api/vehicles
+// POST api/admin/vehicles
 router.post('/', createVehicle);
 
-// PUT api/vehicles/:id
+// PUT api/admin/vehicles/:id
 router.put('/:id', updateVehicle);
 
-// DELETE api/vehicles/:id
-router.delete('/id', deleteVehicle);
+// DELETE api/admin/vehicles/:id
+router.delete('/:id', deleteVehicle);
 
 export default router;
