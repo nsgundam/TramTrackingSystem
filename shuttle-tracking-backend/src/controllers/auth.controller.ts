@@ -63,3 +63,33 @@ export const getme = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ error: 'Failed to fetch user data' });
   }
 }
+
+export const loginVehicle = async (req: Request, res: Response) => {
+  try {
+    const { vehicleId } = req.body;
+
+    if (!vehicleId) {
+      return res.status(400).json({ success: false, message: "Vehicle ID is required" });
+    }
+
+    // Check if this Vehicle ID exists in the database
+    const vehicle = await prisma.vehicle.findUnique({
+      where: { id: vehicleId } // Checks against 'VH001', 'VH002', etc.
+    });
+
+    if (!vehicle) {
+      return res.status(404).json({ success: false, message: "Vehicle not found" });
+    }
+
+    // Found the vehicle, return success response with vehicle details
+    res.json({
+      success: true,
+      message: "Vehicle Verified",
+      vehicle: vehicle 
+    });
+
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
