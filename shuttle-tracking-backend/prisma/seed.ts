@@ -38,21 +38,15 @@ async function main() {
   });
 
   // Create stops (using raw SQL for PostGIS)
-  await prisma.$executeRaw`
+  await prisma.$executeRawUnsafe(`
     INSERT INTO stops (id, name_th, name_en, location, status)
     VALUES 
-      ('ST001', 'ป้าย A - ประตู 1', 'Stop A - Gate 1', 
-        ST_SetSRID(ST_MakePoint(100.5332, 13.7365), 4326)::geography, 'active'),
-      ('ST002', 'ป้าย B - โรงอาหาร', 'Stop B - Canteen',
-        ST_SetSRID(ST_MakePoint(100.5342, 13.7375), 4326)::geography, 'active'),
-      ('ST003', 'ป้าย C - หอสมุด', 'Stop C - Library',
-        ST_SetSRID(ST_MakePoint(100.5352, 13.7385), 4326)::geography, 'active'),
-      ('ST004', 'ป้าย D - คณะวิทย์', 'Stop D - Science',
-        ST_SetSRID(ST_MakePoint(100.5362, 13.7395), 4326)::geography, 'active'),
-      ('ST005', 'ป้าย E - สนามกีฬา', 'Stop E - Stadium',
-        ST_SetSRID(ST_MakePoint(100.5372, 13.7405), 4326)::geography, 'active')
-    ON CONFLICT (id) DO NOTHING
-  `;
+      ('ST006', 'ป้าย A - ตึก 1', 'Stop A - Building 1', ST_SetSRID(ST_MakePoint(100.587350, 13.965748), 4326)::geography, 'active'),
+      ('ST007', 'ป้าย B - ตึก 1', 'Stop B - Building 1', ST_SetSRID(ST_MakePoint(100.587530, 13.964914), 4326)::geography, 'active'),
+      ('ST008', 'ป้าย A - ตึก 5', 'Stop A - Building 5', ST_SetSRID(ST_MakePoint( 100.586025, 13.964672), 4326)::geography, 'active');
+  `)
+
+  console.log('Stops added!')
 
   // Create route-stop assignments
   await prisma.routeStop.createMany({
