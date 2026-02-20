@@ -60,19 +60,19 @@ async function main() {
       ('ST009', 'ป้าย I - ตรงข้ามตึก 15', 'Stop I - Building 15 Opposite',
         ST_SetSRID(ST_MakePoint(100.585251, 13.967780), 4326)::geography, 'active'),
       ('ST010', 'ป้าย J - ตึก 17', 'Stop J - Building 17',
-        ST_SetSRID(ST_MakePoint(100.583580, 13.966698), 4326)::geography, 'active')
+        ST_SetSRID(ST_MakePoint(100.583580, 13.966698), 4326)::geography, 'active'),
       ('ST011', 'ป้าย K - ตึก 19', 'Stop K - Building 19',
-        ST_SetSRID(ST_MakePoint(100.583931, 13.968760), 4326)::geography, 'active')
+        ST_SetSRID(ST_MakePoint(100.583931, 13.968760), 4326)::geography, 'active'),
       ('ST012', 'ป้าย L - ตึก 15', 'Stop L - Building 15',
-        ST_SetSRID(ST_MakePoint(100.585420, 13.967890), 4326)::geography, 'active')
+        ST_SetSRID(ST_MakePoint(100.585420, 13.967890), 4326)::geography, 'active'),
       ('ST013', 'ป้าย M - ตึก 14', 'Stop M - Building 14',
-        ST_SetSRID(ST_MakePoint(100.587314, 13.968172), 4326)::geography, 'active')
+        ST_SetSRID(ST_MakePoint(100.587314, 13.968172), 4326)::geography, 'active'),
       ('ST014', 'ป้าย N - ตึก 11', 'Stop N - Building 11',
-        ST_SetSRID(ST_MakePoint(100.586858, 13.966451), 4326)::geography, 'active')
+        ST_SetSRID(ST_MakePoint(100.586858, 13.966451), 4326)::geography, 'active'),
       ('ST015', 'ป้าย O - ประตูทางออก', 'Stop O - Exit Gate',
-        ST_SetSRID(ST_MakePoint(100.587415, 13.965706), 4326)::geography, 'active')
+        ST_SetSRID(ST_MakePoint(100.587415, 13.965706), 4326)::geography, 'active'),
       ('ST016', 'หน้ามหาลัย', 'In Front of University',
-        ST_SetSRID(ST_MakePoint(100.587800, 13.965200), 4326)::geography, 'active')
+        ST_SetSRID(ST_MakePoint(100.587800, 13.965200), 4326)::geography, 'active'),
       ('ST017', 'สถานีรถไฟ', 'Train Station',
         ST_SetSRID(ST_MakePoint(100.588200, 13.964800), 4326)::geography, 'active')
     ON CONFLICT (id) DO NOTHING
