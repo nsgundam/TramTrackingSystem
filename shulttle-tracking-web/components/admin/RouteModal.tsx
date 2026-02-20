@@ -20,7 +20,7 @@ export default function RouteModal({
   const [formData, setFormData] = useState({
     id: "",
     name: "",
-    color: "#000000",
+    color: "#3B82F6",
     status: "active",
   });
 
@@ -36,7 +36,7 @@ export default function RouteModal({
       setFormData({
         id: "",
         name: "",
-        color: "#000000",
+        color: "#3B82F6",
         status: "active",
       });
     }
@@ -53,7 +53,7 @@ export default function RouteModal({
             {initialData ? "Edit Route" : "Add New Route"}
           </h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-            <X />
+            <X size={24}/>
           </button>
         </div>
 
@@ -61,7 +61,7 @@ export default function RouteModal({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            onSubmit(formData as any);
+            onSubmit(formData as Partial<Route>);
           }}
           className="space-y-4"
         >
@@ -96,13 +96,16 @@ export default function RouteModal({
           {/* Route Color */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Route Color</label>
-            <input
-              required
-              type="color"
-              value={formData.color}
-              onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-              className="w-full h-10 border border-slate-300 rounded-md p-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <div className="flex items-center gap-3">
+              <input
+                required
+                type="color"
+                value={formData.color}
+                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                className="h-10 w-20 p-1 border border-slate-300 rounded-lg cursor-pointer"
+              />
+              <span className="text-sm font-mono text-slate-500 uppercase">{formData.color}</span>
+            </div>
           </div>
 
           {/* Route Status */}
@@ -113,17 +116,26 @@ export default function RouteModal({
               onChange={(e) => setFormData({ ...formData, status: e.target.value})}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-slate-700"
             >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="active">Active (เปิดให้บริการ)</option>
+              <option value="inactive">Inactive (ปิดปรับปรุง)</option>
             </select>
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors"
-          >
-            {initialData ? "Update Route" : "Create Route"}
-          </button>
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+            >
+              {initialData ? "Save Changes" : "Create Route"}
+            </button>
+          </div>
         </form>
       </div>
     </div>

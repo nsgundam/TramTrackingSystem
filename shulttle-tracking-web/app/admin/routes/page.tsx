@@ -51,7 +51,6 @@ export default function RoutesPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this route?")) return;
-
     try {
       await api.delete(`/admin/routes/${id}`);
       fetchData();

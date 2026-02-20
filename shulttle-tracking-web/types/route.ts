@@ -3,4 +3,5 @@ export interface Route {
   name: string;
   color: string;
   status: 'active' | 'inactive';
+  createdAt?: string;
 }

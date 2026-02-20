@@ -66,7 +66,7 @@ export default function VehicleModal({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            onSubmit(formData as any);
+            onSubmit(formData as Partial<Vehicle>);
           }}
           className="space-y-4"
         >
