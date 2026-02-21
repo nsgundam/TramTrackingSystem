@@ -12,6 +12,7 @@ import routeRouter from './routes/route.route.js';
 import stopRouter from './routes/stops.route.js';
 import routeStopsRouter from './routes/routeStops.route.js';
 import trackingRouter from './routes/tracking.route.js';
+import tripsRouter from './routes/trips.route.js';
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use('/api/admin/routes', routeRouter);
 app.use('/api/admin/stops', stopRouter);
 app.use('/api/admin/route-stops', routeStopsRouter);
 app.use('/api/tracking', trackingRouter);
+app.use('/api/trips', tripsRouter);
 
 // Test route
 app.get('/health', async (req, res) => {
