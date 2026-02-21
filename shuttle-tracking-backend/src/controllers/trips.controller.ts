@@ -1,29 +1,40 @@
 import { Request, Response } from 'express';
-import { prisma } from '../config/prisma.js';
+import { prisma } from '../config/prisma.js'; 
 
-// 1. เริ่มวิ่งรถ (Start Trip) - ฝั่ง Mobile เรียกใช้ตอนเริ่มงาน
 export const startTrip = async (req: Request, res: Response) => {
     try {
-        const { vehicleId, routeId } = req.body;
+        const { vehicleId } = req.body;
 
-        if (!vehicleId || !routeId) {
-            return res.status(400).json({ error: 'Missing vehicleId or routeId' });
+        if (!vehicleId) {
+            return res.status(400).json({ error: 'Missing vehicleId' });
         }
 
-        // สร้าง Trip ใหม่
+        const vehicle = await prisma.vehicle.findUnique({
+            where: { id: vehicleId }
+        });
+
+        if (!vehicle) {
+            return res.status(404).json({ error: 'Vehicle not found' });
+        }
+
+        if (!vehicle.assignedRouteId) {
+            return res.status(400).json({ 
+                error: 'This vehicle has no assigned route. Please contact the Head of Drivers to assign a route via Admin Dashboard.' 
+            });
+        }
+
         const newTrip = await prisma.trip.create({
             data: {
-                vehicleId,
-                routeId,
+                vehicleId: vehicle.id,
+                routeId: vehicle.assignedRouteId, 
                 startTime: new Date(),
-                status: 'in_progress' // สถานะกำลังวิ่ง
+                status: 'in_progress'
             }
         });
 
-        // (Optional) อัปเดตสถานะรถว่ากำลังวิ่งอยู่
         await prisma.vehicle.update({
             where: { id: vehicleId },
-            data: { status: 'active', assignedRouteId: routeId }
+            data: { status: 'active' }
         });
 
         res.status(201).json({ 
@@ -37,16 +48,22 @@ export const startTrip = async (req: Request, res: Response) => {
     }
 };
 
-// 2. จบงาน (End Trip) - ฝั่ง Mobile เรียกใช้ตอนเลิกงาน
 export const endTrip = async (req: Request, res: Response) => {
     try {
-        const  id  = req.params.id as string; // รับ trip_id มาจาก URL
+        const id = req.params.id as string;
 
         const endedTrip = await prisma.trip.update({
             where: { id },
             data: {
                 endTime: new Date(),
-                status: 'completed' // เปลี่ยนสถานะเป็นวิ่งเสร็จแล้ว
+                status: 'completed'
+            }
+        });
+
+        await prisma.vehicle.update({
+            where: { id: endedTrip.vehicleId },
+            data: { 
+                status: 'inactive' 
             }
         });
 
