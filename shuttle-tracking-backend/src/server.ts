@@ -11,6 +11,7 @@ import vehiclesRouter from './routes/vehicles.route.js';
 import routeRouter from './routes/route.route.js';
 import stopRouter from './routes/stops.route.js';
 import routeStopsRouter from './routes/routeStops.route.js';
+import trackingRouter from './routes/tracking.route.js';
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use('/api/admin/vehicles', vehiclesRouter);
 app.use('/api/admin/routes', routeRouter);
 app.use('/api/admin/stops', stopRouter);
 app.use('/api/admin/route-stops', routeStopsRouter);
+app.use('/api/tracking', trackingRouter);
 
 // Test route
 app.get('/health', async (req, res) => {
