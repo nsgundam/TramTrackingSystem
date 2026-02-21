@@ -12,7 +12,7 @@ export const updateLocation = async (req: Request, res: Response) => {
         const recordedAt = new Date();
 
         await prisma.$executeRaw`
-            INSERT INTO gps_tracks (trip_id, vehicle_id, location, speed, heading, recorded_at)
+            INSERT INTO gps_tracks (trip_id, vehicle_id, location, speed, recorded_at)
             VALUES (
                 ${tripId}::uuid, 
                 ${vehicleId}, 
