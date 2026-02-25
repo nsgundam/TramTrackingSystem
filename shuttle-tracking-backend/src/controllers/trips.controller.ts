@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js'; 
+import { lastSavedCache } from './tracking.controller.js';
 
 export const startTrip = async (req: Request, res: Response) => {
     try {
@@ -66,6 +67,8 @@ export const endTrip = async (req: Request, res: Response) => {
                 status: 'inactive' 
             }
         });
+
+        lastSavedCache.delete(id);
 
         res.json({ 
             message: 'Trip ended successfully', 
