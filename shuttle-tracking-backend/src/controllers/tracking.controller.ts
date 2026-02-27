@@ -6,10 +6,16 @@ export { lastSavedCache };
 
 export const updateLocation = async (req: Request, res: Response) => {
     try {
-        const { tripId, vehicleId, lat, lng, speed} = req.body;
+        const { tripId, vehicleId, lat, lng, speed, bearing, station} = req.body;
 
         if (!tripId || !vehicleId || lat === undefined || lng === undefined) {
             return res.status(400).json({ error: 'Missing required fields (tripId, vehicleId, lat, lng)' });
+        }
+
+        let actualStation = station;
+        if( speed !== undefined && speed !== null && speed >= 1 && station !== 'En Route') {
+            actualStation = 'En Route';
+            console.log(` Vehicle ${vehicleId} is moving at speed ${speed} and ignore station ${station}.`);
         }
 
         const now = Date.now();
@@ -23,6 +29,8 @@ export const updateLocation = async (req: Request, res: Response) => {
                 lat: parseFloat(lat),
                 lng: parseFloat(lng),
                 speed,
+                heading: bearing,
+                station: actualStation,
                 recordedAt
             });
         }
@@ -37,7 +45,9 @@ export const updateLocation = async (req: Request, res: Response) => {
                     ${tripId}::uuid, 
                     ${vehicleId}, 
                     ST_SetSRID(ST_MakePoint(${parseFloat(lng)}, ${parseFloat(lat)}), 4326)::geography, 
-                    ${speed ?? null}, 
+                    ${speed ?? null},
+                    ${bearing ?? null},
+                    ${actualStation ?? null},
                     ${recordedAt}
                 )
             `;

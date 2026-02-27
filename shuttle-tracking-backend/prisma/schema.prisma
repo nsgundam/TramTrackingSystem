@@ -132,6 +132,8 @@ model GPSTrack {
   vehicleId  String                    @map("vehicle_id") @db.VarChar(50)
   location   Unsupported("geography")? // PostGIS geography type
   speed      Decimal?                  @db.Decimal(5, 2)
+  heading    Decimal?                  @db.Decimal(5, 2)
+  station    String?
   recordedAt DateTime                  @map("recorded_at") @db.Timestamp(6)
 
   // Relations
