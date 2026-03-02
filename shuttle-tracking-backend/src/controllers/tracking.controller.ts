@@ -38,10 +38,6 @@ export const updateLocation = async (req: Request, res: Response) => {
         const lastSaved = lastSavedCache.get(tripId) || 0;
         const TIME_LIMIT = 60000;
 
-        // DB uses Thai time strictly (+7 UTC)
-        // using toLocaleString with sv-SE locale formats as 'YYYY-MM-DD HH:mm:ss' which postgres parses natively
-        const dbRecordedAtStr = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Bangkok' });
-
         if (now - lastSaved >= TIME_LIMIT) {
             await prisma.$executeRaw`
                 INSERT INTO gps_tracks (trip_id, vehicle_id, location, speed, recorded_at)
@@ -52,7 +48,7 @@ export const updateLocation = async (req: Request, res: Response) => {
                     ${speed ?? null},
                     ${bearing ?? null},
                     ${actualStation ?? null},
-                    ${dbRecordedAtStr}::timestamp
+                    ${recordedAt}
                 )
             `;
 
