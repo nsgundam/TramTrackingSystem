@@ -6,14 +6,14 @@ export { lastSavedCache };
 
 export const updateLocation = async (req: Request, res: Response) => {
     try {
-        const { tripId, vehicleId, lat, lng, speed, bearing, station} = req.body;
+        const { tripId, vehicleId, lat, lng, speed, bearing, station } = req.body;
 
         if (!tripId || !vehicleId || lat === undefined || lng === undefined) {
             return res.status(400).json({ error: 'Missing required fields (tripId, vehicleId, lat, lng)' });
         }
 
         let actualStation = station;
-        if( speed !== undefined && speed !== null && speed >= 1 && station !== 'En Route') {
+        if (speed !== undefined && speed !== null && speed >= 1 && station !== 'En Route') {
             actualStation = 'En Route';
             console.log(` Vehicle ${vehicleId} is moving at speed ${speed} and ignore station ${station}.`);
         }
@@ -38,6 +38,10 @@ export const updateLocation = async (req: Request, res: Response) => {
         const lastSaved = lastSavedCache.get(tripId) || 0;
         const TIME_LIMIT = 60000;
 
+        // DB uses Thai time strictly (+7 UTC)
+        // using toLocaleString with sv-SE locale formats as 'YYYY-MM-DD HH:mm:ss' which postgres parses natively
+        const dbRecordedAtStr = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Bangkok' });
+
         if (now - lastSaved >= TIME_LIMIT) {
             await prisma.$executeRaw`
                 INSERT INTO gps_tracks (trip_id, vehicle_id, location, speed, recorded_at)
@@ -48,10 +52,10 @@ export const updateLocation = async (req: Request, res: Response) => {
                     ${speed ?? null},
                     ${bearing ?? null},
                     ${actualStation ?? null},
-                    ${recordedAt}
+                    ${dbRecordedAtStr}::timestamp
                 )
             `;
-            
+
             lastSavedCache.set(tripId, now);
             console.log(`[DB SAVE] Trip ${tripId} location saved.`);
         }
