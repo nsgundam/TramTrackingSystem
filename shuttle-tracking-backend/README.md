@@ -60,6 +60,8 @@ createdb shuttle_tracking
 # (รันคำสั่งนี้ใน SQL Query Tool หรือ pgAdmin)
 CREATE EXTENSION postgis;
 
+npx prisma generate
+
 # 3. Run Prisma Migration (สร้างตาราง)
 npx prisma migrate dev --name init
 

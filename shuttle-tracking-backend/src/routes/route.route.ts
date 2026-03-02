@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { getRoutes, getRouteById, updateRoute, deleteRoute, getVehiclesByRouteId, createRoute} from "../controllers/route.controller.js";
+import { prisma } from "../config/prisma.js";
 
 const router = Router();
 

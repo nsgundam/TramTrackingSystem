@@ -2,29 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { Vehicle } from "@/types/vehicle";
+import { Route } from "@/types/route";
 
-interface VehicleModalProps {
+interface RouteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Partial<Vehicle>) => void;
-  initialData?: Vehicle | null; 
-  routes: { id: string; name: string }[];
+  onSubmit: (data: Partial<Route>) => void;
+  initialData?: Route | null; 
 }
 
-export default function VehicleModal({
+export default function RouteModal({
   isOpen,
   onClose,
   onSubmit,
   initialData,
-  routes,
-}: VehicleModalProps) {
+}: RouteModalProps) {
   const [formData, setFormData] = useState({
     id: "",
     name: "",
-    type: "Bus",
+    color: "#3B82F6",
     status: "active",
-    assignedRouteId: "",
   });
 
   useEffect(() => {
@@ -32,17 +29,15 @@ export default function VehicleModal({
       setFormData({
         id: initialData.id,
         name: initialData.name,
-        type: initialData.type,
+        color: initialData.color,
         status: initialData.status,
-        assignedRouteId: initialData.assignedRouteId || "",
       });
     } else {
       setFormData({
         id: "",
         name: "",
-        type: "Bus",
+        color: "#3B82F6",
         status: "active",
-        assignedRouteId: "",
       });
     }
   }, [initialData, isOpen]);
@@ -55,10 +50,10 @@ export default function VehicleModal({
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-slate-800">
-            {initialData ? "Edit Vehicle" : "Add New Vehicle"}
+            {initialData ? "Edit Route" : "Add New Route"}
           </h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-            <X size={24} />
+            <X size={24}/>
           </button>
         </div>
 
@@ -66,82 +61,66 @@ export default function VehicleModal({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            onSubmit(formData as Partial<Vehicle>);
+            onSubmit(formData as Partial<Route>);
           }}
           className="space-y-4"
         >
-          {/* ID Input */}
+
+          {/*ID Input*/}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Vehicle ID</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Route ID</label>
             <input
-              required
-              disabled={!!initialData} 
+            required
+            disabled={!!initialData}
               type="text"
               value={formData.id}
               onChange={(e) => setFormData({ ...formData, id: e.target.value })}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 text-slate-700 disabled:text-slate-400"
-              placeholder="e.g. VH001"
+              placeholder="e.g. R01"
             />
           </div>
 
-          {/* Name Input */}
+          {/* Route Name */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Vehicle Name</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Route Name</label>
             <input
               required
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-slate-700"
-              placeholder="e.g. Red Bus 01"
+              placeholder="e.g. วนภายในมหาวิทยาลัย"
             />
           </div>
 
-          {/* Type Select */}
+          {/* Route Color */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
-            <input
-              required
-              type="text"
-              value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-slate-700"
-              placeholder="e.g. รถราง (Tram),รถตู้ (Van), etc."
-            />
+            <label className="block text-sm font-medium text-slate-700 mb-1">Route Color</label>
+            <div className="flex items-center gap-3">
+              <input
+                required
+                type="color"
+                value={formData.color}
+                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                className="h-10 w-20 p-1 border border-slate-300 rounded-lg cursor-pointer"
+              />
+              <span className="text-sm font-mono text-slate-500 uppercase">{formData.color}</span>
+            </div>
           </div>
 
-          {/* Status Select */}
+          {/* Route Status */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
             <select
               value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value})}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-slate-700"
             >
-              <option value="active">Active (ใช้งานปกติ)</option>
-              <option value="inactive">Inactive (หยุดวิ่ง)</option>
-              <option value="maintenance">Maintenance (ซ่อมบำรุง)</option>
+              <option value="active">Active (เปิดให้บริการ)</option>
+              <option value="inactive">Inactive (ปิดปรับปรุง)</option>
             </select>
           </div>
 
-          {/* Route Select */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Assign Route</label>
-            <select
-              value={formData.assignedRouteId}
-              onChange={(e) => setFormData({ ...formData, assignedRouteId: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-slate-700"
-            >
-              <option value="">-- No Route Assigned --</option>
-              {routes.map((route) => (
-                <option key={route.id} value={route.id}>
-                  {route.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Buttons */}
           <div className="flex gap-3 pt-4">
             <button
               type="button"
@@ -154,7 +133,7 @@ export default function VehicleModal({
               type="submit"
               className="flex-1 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
             >
-              {initialData ? "Save Changes" : "Create Vehicle"}
+              {initialData ? "Save Changes" : "Create Route"}
             </button>
           </div>
         </form>

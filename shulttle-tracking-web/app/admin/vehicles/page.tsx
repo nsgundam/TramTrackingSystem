@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import api from "@/services/api";
 import { Plus, Pencil, Trash2, RefreshCw } from "lucide-react";
-import { Vehicle } from "@/types/vehicle"; 
+import { Vehicle } from "@/types/vehicle";
 import VehicleModal from "@/components/admin/VehicleModal";
 
 export default function VehiclesPage() {
@@ -19,9 +19,9 @@ export default function VehiclesPage() {
       setLoading(true);
       const [vehiclesRes, routesRes] = await Promise.all([
         api.get("/admin/vehicles"),
-        api.get("/admin/routes")
+        api.get("/admin/routes"),
       ]);
-      
+
       setVehicles(vehiclesRes.data);
       setRoutes(routesRes.data);
     } catch (error) {
@@ -45,11 +45,10 @@ export default function VehiclesPage() {
         // CREATE
         await api.post("/admin/vehicles", data);
       }
-      
+
       setIsModalOpen(false);
       setEditingVehicle(null);
       fetchData();
-      
     } catch (error) {
       console.error("Save error:", error);
       alert("Failed to save vehicle");
@@ -78,21 +77,24 @@ export default function VehiclesPage() {
 
   return (
     <div className="space-y-6">
-      {/* 1. Header Section */}
+      {/* Header Section */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Vehicles Management</h1>
+          <h1 className="text-2xl font-bold text-slate-800">
+            Vehicles Management
+          </h1>
           <p className="text-slate-500">Manage your fleet and assignments</p>
         </div>
-        <button 
-        onClick={openAddModal}
-        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+        <button
+          onClick={openAddModal}
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+        >
           <Plus size={20} />
           Add Vehicle
         </button>
       </div>
 
-      {/* 2. Table Section */}
+      {/* Table Section */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-slate-500 flex justify-center items-center gap-2">
@@ -103,22 +105,39 @@ export default function VehiclesPage() {
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
                 <th className="p-4 text-sm font-semibold text-slate-600">ID</th>
-                <th className="p-4 text-sm font-semibold text-slate-600">Name</th>
-                <th className="p-4 text-sm font-semibold text-slate-600">Type</th>
-                <th className="p-4 text-sm font-semibold text-slate-600">Route</th>
-                <th className="p-4 text-sm font-semibold text-slate-600">Status</th>
-                <th className="p-4 text-sm font-semibold text-slate-600 text-right">Actions</th>
+                <th className="p-4 text-sm font-semibold text-slate-600">
+                  Name
+                </th>
+                <th className="p-4 text-sm font-semibold text-slate-600">
+                  Type
+                </th>
+                <th className="p-4 text-sm font-semibold text-slate-600">
+                  Route
+                </th>
+                <th className="p-4 text-sm font-semibold text-slate-600">
+                  Status
+                </th>
+                <th className="p-4 text-sm font-semibold text-slate-600 text-right">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {vehicles.map((vehicle) => (
-                <tr key={vehicle.id} className="border-b border-slate-100 hover:bg-slate-50">
-                  <td className="p-4 font-mono text-sm text-slate-500">{vehicle.id}</td>
-                  <td className="p-4 font-medium text-slate-900">{vehicle.name}</td>
+                <tr
+                  key={vehicle.id}
+                  className="border-b border-slate-100 hover:bg-slate-50"
+                >
+                  <td className="p-4 font-mono text-sm text-slate-500">
+                    {vehicle.id}
+                  </td>
+                  <td className="p-4 font-medium text-slate-900">
+                    {vehicle.name}
+                  </td>
                   <td className="p-4 text-slate-600">{vehicle.type}</td>
                   <td className="p-4">
                     {vehicle.route ? (
-                      <span 
+                      <span
                         className="px-2 py-1 rounded-md text-xs font-medium text-white"
                         style={{ backgroundColor: vehicle.route.color }}
                       >
@@ -134,8 +153,8 @@ export default function VehiclesPage() {
                         vehicle.status === "active"
                           ? "bg-green-100 text-green-700"
                           : vehicle.status === "maintenance"
-                          ? "bg-orange-100 text-orange-700"
-                          : "bg-slate-100 text-slate-600"
+                            ? "bg-orange-100 text-orange-700"
+                            : "bg-slate-100 text-slate-600"
                       }`}
                     >
                       {vehicle.status.toUpperCase()}
@@ -143,13 +162,14 @@ export default function VehiclesPage() {
                   </td>
                   <td className="p-4 text-right space-x-2">
                     <button
-                        onClick={() => openEditModal(vehicle)}
-                        className="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+                      onClick={() => openEditModal(vehicle)}
+                      className="p-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
                       <Pencil size={18} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDelete(vehicle.id)}
-                      className="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                      className="p-2 bg-red-600 text-white rounded hover:bg-red-700"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -159,7 +179,7 @@ export default function VehiclesPage() {
             </tbody>
           </table>
         )}
-        
+
         {/* Empty State */}
         {!loading && vehicles.length === 0 && (
           <div className="p-12 text-center text-slate-400">
@@ -168,7 +188,7 @@ export default function VehiclesPage() {
         )}
       </div>
 
-      <VehicleModal 
+      <VehicleModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSave}
