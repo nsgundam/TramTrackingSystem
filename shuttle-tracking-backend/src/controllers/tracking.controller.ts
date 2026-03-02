@@ -40,7 +40,7 @@ export const updateLocation = async (req: Request, res: Response) => {
 
         if (now - lastSaved >= TIME_LIMIT) {
             await prisma.$executeRaw`
-                INSERT INTO gps_tracks (trip_id, vehicle_id, location, speed, recorded_at)
+                INSERT INTO gps_tracks (trip_id, vehicle_id, location, speed, heading, station, recorded_at)
                 VALUES (
                     ${tripId}::uuid, 
                     ${vehicleId}, 
