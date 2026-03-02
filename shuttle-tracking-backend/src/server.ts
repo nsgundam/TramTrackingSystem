@@ -22,7 +22,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3002',
     methods: ['GET', 'POST'],
   },
 });
@@ -41,11 +41,6 @@ app.use('/api/admin/route-stops', routeStopsRouter);
 app.use('/api/tracking', trackingRouter);
 app.use('/api/trips', tripsRouter);
 
-// Test route
-app.get('/health', async (req, res) => {
-  const users = await prisma.user.count();
-  res.json({ status: 'ok', users });
-});
 
 // Logic for handling Socket.IO connections
 io.on('connection', (socket) => {

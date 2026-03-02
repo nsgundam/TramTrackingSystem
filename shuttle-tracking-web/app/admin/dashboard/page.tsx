@@ -1,21 +1,33 @@
+"use client";
+
+import dynamic from "next/dynamic";
+import { Activity } from "lucide-react";
+
+const LiveMap = dynamic(() => import("@/components/admin/LiveMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[500px] bg-slate-100 animate-pulse rounded-xl flex items-center justify-center text-slate-400">
+      Loading Map...
+    </div>
+  ),
+});
+
 export default function DashboardPage() {
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-slate-800 mb-6">Overview Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h3 className="text-slate-500 text-sm font-medium">Total Vehicles</h3>
-          <p className="text-3xl font-bold text-slate-800 mt-2">5</p>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Live Dashboard</h1>
+          <p className="text-slate-500">Monitor shuttle buses in real-time</p>
         </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h3 className="text-slate-500 text-sm font-medium">Active Routes</h3>
-          <p className="text-3xl font-bold text-slate-800 mt-2">3</p>
-        </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h3 className="text-slate-500 text-sm font-medium">Active Trips</h3>
-          <p className="text-3xl font-bold text-green-600 mt-2">2</p>
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-medium border border-green-200">
+          <Activity size={16} className="animate-pulse" />
+          Live System Active
         </div>
       </div>
+      
+      <LiveMap />
+
     </div>
   );
 }
