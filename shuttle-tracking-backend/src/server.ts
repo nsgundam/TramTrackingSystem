@@ -51,6 +51,13 @@ app.get('/health', async (req, res) => {
 io.on('connection', (socket) => {
   console.log('A client connected:', socket.id);
 
+  socket.on('sent-location', (data) => {
+    console.log('Received location data via Socket:', data);
+    // Broadcast to all clients except the sender
+    io.emit('location-update', data);
+  });
+  // ---------------------------
+
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
   });
