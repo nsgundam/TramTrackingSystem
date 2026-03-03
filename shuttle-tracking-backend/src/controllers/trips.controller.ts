@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js'; 
-import { lastSavedCache } from './tracking.controller.js';
+import { lastSavedCache } from '../services/tracking.service.js';
 
 export const startTrip = async (req: Request, res: Response) => {
     try {

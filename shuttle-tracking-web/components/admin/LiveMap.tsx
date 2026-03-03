@@ -13,7 +13,6 @@ const busIcon = new L.Icon({
   popupAnchor: [0, -38],
 });
 
-// กำหนด Type ให้ข้อมูลรถที่วิ่งเข้ามา
 interface VehicleLocation {
   vehicleId: string;
   lat: number;

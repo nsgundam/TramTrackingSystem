@@ -1,4 +1,7 @@
+import { io } from 'socket.io-client';
+
 const API_URL = 'http://localhost:3001/api';
+const SOCKET_URL = 'http://localhost:3001'; // URL สำหรับต่อ Socket
 const VEHICLE_ID = 'VH001';
 
 const STATIONS = [
@@ -18,6 +21,16 @@ const STATIONS = [
   { id: 'ST014', lng: 100.586858, lat: 13.966451 },
   { id: 'ST015', lng: 100.587415, lat: 13.965706 },
 ];
+
+const socket = io(SOCKET_URL);
+
+socket.on('connect', () => {
+  console.log(`🟢 Connected to WebSocket server with ID: ${socket.id}`);
+});
+
+socket.on('disconnect', () => {
+  console.log('🔴 Disconnected from WebSocket server');
+});
 
 function interpolate(start, end, steps) {
   const points = [];
@@ -102,24 +115,21 @@ async function runSimulation() {
 
 async function sendLocation(tripId, lat, lng, speed, bearing, station) {
   try {
-    const res = await fetch(`${API_URL}/tracking/location`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tripId,
-        vehicleId: VEHICLE_ID,
-        lat,
-        lng,
-        speed,
-        bearing,
-        station
-      })
-    });
-    if (!res.ok) {
-      console.log('Failed to update location:', await res.text());
-    } else {
-      console.log(`Sent location: lat=${lat.toFixed(6)}, lng=${lng.toFixed(6)}, station=${station}`);
-    }
+
+    const payload = {
+      tripId,
+      vehicleId: VEHICLE_ID,
+      lat,
+      lng,
+      speed,
+      bearing,
+      accuracy: 100,
+      station
+    };
+
+    socket.emit('send-location', payload);
+
+    console.log(`📡 Emit Socket: lat=${lat.toFixed(6)}, lng=${lng.toFixed(6)}, speed=${speed}, station=${station}`);
   } catch (e) {
     console.error('Error sending location:', e.message);
   }
