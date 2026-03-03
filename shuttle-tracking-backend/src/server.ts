@@ -1,7 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import { prisma } from './config/prisma.js';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 
@@ -14,8 +12,6 @@ import routeStopsRouter from './routes/routeStops.route.js';
 import tripsRouter from './routes/trips.route.js';
 
 import { handleLocationData } from './services/tracking.service.js';
-
-dotenv.config();
 
 const app = express();
 
