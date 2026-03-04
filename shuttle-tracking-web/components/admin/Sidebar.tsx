@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   LayoutDashboard, 
   Bus, 
@@ -35,6 +36,7 @@ const menuItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   return (
     <aside className="w-64 bg-slate-900 text-white h-screen flex flex-col fixed left-0 top-0 overflow-y-auto">
@@ -69,8 +71,7 @@ export default function Sidebar() {
       <div className="p-4 border-t border-slate-800">
         <button 
           onClick={() => {
-            // เดี๋ยวค่อยใส่ Logic Logout ทีหลัง
-            window.location.href = "/"; 
+            logout(); 
           }}
           className="flex items-center gap-3 px-4 py-3 w-full text-red-400 hover:bg-red-950/30 rounded-lg transition-colors"
         >

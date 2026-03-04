@@ -7,7 +7,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, password } = req.body;
 
-    // find user in database by username
     const user = await prisma.user.findUnique({
       where: { username },
     });
@@ -17,17 +16,19 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // compare password with hashed password
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
       res.status(401).json({ error: 'Invalid password' });
       return;
     }
 
-    // create JWT token
+    if (!process.env.JWT_SECRET) {
+      throw new Error("FATAL: JWT_SECRET environment variable is not defined");
+    }
+
     const token = jwt.sign(
       { userId: user.id, username: user.username },
-      process.env.JWT_SECRET || 'secret',
+      process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
 
@@ -41,7 +42,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const getme = async (req: Request, res: Response): Promise<void> => {
-  try{
+  try {
     const userData = req.user;
 
     const user = await prisma.user.findUnique({
@@ -51,14 +52,14 @@ export const getme = async (req: Request, res: Response): Promise<void> => {
         username: true,
       },
     });
-    
+
     if (!user) {
       res.status(404).json({ error: 'User not found' });
       return;
-    } 
+    }
 
     res.json({ user });
-  }catch(error){
+  } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to fetch user data' });
   }
@@ -72,20 +73,18 @@ export const loginVehicle = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: "Vehicle ID is required" });
     }
 
-    // Check if this Vehicle ID exists in the database
     const vehicle = await prisma.vehicle.findUnique({
-      where: { id: vehicleId } // Checks against 'VH001', 'VH002', etc.
+      where: { id: vehicleId }
     });
 
     if (!vehicle) {
       return res.status(404).json({ success: false, message: "Vehicle not found" });
     }
 
-    // Found the vehicle, return success response with vehicle details
     res.json({
       success: true,
       message: "Vehicle Verified",
-      vehicle: vehicle 
+      vehicle: vehicle
     });
 
   } catch (error) {

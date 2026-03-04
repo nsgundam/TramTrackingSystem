@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getCookie, deleteCookie } from "cookies-next";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api",
@@ -10,7 +11,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
+      const token = getCookie("admin_token");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -27,8 +28,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
       if (typeof window !== "undefined") {
-        localStorage.removeItem("token");
-        window.location.href = "/admin/dashboard";
+        deleteCookie("admin_token");
+        window.location.href = "/admin/login";
       }
     }
     return Promise.reject(error);

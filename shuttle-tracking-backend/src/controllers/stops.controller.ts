@@ -91,7 +91,6 @@ export const updateStop = async (req: Request, res: Response) => {
         const { nameTh, nameEn, lat, lng, imageUrl } = req.body;
 
         if (lat && lng) {
-            // ถ้ามีการแก้พิกัด ต้องใช้ Raw SQL
             await prisma.$executeRaw`
                 UPDATE stops
                 SET 
@@ -102,7 +101,6 @@ export const updateStop = async (req: Request, res: Response) => {
                 WHERE id = ${id}
             `;
         } else {
-            // ถ้าแก้แค่ชื่อ ใช้ Prisma ปกติได้เลย (ง่ายกว่า)
             await prisma.stop.update({
                 where: { id },
                 data: {

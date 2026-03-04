@@ -24,7 +24,7 @@ const io = new Server(httpServer, {
   },
 });
 
-app.set('io', io); 
+app.set('io', io);
 
 app.use(cors());
 app.use(express.json());
@@ -52,7 +52,7 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3001;
 
 httpServer.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

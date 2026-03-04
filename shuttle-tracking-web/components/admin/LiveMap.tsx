@@ -25,7 +25,8 @@ export default function LiveMap() {
   const [activeVehicles, setActiveVehicles] = useState<Record<string, VehicleLocation>>({});
 
   useEffect(() => {
-    const socket = io("http://localhost:3001");
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+    const socket = io(socketUrl);
 
     socket.on("location-update", (data: VehicleLocation) => {
       console.log("📍 Received Data:", data);
