@@ -1,90 +1,181 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { AxiosError } from "axios";
-import api from "@/services/api";
-import { Bus } from "lucide-react";
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { Shield, MapPin, Bus, Navigation } from "lucide-react";
+import publicApi from "@/services/publicApi";
+import { Vehicle } from "@/types/vehicle";
+import { Route } from "@/types/route";
+import { Stop } from "@/types/stop";
 
-export default function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+// Dynamically load the map so leaflet window code doesn't break SSR
+const PublicMap = dynamic(() => import("@/components/public/PublicMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-screen bg-slate-100 animate-pulse flex items-center justify-center text-slate-400 flex-col gap-4">
+      <Navigation className="animate-bounce w-12 h-12 text-blue-400" />
+      <p className="font-semibold tracking-wide">กำลังโหลดแผนที่...</p>
+    </div>
+  ),
+});
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+export default function PublicTrackingPage() {
+  const [routes, setRoutes] = useState<Route[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [stops, setStops] = useState<Stop[]>([]);
+  
+  const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch initial data
+  const fetchPublicData = async () => {
     try {
-      const res = await api.post("auth/login", { username, password });
+      setLoading(true);
       
-      localStorage.setItem("token", res.data.token);
-      
-      router.push("/admin/dashboard");
-    } catch (err) {
-      if (err instanceof AxiosError) {
-      setError(err.response?.data?.error || "Login failed. Please try again.");
-    } else if (err instanceof Error) {
-      setError(err.message);
-    } else {
-      setError("Login failed. Please try again.");
-    }
+      const [routesRes, vehiclesRes, stopsRes] = await Promise.all([
+        publicApi.get("/public/active-routes"),
+        publicApi.get("/public/active-vehicles"),
+        publicApi.get("/public/stops"),
+      ]);
+
+      setRoutes(routesRes.data);
+      setVehicles(vehiclesRes.data);
+      setStops(stopsRes.data);
+    } catch (error) {
+      console.error("Failed to fetch tracking data:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  // Switch stops displayed based on route click
+  const fetchRouteStops = async (routeId: string) => {
+    try {
+      const res = await publicApi.get(`/public/routes/${routeId}/stops`);
+      setStops(res.data);
+    } catch (error) {
+      console.error("Failed to fetch route stops:", error);
+    }
+  };
+
+  const handleRouteClick = (routeId: string) => {
+    if (selectedRouteId === routeId) {
+      setSelectedRouteId(null);
+      fetchPublicData(); // User deselected, fetch all general stops again
+    } else {
+      setSelectedRouteId(routeId);
+      fetchRouteStops(routeId);
+    }
+  };
+
+  useEffect(() => {
+    fetchPublicData();
+  }, []);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
-            <Bus size={32} />
+    <div className="flex h-screen w-full bg-slate-50 overflow-hidden relative font-sans">
+      {/* 1. Floating Map Underneath */}
+      <div className="absolute inset-0 z-0">
+        <PublicMap 
+          vehicles={vehicles} 
+          stops={stops} 
+          selectedRouteId={selectedRouteId} 
+        />
+      </div>
+
+      {/* 2. Glassmorphism Sidebar Header overlapping */}
+      <div className="absolute top-0 left-0 bottom-0 z-10 w-full md:w-96 p-4 pointer-events-none flex flex-col gap-4">
+        
+        {/* Branding App Bar */}
+        <div className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-2xl rounded-3xl p-6 pointer-events-auto transition-all">
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                <Bus className="text-blue-600" size={28} />
+                Shuttle Track
+              </h1>
+              <p className="text-sm font-medium text-slate-500 mt-1">Live University Transit System</p>
+            </div>
+            <Link 
+              href="/admin/login"
+              className="p-2 bg-slate-100 hover:bg-blue-50 text-slate-400 hover:text-blue-600 rounded-xl transition-colors shrink-0"
+              title="Admin Login"
+            >
+              <Shield size={20} />
+            </Link>
           </div>
-          <h1 className="text-2xl font-bold text-slate-800">Admin Login</h1>
-          <p className="text-slate-500 text-sm mt-1">Shuttle Tracking System</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4 text-center">
-            {error}
+        {/* Route Selector List */}
+        <div className="bg-white/90 backdrop-blur-2xl border border-white/50 shadow-2xl rounded-3xl p-6 pointer-events-auto flex-1 overflow-y-auto hidden md:flex flex-col gap-4">
+          <div className="flex items-center justify-between opacity-80 mb-2">
+            <h2 className="text-sm font-bold uppercase tracking-widest text-slate-500">Active Routes</h2>
+            <div className="flex items-center gap-2 text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              Live
+            </div>
           </div>
-        )}
 
-        <form onSubmit={handleLogin} className="space-y-4 text-slate-500">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
-            <input
-              type="text"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="admin"
-            />
+          {loading ? (
+             <div className="flex justify-center items-center py-10 opacity-50">
+                <Navigation className="animate-pulse w-8 h-8 text-blue-400" />
+             </div>
+          ) : routes.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              {routes.map(route => {
+                const isSelected = selectedRouteId === route.id;
+                
+                return (
+                  <button
+                    key={route.id}
+                    onClick={() => handleRouteClick(route.id)}
+                    className={`w-full text-left p-4 rounded-2xl transition-all duration-300 border-2 overflow-hidden relative group ${
+                      isSelected 
+                        ? "bg-blue-50/50 shadow-md transform scale-[1.02]" 
+                        : "bg-white hover:bg-slate-50 border-transparent hover:border-slate-200"
+                    }`}
+                    style={{ 
+                      borderColor: isSelected ? route.color : 'transparent',
+                    }}
+                  >
+                    {isSelected && (
+                      <div className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: route.color }}></div>
+                    )}
+                    <div className="flex items-center gap-3">
+                       <div 
+                         className={`w-4 h-4 rounded-full transition-transform ${isSelected ? 'scale-110 shadow-lg' : ''}`} 
+                         style={{ backgroundColor: route.color }} 
+                       />
+                       <span className={`font-semibold ${isSelected ? 'text-slate-900' : 'text-slate-600 group-hover:text-slate-800'}`}>
+                         {route.name}
+                       </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-10 bg-slate-50 rounded-2xl border border-slate-100">
+              <p className="text-slate-400 text-sm font-medium">ไม่มีเส้นทางที่ให้บริการในขณะนี้</p>
+            </div>
+          )}
+
+          {/* Quick Stats Panel */}
+          <div className="mt-auto pt-6 border-t border-slate-100 flex justify-between px-2">
+             <div className="text-center">
+                <span className="block text-2xl font-black text-slate-800">{vehicles.length}</span>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Buses</span>
+             </div>
+             <div className="text-center">
+                <span className="block text-2xl font-black text-slate-800">{stops.length}</span>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{selectedRouteId ? "Route Stops" : "Total Stops"}</span>
+             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="••••••••"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white font-medium py-2.5 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400"
-          >
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );

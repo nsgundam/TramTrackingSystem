@@ -10,6 +10,9 @@ import routeRouter from './routes/route.route.js';
 import stopRouter from './routes/stops.route.js';
 import routeStopsRouter from './routes/routeStops.route.js';
 import tripsRouter from './routes/trips.route.js';
+import publicRouter from './routes/public.route.js';
+
+import { authenticateToken } from './middleware/auth.js';
 
 import { handleLocationData } from './services/tracking.service.js';
 
@@ -31,12 +34,17 @@ app.use(express.json());
 
 //Routes
 app.use('/api/auth', authRouter);
-app.use('/api/admin/vehicles', vehiclesRouter);
-app.use('/api/admin/routes', routeRouter);
-app.use('/api/admin/stops', stopRouter);
-app.use('/api/admin/route-stops', routeStopsRouter);
-app.use('/api/trips', tripsRouter);
 
+// Admin Routes (Protected)
+app.use('/api/admin/vehicles', authenticateToken, vehiclesRouter);
+app.use('/api/admin/routes', authenticateToken, routeRouter);
+app.use('/api/admin/stops', authenticateToken, stopRouter);
+app.use('/api/admin/route-stops', authenticateToken, routeStopsRouter);
+
+// Public Routes (Open)
+app.use('/api/public', publicRouter);
+
+app.use('/api/trips', tripsRouter);
 
 // Logic for handling Socket.IO connections
 io.on('connection', (socket) => {
