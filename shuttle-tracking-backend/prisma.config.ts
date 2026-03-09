@@ -8,6 +8,6 @@ export default defineConfig({
     seed: 'node --loader ts-node/esm prisma/seed.ts',
   },
   datasource: {
-    url: env('DATABASE_URL'),
+    url: env('DIRECT_URL'),
   },
 })

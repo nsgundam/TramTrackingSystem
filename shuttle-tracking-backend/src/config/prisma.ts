@@ -4,7 +4,10 @@ import { PrismaClient } from '@prisma/client'
 
 const connectionString = `${process.env.DATABASE_URL}`
 
-const adapter = new PrismaPg({ connectionString })
-const prisma = new PrismaClient({ adapter })
+// 1. Create the adapter using your connection pooler URL
+const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL,
+});
 
-export { prisma }
+// 2. Pass the adapter into the Prisma Client constructor
+export const prisma = new PrismaClient({ adapter });
