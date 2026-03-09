@@ -72,9 +72,9 @@ async function main() {
       ('ST015', 'ป้าย O - ประตูทางออก', 'Stop O - Exit Gate',
         ST_SetSRID(ST_MakePoint(100.587415, 13.965706), 4326)::geography, 'active'),
       ('ST016', 'หน้ามหาลัย', 'In Front of University',
-        ST_SetSRID(ST_MakePoint(100.587800, 13.965200), 4326)::geography, 'active'),
+        ST_SetSRID(ST_MakePoint(100.588650, 13.965015), 4326)::geography, 'active'),
       ('ST017', 'สถานีรถไฟ', 'Train Station',
-        ST_SetSRID(ST_MakePoint(100.588200, 13.964800), 4326)::geography, 'active')
+        ST_SetSRID(ST_MakePoint(100.606585, 13.967230), 4326)::geography, 'active')
     ON CONFLICT (id) DO NOTHING
   `;
 
