@@ -9,7 +9,7 @@ export const handleLocationData = async (data: any) => {
         if (!tripId || !vehicleId || lat === undefined || lng === undefined) return data;
 
         let actualStation = station;
-        if (speed !== undefined && speed !== null && speed >= 1 && station !== 'En Route') {
+        if (speed !== undefined && speed !== null && speed >= 2 && station !== 'En Route') {
             actualStation = 'En Route';
         }
 
@@ -26,9 +26,9 @@ export const handleLocationData = async (data: any) => {
                     ${tripId}::uuid, 
                     ${vehicleId}, 
                     ST_SetSRID(ST_MakePoint(${parseFloat(lng)}, ${parseFloat(lat)}), 4326)::geography, 
-                    ${speed || null}, 
-                    ${bearing || null}, 
-                    ${actualStation || null}, 
+                    ${speed ?? null}, 
+                    ${bearing ?? null}, 
+                    ${actualStation ?? null}, 
                     ${recordedAt}
                 )
             `;
