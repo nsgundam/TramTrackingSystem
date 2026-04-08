@@ -29,6 +29,7 @@ export default function VehicleModal({
 
   useEffect(() => {
     if (initialData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({
         id: initialData.id,
         name: initialData.name,

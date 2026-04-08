@@ -1,0 +1,695 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
+import L from "leaflet";
+import { io, Socket } from "socket.io-client";
+import "leaflet/dist/leaflet.css";
+import Link from "next/link";
+import { Shield } from "lucide-react";
+import * as turf from "@turf/turf";
+import { RSU_CENTER } from "@/constants";
+import { useLeafletMap } from "@/hooks/useLeafletMap";
+import { generateBusIconHtml } from "@/utils/IconHelpers";
+import AvailabilityCard from "@/components/public/AvailabilityCard";
+import StopInfoCard from "@/components/public/StopInfoCard";
+import VehicleInfoCard from "@/components/public/VehicleInfoCard";
+import AppTour from "@/components/public/AppTour";
+import { shouldMove, animateMove, getNearestPointIndex, getDirectionalPointIndex } from "@/utils/MapHelpers";
+import { Stop, LocationUpdateData } from "@/types";
+import Image from "next/image";
+
+// === Constants & Icons ===
+const AVERAGE_BUS_SPEED_KMH = 15;
+const METERS_PER_MIN = AVERAGE_BUS_SPEED_KMH * (1000 / 60);
+
+const DEFAULT_STOP_ICON = L.icon({
+  iconUrl: "/icons/stop.png",
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
+  className: 'stop-marker-tour'
+});
+
+const ACTIVE_STOP_ICON = L.icon({
+  iconUrl: "/icons/stop.png",
+  iconSize: [48, 48],
+  iconAnchor: [24, 48],
+  popupAnchor: [0, -48],
+  className: 'stop-marker-tour'
+});
+
+export default function ShuttleTracker() {
+  const { mapRef, LRef } = useLeafletMap();
+  const configuredBackendOrigin =
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api\/?$/, "");
+
+  // === 1. State ===
+  const [selectedRoute, setSelectedRoute] = useState<string>("R01");
+  const [availableCount, setAvailableCount] = useState<number>(0);
+  const [userLoc, setUserLoc] = useState<[number, number] | null>(null);
+  const [targetStop, setTargetStop] = useState<Stop | null>(null);
+  const [realEta, setRealEta] = useState<number | null>(null);
+  const [isAppLocked, setIsAppLocked] = useState<boolean>(true);
+
+  // 🚀 เพิ่ม State สำหรับ Card รถ
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+  const [activeVehicleInfo, setActiveVehicleInfo] = useState<{ prev: string, next: string } | null>(null);
+
+  // === 2. Refs (Background Data) ===
+  const selectedRouteRef = useRef<string>("R01");
+  const targetStopRef = useRef<Stop | null>(null);
+  
+  // 🚀 เพิ่ม Ref สำหรับ Card รถ เพื่อใช้ใน useCallback
+  const selectedVehicleIdRef = useRef<string | null>(null);
+  const vehicleStopsStatusRef = useRef<Record<string, { prev: string, next: string }>>({});
+  
+  // Data Storage
+  const stopsByRouteRef = useRef<Record<string, Stop[]>>({});
+  const routeGeometryRef = useRef<Record<string, [number, number][]>>({});
+  
+  // Vehicles Tracking
+  const vehiclesRef = useRef<Record<string, L.Marker>>({});
+  const prevPositionsRef = useRef<Record<string, [number, number]>>({});
+  const vehicleSpeedHistoryRef = useRef<Record<string, number[]>>({});
+  const vehicleRouteMapRef = useRef<Record<string, string>>({});
+  const vehicleLastPolyIndexRef = useRef<Record<string, number>>({});
+  
+  // Map Layers
+  const activeStopMarkerRef = useRef<L.Marker | null>(null);
+  const stopMarkersMapRef = useRef<Record<string, L.Marker>>({});
+  const routeLayersRef = useRef<Record<string, L.LayerGroup>>({});
+  const stopLayersRef = useRef<Record<string, L.LayerGroup>>({});
+  const userMarkerRef = useRef<L.Marker | null>(null);
+  
+  // Event Queues
+  const isZoomingRef = useRef<boolean>(false);
+  const pendingUpdatesRef = useRef<Record<string, LocationUpdateData>>({});
+  const processLocationUpdateRef = useRef<(data: LocationUpdateData) => void>(() => {});
+  const calculateETARef = useRef<() => void>(() => {});
+
+  // === 3. Core Functions ===
+
+  const calculateETA = () => {
+    if (!targetStopRef.current || !mapRef.current) {
+      setRealEta(null);
+      return;
+    }
+
+    const stop = targetStopRef.current;
+    const routeId = selectedRouteRef.current;
+    const coords = routeGeometryRef.current[routeId];
+    const stops = stopsByRouteRef.current[routeId] || [];
+    let minEtaMinutes = Infinity;
+
+    if (!coords || coords.length === 0) return;
+
+    Object.keys(vehiclesRef.current).forEach((id) => {
+      if (vehicleRouteMapRef.current[id] !== routeId || !mapRef.current?.hasLayer(vehiclesRef.current[id])) return;
+
+      const busIdx = vehicleLastPolyIndexRef.current[id];
+      const stopIdx = stop.polyIndex;
+
+      if (busIdx === undefined || busIdx === -1 || stopIdx === undefined) return;
+
+      const calcDist = (startIdx: number, endIdx: number) => {
+        let d = 0;
+        for (let i = startIdx; i < endIdx; i++) {
+          d += L.latLng(coords[i]).distanceTo(L.latLng(coords[i + 1]));
+        }
+        return d;
+      };
+
+      const pos = prevPositionsRef.current[id];
+      const physicalDist = pos ? L.latLng(pos[0], pos[1]).distanceTo(L.latLng(stop.lat, stop.lng)) : Infinity;
+
+      // ระยะห่างแบบ 1D Index (เดินหน้าอย่างเดียว)
+      let forwardDiff = stopIdx - busIdx;
+      if (forwardDiff < 0) forwardDiff += coords.length;
+
+      let backwardDiff = busIdx - stopIdx;
+      if (backwardDiff < 0) backwardDiff += coords.length;
+
+      let pathDist = 0;
+      let stopsBetween = 0;
+
+      // ถ้ารถอยู่ใกล้ป้ายจริง (ระยะทาง < 30m) และ Index อยู่ใกล้กัน ถือว่าถึงแล้ว
+      if (physicalDist <= 30 && (forwardDiff < 15 || backwardDiff < 15)) {
+          pathDist = 0;
+          stopsBetween = 0;
+      } else {
+          // บังคับคำนวณตามลำดับ Index (ถ้ารถอยู่เลนสวน มันจะบวกระยะทางตามเลนจนกว่าจะวนรถกลับมาเอง)
+          if (busIdx <= stopIdx) {
+              pathDist = calcDist(busIdx, stopIdx);
+          } else {
+              pathDist = calcDist(busIdx, coords.length - 1) + calcDist(0, stopIdx);
+          }
+
+          // นับป้ายที่อยู่ระหว่างทาง (เฉพาะป้ายที่ยังไม่ถึง)
+          stopsBetween = stops.filter(s => {
+              if (s.polyIndex === undefined) return false;
+              if (busIdx <= stopIdx) {
+                  return s.polyIndex > busIdx && s.polyIndex < stopIdx;
+              } else {
+                  return s.polyIndex > busIdx || s.polyIndex < stopIdx;
+              }
+          }).length;
+      }
+
+      const history = vehicleSpeedHistoryRef.current[id] || [];
+      let speedKmh = 15;
+      if (history.length > 0) speedKmh = history.reduce((a, b) => a + b, 0) / history.length;
+      if (speedKmh < 10) speedKmh = 10;
+
+      const pureDrivingTime = pathDist / METERS_PER_MIN;
+      const stopDwellTime = stopsBetween * 0.5;
+
+      const etaMinutes = Math.max(1, Math.ceil(pureDrivingTime + stopDwellTime));
+      if (etaMinutes < minEtaMinutes) minEtaMinutes = etaMinutes;
+    });
+
+    setRealEta(minEtaMinutes === Infinity ? null : minEtaMinutes);
+  };
+
+  const updateAvailableCount = () => {
+    if (!mapRef.current) return;
+    const count = Object.values(vehiclesRef.current).filter(marker => mapRef.current?.hasLayer(marker)).length;
+    setAvailableCount(count);
+    calculateETA();
+  };
+
+  const handleFindNearestStop = () => {
+    if (!userLoc) return alert("กรุณาเปิดการเข้าถึงตำแหน่งที่ตั้ง (GPS) ในเบราว์เซอร์ของคุณ");
+    const currentStops = stopsByRouteRef.current[selectedRouteRef.current] || [];
+    if (currentStops.length === 0) return;
+
+    let nearest: Stop | null = null;
+    let minDst = Infinity;
+    
+    for (const stop of currentStops)  {
+      const dst = L.latLng(userLoc[0], userLoc[1]).distanceTo(L.latLng(stop.lat, stop.lng));
+      if (dst < minDst) { minDst = dst; nearest = stop; }
+    }
+
+    if (nearest && mapRef.current) {
+      // 🚀 ซ่อน Card รถ
+      setSelectedVehicleId(null);
+      selectedVehicleIdRef.current = null;
+
+      setTargetStop(nearest);
+      targetStopRef.current = nearest;
+      calculateETA();
+      mapRef.current.flyTo([nearest.lat, nearest.lng], 19, { animate: true });
+
+      if (activeStopMarkerRef.current) activeStopMarkerRef.current.setIcon(DEFAULT_STOP_ICON);
+      const nearestMarker = stopMarkersMapRef.current[String(nearest.id)];
+      if (nearestMarker) {
+        nearestMarker.setIcon(ACTIVE_STOP_ICON);
+        activeStopMarkerRef.current = nearestMarker;
+      }
+    }
+  };
+
+  const handleRouteChange = (routeId: string) => {
+    if (!mapRef.current) return;
+    setSelectedRoute(routeId);
+    selectedRouteRef.current = routeId;
+
+    Object.values(routeLayersRef.current).forEach(layer => mapRef.current?.removeLayer(layer));
+    routeLayersRef.current[routeId]?.addTo(mapRef.current);
+
+    Object.values(stopLayersRef.current).forEach(layer => mapRef.current?.removeLayer(layer));
+    stopLayersRef.current[routeId]?.addTo(mapRef.current);
+
+    Object.keys(vehiclesRef.current).forEach(id => {
+      const marker = vehiclesRef.current[id];
+      if (vehicleRouteMapRef.current[id] === routeId) {
+        if (!mapRef.current?.hasLayer(marker)) marker.addTo(mapRef.current!);
+      } else {
+        if (mapRef.current?.hasLayer(marker)) mapRef.current.removeLayer(marker);
+      }
+    });
+
+    setTargetStop(null);
+    targetStopRef.current = null;
+    if (activeStopMarkerRef.current) {
+      activeStopMarkerRef.current.setIcon(DEFAULT_STOP_ICON);
+      activeStopMarkerRef.current = null;
+    }
+    
+    // ซ่อน Card รถตอนเปลี่ยนสาย
+    setSelectedVehicleId(null);
+    selectedVehicleIdRef.current = null;
+
+    updateAvailableCount();
+  };
+
+const processLocationUpdate = (data: LocationUpdateData) => {
+    if (!mapRef.current) return;
+
+    const id = String(data.vehicleId || data.id);
+
+    const currentSpeed = Number(data.speed ?? data.velocity ?? 15);
+    if (!vehicleSpeedHistoryRef.current[id]) vehicleSpeedHistoryRef.current[id] = [];
+    vehicleSpeedHistoryRef.current[id].push(currentSpeed);
+    if (vehicleSpeedHistoryRef.current[id].length > 5) vehicleSpeedHistoryRef.current[id].shift();
+
+    const rawLat = Number(data.lat);
+    const rawLng = Number(data.lng);
+    let newPos: [number, number] = [rawLat, rawLng];
+
+    if (!vehicleRouteMapRef.current[id]) vehicleRouteMapRef.current[id] = selectedRouteRef.current;
+    const routeId = vehicleRouteMapRef.current[id];
+
+    // 🚀 ดึงองศาการหมุนจาก Backend ตรงๆ
+    const backendBearing = Number(data.bearing ?? data.heading ?? 0);
+
+    // 1. Turf.js แบบ "สายตาสั้น" ป้องกันการวาร์ปข้ามเลน
+    const coords = routeGeometryRef.current[routeId];
+    if (coords && coords.length > 0) {
+      let currentIdx = vehicleLastPolyIndexRef.current[id] ?? -1;
+      let needGlobalSearch = (currentIdx === -1);
+
+      if (!needGlobalSearch) {
+        const lastCoord = coords[currentIdx];
+        const distFromLast = L.latLng(rawLat, rawLng).distanceTo(L.latLng(lastCoord[0], lastCoord[1]));
+        if (distFromLast > 150) needGlobalSearch = true; 
+      }
+
+      if (needGlobalSearch) {
+        currentIdx = getNearestPointIndex([rawLat, rawLng], coords);
+      } else {
+        currentIdx = getDirectionalPointIndex([rawLat, rawLng], coords, currentIdx);
+      }
+      vehicleLastPolyIndexRef.current[id] = currentIdx;
+
+      const localLineCoords = [];
+      for (let i = -5; i <= 15; i++) {
+        const idx = (currentIdx + i + coords.length) % coords.length;
+        localLineCoords.push([coords[idx][1], coords[idx][0]]);
+      }
+
+      try {
+        const pt = turf.point([rawLng, rawLat]);
+        const localLine = turf.lineString(localLineCoords);
+        const snapped = turf.nearestPointOnLine(localLine, pt);
+        newPos = [snapped.geometry.coordinates[1], snapped.geometry.coordinates[0]];
+      } catch {
+        newPos = [coords[currentIdx][0], coords[currentIdx][1]]; 
+      }
+    }
+
+    // 🚀 2. สร้าง Marker รถใหม่ (ดึง HTML จากไฟล์แยกมาใช้)
+    if (!vehiclesRef.current[id]) {
+      const busHtml = generateBusIconHtml(id, backendBearing);
+
+      const marker = L.marker(newPos, { 
+        icon: L.divIcon({ 
+          html: busHtml,
+          className: 'bus-marker-tour',
+          iconSize: [36, 44], 
+          iconAnchor: [18, 22] 
+        }) 
+      });
+      vehiclesRef.current[id] = marker;
+      prevPositionsRef.current[id] = newPos;
+
+      marker.on("click", (e) => {
+        L.DomEvent.stopPropagation(e);
+        setSelectedVehicleId(id);
+        selectedVehicleIdRef.current = id;
+
+        setTargetStop(null);
+        targetStopRef.current = null;
+        if (activeStopMarkerRef.current) {
+          activeStopMarkerRef.current.setIcon(DEFAULT_STOP_ICON);
+          activeStopMarkerRef.current = null;
+        }
+
+        const info = vehicleStopsStatusRef.current[id];
+        if (info) setActiveVehicleInfo(info);
+
+        const pos = marker.getLatLng();
+        mapRef.current?.flyTo([pos.lat, pos.lng], 19, { animate: true, duration: 0.8 });
+      });
+
+      if (vehicleRouteMapRef.current[id] === selectedRouteRef.current) marker.addTo(mapRef.current);
+      updateAvailableCount();
+      return;
+    }
+
+    // 3. อัปเดต Marker รถที่มีอยู่แล้ว
+    const marker = vehiclesRef.current[id];
+    if (vehicleRouteMapRef.current[id] === selectedRouteRef.current) {
+      if (!mapRef.current.hasLayer(marker)) marker.addTo(mapRef.current);
+    } else {
+      if (mapRef.current.hasLayer(marker)) { mapRef.current.removeLayer(marker); return; }
+    }
+
+    // 🚀 4. สั่งหมุนไอคอนเข็มทิศ และหมุนตัวเลขกลับให้ตั้งตรง
+    const wrapperEl = document.getElementById(`bus-wrapper-${id}`);
+    const textEl = document.getElementById(`bus-text-${id}`);
+    if (wrapperEl && textEl) {
+      wrapperEl.style.transform = `rotate(${backendBearing}deg)`;
+      const snappedBearing = Math.round(backendBearing / 90) * 90;
+      textEl.setAttribute('transform', `rotate(${-snappedBearing}, 16, 24)`);
+    }
+
+    // 5. ระบบหาป้ายก่อนหน้า / ถัดไป แบบ 1D Index
+    const routeStops = stopsByRouteRef.current[routeId] || [];
+    let prevStopName = "กำลังประเมิน...";
+    let nextStopName = "กำลังประเมิน...";
+
+    const currentIdx = vehicleLastPolyIndexRef.current[id] ?? -1;
+
+    if (routeStops.length > 0 && currentIdx !== -1) {
+      let minPositiveDiff = Infinity;
+      let nextStopObj: Stop | null = null;
+      let prevStopObj: Stop | null = null;
+
+      for (let i = 0; i < routeStops.length; i++) {
+        const stop = routeStops[i];
+        const stopIdx = stop.polyIndex;
+        if (stopIdx === undefined) continue;
+
+        if (!coords) continue;
+        let diff = stopIdx - currentIdx;
+        if (diff < 0) diff += coords.length; 
+
+        if (diff < minPositiveDiff) {
+          minPositiveDiff = diff;
+          nextStopObj = stop;
+          
+          const prevIndex = (i - 1 + routeStops.length) % routeStops.length;
+          prevStopObj = routeStops[prevIndex];
+        }
+      }
+
+      if (prevStopObj) prevStopName = prevStopObj.nameTh || prevStopObj.name || "ไม่ทราบชื่อป้าย";
+      if (nextStopObj) nextStopName = nextStopObj.nameTh || nextStopObj.name || "ไม่ทราบชื่อป้าย";
+    }
+
+    const newInfo = { prev: prevStopName, next: nextStopName };
+    vehicleStopsStatusRef.current[id] = newInfo;
+
+    if (selectedVehicleIdRef.current === id) {
+      setActiveVehicleInfo(newInfo);
+    }
+
+    // 6. อนิเมชันเลื่อนรถให้เนียนตา
+    const oldPos = prevPositionsRef.current[id];
+    if (shouldMove(oldPos, newPos)) {
+      animateMove(marker, oldPos, newPos);
+      prevPositionsRef.current[id] = newPos;
+    }
+    
+    updateAvailableCount();
+  };
+  // === 4. Effects ===
+  useEffect(() => {
+    calculateETARef.current = calculateETA;
+  });
+
+  useEffect(() => {
+    processLocationUpdateRef.current = processLocationUpdate;
+  });
+
+  useEffect(() => {
+    const apiOrigins = (() => {
+      const origins: string[] = [];
+      if (configuredBackendOrigin) origins.push(configuredBackendOrigin.replace(/\/$/, ""));
+      if (typeof window !== "undefined") origins.push(window.location.origin);
+      origins.push("http://localhost:3001");
+      return [...new Set(origins)];
+    })();
+
+    const loadRouteData = async (routeId: string) => {
+      try {
+        let stops: Stop[] | null = null;
+        let lastError: unknown = null;
+
+        for (const origin of apiOrigins) {
+          try {
+            const stopRes = await fetch(`${origin}/api/public/routes/${routeId}/stops`);
+            if (!stopRes.ok) {
+              throw new Error(`HTTP ${stopRes.status}`);
+            }
+            stops = (await stopRes.json()) as Stop[];
+            break;
+          } catch (error) {
+            lastError = error;
+          }
+        }
+
+        if (!stops) {
+          throw new Error(
+            `Could not fetch route ${routeId} stops from any backend (${apiOrigins.join(", ")}).`,
+            { cause: lastError as Error | undefined }
+          );
+        }
+
+        const stopLayer = L.layerGroup();
+        stopsByRouteRef.current[routeId] = stops;
+
+        stops.forEach((stop) => {
+          const marker = L.marker([stop.lat, stop.lng], { icon: DEFAULT_STOP_ICON }).addTo(stopLayer);
+          stopMarkersMapRef.current[String(stop.id)] = marker;
+
+          marker.on("click", (e) => {
+            L.DomEvent.stopPropagation(e);
+            
+            // 🚀 ปิด Card รถ เพื่อโชว์ Card ป้าย
+            setSelectedVehicleId(null);
+            selectedVehicleIdRef.current = null;
+
+            if (activeStopMarkerRef.current) activeStopMarkerRef.current.setIcon(DEFAULT_STOP_ICON);
+            marker.setIcon(ACTIVE_STOP_ICON);
+            activeStopMarkerRef.current = marker;
+            setTargetStop(stop);
+            targetStopRef.current = stop;
+            calculateETARef.current();
+            mapRef.current?.flyTo([stop.lat, stop.lng], 19, { animate: true, duration: 0.8 });
+          });
+        });
+
+        stopLayersRef.current[routeId] = stopLayer;
+        if (routeId === selectedRouteRef.current && mapRef.current) stopLayer.addTo(mapRef.current);
+
+        const stopsSignature = stops.map(s => s.id).join(',');
+        const cacheKey = `rsu-route-cache-${routeId}`;
+        const cachedDataStr = localStorage.getItem(cacheKey);
+        
+        let finalCoords: [number, number][] = [];
+        let needToFetchOSRM = false;
+        
+        if (cachedDataStr) {
+          const cachedData = JSON.parse(cachedDataStr) as {
+            signature: string;
+            coords: [number, number][];
+          };
+          if (cachedData.signature === stopsSignature && cachedData.coords.length > 0) finalCoords = cachedData.coords; 
+          else needToFetchOSRM = true;
+        } else {
+          try {
+            const defaultRouteRes = await fetch(`/data/route-${routeId}.json`);
+            if (defaultRouteRes.ok) {
+              finalCoords = (await defaultRouteRes.json()) as [number, number][];
+              localStorage.setItem(cacheKey, JSON.stringify({ signature: stopsSignature, coords: finalCoords }));
+            } else needToFetchOSRM = true;
+          } catch {
+            needToFetchOSRM = true;
+          }
+        }
+
+        if (needToFetchOSRM || finalCoords.length === 0) {
+          console.log(`[${routeId}] Fetching from OSRM...`);
+          const points = stops.map(p => `${p.lng},${p.lat}`);
+          if (points.length > 0) {
+            points.push(points[0]);
+            const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${points.join(";")}?overview=full&geometries=geojson`);
+            const osrmData = (await osrmRes.json()) as {
+              routes?: Array<{ geometry: { coordinates: number[][] } }>;
+            };
+
+            if (osrmData.routes?.[0]) {
+              finalCoords = osrmData.routes[0].geometry.coordinates.map((c: number[]) => [c[1], c[0]]);
+              localStorage.setItem(cacheKey, JSON.stringify({ signature: stopsSignature, coords: finalCoords }));
+            }
+          }
+        }
+
+        if (finalCoords.length > 0) {
+          routeGeometryRef.current[routeId] = finalCoords;
+
+          let currentSearchIdx = 0;
+          stops.forEach(stop => {
+            let bestIdx = currentSearchIdx;
+            let minDst = Infinity;
+            for (let i = currentSearchIdx; i < finalCoords.length; i++) {
+              const dst = L.latLng(stop.lat, stop.lng).distanceTo(L.latLng(finalCoords[i][0], finalCoords[i][1]));
+              if (dst < minDst) { minDst = dst; bestIdx = i; }
+            }
+            stop.polyIndex = bestIdx;
+            currentSearchIdx = bestIdx;
+          });
+
+          const routeLayer = L.layerGroup();
+          L.polyline(finalCoords, { color: routeId === "R01" ? "#FF8169" : "#3B82F6", weight: 5, smoothFactor: 1.5, className: 'neon-path' }).addTo(routeLayer);
+          routeLayersRef.current[routeId] = routeLayer;
+          
+          if (routeId === selectedRouteRef.current && mapRef.current) routeLayer.addTo(mapRef.current);
+        }
+      } catch (err) {
+        console.error(`Failed to load route ${routeId}`, err);
+      }
+    };
+
+    function waitForMap() {
+      if (mapRef.current && LRef.current) {
+        clearInterval(interval);
+        mapRef.current.flyTo(RSU_CENTER, 16.7, { animate: true, duration: 1.2 });
+
+        mapRef.current.on('zoomstart', () => { isZoomingRef.current = true; setIsAppLocked(true); });
+        mapRef.current.on('zoomend', () => { 
+          isZoomingRef.current = false; setIsAppLocked(false);
+          Object.values(pendingUpdatesRef.current).forEach(data => processLocationUpdateRef.current(data));
+          pendingUpdatesRef.current = {};
+        });
+        
+        mapRef.current.on("click", () => {
+          if (isZoomingRef.current) return;
+          
+          // 🚀 กดที่ว่างๆ ปิด Card ทั้งหมด
+          if (targetStopRef.current || activeStopMarkerRef.current || selectedVehicleIdRef.current) {
+            
+            // ล้างป้าย
+            setTargetStop(null); targetStopRef.current = null;
+            if (activeStopMarkerRef.current) { activeStopMarkerRef.current.setIcon(DEFAULT_STOP_ICON); activeStopMarkerRef.current = null; }
+            
+            // ล้างรถ
+            setSelectedVehicleId(null); selectedVehicleIdRef.current = null;
+
+            mapRef.current?.flyTo(RSU_CENTER, 16.7, { animate: true, duration: 0.8 });
+          }
+        });
+        
+        loadRouteData("R01");
+        loadRouteData("R02");
+      }
+    }
+
+    const interval = setInterval(waitForMap, 200);
+    return () => clearInterval(interval);
+  }, [LRef, mapRef, configuredBackendOrigin]);
+
+  useEffect(() => {
+    const handleZoomCenter = () => {
+      if (mapRef.current) {
+        // 🚀 พากล้องร่อนกลับมาจุดศูนย์กลางมหาลัย
+        mapRef.current.flyTo(RSU_CENTER, 16.7, {
+          animate: true,
+          duration: 1.2
+        });
+      }
+    };
+  
+    window.addEventListener('tour-zoom-center', handleZoomCenter);
+    return () => window.removeEventListener('tour-zoom-center', handleZoomCenter);
+  }, [mapRef]);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    const watchId = navigator.geolocation.watchPosition(
+      (pos: GeolocationPosition) => {
+        const coords: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+        setUserLoc(coords);
+        if (!mapRef.current) return;
+        
+        if (!userMarkerRef.current) {
+          const userIcon = L.divIcon({ className: "user-loc-marker", html: `<div class="user-pulse"></div>`, iconSize: [20, 20], iconAnchor: [10, 10] });
+          userMarkerRef.current = L.marker(coords, { icon: userIcon }).addTo(mapRef.current);
+        } else {
+          userMarkerRef.current.setLatLng(coords);
+        }
+      },
+      (err) => console.log("GPS Error:", err),
+      { enableHighAccuracy: true }
+    );
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [mapRef]);
+
+  useEffect(() => {
+    const socketOrigin =
+      configuredBackendOrigin ||
+      (typeof window !== "undefined" ? window.location.origin : "http://localhost:3001");
+    const socket: Socket = io(socketOrigin);
+
+    socket.on("location-update", (data: LocationUpdateData) => {
+      if (!mapRef.current) return;
+      if (isZoomingRef.current) {
+        const id = String(data.vehicleId || data.id);
+        pendingUpdatesRef.current[id] = data;
+        return;
+      }
+      processLocationUpdateRef.current(data);
+    });
+
+    return () => { socket.disconnect(); };
+  }, [configuredBackendOrigin, mapRef]);
+
+  return (
+    <div className="rsu-app">
+      {isAppLocked && <div style={{ position: 'fixed', inset: 0, zIndex: 99999, cursor: 'wait' }} />}
+
+      <div className="rsu-bar" />
+
+      <div className="rsu-map-wrap">
+        {/* 🚀 Header */}
+        <header className="rsu-minimal-header">
+          <div className="rsu-header-content-wrapper">
+            <Image src="/icons/RSU_logo.png" alt="RSU Logo" className="rsu-logo" />
+
+            {/* wrapper เก่าแบบแนวตั้งสำหรับตัวหนังสือ */}
+            <div className="rsu-header-text">
+              <h1 className="rsu-title">Rangsit University</h1>
+              <p className="rsu-subtitle">Tram Tracker</p>
+            </div>
+          </div>
+          <Link href="/admin/login" className="rsu-admin-link" title="Admin Login">
+            <Shield size={16} />
+          </Link>
+        </header>
+
+        <div id="rsu-map" />
+        <div className="route-selector">
+          {["R01", "R02"].map(route => (
+            <button key={route} className={`route-btn ${selectedRoute === route ? "active" : ""}`} onClick={() => handleRouteChange(route)}>
+              {route}
+            </button>
+          ))}
+        </div>
+        <AvailabilityCard count={availableCount} />
+        
+        {/* 🚀 โชว์ Stop Info Card เมื่อไม่ได้เลือกรถ */}
+        {!selectedVehicleId && (
+          <StopInfoCard 
+          targetStop={targetStop} 
+          eta={realEta} 
+          onFindNearest={handleFindNearestStop} />
+        )}
+
+        {/* 🚀 โชว์ Vehicle Info Card เมื่อเลือกรถ */}
+        {selectedVehicleId && activeVehicleInfo && (
+          <VehicleInfoCard 
+            routeId={selectedRoute}
+            prevStop={activeVehicleInfo.prev}
+            nextStop={activeVehicleInfo.next}
+            onFindNearest={handleFindNearestStop}
+          />
+        )}
+
+      </div>
+      <div className="rsu-bar" />
+      <AppTour />
+    </div>
+  );
+}

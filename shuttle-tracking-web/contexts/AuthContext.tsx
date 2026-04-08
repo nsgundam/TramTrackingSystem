@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { setCookie, deleteCookie, getCookie } from "cookies-next";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
@@ -35,26 +35,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
+  const logout = useCallback(() => {
+    deleteCookie("admin_token");
+    setToken(null);
+    setUser(null);
+    delete axios.defaults.headers.common["Authorization"];
+    router.push("/admin/login");
+  }, [router]);
+
   useEffect(() => {
     const storedToken = getCookie("admin_token") as string;
     
     if (storedToken) {
       try {
-        const decoded = jwtDecode(storedToken) as any;
+        const decoded = jwtDecode<{exp: number, userId: string, username: string}>(storedToken);
         if (decoded.exp * 1000 < Date.now()) {
-          logout();
+          setTimeout(() => logout(), 0);
         } else {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setToken(storedToken);
           setUser({ id: decoded.userId, username: decoded.username });
           axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
         }
       } catch (error) {
         console.error("Invalid token", error);
-        logout();
+        setTimeout(() => logout(), 0);
       }
     }
     setIsLoading(false);
-  }, []);
+  }, [logout]);
 
   const login = (newToken: string, userData: User) => {
     setCookie("admin_token", newToken, { maxAge: 60 * 60 * 24 });
@@ -62,14 +71,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(userData);
     axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
     router.push("/admin/dashboard");
-  };
-
-  const logout = () => {
-    deleteCookie("admin_token");
-    setToken(null);
-    setUser(null);
-    delete axios.defaults.headers.common["Authorization"];
-    router.push("/admin/login");
   };
 
   return (

@@ -28,6 +28,7 @@ export default function StopModal({
 
   useEffect(() => {
     if (initialData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({
         id: initialData.id,
         nameTh: initialData.nameTh,
