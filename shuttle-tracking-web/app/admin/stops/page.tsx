@@ -16,7 +16,7 @@ export default function StopsPage() {
   const fetchStops = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/admin/stops");
+      const res = await api.get("admin/stops");
       setStops(res.data);
     } catch (error) {
       console.error("Failed to fetch stops:", error);
@@ -33,9 +33,9 @@ export default function StopsPage() {
   const handleSave = async (data: Partial<Stop>) => {
     try {
       if (editingStop) {
-        await api.put(`/admin/stops/${editingStop.id}`, data);
+        await api.put(`admin/stops/${editingStop.id}`, data);
       } else {
-        await api.post("/admin/stops", data);
+        await api.post("admin/stops", data);
       }
       setIsModalOpen(false);
       fetchStops();
@@ -48,7 +48,7 @@ export default function StopsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this stop?")) return;
     try {
-      await api.delete(`/admin/stops/${id}`);
+      await api.delete(`admin/stops/${id}`);
       fetchStops();
     } catch (error) {
       console.error("Delete error:", error);

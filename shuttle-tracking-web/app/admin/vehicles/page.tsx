@@ -18,8 +18,8 @@ export default function VehiclesPage() {
     try {
       setLoading(true);
       const [vehiclesRes, routesRes] = await Promise.all([
-        api.get("/admin/vehicles"),
-        api.get("/admin/routes"),
+        api.get("admin/vehicles"),
+        api.get("admin/routes"),
       ]);
 
       setVehicles(vehiclesRes.data);
@@ -40,10 +40,10 @@ export default function VehiclesPage() {
     try {
       if (editingVehicle) {
         // UPDATE
-        await api.put(`/admin/vehicles/${editingVehicle.id}`, data);
+        await api.put(`admin/vehicles/${editingVehicle.id}`, data);
       } else {
         // CREATE
-        await api.post("/admin/vehicles", data);
+        await api.post("admin/vehicles", data);
       }
 
       setIsModalOpen(false);
@@ -58,7 +58,7 @@ export default function VehiclesPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this vehicle?")) return;
     try {
-      await api.delete(`/admin/vehicles/${id}`);
+      await api.delete(`admin/vehicles/${id}`);
       fetchData();
     } catch (error) {
       alert("Error deleting vehicle: " + error);

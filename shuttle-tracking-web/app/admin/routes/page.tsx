@@ -16,7 +16,7 @@ export default function RoutesPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/admin/routes");
+      const res = await api.get("admin/routes");
       setRoutes(res.data);
     } catch (error) {
       console.error("Failed to fetch routes:", error);
@@ -34,10 +34,10 @@ export default function RoutesPage() {
     try {
       if (editingRoute) {
         // UPDATE
-        await api.put(`/admin/routes/${editingRoute.id}`, data);
+        await api.put(`admin/routes/${editingRoute.id}`, data);
       } else {
         // CREATE
-        await api.post("/admin/routes", data);
+        await api.post("admin/routes", data);
       }
 
       setIsModalOpen(false);
@@ -52,7 +52,7 @@ export default function RoutesPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this route?")) return;
     try {
-      await api.delete(`/admin/routes/${id}`);
+      await api.delete(`admin/routes/${id}`);
       fetchData();
     } catch (error) {
       console.error("Delete error:", error);
