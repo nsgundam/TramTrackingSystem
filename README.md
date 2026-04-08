@@ -24,7 +24,7 @@ Please ensure you have the following installed on your machine:
 
 1. **Clone the repository** (if you haven't already):
    ```bash
-   git clone <your-repository-url>
+   git clone https://github.com/nsgundam/TramTrackingSystem.git
    cd TramTrackingSystem
    ```
 
