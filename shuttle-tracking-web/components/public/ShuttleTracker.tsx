@@ -646,7 +646,7 @@ const processLocationUpdate = (data: LocationUpdateData) => {
         {/* 🚀 Header */}
         <header className="rsu-minimal-header">
           <div className="rsu-header-content-wrapper">
-            <Image src="/icons/RSU_logo.png" alt="RSU Logo" className="rsu-logo" />
+            <Image src="/icons/RSU_logo.png" alt="RSU Logo" className="rsu-logo" width={30} height={30}/>
 
             {/* wrapper เก่าแบบแนวตั้งสำหรับตัวหนังสือ */}
             <div className="rsu-header-text">
