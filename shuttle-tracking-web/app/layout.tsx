@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Admin Tram Tracking System",
+  title: "RSU Tram Tracking System",
   description: "Tram Tracking System",
 };
 
