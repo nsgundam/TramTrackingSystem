@@ -20,9 +20,16 @@ const app = express();
 
 // HTTP server and Socket.IO setup
 const httpServer = createServer(app);
+
+// Parse CORS origins from environment variables (comma-separated list)
+const corsOriginEnv = process.env.CORS_ORIGIN || process.env.CORS_ORIGINS;
+const allowedOrigins = corsOriginEnv
+  ? corsOriginEnv.split(',').map(o => o.trim())
+  : ['http://localhost:3000'];
+
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CORS_ORIGIN,
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
   },
 });
