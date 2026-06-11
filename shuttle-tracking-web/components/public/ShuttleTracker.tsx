@@ -3,8 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { io, Socket } from "socket.io-client";
 import "leaflet/dist/leaflet.css";
-import Link from "next/link";
-import { Shield } from "lucide-react";
 import * as turf from "@turf/turf";
 import { RSU_CENTER } from "@/constants";
 import { useLeafletMap } from "@/hooks/useLeafletMap";
@@ -654,9 +652,6 @@ const processLocationUpdate = (data: LocationUpdateData) => {
               <p className="rsu-subtitle">Tram Tracker</p>
             </div>
           </div>
-          <Link href="/admin/login" className="rsu-admin-link" title="Admin Login">
-            <Shield size={16} />
-          </Link>
         </header>
 
         <div id="rsu-map" />
