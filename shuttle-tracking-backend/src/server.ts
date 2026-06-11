@@ -29,15 +29,18 @@ const FRONTEND_URLS = [
 
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    if (!origin || FRONTEND_URLS.includes(origin) || origin.includes("localhost") || origin.includes("127.0.0.1")) {
+
+    if (!origin || FRONTEND_URLS.includes(origin)) {
       callback(null, true);
     } else {
-      callback(null, true); // Allow for dev
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
-
 app.use(cors(corsOptions));
 app.use(express.json());
 
