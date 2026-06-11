@@ -95,97 +95,160 @@ export default function VehiclesPage() {
         </button>
       </div>
 
-      {/* Table Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      {/* Table & Card Section */}
+      <div className="bg-transparent lg:bg-white lg:rounded-xl lg:shadow-xs lg:border lg:border-slate-200/80 overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-slate-500 flex justify-center items-center gap-2">
-            <RefreshCw className="animate-spin" /> Loading...
+          <div className="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-500 flex justify-center items-center gap-2 shadow-xs">
+            <RefreshCw className="animate-spin text-blue-600" /> Loading...
           </div>
         ) : (
-          <div className="overflow-x-auto w-full">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="p-4 text-sm font-semibold text-slate-600">ID</th>
-                  <th className="p-4 text-sm font-semibold text-slate-600">
-                    Name
-                  </th>
-                  <th className="p-4 text-sm font-semibold text-slate-600">
-                    Type
-                  </th>
-                  <th className="p-4 text-sm font-semibold text-slate-600">
-                    Route
-                  </th>
-                  <th className="p-4 text-sm font-semibold text-slate-600">
-                    Status
-                  </th>
-                  <th className="p-4 text-sm font-semibold text-slate-600 text-right">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {vehicles.map((vehicle) => (
-                  <tr
-                    key={vehicle.id}
-                    className="border-b border-slate-100 hover:bg-slate-50"
-                  >
-                    <td className="p-4 font-mono text-sm text-slate-500">
-                      {vehicle.id}
-                    </td>
-                    <td className="p-4 font-medium text-slate-900">
-                      {vehicle.name}
-                    </td>
-                    <td className="p-4 text-slate-600">{vehicle.type}</td>
-                    <td className="p-4">
-                      {vehicle.route ? (
-                        <span
-                          className="px-2 py-1 rounded-md text-xs font-medium text-white"
-                          style={{ backgroundColor: vehicle.route.color }}
-                        >
-                          {vehicle.route.name}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 text-sm">-</span>
-                      )}
-                    </td>
-                    <td className="p-4">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          vehicle.status === "active"
-                            ? "bg-green-100 text-green-700"
-                            : vehicle.status === "maintenance"
-                              ? "bg-orange-100 text-orange-700"
-                              : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        {vehicle.status.toUpperCase()}
+          <>
+            {/* Card View for Mobile/Tablet */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:hidden">
+              {vehicles.map((vehicle) => (
+                <div
+                  key={vehicle.id}
+                  className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition-all duration-300"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="font-mono text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">
+                        {vehicle.id}
                       </span>
-                    </td>
-                    <td className="p-4 text-right space-x-2 whitespace-nowrap">
+                      <h3 className="text-lg font-bold text-slate-900 mt-2 font-display">
+                        {vehicle.name}
+                      </h3>
+                      <p className="text-sm text-slate-500 font-medium mt-0.5">
+                        Type: {vehicle.type}
+                      </p>
+                    </div>
+                    <span
+                      className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                        vehicle.status === "active"
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200/50"
+                          : vehicle.status === "maintenance"
+                            ? "bg-amber-50 text-amber-700 border border-amber-200/50"
+                            : "bg-slate-100 text-slate-600 border border-slate-200"
+                      }`}
+                    >
+                      {vehicle.status.toUpperCase()}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <div>
+                      <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Assigned Route</p>
+                      <div className="mt-1">
+                        {vehicle.route ? (
+                          <span
+                            className="px-2.5 py-1 rounded-md text-xs font-semibold text-white shadow-xs"
+                            style={{ backgroundColor: vehicle.route.color }}
+                          >
+                            {vehicle.route.name}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 text-xs font-medium">-</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => openEditModal(vehicle)}
-                        className="p-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center justify-center"
+                        className="p-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors inline-flex items-center justify-center border border-blue-200/40"
+                        title="Edit Vehicle"
                       >
                         <Pencil size={18} />
                       </button>
                       <button
                         onClick={() => handleDelete(vehicle.id)}
-                        className="p-2 bg-red-600 text-white rounded hover:bg-red-700 inline-flex items-center justify-center"
+                        className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors inline-flex items-center justify-center border border-red-200/40"
+                        title="Delete Vehicle"
                       >
                         <Trash2 size={18} />
                       </button>
-                    </td>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Table View for Desktop */}
+            <div className="hidden lg:block overflow-x-auto w-full">
+              <table className="w-full text-left border-collapse min-w-[800px]">
+                <thead className="bg-slate-55 border-b border-slate-200">
+                  <tr>
+                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider">ID</th>
+                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider">Name</th>
+                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider">Type</th>
+                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider">Route</th>
+                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider">Status</th>
+                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {vehicles.map((vehicle) => (
+                    <tr
+                      key={vehicle.id}
+                      className="hover:bg-slate-50/80 transition-colors"
+                    >
+                      <td className="p-4 font-mono text-sm font-semibold text-slate-500">
+                        {vehicle.id}
+                      </td>
+                      <td className="p-4 font-bold text-slate-900 font-display">
+                        {vehicle.name}
+                      </td>
+                      <td className="p-4 text-slate-600 font-medium">{vehicle.type}</td>
+                      <td className="p-4">
+                        {vehicle.route ? (
+                          <span
+                            className="px-2.5 py-1 rounded-md text-xs font-semibold text-white shadow-xs"
+                            style={{ backgroundColor: vehicle.route.color }}
+                          >
+                            {vehicle.route.name}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 text-sm font-medium">-</span>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                            vehicle.status === "active"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200/50"
+                              : vehicle.status === "maintenance"
+                                ? "bg-amber-50 text-amber-700 border border-amber-200/50"
+                                : "bg-slate-100 text-slate-600 border border-slate-200"
+                          }`}
+                        >
+                          {vehicle.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right space-x-2 whitespace-nowrap">
+                        <button
+                          onClick={() => openEditModal(vehicle)}
+                          className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-flex items-center justify-center shadow-xs transition-colors hover:scale-105"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(vehicle.id)}
+                          className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 inline-flex items-center justify-center shadow-xs transition-colors hover:scale-105"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
 
         {/* Empty State */}
         {!loading && vehicles.length === 0 && (
-          <div className="p-12 text-center text-slate-400">
+          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400 font-medium shadow-xs">
             No vehicles found. Click &ldquo;Add Vehicle&rdquo; to start.
           </div>
         )}
