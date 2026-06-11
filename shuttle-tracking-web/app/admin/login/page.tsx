@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Bus, Map, Shield } from "lucide-react";
-import { useRouter } from "next/navigation";
 import api from "@/services/api";
 
 export default function AdminLoginPage() {
@@ -12,7 +11,6 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
-  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,8 +25,9 @@ export default function AdminLoginPage() {
 
       const { token, user } = response.data;
       login(token, user);
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to login. Please try again.");
+    } catch (err: unknown) {
+      const apiError = err as { response?: { data?: { error?: string } } };
+      setError(apiError.response?.data?.error || "Failed to login. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -42,7 +41,7 @@ export default function AdminLoginPage() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/20 blur-[100px]" />
       </div>
 
-      <div className="relative z-10 w-full max-w-md p-8 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl">
+      <div className="relative z-10 w-full max-w-md mx-4 p-6 sm:p-8 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl">
         <div className="flex flex-col items-center mb-8">
           <div className="w-16 h-16 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
             <Shield className="text-white w-8 h-8" />

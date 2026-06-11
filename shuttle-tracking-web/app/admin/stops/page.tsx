@@ -27,6 +27,7 @@ export default function StopsPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStops();
   }, []);
 
@@ -68,14 +69,14 @@ export default function StopsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Stops Management</h1>
           <p className="text-slate-500">Manage bus stops and their coordinates</p>
         </div>
         <button 
           onClick={openAddModal}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full sm:w-auto"
         >
           <Plus size={20} />
           Add Stop
@@ -88,49 +89,51 @@ export default function StopsPage() {
             <RefreshCw className="animate-spin" /> Loading...
           </div>
         ) : (
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="p-4 text-sm font-semibold text-slate-600">ID</th>
-                <th className="p-4 text-sm font-semibold text-slate-600">Name (TH / EN)</th>
-                <th className="p-4 text-sm font-semibold text-slate-600">Coordinates</th>
-                <th className="p-4 text-sm font-semibold text-slate-600 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stops.map((stop) => (
-                <tr key={stop.id} className="border-b border-slate-100 hover:bg-slate-50">
-                  <td className="p-4 font-mono text-sm text-slate-500">{stop.id}</td>
-                  <td className="p-4">
-                    <p className="font-medium text-slate-900">{stop.nameTh}</p>
-                    {stop.nameEn && <p className="text-xs text-slate-500">{stop.nameEn}</p>}
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2 text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg w-fit">
-                      <MapPin size={16} className="text-blue-500" />
-                      <span className="font-mono text-xs">
-                        {stop.lat.toFixed(5)}, {stop.lng.toFixed(5)}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-4 text-right space-x-2">
-                    <button
-                      onClick={() => openEditModal(stop)}
-                      className="p-2 text-slate-400 hover:text-blue-600 transition-colors"
-                    >
-                      <Pencil size={18} />
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(stop.id)}
-                      className="p-2 text-slate-400 hover:text-red-600 transition-colors"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left border-collapse min-w-[700px]">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="p-4 text-sm font-semibold text-slate-600">ID</th>
+                  <th className="p-4 text-sm font-semibold text-slate-600">Name (TH / EN)</th>
+                  <th className="p-4 text-sm font-semibold text-slate-600">Coordinates</th>
+                  <th className="p-4 text-sm font-semibold text-slate-600 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {stops.map((stop) => (
+                  <tr key={stop.id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <td className="p-4 font-mono text-sm text-slate-500">{stop.id}</td>
+                    <td className="p-4">
+                      <p className="font-medium text-slate-900">{stop.nameTh}</p>
+                      {stop.nameEn && <p className="text-xs text-slate-500">{stop.nameEn}</p>}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2 text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg w-fit">
+                        <MapPin size={16} className="text-blue-500" />
+                        <span className="font-mono text-xs">
+                          {stop.lat.toFixed(5)}, {stop.lng.toFixed(5)}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-4 text-right space-x-2 whitespace-nowrap">
+                      <button
+                        onClick={() => openEditModal(stop)}
+                        className="p-2 text-slate-400 hover:text-blue-600 transition-colors inline-flex items-center justify-center"
+                      >
+                        <Pencil size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(stop.id)}
+                        className="p-2 text-slate-400 hover:text-red-600 transition-colors inline-flex items-center justify-center"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         
         {!loading && stops.length === 0 && (

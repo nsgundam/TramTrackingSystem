@@ -27,6 +27,7 @@ export default function RoutesPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, []);
 
@@ -73,7 +74,7 @@ export default function RoutesPage() {
   return (
     <div className="space-y-6">
       {/* Header Section */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">
             Routes Management
@@ -84,7 +85,7 @@ export default function RoutesPage() {
         </div>
         <button
           onClick={openAddModal}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full sm:w-auto"
         >
           <Plus size={20} />
           Add Route
@@ -98,71 +99,73 @@ export default function RoutesPage() {
             <RefreshCw className="animate-spin" /> Loading...
           </div>
         ) : (
-          <table className="w-full table-auto border-collapse">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="p-4 text-sm font-semibold text-slate-600">ID</th>
-                <th className="p-4 text-sm font-semibold text-slate-600">
-                  Name
-                </th>
-                <th className="p-4 text-sm font-semibold text-slate-600">
-                  Color
-                </th>
-                <th className="p-4 text-sm font-semibold text-slate-600">
-                  Status
-                </th>
-                <th className="p-4 text-sm font-semibold text-slate-600 text-right">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {routes.map((route) => (
-                <tr
-                  key={route.id}
-                  className="border-b border-slate-100 hover:bg-slate-50"
-                >
-                  <td className="p-4 font-mono text-sm text-slate-500">
-                    {route.id}
-                  </td>
-                  <td className="p-4 font-medium text-slate-900">
-                    {route.name}
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className="inline-block w-4 h-4 rounded-full"
-                      style={{ backgroundColor: route.color }}
-                    ></span>
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        route.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      {route.status.toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right space-x-2">
-                    <button
-                      onClick={() => openEditModal(route)}
-                      className="p-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      <Pencil size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(route.id)}
-                      className="p-2 bg-red-600 text-white rounded hover:bg-red-700"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
+          <div className="overflow-x-auto w-full">
+            <table className="w-full table-auto border-collapse min-w-[600px]">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="p-4 text-sm font-semibold text-slate-600">ID</th>
+                  <th className="p-4 text-sm font-semibold text-slate-600">
+                    Name
+                  </th>
+                  <th className="p-4 text-sm font-semibold text-slate-600">
+                    Color
+                  </th>
+                  <th className="p-4 text-sm font-semibold text-slate-600">
+                    Status
+                  </th>
+                  <th className="p-4 text-sm font-semibold text-slate-600 text-right">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {routes.map((route) => (
+                  <tr
+                    key={route.id}
+                    className="border-b border-slate-100 hover:bg-slate-50"
+                  >
+                    <td className="p-4 font-mono text-sm text-slate-500">
+                      {route.id}
+                    </td>
+                    <td className="p-4 font-medium text-slate-900">
+                      {route.name}
+                    </td>
+                    <td className="p-4">
+                      <span
+                        className="inline-block w-4 h-4 rounded-full"
+                        style={{ backgroundColor: route.color }}
+                      ></span>
+                    </td>
+                    <td className="p-4">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          route.status === "active"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {route.status.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right space-x-2 whitespace-nowrap">
+                      <button
+                        onClick={() => openEditModal(route)}
+                        className="p-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center justify-center"
+                      >
+                        <Pencil size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(route.id)}
+                        className="p-2 bg-red-600 text-white rounded hover:bg-red-700 inline-flex items-center justify-center"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
         {!loading && routes.length === 0 && (
