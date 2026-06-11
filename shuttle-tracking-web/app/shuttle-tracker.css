@@ -28,11 +28,6 @@
   z-index: 0;
 }
 
-.rsu-bar {
-  height: 6px;
-  flex-shrink: 0;
-  background: linear-gradient(90deg, #ff53b2, #9b61ff, #548aff);
-}
 
 .rsu-minimal-header {
   position: absolute;

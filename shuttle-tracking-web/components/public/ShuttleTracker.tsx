@@ -638,8 +638,6 @@ const processLocationUpdate = (data: LocationUpdateData) => {
     <div className="rsu-app">
       {isAppLocked && <div style={{ position: 'fixed', inset: 0, zIndex: 99999, cursor: 'wait' }} />}
 
-      <div className="rsu-bar" />
-
       <div className="rsu-map-wrap">
         {/* 🚀 Header */}
         <header className="rsu-minimal-header">
