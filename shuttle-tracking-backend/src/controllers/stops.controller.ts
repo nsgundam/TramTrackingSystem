@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js';
+import { invalidatePublicCache } from '../services/cache.service.js';
 
 // Get All Stops
 export const getStops = async (req: Request, res: Response) => {
@@ -77,6 +78,7 @@ export const createStop = async (req: Request, res: Response) => {
             res.status(404).json({ error: 'Stop not found' });
             return;
         }
+        await invalidatePublicCache();
         res.json(newStops[0]);
     }catch (error) {
         console.error('Error creating stop:', error);
@@ -111,6 +113,7 @@ export const updateStop = async (req: Request, res: Response) => {
             });
         }
 
+        await invalidatePublicCache();
         res.json({ message: 'Stop updated successfully', id });
     } catch (error) {
         console.error('Error updating stop:', error);
@@ -125,6 +128,7 @@ export const deleteStop = async (req: Request, res: Response) => {
         await prisma.stop.delete({
             where: { id },
         });
+        await invalidatePublicCache();
         res.json({ message: 'Stop deleted successfully' });
     }catch (error) {
         console.error('Error deleting stop:', error);

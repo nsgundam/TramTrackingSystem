@@ -1,13 +1,28 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js';
+import { redisClient } from '../config/redis.js';
+
+/** Cache TTL in seconds (5 minutes) */
+const CACHE_TTL = 300;
 
 // 1. Get all Active Routes
 export const getActiveRoutes = async (req: Request, res: Response) => {
     try {
+        // Check cache first
+        const cached = await redisClient.get('public:active_routes');
+        if (cached) {
+            res.json(JSON.parse(cached));
+            return;
+        }
+
         const routes = await prisma.route.findMany({
             where: { status: 'active' },
             orderBy: { id: 'asc' }
         });
+
+        // Store in cache
+        await redisClient.set('public:active_routes', JSON.stringify(routes), { EX: CACHE_TTL });
+
         res.json(routes);
     } catch (error) {
         console.error('Error fetching active routes:', error);
@@ -18,11 +33,20 @@ export const getActiveRoutes = async (req: Request, res: Response) => {
 // 2. Get all Active Vehicles
 export const getActiveVehicles = async (req: Request, res: Response) => {
     try {
+        const cached = await redisClient.get('public:active_vehicles');
+        if (cached) {
+            res.json(JSON.parse(cached));
+            return;
+        }
+
         const vehicles = await prisma.vehicle.findMany({
             where: { status: 'active' },
             include: { route: true },
             orderBy: { id: 'asc' }
         });
+
+        await redisClient.set('public:active_vehicles', JSON.stringify(vehicles), { EX: CACHE_TTL });
+
         res.json(vehicles);
     } catch (error) {
         console.error('Error fetching active vehicles:', error);
@@ -33,6 +57,12 @@ export const getActiveVehicles = async (req: Request, res: Response) => {
 // 3. Get all Active Stops
 export const getPublicStops = async (req: Request, res: Response) => {
     try {
+        const cached = await redisClient.get('public:stops');
+        if (cached) {
+            res.json(JSON.parse(cached));
+            return;
+        }
+
         const stops = await prisma.$queryRaw`
             SELECT 
                 id, 
@@ -45,6 +75,11 @@ export const getPublicStops = async (req: Request, res: Response) => {
             WHERE status = 'active'
             ORDER BY id ASC
         `;
+
+        await redisClient.set('public:stops', JSON.stringify(stops, (_key, value) =>
+            typeof value === 'bigint' ? value.toString() : value
+        ), { EX: CACHE_TTL });
+
         res.json(stops);
     } catch (error) {
         console.error('Error fetching public stops:', error);
@@ -56,6 +91,13 @@ export const getPublicStops = async (req: Request, res: Response) => {
 export const getRouteStops = async (req: Request, res: Response) => {
     try {
         const routeId = req.params.id as string;
+        const cacheKey = `public:route_stops:${routeId}`;
+
+        const cached = await redisClient.get(cacheKey);
+        if (cached) {
+            res.json(JSON.parse(cached));
+            return;
+        }
 
         // Ensure this route is actually active, but we can just query the stops.
         const routeStops = await prisma.$queryRaw`
@@ -72,6 +114,11 @@ export const getRouteStops = async (req: Request, res: Response) => {
             WHERE rs.route_id = ${routeId} AND s.status = 'active'
             ORDER BY rs.stop_order ASC
         `;
+
+        await redisClient.set(cacheKey, JSON.stringify(routeStops, (_key, value) =>
+            typeof value === 'bigint' ? value.toString() : value
+        ), { EX: CACHE_TTL });
+
         res.json(routeStops);
     } catch (error) {
         console.error('Error fetching stops for route:', error);

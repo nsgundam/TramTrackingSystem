@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js'; 
-import { lastSavedCache } from '../services/tracking.service.js';
+import { redisClient } from '../config/redis.js';
 
 export const startTrip = async (req: Request, res: Response) => {
     try {
@@ -68,7 +68,7 @@ export const endTrip = async (req: Request, res: Response) => {
             }
         });
 
-        lastSavedCache.delete(id);
+        await redisClient.del(`trip:last_saved:${id}`);
 
         res.json({ 
             message: 'Trip ended successfully', 

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import { createAdapter } from "@socket.io/redis-adapter";
 
 // Import routes
 import authRouter from "./routes/auth.route.js";
@@ -15,6 +16,8 @@ import publicRouter from "./routes/public.route.js";
 import { authenticateToken } from "./middleware/auth.js";
 
 import { handleLocationData } from "./services/tracking.service.js";
+
+import { connectRedis, redisClient } from "./config/redis.js";
 
 const app = express();
 
@@ -78,6 +81,33 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT;
 
-httpServer.listen(PORT, () => {
-  console.log(`Server running on ${PORT}`);
-});
+/**
+ * Start the server:
+ * 1. Connect to Redis
+ * 2. Attach the Socket.IO Redis adapter for multi-instance pub/sub
+ * 3. Listen on the configured PORT
+ */
+const startServer = async () => {
+  try {
+    // Connect to Redis
+    await connectRedis();
+
+    // Create pub/sub clients for Socket.IO adapter
+    const pubClient = redisClient.duplicate();
+    const subClient = redisClient.duplicate();
+    await Promise.all([pubClient.connect(), subClient.connect()]);
+
+    // Mount Redis adapter – enables broadcasting across multiple Node processes
+    io.adapter(createAdapter(pubClient, subClient));
+    console.log("[Socket.IO] Redis adapter attached");
+
+    httpServer.listen(PORT, () => {
+      console.log(`Server running on ${PORT}`);
+    });
+  } catch (error) {
+    console.error("[Server] Failed to start:", error);
+    process.exit(1);
+  }
+};
+
+startServer();

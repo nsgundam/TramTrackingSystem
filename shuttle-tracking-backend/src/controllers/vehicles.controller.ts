@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js';
+import { invalidatePublicCache } from '../services/cache.service.js';
 
 // Get All Vehicles
 export const getVehicles = async (req: Request, res: Response) => {
@@ -48,6 +49,7 @@ export const createVehicle = async (req: Request, res: Response) => {
                 assignedRouteId
             }
         });
+        await invalidatePublicCache();
         res.status(201).json(newVehicle);
     }catch (error) {
         console.error('Error creating vehicle:', error);
@@ -64,6 +66,7 @@ export const updateVehicle = async (req: Request, res: Response) => {
             where: { id },
             data
         });
+        await invalidatePublicCache();
         res.json(updatedVehicle);
     }catch (error) {
         console.error('Error updating vehicle:', error);
@@ -78,6 +81,7 @@ export const deleteVehicle = async (req: Request, res: Response) => {
         await prisma.vehicle.delete({
             where: { id }
         });
+        await invalidatePublicCache();
         res.json({ message: 'Vehicle deleted successfully' });
 
     }catch (error) {

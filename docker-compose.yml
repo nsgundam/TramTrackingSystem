@@ -1,0 +1,102 @@
+services:
+  # ============================================
+  # PostgreSQL + PostGIS
+  # ============================================
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    platform: linux/amd64
+    container_name: shuttle-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-shuttle_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-shuttle_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-shuttle_tracking}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/init-postgis.sh:/docker-entrypoint-initdb.d/init-postgis.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-shuttle_user} -d ${POSTGRES_DB:-shuttle_tracking}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ============================================
+  # Redis
+  # ============================================
+  redis:
+    image: redis:alpine
+    container_name: shuttle-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ============================================
+  # Backend – Node.js / Express / Socket.IO
+  # ============================================
+  backend:
+    build:
+      context: ./shuttle-tracking-backend
+      dockerfile: Dockerfile
+    container_name: shuttle-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgres://${POSTGRES_USER:-shuttle_user}:${POSTGRES_PASSWORD:-shuttle_pass}@db:5432/${POSTGRES_DB:-shuttle_tracking}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-TrackingJWTSecretKey}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      API_URL: http://localhost:3001
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./shuttle-tracking-backend/src:/app/src
+      - ./shuttle-tracking-backend/prisma:/app/prisma
+      - ./shuttle-tracking-backend/prisma.config.ts:/app/prisma.config.ts
+      - ./shuttle-tracking-backend/nodemon.json:/app/nodemon.json
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ============================================
+  # Frontend – Next.js
+  # ============================================
+  frontend:
+    build:
+      context: ./shuttle-tracking-web
+      dockerfile: Dockerfile
+    container_name: shuttle-frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:3001/api
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./shuttle-tracking-web/app:/app/app
+      - ./shuttle-tracking-web/components:/app/components
+      - ./shuttle-tracking-web/constants:/app/constants
+      - ./shuttle-tracking-web/contexts:/app/contexts
+      - ./shuttle-tracking-web/hooks:/app/hooks
+      - ./shuttle-tracking-web/services:/app/services
+      - ./shuttle-tracking-web/types:/app/types
+      - ./shuttle-tracking-web/utils:/app/utils
+      - ./shuttle-tracking-web/public:/app/public
+      - ./shuttle-tracking-web/proxy.ts:/app/proxy.ts
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  redisdata:
