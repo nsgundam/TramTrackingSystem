@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js';
+import { invalidatePublicCache } from '../services/cache.service.js';
 
 // Get All Routes
 export const getRoutes = async (req: Request, res: Response) => {
@@ -44,6 +45,7 @@ export const createRoute = async (req: Request, res: Response) => {
                 status: status || 'inactive',
             }
         });
+        await invalidatePublicCache();
         res.status(201).json(newRoute);
         
     } catch (error) {
@@ -61,6 +63,7 @@ export const updateRoute = async (req: Request, res: Response) => {
             where: { id },
             data
         });
+        await invalidatePublicCache();
         res.json(updatedRoute);
     }catch (error) {
         console.error('Error updating route:', error);
@@ -75,6 +78,7 @@ export const deleteRoute = async (req: Request, res: Response) => {
         await prisma.route.delete({
             where: { id },
         });
+        await invalidatePublicCache();
         res.json({ message: 'Route deleted successfully' });
     }catch (error) {
         console.error('Error deleting route:', error);
