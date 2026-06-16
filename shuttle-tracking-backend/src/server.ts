@@ -81,12 +81,6 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT;
 
-/**
- * Start the server:
- * 1. Connect to Redis
- * 2. Attach the Socket.IO Redis adapter for multi-instance pub/sub
- * 3. Listen on the configured PORT
- */
 const startServer = async () => {
   try {
     // Connect to Redis
