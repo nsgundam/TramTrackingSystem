@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { io, Socket } from "socket.io-client";
 import "leaflet/dist/leaflet.css";
+
 import * as turf from "@turf/turf";
 import { RSU_CENTER } from "@/constants";
 import { useLeafletMap } from "@/hooks/useLeafletMap";
@@ -14,6 +15,7 @@ import AppTour from "@/components/public/AppTour";
 import { shouldMove, animateMove, getNearestPointIndex, getDirectionalPointIndex } from "@/utils/MapHelpers";
 import { Stop, LocationUpdateData } from "@/types";
 import Image from "next/image";
+import { Plus, Minus, Locate } from "lucide-react";
 
 // === Constants & Icons ===
 const AVERAGE_BUS_SPEED_KMH = 15;
@@ -51,7 +53,7 @@ export default function ShuttleTracker() {
 
   // 🚀 เพิ่ม State สำหรับ Card รถ
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
-  const [activeVehicleInfo, setActiveVehicleInfo] = useState<{ prev: string, next: string } | null>(null);
+  const [activeVehicleInfo, setActiveVehicleInfo] = useState<{ prev: string; next: string; eta: number | null; nextStopId: string | number | null } | null>(null);
 
   // === 2. Refs (Background Data) ===
   const selectedRouteRef = useRef<string>("R01");
@@ -59,7 +61,7 @@ export default function ShuttleTracker() {
   
   // 🚀 เพิ่ม Ref สำหรับ Card รถ เพื่อใช้ใน useCallback
   const selectedVehicleIdRef = useRef<string | null>(null);
-  const vehicleStopsStatusRef = useRef<Record<string, { prev: string, next: string }>>({});
+  const vehicleStopsStatusRef = useRef<Record<string, { prev: string; next: string; eta: number | null; nextStopId: string | number | null }>>({});
   
   // Data Storage
   const stopsByRouteRef = useRef<Record<string, Stop[]>>({});
@@ -241,7 +243,76 @@ export default function ShuttleTracker() {
     updateAvailableCount();
   };
 
-const processLocationUpdate = (data: LocationUpdateData) => {
+  const handleLocateUser = () => {
+    if (userLoc) {
+      mapRef.current?.flyTo(userLoc, 18, { animate: true, duration: 1.0 });
+      handleFindNearestStop();
+    } else {
+      alert("กรุณาเปิดการเข้าถึงตำแหน่งที่ตั้ง (GPS) ในเบราว์เซอร์ของคุณ");
+    }
+  };
+
+  const getVehicleETAToStop = (vehicleId: string, stop: Stop): number | null => {
+    const routeId = vehicleRouteMapRef.current[vehicleId];
+    const coords = routeGeometryRef.current[routeId];
+    if (!coords || coords.length === 0) return null;
+
+    const busIdx = vehicleLastPolyIndexRef.current[vehicleId];
+    const stopIdx = stop.polyIndex;
+    if (busIdx === undefined || busIdx === -1 || stopIdx === undefined) return null;
+
+    const calcDist = (startIdx: number, endIdx: number) => {
+      let d = 0;
+      for (let i = startIdx; i < endIdx; i++) {
+        d += L.latLng(coords[i]).distanceTo(L.latLng(coords[i + 1]));
+      }
+      return d;
+    };
+
+    const pos = prevPositionsRef.current[vehicleId];
+    const physicalDist = pos ? L.latLng(pos[0], pos[1]).distanceTo(L.latLng(stop.lat, stop.lng)) : Infinity;
+
+    let forwardDiff = stopIdx - busIdx;
+    if (forwardDiff < 0) forwardDiff += coords.length;
+
+    let backwardDiff = busIdx - stopIdx;
+    if (backwardDiff < 0) backwardDiff += coords.length;
+
+    let pathDist = 0;
+    let stopsBetween = 0;
+
+    if (physicalDist <= 30 && (forwardDiff < 15 || backwardDiff < 15)) {
+      pathDist = 0;
+      stopsBetween = 0;
+    } else {
+      if (busIdx <= stopIdx) {
+        pathDist = calcDist(busIdx, stopIdx);
+      } else {
+        pathDist = calcDist(busIdx, coords.length - 1) + calcDist(0, stopIdx);
+      }
+      const routeStops = stopsByRouteRef.current[routeId] || [];
+      stopsBetween = routeStops.filter(s => {
+        if (s.polyIndex === undefined) return false;
+        if (busIdx <= stopIdx) {
+          return s.polyIndex > busIdx && s.polyIndex < stopIdx;
+        } else {
+          return s.polyIndex > busIdx || s.polyIndex < stopIdx;
+        }
+      }).length;
+    }
+
+    const history = vehicleSpeedHistoryRef.current[vehicleId] || [];
+    let speedKmh = 15;
+    if (history.length > 0) speedKmh = history.reduce((a, b) => a + b, 0) / history.length;
+    if (speedKmh < 10) speedKmh = 10;
+
+    const pureDrivingTime = pathDist / METERS_PER_MIN;
+    const stopDwellTime = stopsBetween * 0.5;
+
+    return Math.max(1, Math.ceil(pureDrivingTime + stopDwellTime));
+  };
+
+  const processLocationUpdate = (data: LocationUpdateData) => {
     if (!mapRef.current) return;
 
     const id = String(data.vehicleId || data.id);
@@ -298,7 +369,7 @@ const processLocationUpdate = (data: LocationUpdateData) => {
 
     // 🚀 2. สร้าง Marker รถใหม่ (ดึง HTML จากไฟล์แยกมาใช้)
     if (!vehiclesRef.current[id]) {
-      const busHtml = generateBusIconHtml(id, backendBearing);
+      const busHtml = generateBusIconHtml(id, backendBearing, routeId);
 
       const marker = L.marker(newPos, { 
         icon: L.divIcon({ 
@@ -356,12 +427,12 @@ const processLocationUpdate = (data: LocationUpdateData) => {
     const routeStops = stopsByRouteRef.current[routeId] || [];
     let prevStopName = "กำลังประเมิน...";
     let nextStopName = "กำลังประเมิน...";
+    let nextStopObj: Stop | null = null;
 
     const currentIdx = vehicleLastPolyIndexRef.current[id] ?? -1;
 
     if (routeStops.length > 0 && currentIdx !== -1) {
       let minPositiveDiff = Infinity;
-      let nextStopObj: Stop | null = null;
       let prevStopObj: Stop | null = null;
 
       for (let i = 0; i < routeStops.length; i++) {
@@ -386,7 +457,13 @@ const processLocationUpdate = (data: LocationUpdateData) => {
       if (nextStopObj) nextStopName = nextStopObj.nameTh || nextStopObj.name || "ไม่ทราบชื่อป้าย";
     }
 
-    const newInfo = { prev: prevStopName, next: nextStopName };
+    const etaVal = nextStopObj ? getVehicleETAToStop(id, nextStopObj) : null;
+    const newInfo = { 
+      prev: prevStopName, 
+      next: nextStopName, 
+      eta: etaVal,
+      nextStopId: nextStopObj ? nextStopObj.id : null
+    };
     vehicleStopsStatusRef.current[id] = newInfo;
 
     if (selectedVehicleIdRef.current === id) {
@@ -635,53 +712,97 @@ const processLocationUpdate = (data: LocationUpdateData) => {
   }, [configuredBackendOrigin, mapRef]);
 
   return (
-    <div className="rsu-app">
+    <div className="h-screen w-screen overflow-hidden font-body-sm text-on-surface bg-surface map-bg relative select-none">
       {isAppLocked && <div style={{ position: 'fixed', inset: 0, zIndex: 99999, cursor: 'wait' }} />}
 
-      <div className="rsu-map-wrap">
-        {/* 🚀 Header */}
-        <header className="rsu-minimal-header">
-          <div className="rsu-header-content-wrapper">
-            <Image src="/icons/RSU_logo.png" alt="RSU Logo" className="rsu-logo" width={30} height={30}/>
+      <div className="w-full h-full relative z-0">
+        <div id="rsu-map" className="w-full h-full absolute inset-0 z-0" />
 
-            {/* wrapper เก่าแบบแนวตั้งสำหรับตัวหนังสือ */}
-            <div className="rsu-header-text">
-              <h1 className="rsu-title">Rangsit University</h1>
-              <p className="rsu-subtitle">Tram Tracker</p>
-            </div>
-          </div>
-        </header>
-
-        <div id="rsu-map" />
-        <div className="route-selector">
-          {["R01", "R02"].map(route => (
-            <button key={route} className={`route-btn ${selectedRoute === route ? "active" : ""}`} onClick={() => handleRouteChange(route)}>
-              {route}
-            </button>
-          ))}
-        </div>
-        <AvailabilityCard count={availableCount} />
-        
-        {/* 🚀 โชว์ Stop Info Card เมื่อไม่ได้เลือกรถ */}
-        {!selectedVehicleId && (
-          <StopInfoCard 
-          targetStop={targetStop} 
-          eta={realEta} 
-          onFindNearest={handleFindNearestStop} />
-        )}
-
-        {/* 🚀 โชว์ Vehicle Info Card เมื่อเลือกรถ */}
-        {selectedVehicleId && activeVehicleInfo && (
-          <VehicleInfoCard 
-            routeId={selectedRoute}
-            prevStop={activeVehicleInfo.prev}
-            nextStop={activeVehicleInfo.next}
-            onFindNearest={handleFindNearestStop}
+        {/* Top Left: Branding */}
+        <div className="absolute top-margin-mobile left-margin-mobile md:top-margin-desktop md:left-margin-desktop z-10 glass-panel rounded-full flex items-center gap-xs md:gap-sm px-md py-xs md:px-lg md:py-sm">
+          <img 
+            alt="RSU Logo" 
+            className="h-8 md:h-10 w-auto object-contain drop-shadow-sm select-none" 
+            src="/icons/RSU_logo.png" 
           />
-        )}
+          <div className="flex flex-col">
+            <h1 className="font-headline-md text-[13px] md:text-headline-md text-on-surface leading-tight font-bold">
+              <span className="hidden sm:inline">Rangsit University</span>
+              <span className="sm:hidden">RSU</span>
+            </h1>
+            <span className="font-body-sm text-[10px] md:text-body-sm text-on-surface-variant leading-none">Tram Tracker</span>
+          </div>
+        </div>
 
+        {/* Top Right: Status & Toggles */}
+        <div className="absolute top-margin-mobile right-margin-mobile md:top-margin-desktop md:right-margin-desktop z-10 flex flex-col items-end gap-xs md:gap-sm">
+          <AvailabilityCard count={availableCount} />
+          <div className="flex gap-sm">
+            {["R01", "R02"].map(route => (
+              <button 
+                key={route} 
+                className={`glass-panel rounded-full px-sm py-xs md:px-md md:py-sm font-data-display text-[11px] md:text-data-display transition-colors cursor-pointer ${
+                  selectedRoute === route 
+                    ? "bg-status-alert/20 hover:bg-status-alert/30 border border-status-alert/50 font-bold text-black" 
+                    : "hover:bg-white/20 text-on-surface"
+                }`}
+                onClick={() => handleRouteChange(route)}
+              >
+                {route}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom Center: Horizontal Dock */}
+        <div className="absolute bottom-margin-mobile left-1/2 -translate-x-1/2 md:bottom-margin-desktop md:left-margin-desktop md:translate-x-0 z-10 w-full max-w-[400px] px-4 md:px-0 flex flex-col gap-xs md:gap-sm">
+          {/* 🚀 โชว์ Stop Info Card เมื่อไม่ได้เลือกรถ */}
+          {!selectedVehicleId && (
+            <StopInfoCard 
+              targetStop={targetStop} 
+              eta={realEta} 
+            />
+          )}
+
+          {/* 🚀 โชว์ Vehicle Info Card เมื่อเลือกรถ */}
+          {selectedVehicleId && activeVehicleInfo && (
+            <VehicleInfoCard 
+              routeId={selectedRoute}
+              vehicleId={selectedVehicleId}
+              prevStop={activeVehicleInfo.prev}
+              nextStop={activeVehicleInfo.next}
+              eta={activeVehicleInfo.eta}
+              stops={stopsByRouteRef.current[selectedRoute] || []}
+              nextStopId={activeVehicleInfo.nextStopId}
+            />
+          )}
+        </div>
+
+        {/* Bottom Right: Map Controls */}
+        <div className="absolute bottom-[160px] right-margin-mobile md:bottom-margin-desktop md:right-margin-desktop z-10 flex flex-col gap-xs md:gap-sm">
+          <button 
+            className="glass-panel rounded-lg w-9 h-9 flex items-center justify-center text-on-surface hover:bg-white/20 transition-colors cursor-pointer" 
+            title="Zoom In"
+            onClick={() => mapRef.current?.zoomIn()}
+          >
+            <Plus size={20} className="text-on-surface" />
+          </button>
+          <button 
+            className="glass-panel rounded-lg w-9 h-9 flex items-center justify-center text-on-surface hover:bg-white/20 transition-colors cursor-pointer" 
+            title="Zoom Out"
+            onClick={() => mapRef.current?.zoomOut()}
+          >
+            <Minus size={20} className="text-on-surface" />
+          </button>
+          <button 
+            className="glass-panel rounded-lg w-9 h-9 flex items-center justify-center text-on-surface hover:bg-white/20 transition-colors mt-2 cursor-pointer" 
+            title="Current Location"
+            onClick={handleLocateUser}
+          >
+            <Locate size={20} className="text-on-surface" />
+          </button>
+        </div>
       </div>
-      <div className="rsu-bar" />
       <AppTour />
     </div>
   );

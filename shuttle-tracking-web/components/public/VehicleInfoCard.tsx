@@ -1,66 +1,90 @@
+import { useEffect, useRef } from "react";
+import { Stop } from "@/types";
+
 interface VehicleInfoCardProps {
   routeId: string;
+  vehicleId: string;
   prevStop: string;
   nextStop: string;
-  onFindNearest: () => void;
+  eta: number | null;
+  stops: Stop[];
+  nextStopId: string | number | null;
 }
 
-export default function VehicleInfoCard({ routeId, prevStop, nextStop, onFindNearest }: VehicleInfoCardProps) {
+export default function VehicleInfoCard({
+  routeId,
+  vehicleId,
+  prevStop,
+  nextStop,
+  eta,
+  stops,
+  nextStopId,
+}: VehicleInfoCardProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const nextIdx = stops.findIndex((s) => s.id === nextStopId);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (containerRef.current && nextIdx !== -1) {
+        const container = containerRef.current;
+        const activeEl = container.querySelector('[data-active="true"]') as HTMLElement;
+        if (activeEl) {
+          const containerWidth = container.clientWidth;
+          const activeWidth = activeEl.offsetWidth;
+          const activeLeft = activeEl.offsetLeft;
+          const targetScroll = activeLeft - containerWidth / 2 + activeWidth / 2;
+          container.scrollTo({
+            left: targetScroll,
+            behavior: "smooth",
+          });
+        }
+      }
+    };
+    handleScroll();
+    const timeout = setTimeout(handleScroll, 50);
+    window.addEventListener("resize", handleScroll);
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [nextIdx]);
+
   return (
-    <div className="stop-info-wrapper">
-      
-      {/* 🚀 บังคับกล่องหลักให้ชิดซ้าย */}
-      <div className="rsu-stop-card-compact" style={{ alignItems: 'flex-start' }}>
-        
-        {/* ส่วนหัวการ์ด บังคับชิดซ้าย */}
-        <div className="sc-header" style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', paddingLeft: '0px' }}>
-          <div className="sc-selected-stop" style={{ justifyContent: 'flex-start' }}>
-            <div className="sc-stop-name">รถราง (สาย {routeId})</div>
+    <div className="glass-panel rounded-xl p-md flex flex-col gap-sm w-full select-none">
+      <div className="flex justify-between items-start">
+        <div className="flex flex-col">
+          <div className="font-headline-md text-headline-md text-on-surface">
+            <strong>Tram {routeId} ({vehicleId})</strong>
           </div>
-        </div>
-
-        <div className="sc-body" style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'flex-start', 
-          padding: '10px 15px', 
-          width: '100%', 
-          boxSizing: 'border-box' 
-        }}>
-          
-          {/* ป้ายที่เพิ่งผ่านมา */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#B0B0B0' }}></div>
-              <div style={{ color: '#888', fontSize: '0.85rem', fontWeight: '500' }}>ป้ายที่ผ่านมา</div>
-            </div>
-            <div style={{ paddingLeft: '20px', color: '#555', fontSize: '1rem', marginTop: '4px', textAlign: 'left', width: '100%' }}>
-              {prevStop}
-            </div>
+          <div className="font-body-lg text-body-lg text-on-surface-variant mt-xs">
+            Next Station: {nextStop}
           </div>
-
-          {/* เส้นเชื่อมจุด */}
-          <div style={{ width: '2px', height: '16px', backgroundColor: '#E5E7EB', margin: '4px 0 4px 4px' }}></div>
-
-          {/* ป้ายถัดไป */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {/* จุดสีน้ำเงินพร้อมเงาออร่ารอบๆ */}
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#3B82F6', boxShadow: '0 0 0 3px #DBEAFE' }}></div>
-              <div style={{ color: '#3B82F6', fontSize: '0.85rem', fontWeight: 'bold' }}>ป้ายถัดไป</div>
-            </div>
-            <div style={{ paddingLeft: '20px', color: '#000', fontSize: '1.15rem', fontWeight: '800', marginTop: '4px', textAlign: 'left', width: '100%' }}>
-              {nextStop}
-            </div>
-          </div>
-
         </div>
       </div>
 
-      <button className="gps-locate-btn" onClick={onFindNearest} title="หาป้ายที่ใกล้ฉันที่สุด">
-        <img src="/icons/live.png" alt="ตำแหน่งของฉัน" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
-      </button>
-
+      {/* Horizontally scrolling list of stations */}
+      <div
+        ref={containerRef}
+        className="flex font-label-caps text-label-caps text-on-surface-variant overflow-x-hidden w-full no-scrollbar scroll-smooth"
+      >
+        {stops.map((stop) => {
+          const isNext = stop.id === nextStopId;
+          const stopName = stop.nameTh || stop.name;
+          return (
+            <span
+              key={stop.id}
+              data-active={isNext ? "true" : "false"}
+              className={`shrink-0 text-center whitespace-nowrap px-4 transition-colors py-xs ${
+                isNext
+                  ? "font-bold text-primary border-b-2 border-primary pb-0.5"
+                  : "text-on-surface-variant/70"
+              }`}
+            >
+              {stopName}
+            </span>
+          );
+        })}
+      </div>
     </div>
   );
 }
