@@ -19,8 +19,6 @@ export function useLeafletMap() {
         maxZoom: 19,
       }).addTo(map);
 
-      L.control.zoom({ position: "bottomright" }).addTo(map);
-
       mapRef.current = map;
     }
 
