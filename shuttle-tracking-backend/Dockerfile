@@ -16,7 +16,13 @@ RUN npx prisma generate
 # Copy source code (in dev mode this is overridden by volume mounts)
 COPY . .
 
+# Copy and set entrypoint (auto-runs migrations & seed on startup)
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 EXPOSE 3001
+
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Dev mode: use nodemon for hot-reload
 CMD ["npx", "nodemon"]
