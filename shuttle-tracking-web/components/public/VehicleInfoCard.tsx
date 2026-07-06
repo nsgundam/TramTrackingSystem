@@ -50,13 +50,13 @@ export default function VehicleInfoCard({
   }, [nextIdx]);
 
   return (
-    <div className="glass-panel rounded-xl p-3 sm:p-md flex flex-col gap-sm w-full select-none">
+    <div className="glass-panel backdrop-blur-sm rounded-xl p-3 sm:p-4 flex flex-col gap-2 w-full select-none">
       <div className="flex justify-between items-start">
         <div className="flex flex-col">
           <div className="font-headline-md text-[16px] sm:text-headline-md text-on-surface">
             <strong>Tram {routeId} ({vehicleId})</strong>
           </div>
-          <div className="font-body-lg text-[14px] sm:text-body-lg text-on-surface-variant mt-xs">
+          <div className="font-body-lg text-[14px] sm:text-body-lg text-on-surface-variant mt-1">
             Next Station: {nextStop}
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function VehicleInfoCard({
             <span
               key={stop.id}
               data-active={isNext ? "true" : "false"}
-              className={`shrink-0 text-center whitespace-nowrap px-4 transition-colors py-xs ${
+              className={`shrink-0 text-center whitespace-nowrap px-4 transition-colors py-1 ${
                 isNext
                   ? "font-bold text-primary border-b-2 border-primary pb-0.5"
                   : "text-on-surface-variant/70"

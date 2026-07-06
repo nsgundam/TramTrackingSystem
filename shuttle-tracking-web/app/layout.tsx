@@ -1,9 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Hanken_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { Hanken_Grotesk, Inter, JetBrains_Mono, Lato } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
+  subsets: ["latin"],
+});
+
+const lato = Lato({
+  weight: ["300", "400", "700", "900"],
+  variable: "--font-lato",
   subsets: ["latin"],
 });
 
@@ -43,7 +49,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${hankenGrotesk.variable} ${jetbrainsMono.variable} antialiased`}
+        className={`${inter.variable} ${lato.variable} ${hankenGrotesk.variable} ${jetbrainsMono.variable} antialiased`}
       >
         {children}
       </body>

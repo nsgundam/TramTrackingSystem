@@ -50,7 +50,7 @@ export default function StopInfoCard({ targetStop, eta }: Omit<StopInfoCardProps
   const imgUrl = targetStop.imageUrl;
 
   return (
-    <div className="glass-panel rounded-xl p-3 sm:p-md flex flex-col gap-sm w-full select-none">
+    <div className="glass-panel backdrop-blur-sm rounded-xl p-3 sm:p-4 flex flex-col gap-2 w-full select-none">
       {/* --- ส่วนของ Modal รูปภาพ --- */}
       {isModalOpen && imgUrl && typeof document !== "undefined" && ReactDOM.createPortal(
         <div onClick={() => setIsModalOpen(false)} style={MODAL_OVERLAY_STYLE}>
@@ -76,17 +76,17 @@ export default function StopInfoCard({ targetStop, eta }: Omit<StopInfoCardProps
         </div>
       )}
 
-      <div className="flex flex-col gap-xs">
+      <div className="flex flex-col gap-1">
         <span className="font-label-caps text-[10px] sm:text-label-caps text-on-surface-variant">Selected Station</span>
         <h2 className="font-headline-md text-[16px] sm:text-headline-md text-on-surface leading-tight font-semibold">
           {targetStop.nameTh || targetStop.name}
         </h2>
       </div>
 
-      <div className="flex justify-between items-center bg-black/20 backdrop-blur-sm rounded-lg p-sm border border-white/10">
+      <div className="flex justify-between items-center">
         <div className="flex flex-col">
           <span className="font-label-caps text-label-caps text-on-surface-variant">Estimated Waiting Time</span>
-          <div className="flex items-baseline gap-xs mt-xs">
+          <div className="flex items-baseline gap-1 mt-1">
             {eta !== null ? (
               <>
                 <span className="font-headline-lg text-headline-lg text-on-surface leading-none font-bold">
@@ -99,7 +99,7 @@ export default function StopInfoCard({ targetStop, eta }: Omit<StopInfoCardProps
             )}
           </div>
         </div>
-        <div className="flex items-center gap-sm bg-white/10 px-md py-xs rounded-full border border-white/10">
+        <div className="flex items-center gap-2 bg-white/10 px-4 py-1 rounded-full border border-white/10">
           <span className={`w-2.5 h-2.5 rounded-full inline-block ${statusClass}`} />
           <span className="font-label-caps text-label-caps text-on-surface font-bold">{statusText}</span>
         </div>

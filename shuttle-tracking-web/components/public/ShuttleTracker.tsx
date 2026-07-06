@@ -725,32 +725,32 @@ export default function ShuttleTracker() {
         <div id="rsu-map" className="w-full h-full absolute inset-0 z-0" />
 
         {/* Top Left: Branding */}
-        <div className="absolute top-margin-mobile left-margin-mobile md:top-margin-desktop md:left-margin-desktop z-10 glass-panel rounded-full flex items-center gap-xs md:gap-sm px-md py-xs md:px-lg md:py-sm">
+        <div className="absolute top-4 left-4 md:top-10 md:left-10 z-10 glass-panel backdrop-blur-sm rounded-full flex items-center gap-2.5 px-4 py-1.5 md:px-6 md:py-2.5">
           <img 
             alt="RSU Logo" 
-            className="h-8 md:h-10 w-auto object-contain drop-shadow-sm select-none" 
+            className="h-9 md:h-11 w-auto object-contain drop-shadow-sm select-none" 
             src="/icons/RSU_logo.png" 
           />
           <div className="flex flex-col">
-            <h1 className="font-headline-md text-[13px] md:text-headline-md text-on-surface leading-tight font-bold">
+            <h1 className="font-headline-md text-[15px] md:text-[18px] text-on-surface leading-tight">
               <span className="hidden sm:inline">Rangsit University</span>
               <span className="sm:hidden">RSU</span>
             </h1>
-            <span className="font-body-sm text-[10px] md:text-body-sm text-on-surface-variant leading-none">Tram Tracker</span>
+            <span className="font-body-sm text-[10px] md:text-[12px] text-on-surface-variant leading-none">Tram Tracker</span>
           </div>
         </div>
 
         {/* Top Right: Status & Toggles */}
-        <div className="absolute top-margin-mobile right-margin-mobile md:top-margin-desktop md:right-margin-desktop z-10 flex flex-col items-end gap-xs md:gap-sm">
+        <div className="absolute top-4 right-4 md:top-10 md:right-10 z-10 flex flex-col items-stretch gap-3 w-[160px] md:w-[180px]">
           <AvailabilityCard count={availableCount} />
-          <div className="flex gap-sm">
+          <div className="flex gap-3 w-full">
             {["R01", "R02"].map(route => (
               <button 
                 key={route} 
-                className={`glass-panel rounded-full px-sm py-xs md:px-md md:py-sm font-data-display text-[11px] md:text-data-display transition-colors cursor-pointer ${
+                className={`flex-1 glass-panel backdrop-blur-sm rounded-full py-2 md:py-2.5 font-headline-md text-[15px] md:text-[16px] transition-all duration-300 cursor-pointer flex items-center justify-center ${
                   selectedRoute === route 
-                    ? "bg-status-alert/20 hover:bg-status-alert/30 border border-status-alert/50 font-bold text-black" 
-                    : "hover:bg-white/20 text-on-surface"
+                    ? "bg-status-alert/25! border-status-alert/50! border text-status-alert shadow-[inset_0_1px_2px_rgba(255,255,255,0.55),0_6px_16px_-4px_rgba(239,68,68,0.22)]" 
+                    : "hover:bg-white/40! hover:scale-[1.03] text-on-surface shadow-[inset_0_1px_1px_rgba(255,255,255,0.3)]"
                 }`}
                 onClick={() => handleRouteChange(route)}
               >
@@ -761,7 +761,7 @@ export default function ShuttleTracker() {
         </div>
 
         {/* Bottom Left: Floating Dock */}
-        <div className="absolute bottom-margin-mobile left-margin-mobile md:bottom-margin-desktop md:left-margin-desktop z-10 w-[280px] sm:w-[320px] max-w-[calc(100%-32px)] flex flex-col gap-xs md:gap-sm">
+        <div className="absolute bottom-4 left-4 md:bottom-10 md:left-10 z-10 w-[280px] sm:w-[320px] max-w-[calc(100%-32px)] flex flex-col gap-1 md:gap-2">
           {/* 🚀 โชว์ Stop Info Card เมื่อไม่ได้เลือกรถ */}
           {!selectedVehicleId && (
             <StopInfoCard 
@@ -785,23 +785,23 @@ export default function ShuttleTracker() {
         </div>
 
         {/* Bottom Right: Map Controls */}
-        <div className="absolute bottom-margin-mobile right-margin-mobile md:bottom-margin-desktop md:right-margin-desktop z-10 flex flex-col gap-xs md:gap-sm">
+        <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-10 flex flex-col gap-1 md:gap-2">
           <button 
-            className="glass-panel rounded-lg w-9 h-9 flex items-center justify-center text-on-surface hover:bg-white/20 transition-colors cursor-pointer" 
+            className="glass-panel backdrop-blur-sm rounded-lg w-9 h-9 flex items-center justify-center text-on-surface hover:bg-white/40! transition-colors cursor-pointer" 
             title="Zoom In"
             onClick={() => mapRef.current?.zoomIn()}
           >
             <Plus size={20} className="text-on-surface" />
           </button>
           <button 
-            className="glass-panel rounded-lg w-9 h-9 flex items-center justify-center text-on-surface hover:bg-white/20 transition-colors cursor-pointer" 
+            className="glass-panel backdrop-blur-sm rounded-lg w-9 h-9 flex items-center justify-center text-on-surface hover:bg-white/40! transition-colors cursor-pointer" 
             title="Zoom Out"
             onClick={() => mapRef.current?.zoomOut()}
           >
             <Minus size={20} className="text-on-surface" />
           </button>
           <button 
-            className="glass-panel rounded-lg w-9 h-9 flex items-center justify-center text-on-surface hover:bg-white/20 transition-colors mt-2 cursor-pointer" 
+            className="glass-panel backdrop-blur-sm rounded-lg w-9 h-9 flex items-center justify-center text-on-surface hover:bg-white/40! transition-colors mt-2 cursor-pointer" 
             title="Current Location"
             onClick={handleLocateUser}
           >

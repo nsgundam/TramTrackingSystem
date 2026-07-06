@@ -51,40 +51,34 @@
   --color-on-surface-variant: #424754;
   --color-surface-container: #e7eefb;
 
-  --spacing-lg: 24px;
-  --spacing-xs: 4px;
-  --spacing-gutter: 16px;
-  --spacing-md: 16px;
-  --spacing-margin-mobile: 16px;
-  --spacing-margin-desktop: 40px;
-  --spacing-base: 4px;
-  --spacing-xl: 32px;
-  --spacing-sm: 8px;
-
   --radius-default: 0.125rem;
   --radius-lg: 0.25rem;
   --radius-xl: 0.5rem;
   --radius-full: 0.75rem;
 
   --font-body-sm: var(--font-inter), sans-serif;
-  --font-headline-lg: var(--font-hanken-grotesk), sans-serif;
-  --font-data-display: var(--font-jetbrains-mono), monospace;
-  --font-headline-md: var(--font-hanken-grotesk), sans-serif;
-  --font-label-caps: var(--font-jetbrains-mono), monospace;
-  --font-headline-lg-mobile: var(--font-hanken-grotesk), sans-serif;
+  --font-headline-lg: var(--font-inter), sans-serif;
+  --font-data-display: var(--font-inter), sans-serif;
+  --font-headline-md: var(--font-inter), sans-serif;
+  --font-label-caps: var(--font-inter), sans-serif;
+  --font-headline-lg-mobile: var(--font-inter), sans-serif;
   --font-body-lg: var(--font-inter), sans-serif;
 }
 
-@utility glass-panel {
-  background-color: rgba(85, 85, 85, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-  --color-on-surface: #ffffff;
-  --color-on-surface-variant: #e2e8f0;
-  --color-primary: #60a5fa;
-  --color-outline-variant: rgba(255, 255, 255, 0.15);
+.glass-panel {
+  background-color: rgba(48, 48, 48, 0.08) !important;
+  backdrop-filter: blur(10px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(200%) !important;
+  box-shadow: rgba(255, 255, 255, 0.12) 0px 1px 1px inset, rgba(0, 0, 0, 0.4) 0px -1px 4px inset, rgba(0, 0, 0, 0.25) 0px 8px 32px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  --color-on-surface: #151c25;
+  --color-on-surface-variant: #424754;
+  --color-primary: #0058be;
+  --color-status-alert: #b91c1c;
+  --color-outline-variant: rgba(48, 48, 48, 0.1);
 }
 
 @utility map-bg {
@@ -105,7 +99,7 @@
 }
 
 @utility text-headline-lg {
-  font-family: var(--font-hanken-grotesk), sans-serif;
+  font-family: var(--font-inter), sans-serif;
   font-size: 32px;
   line-height: 40px;
   letter-spacing: -0.02em;
@@ -113,21 +107,21 @@
 }
 
 @utility text-data-display {
-  font-family: var(--font-jetbrains-mono), monospace;
+  font-family: var(--font-inter), sans-serif;
   font-size: 18px;
   line-height: 24px;
   font-weight: 500;
 }
 
 @utility text-headline-md {
-  font-family: var(--font-hanken-grotesk), sans-serif;
+  font-family: var(--font-inter), sans-serif;
   font-size: 20px;
   line-height: 28px;
   font-weight: 600;
 }
 
 @utility text-label-caps {
-  font-family: var(--font-jetbrains-mono), monospace;
+  font-family: var(--font-inter), sans-serif;
   font-size: 12px;
   line-height: 16px;
   letter-spacing: 0.05em;
@@ -135,7 +129,7 @@
 }
 
 @utility text-headline-lg-mobile {
-  font-family: var(--font-hanken-grotesk), sans-serif;
+  font-family: var(--font-inter), sans-serif;
   font-size: 24px;
   line-height: 32px;
   font-weight: 700;
