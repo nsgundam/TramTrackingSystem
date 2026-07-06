@@ -50,7 +50,7 @@ export default function StopInfoCard({ targetStop, eta }: Omit<StopInfoCardProps
   const imgUrl = targetStop.imageUrl;
 
   return (
-    <div className="glass-panel rounded-xl p-md flex flex-col gap-sm w-full select-none">
+    <div className="glass-panel rounded-xl p-3 sm:p-md flex flex-col gap-sm w-full select-none">
       {/* --- ส่วนของ Modal รูปภาพ --- */}
       {isModalOpen && imgUrl && typeof document !== "undefined" && ReactDOM.createPortal(
         <div onClick={() => setIsModalOpen(false)} style={MODAL_OVERLAY_STYLE}>
@@ -68,7 +68,7 @@ export default function StopInfoCard({ targetStop, eta }: Omit<StopInfoCardProps
 
       {imgUrl && (
         <div 
-          className="w-full h-[120px] rounded-lg overflow-hidden bg-surface-dim/30 cursor-pointer" 
+          className="w-full h-[85px] sm:h-[120px] rounded-lg overflow-hidden bg-surface-dim/30 cursor-pointer" 
           onClick={() => setIsModalOpen(true)} 
           title="คลิกเพื่อขยายรูป"
         >
@@ -77,8 +77,8 @@ export default function StopInfoCard({ targetStop, eta }: Omit<StopInfoCardProps
       )}
 
       <div className="flex flex-col gap-xs">
-        <span className="font-label-caps text-label-caps text-on-surface-variant">Selected Station</span>
-        <h2 className="font-headline-md text-headline-md text-on-surface leading-tight font-semibold">
+        <span className="font-label-caps text-[10px] sm:text-label-caps text-on-surface-variant">Selected Station</span>
+        <h2 className="font-headline-md text-[16px] sm:text-headline-md text-on-surface leading-tight font-semibold">
           {targetStop.nameTh || targetStop.name}
         </h2>
       </div>

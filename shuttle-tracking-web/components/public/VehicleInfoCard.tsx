@@ -50,13 +50,13 @@ export default function VehicleInfoCard({
   }, [nextIdx]);
 
   return (
-    <div className="glass-panel rounded-xl p-md flex flex-col gap-sm w-full select-none">
+    <div className="glass-panel rounded-xl p-3 sm:p-md flex flex-col gap-sm w-full select-none">
       <div className="flex justify-between items-start">
         <div className="flex flex-col">
-          <div className="font-headline-md text-headline-md text-on-surface">
+          <div className="font-headline-md text-[16px] sm:text-headline-md text-on-surface">
             <strong>Tram {routeId} ({vehicleId})</strong>
           </div>
-          <div className="font-body-lg text-body-lg text-on-surface-variant mt-xs">
+          <div className="font-body-lg text-[14px] sm:text-body-lg text-on-surface-variant mt-xs">
             Next Station: {nextStop}
           </div>
         </div>

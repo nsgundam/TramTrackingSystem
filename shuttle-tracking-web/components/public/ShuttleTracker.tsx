@@ -712,8 +712,14 @@ export default function ShuttleTracker() {
   }, [configuredBackendOrigin, mapRef]);
 
   return (
-    <div className="h-screen w-screen overflow-hidden font-body-sm text-on-surface bg-surface map-bg relative select-none">
-      {isAppLocked && <div style={{ position: 'fixed', inset: 0, zIndex: 99999, cursor: 'wait' }} />}
+    <div className="h-dvh w-screen overflow-hidden font-body-sm text-on-surface bg-surface map-bg relative select-none">
+      {isAppLocked && (
+        <div 
+          style={{ position: 'fixed', inset: 0, zIndex: 99999, cursor: 'wait', touchAction: 'none' }} 
+          onTouchStart={(e) => e.preventDefault()}
+          onTouchMove={(e) => e.preventDefault()}
+        />
+      )}
 
       <div className="w-full h-full relative z-0">
         <div id="rsu-map" className="w-full h-full absolute inset-0 z-0" />
@@ -754,8 +760,8 @@ export default function ShuttleTracker() {
           </div>
         </div>
 
-        {/* Bottom Center: Horizontal Dock */}
-        <div className="absolute bottom-margin-mobile left-1/2 -translate-x-1/2 md:bottom-margin-desktop md:left-margin-desktop md:translate-x-0 z-10 w-full max-w-[400px] px-4 md:px-0 flex flex-col gap-xs md:gap-sm">
+        {/* Bottom Left: Floating Dock */}
+        <div className="absolute bottom-margin-mobile left-margin-mobile md:bottom-margin-desktop md:left-margin-desktop z-10 w-[280px] sm:w-[320px] max-w-[calc(100%-32px)] flex flex-col gap-xs md:gap-sm">
           {/* 🚀 โชว์ Stop Info Card เมื่อไม่ได้เลือกรถ */}
           {!selectedVehicleId && (
             <StopInfoCard 
@@ -779,7 +785,7 @@ export default function ShuttleTracker() {
         </div>
 
         {/* Bottom Right: Map Controls */}
-        <div className="absolute bottom-[160px] right-margin-mobile md:bottom-margin-desktop md:right-margin-desktop z-10 flex flex-col gap-xs md:gap-sm">
+        <div className="absolute bottom-margin-mobile right-margin-mobile md:bottom-margin-desktop md:right-margin-desktop z-10 flex flex-col gap-xs md:gap-sm">
           <button 
             className="glass-panel rounded-lg w-9 h-9 flex items-center justify-center text-on-surface hover:bg-white/20 transition-colors cursor-pointer" 
             title="Zoom In"

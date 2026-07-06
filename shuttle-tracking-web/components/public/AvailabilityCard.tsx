@@ -11,7 +11,7 @@ export default function AvailabilityCard({ count }: Props) {
       </span>
       <div className="flex flex-col select-none">
         <span className="font-label-caps text-[9px] md:text-label-caps text-on-surface-variant leading-none mb-[2px]">Active Trams</span>
-        <span className="font-data-display text-[11px] md:text-data-display text-on-surface leading-none">{count} trams</span>
+        <span className="font-data-display text-[11px] md:text-data-display text-on-surface leading-none">{count} คัน</span>
       </div>
     </div>
   );
