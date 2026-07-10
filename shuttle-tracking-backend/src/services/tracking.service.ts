@@ -1,10 +1,6 @@
 import { prisma } from '../config/prisma.js';
 import { redisClient } from '../config/redis.js';
 
-/**
- * Time window (seconds) for GPS write-throttle.
- * Only one INSERT per trip within this window, enforced via Redis TTL key.
- */
 const THROTTLE_SECONDS = 60;
 
 export const handleLocationData = async (data: any) => {
