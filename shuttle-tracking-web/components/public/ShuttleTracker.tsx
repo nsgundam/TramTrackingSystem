@@ -51,17 +51,19 @@ export default function ShuttleTracker() {
   const [realEta, setRealEta] = useState<number | null>(null);
   const [isAppLocked, setIsAppLocked] = useState<boolean>(true);
 
-  // 🚀 เพิ่ม State สำหรับ Card รถ
+  // เพิ่ม State สำหรับ Card รถ
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [activeVehicleInfo, setActiveVehicleInfo] = useState<{ prev: string; next: string; eta: number | null; nextStopId: string | number | null } | null>(null);
+  const [isTracking, setIsTracking] = useState<boolean>(false);
 
   // === 2. Refs (Background Data) ===
   const selectedRouteRef = useRef<string>("R01");
   const targetStopRef = useRef<Stop | null>(null);
   
-  // 🚀 เพิ่ม Ref สำหรับ Card รถ เพื่อใช้ใน useCallback
+  // เพิ่ม Ref สำหรับ Card รถ เพื่อใช้ใน useCallback
   const selectedVehicleIdRef = useRef<string | null>(null);
   const vehicleStopsStatusRef = useRef<Record<string, { prev: string; next: string; eta: number | null; nextStopId: string | number | null }>>({});
+  const isTrackingRef = useRef<boolean>(false);
   
   // Data Storage
   const stopsByRouteRef = useRef<Record<string, Stop[]>>({});
@@ -191,9 +193,11 @@ export default function ShuttleTracker() {
     }
 
     if (nearest && mapRef.current) {
-      // 🚀 ซ่อน Card รถ
+      // ซ่อน Card รถ
       setSelectedVehicleId(null);
       selectedVehicleIdRef.current = null;
+      setIsTracking(false);
+      isTrackingRef.current = false;
 
       setTargetStop(nearest);
       targetStopRef.current = nearest;
@@ -239,6 +243,8 @@ export default function ShuttleTracker() {
     // ซ่อน Card รถตอนเปลี่ยนสาย
     setSelectedVehicleId(null);
     selectedVehicleIdRef.current = null;
+    setIsTracking(false);
+    isTrackingRef.current = false;
 
     updateAvailableCount();
   };
@@ -249,6 +255,18 @@ export default function ShuttleTracker() {
       handleFindNearestStop();
     } else {
       alert("กรุณาเปิดการเข้าถึงตำแหน่งที่ตั้ง (GPS) ในเบราว์เซอร์ของคุณ");
+    }
+  };
+
+  const handleRecenter = () => {
+    if (selectedVehicleIdRef.current && mapRef.current) {
+      const marker = vehiclesRef.current[selectedVehicleIdRef.current];
+      if (marker) {
+        const pos = marker.getLatLng();
+        setIsTracking(true);
+        isTrackingRef.current = true;
+        mapRef.current.flyTo([pos.lat, pos.lng], 19, { animate: true, duration: 0.8 });
+      }
     }
   };
 
@@ -329,10 +347,10 @@ export default function ShuttleTracker() {
     if (!vehicleRouteMapRef.current[id]) vehicleRouteMapRef.current[id] = selectedRouteRef.current;
     const routeId = vehicleRouteMapRef.current[id];
 
-    // 🚀 ดึงองศาการหมุนจาก Backend ตรงๆ
+    // ดึงองศาการหมุนจาก Backend ตรงๆ
     const backendBearing = Number(data.bearing ?? data.heading ?? 0);
 
-    // 1. Turf.js แบบ "สายตาสั้น" ป้องกันการวาร์ปข้ามเลน
+    // 1. Turf.js
     const coords = routeGeometryRef.current[routeId];
     if (coords && coords.length > 0) {
       let currentIdx = vehicleLastPolyIndexRef.current[id] ?? -1;
@@ -367,7 +385,7 @@ export default function ShuttleTracker() {
       }
     }
 
-    // 🚀 2. สร้าง Marker รถใหม่ (ดึง HTML จากไฟล์แยกมาใช้)
+    // 2. สร้าง Marker รถใหม่ (ดึง HTML จากไฟล์แยกมาใช้)
     if (!vehiclesRef.current[id]) {
       const busHtml = generateBusIconHtml(id, backendBearing, routeId);
 
@@ -386,6 +404,8 @@ export default function ShuttleTracker() {
         L.DomEvent.stopPropagation(e);
         setSelectedVehicleId(id);
         selectedVehicleIdRef.current = id;
+        setIsTracking(true);
+        isTrackingRef.current = true;
 
         setTargetStop(null);
         targetStopRef.current = null;
@@ -414,7 +434,7 @@ export default function ShuttleTracker() {
       if (mapRef.current.hasLayer(marker)) { mapRef.current.removeLayer(marker); return; }
     }
 
-    // 🚀 4. สั่งหมุนไอคอนเข็มทิศ และหมุนตัวเลขกลับให้ตั้งตรง
+    // 4. สั่งหมุนไอคอนเข็มทิศ และหมุนตัวเลขกลับให้ตั้งตรง
     const wrapperEl = document.getElementById(`bus-wrapper-${id}`);
     const textEl = document.getElementById(`bus-text-${id}`);
     if (wrapperEl && textEl) {
@@ -476,6 +496,11 @@ export default function ShuttleTracker() {
       animateMove(marker, oldPos, newPos);
       prevPositionsRef.current[id] = newPos;
     }
+
+    // Camera Tracking ตามรถที่เลือก
+    if (id === selectedVehicleIdRef.current && isTrackingRef.current) {
+      mapRef.current?.panTo(newPos, { animate: true, duration: 0.8 });
+    }
     
     updateAvailableCount();
   };
@@ -532,9 +557,11 @@ export default function ShuttleTracker() {
           marker.on("click", (e) => {
             L.DomEvent.stopPropagation(e);
             
-            // 🚀 ปิด Card รถ เพื่อโชว์ Card ป้าย
+            // ปิด Card รถ เพื่อโชว์ Card ป้าย
             setSelectedVehicleId(null);
             selectedVehicleIdRef.current = null;
+            setIsTracking(false);
+            isTrackingRef.current = false;
 
             if (activeStopMarkerRef.current) activeStopMarkerRef.current.setIcon(DEFAULT_STOP_ICON);
             marker.setIcon(ACTIVE_STOP_ICON);
@@ -623,17 +650,31 @@ export default function ShuttleTracker() {
         clearInterval(interval);
         mapRef.current.flyTo(RSU_CENTER, 16.7, { animate: true, duration: 1.2 });
 
-        mapRef.current.on('zoomstart', () => { isZoomingRef.current = true; setIsAppLocked(true); });
+        mapRef.current.on('zoomstart', (e: any) => { 
+          isZoomingRef.current = true; 
+          setIsAppLocked(true); 
+          // หากผู้ใช้ย่อขยายแผนที่ด้วยตนเอง ให้ปิดการติดตามอัตโนมัติ
+          if (e.originalEvent) {
+            setIsTracking(false);
+            isTrackingRef.current = false;
+          }
+        });
         mapRef.current.on('zoomend', () => { 
-          isZoomingRef.current = false; setIsAppLocked(false);
+          isZoomingRef.current = false; 
+          setIsAppLocked(false);
           Object.values(pendingUpdatesRef.current).forEach(data => processLocationUpdateRef.current(data));
           pendingUpdatesRef.current = {};
+        });
+        mapRef.current.on('dragstart', () => {
+          // หากผู้ใช้ลากแผนที่ด้วยตนเอง ให้ปิดการติดตามอัตโนมัติ
+          setIsTracking(false);
+          isTrackingRef.current = false;
         });
         
         mapRef.current.on("click", () => {
           if (isZoomingRef.current) return;
           
-          // 🚀 กดที่ว่างๆ ปิด Card ทั้งหมด
+          // กดที่ว่างๆ ปิด Card ทั้งหมด
           if (targetStopRef.current || activeStopMarkerRef.current || selectedVehicleIdRef.current) {
             
             // ล้างป้าย
@@ -642,6 +683,7 @@ export default function ShuttleTracker() {
             
             // ล้างรถ
             setSelectedVehicleId(null); selectedVehicleIdRef.current = null;
+            setIsTracking(false); isTrackingRef.current = false;
 
             mapRef.current?.flyTo(RSU_CENTER, 16.7, { animate: true, duration: 0.8 });
           }
@@ -659,7 +701,7 @@ export default function ShuttleTracker() {
   useEffect(() => {
     const handleZoomCenter = () => {
       if (mapRef.current) {
-        // 🚀 พากล้องร่อนกลับมาจุดศูนย์กลางมหาลัย
+        // พากล้องร่อนกลับมาจุดศูนย์กลางมหาลัย
         mapRef.current.flyTo(RSU_CENTER, 16.7, {
           animate: true,
           duration: 1.2
@@ -762,7 +804,7 @@ export default function ShuttleTracker() {
 
         {/* Bottom Left: Floating Dock */}
         <div className="absolute bottom-4 left-4 md:bottom-10 md:left-10 z-10 w-[280px] sm:w-[320px] max-w-[calc(100%-32px)] flex flex-col gap-1 md:gap-2">
-          {/* 🚀 โชว์ Stop Info Card เมื่อไม่ได้เลือกรถ */}
+          {/* โชว์ Stop Info Card เมื่อไม่ได้เลือกรถ */}
           {!selectedVehicleId && (
             <StopInfoCard 
               targetStop={targetStop} 
@@ -770,7 +812,7 @@ export default function ShuttleTracker() {
             />
           )}
 
-          {/* 🚀 โชว์ Vehicle Info Card เมื่อเลือกรถ */}
+          {/* โชว์ Vehicle Info Card เมื่อเลือกรถ */}
           {selectedVehicleId && activeVehicleInfo && (
             <VehicleInfoCard 
               routeId={selectedRoute}
@@ -780,6 +822,8 @@ export default function ShuttleTracker() {
               eta={activeVehicleInfo.eta}
               stops={stopsByRouteRef.current[selectedRoute] || []}
               nextStopId={activeVehicleInfo.nextStopId}
+              isTracking={isTracking}
+              onRecenter={handleRecenter}
             />
           )}
         </div>
