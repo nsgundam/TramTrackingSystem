@@ -55,6 +55,7 @@ model Vehicle {
   route     Route?     @relation(fields: [assignedRouteId], references: [id])
   trips     Trip[]
   gpsTracks GPSTrack[]
+  feedbacks Feedback[]
 
   @@index([status])
   @@index([assignedRouteId])
@@ -151,11 +152,16 @@ model GPSTrack {
 model Feedback {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type      String?  @db.VarChar(50)
+  vehicleId String?  @map("vehicle_id") @db.VarChar(50)
   message   String?  @db.Text
   ipAddress String?  @map("ip_address") @db.Inet
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
 
+  // Relations
+  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
   @@index([createdAt(sort: Desc)])
   @@index([type])
+  @@index([vehicleId])
   @@map("feedback")
 }
