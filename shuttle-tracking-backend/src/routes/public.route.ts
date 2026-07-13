@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { getActiveRoutes, getActiveVehicles, getPublicStops, getRouteStops } from "../controllers/public.controller.js"
+import { submitFeedback } from "../controllers/feedback.controller.js";
 
 const router = Router();
 
@@ -14,5 +15,8 @@ router.get('/routes/:id/stops', getRouteStops);
 
 // GET api/public/stops
 router.get('/stops', getPublicStops);
+
+// POST api/public/feedback
+router.post('/feedback', submitFeedback);
 
 export default router;
