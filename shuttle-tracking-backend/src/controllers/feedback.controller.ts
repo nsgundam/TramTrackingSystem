@@ -21,11 +21,8 @@ export const submitFeedback = async (req: Request, res: Response) => {
       return;
     }
 
-    // ดึง IP ของ client (รองรับ proxy/load balancer)
-    const ipAddress =
-      (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() ||
-      req.socket.remoteAddress ||
-      undefined;
+    // ดึง IP ของ client
+    const ipAddress = req.ip || undefined;
 
     const feedback = await createFeedback(
       { type: type.trim(), vehicleId: vehicleId.trim(), message: message.trim() },

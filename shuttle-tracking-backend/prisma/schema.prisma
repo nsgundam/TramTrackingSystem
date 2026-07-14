@@ -52,10 +52,11 @@ model Vehicle {
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(6)
 
   // Relations
-  route     Route?     @relation(fields: [assignedRouteId], references: [id])
-  trips     Trip[]
-  gpsTracks GPSTrack[]
-  feedbacks Feedback[]
+  route           Route?           @relation(fields: [assignedRouteId], references: [id])
+  trips           Trip[]
+  gpsTracks       GPSTrack[]
+  feedbacks       Feedback[]
+  trackingSources TrackingSource[]
 
   @@index([status])
   @@index([assignedRouteId])
@@ -135,11 +136,13 @@ model GPSTrack {
   speed      Decimal?                  @db.Decimal(5, 2)
   heading    Decimal?                  @db.Decimal(5, 2)
   station    String?
+  sourceId   String?                   @map("source_id") @db.VarChar(50)
   recordedAt DateTime                  @map("recorded_at") @db.Timestamp(6)
 
   // Relations
-  trip    Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+  trip    Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  vehicle Vehicle         @relation(fields: [vehicleId], references: [id])
+  source  TrackingSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
 
   @@index([tripId])
   @@index([vehicleId, recordedAt(sort: Desc)])
@@ -147,7 +150,30 @@ model GPSTrack {
 }
 
 // ============================================
-// 8. FEEDBACK - User Feedback
+// 8. TRACKING_SOURCES - Physical Devices
+// ============================================
+model TrackingSource {
+  id         String    @id @db.VarChar(50)
+  name       String    @db.VarChar(255)
+  type       String    @db.VarChar(50) // "mobile", "lorawan", "esp32", "simulator"
+  vehicleId  String?   @map("vehicle_id") @db.VarChar(50)
+  priority   Int       @default(1)
+  status     String    @default("active") @db.VarChar(50)
+  secretHash String?   @map("secret_hash") @db.VarChar(255)
+  lastSeenAt DateTime? @map("last_seen_at") @db.Timestamp(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+
+  // Relations
+  vehicle   Vehicle?   @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  gpsTracks GPSTrack[]
+
+  @@index([vehicleId])
+  @@index([status])
+  @@map("tracking_sources")
+}
+
+// ============================================
+// 9. FEEDBACK - User Feedback
 // ============================================
 model Feedback {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid

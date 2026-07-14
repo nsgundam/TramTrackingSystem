@@ -1,0 +1,89 @@
+services:
+  # ============================================
+  # PostgreSQL + PostGIS
+  # ============================================
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    platform: linux/amd64
+    container_name: shuttle-db-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-shuttle_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-shuttle_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-shuttle_tracking}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata-prod:/var/lib/postgresql/data
+      - ./docker/init-postgis.sh:/docker-entrypoint-initdb.d/init-postgis.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-shuttle_user} -d ${POSTGRES_DB:-shuttle_tracking}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # Redis
+  # ============================================
+  redis:
+    image: redis:alpine
+    container_name: shuttle-redis-prod
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata-prod:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # Backend – Production Mode
+  # ============================================
+  backend:
+    build:
+      context: ./shuttle-tracking-backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: shuttle-backend-prod
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgres://${POSTGRES_USER:-shuttle_user}:${POSTGRES_PASSWORD:-shuttle_pass}@db:5432/${POSTGRES_DB:-shuttle_tracking}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-ReplaceWithSecureProductionSecretKey}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      API_URL: ${API_URL:-http://localhost:3001}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      TTN_WEBHOOK_SECRET: ${TTN_WEBHOOK_SECRET:-ttn_secure_webhook_secret_key}
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ============================================
+  # Frontend – Production Mode
+  # ============================================
+  frontend:
+    build:
+      context: ./shuttle-tracking-web
+      dockerfile: Dockerfile
+      target: production
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3001/api}
+    container_name: shuttle-frontend-prod
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata-prod:
+  redisdata-prod:
