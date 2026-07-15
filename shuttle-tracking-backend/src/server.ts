@@ -12,12 +12,15 @@ import stopRouter from "./routes/stops.route.js";
 import routeStopsRouter from "./routes/routeStops.route.js";
 import tripsRouter from "./routes/trips.route.js";
 import publicRouter from "./routes/public.route.js";
+import ingestRouter from "./routes/ingest.route.js";
+import devicesRouter from "./routes/devices.route.js";
 
 import { authenticateToken } from "./middleware/auth.js";
 
-import { handleLocationData } from "./services/tracking.service.js";
+import { processObservation } from "./services/tracking.service.js";
 
 import { connectRedis, redisClient } from "./config/redis.js";
+import { prisma } from "./config/prisma.js";
 
 const app = express();
 
@@ -47,7 +50,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-//Routes
+// Routes
 app.use("/api/auth", authRouter);
 
 // Admin Routes (Protected)
@@ -55,23 +58,66 @@ app.use("/api/admin/vehicles", authenticateToken, vehiclesRouter);
 app.use("/api/admin/routes", authenticateToken, routeRouter);
 app.use("/api/admin/stops", authenticateToken, stopRouter);
 app.use("/api/admin/route-stops", authenticateToken, routeStopsRouter);
+app.use("/api/admin/devices", authenticateToken, devicesRouter);
 
-// Public Routes (Open)
+// Public & Ingest Routes (Open)
 app.use("/api/public", publicRouter);
-
 app.use("/api/trips", tripsRouter);
+app.use("/api/ingest", ingestRouter);
+
+// Health & Readiness Checks
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK", timestamp: new Date() });
+});
+
+app.get("/ready", async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    await redisClient.ping();
+    res.status(200).json({
+      status: "READY",
+      database: "connected",
+      redis: "connected"
+    });
+  } catch (error: any) {
+    console.error("[Ready Check] Failed:", error.message);
+    res.status(503).json({
+      status: "NOT_READY",
+      error: error.message
+    });
+  }
+});
 
 const io = new Server(httpServer, {
   cors: corsOptions,
 });
+
+app.set('socketio', io); // Share Socket.IO instance to REST controllers
 
 // Logic for handling Socket.IO connections
 io.on("connection", (socket) => {
   console.log("A client connected:", socket.id);
 
   socket.on("send-location", async (rawData) => {
-    const result = await handleLocationData(rawData);
-    io.emit("location-update", result);
+    try {
+      const canonicalLocation = await processObservation({
+        sourceId: rawData.sourceId || rawData.vehicleId, // Fallback to vehicleId for legacy simulator support
+        token: rawData.token,
+        lat: rawData.lat,
+        lng: rawData.lng,
+        speed: rawData.speed,
+        bearing: rawData.bearing || rawData.heading,
+        accuracy: rawData.accuracy,
+        station: rawData.station
+      });
+
+      if (canonicalLocation) {
+        io.emit("location-update", canonicalLocation);
+      }
+    } catch (error: any) {
+      console.error("[Socket.IO] Error processing send-location:", error.message);
+      socket.emit("error-response", { error: error.message });
+    }
   });
 
   socket.on("disconnect", () => {

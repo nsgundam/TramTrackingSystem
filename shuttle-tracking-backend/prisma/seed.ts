@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
@@ -112,6 +113,27 @@ async function main() {
       { id: 'VH003', name: 'รถ A3', type: '2-ตอน', assignedRouteId: 'R01' },
       { id: 'VN001', name: 'รถสถานี 1', type: 'รถตู้', assignedRouteId: 'R02' },
       { id: 'VN002', name: 'รถสถานี 2', type: 'รถตู้', assignedRouteId: 'R02' },
+    ],
+    skipDuplicates: true,
+  });
+
+  // Create tracking sources (Devices)
+  const espHash = await bcrypt.hash('esp32_secret_key', 12);
+  const mobHash = await bcrypt.hash('mobile_secret_key', 12);
+
+  await prisma.trackingSource.createMany({
+    data: [
+      { id: 'TS_MOB_01', name: 'คนขับมือถือ A1', type: 'mobile', vehicleId: 'VH001', priority: 1, secretHash: mobHash },
+      { id: 'TS_ESP_01', name: 'ESP32 กล่อง A1', type: 'esp32', vehicleId: 'VH001', priority: 2, secretHash: espHash },
+      { id: 'TS_LORA_01', name: 'LoRa Node A1', type: 'lorawan', vehicleId: 'VH001', priority: 3, secretHash: null },
+      
+      { id: 'TS_MOB_02', name: 'คนขับมือถือ A2', type: 'mobile', vehicleId: 'VH002', priority: 1, secretHash: mobHash },
+      { id: 'TS_ESP_02', name: 'ESP32 กล่อง A2', type: 'esp32', vehicleId: 'VH002', priority: 2, secretHash: espHash },
+
+      { id: 'TS_MOB_03', name: 'คนขับมือถือ A3', type: 'mobile', vehicleId: 'VH003', priority: 1, secretHash: mobHash },
+
+      { id: 'TS_ESP_N1', name: 'ESP32 รถตู้ 1', type: 'esp32', vehicleId: 'VN001', priority: 1, secretHash: espHash },
+      { id: 'TS_LORA_N2', name: 'LoRa รถตู้ 2', type: 'lorawan', vehicleId: 'VN002', priority: 1, secretHash: null },
     ],
     skipDuplicates: true,
   });

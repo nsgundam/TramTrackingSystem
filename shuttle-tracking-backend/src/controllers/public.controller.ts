@@ -33,21 +33,37 @@ export const getActiveRoutes = async (req: Request, res: Response) => {
 // 2. Get all Active Vehicles
 export const getActiveVehicles = async (req: Request, res: Response) => {
     try {
-        const cached = await redisClient.get('public:active_vehicles');
-        if (cached) {
-            res.json(JSON.parse(cached));
-            return;
-        }
-
         const vehicles = await prisma.vehicle.findMany({
             where: { status: 'active' },
             include: { route: true },
             orderBy: { id: 'asc' }
         });
 
-        await redisClient.set('public:active_vehicles', JSON.stringify(vehicles), { EX: CACHE_TTL });
+        const vehiclesWithLocation = await Promise.all(
+            vehicles.map(async (v) => {
+                const locData = await redisClient.get(`vehicle:current_location:${v.id}`);
+                let location = null;
+                if (locData) {
+                    const parsed = JSON.parse(locData);
+                    location = {
+                        lat: parsed.lat,
+                        lng: parsed.lng,
+                        speed: parsed.speed,
+                        heading: parsed.heading,
+                        accuracy: parsed.accuracy,
+                        station: parsed.station,
+                        sourceType: parsed.sourceType,
+                        recordedAt: parsed.recordedAt
+                    };
+                }
+                return {
+                    ...v,
+                    location
+                };
+            })
+        );
 
-        res.json(vehicles);
+        res.json(vehiclesWithLocation);
     } catch (error) {
         console.error('Error fetching active vehicles:', error);
         res.status(500).json({ error: 'Failed to fetch active vehicles' });
