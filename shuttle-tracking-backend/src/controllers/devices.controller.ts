@@ -20,7 +20,7 @@ export const getDevices = async (req: Request, res: Response) => {
 // Get device by ID
 export const getDeviceById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const device = await prisma.trackingSource.findUnique({
       where: { id },
       include: { vehicle: true }
@@ -79,7 +79,7 @@ export const createDevice = async (req: Request, res: Response) => {
 // Update device
 export const updateDevice = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { name, type, vehicleId, priority, status, secret } = req.body;
 
     const existing = await prisma.trackingSource.findUnique({ where: { id } });
@@ -114,7 +114,11 @@ export const updateDevice = async (req: Request, res: Response) => {
 // Delete device
 export const deleteDevice = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = typeof req.params.id === 'string' ? req.params.id : undefined;
+    if (!id) {
+      res.status(400).json({ error: 'Invalid or missing device ID' });
+      return;
+    }
     const existing = await prisma.trackingSource.findUnique({ where: { id } });
     if (!existing) {
        res.status(404).json({ error: 'Device not found' });
