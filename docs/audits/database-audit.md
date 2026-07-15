@@ -2,11 +2,11 @@
 
 ## 1. Executive Summary
 
-Assessment: **MVP-usable, not production-ready for continuous GPS history or multi-device tracking**.
+Assessment: **MVP-usable, partially ready for multi-source tracking, but not production-ready for trusted lifecycle or continuous GPS history**.
 
 The database has a solid MVP foundation: PostgreSQL/PostGIS is enabled, core domain tables exist, route-stop ordering is modeled, trips and GPS tracks are persisted, and basic indexes support current public/admin reads. Evidence: the Prisma schema defines `User`, `Route`, `Vehicle`, `Stop`, `RouteStop`, `Trip`, `GPSTrack`, and `Feedback` (`shuttle-tracking-backend/prisma/schema.prisma:16-160`), with PostGIS configured in the datasource (`shuttle-tracking-backend/prisma/schema.prisma:8-10`).
 
-The biggest database risks are structural rather than raw capacity. The schema cannot identify which device/source produced a GPS row, cannot enforce one active trip per vehicle, has no retention or partitioning plan for GPS time-series growth, lacks spatial GiST indexes for geography columns, and depends heavily on application validation for status values, coordinate validity, and lifecycle rules.
+The latest schema changes address two earlier structural gaps: `TrackingSource` now identifies sources and `GPSTrack.sourceId` attributes persisted samples, while a PostgreSQL partial unique index now limits each vehicle to one `in_progress` trip (`shuttle-tracking-backend/prisma/schema.prisma:131-172`, `shuttle-tracking-backend/prisma/migrations/20260714155233_add_tracking_sources/migration.sql:2-32`). The remaining database risks are incomplete source integrity/operations, non-idempotent application behavior around the database guard, no retention or partitioning plan for GPS time-series growth, missing playback/spatial indexes, and free-form status/coordinate rules.
 
 The backend currently broadcasts GPS every event but persists only one GPS row per trip per 60 seconds through Redis throttling (`shuttle-tracking-backend/src/services/tracking.service.ts:4-25`). That keeps write volume low, but it means stored GPS history is too sparse for high-fidelity playback if the product expects 1-3 second historical traces.
 
@@ -16,7 +16,7 @@ Database stack:
 
 - PostgreSQL with PostGIS extension declared in Prisma (`shuttle-tracking-backend/prisma/schema.prisma:8-10`).
 - Prisma 7 client with PostgreSQL adapter, plus raw SQL for geography reads/writes where Prisma cannot model PostGIS directly (`shuttle-tracking-backend/src/services/tracking.service.ts:28-39`, `shuttle-tracking-backend/src/controllers/public.controller.ts:66-77`).
-- Initial migration creates the schema and `CREATE EXTENSION IF NOT EXISTS "postgis"` (`shuttle-tracking-backend/prisma/migrations/20260217070749_init/migration.sql:1-3`).
+- Initial migration creates the schema and `CREATE EXTENSION IF NOT EXISTS "postgis"`; later migrations add GPS fields, feedback-to-vehicle linkage, and tracking sources (`shuttle-tracking-backend/prisma/migrations/20260217070749_init/migration.sql:1-3`, `shuttle-tracking-backend/prisma/migrations/20260713083424_feedback_vehicle_id/migration.sql:1-11`, `shuttle-tracking-backend/prisma/migrations/20260714155233_add_tracking_sources/migration.sql:1-32`).
 
 Model summary:
 
@@ -26,7 +26,7 @@ Model summary:
 - `Stop`: stop master data with Thai/English names, optional `geography` location, image URL, status, and route-stop memberships (`shuttle-tracking-backend/prisma/schema.prisma:67-80`).
 - `RouteStop`: junction table between routes and stops with `stopOrder`, unique per route/order (`shuttle-tracking-backend/prisma/schema.prisma:86-99`).
 - `Trip`: operational trip record with vehicle, route, start/end time, status, and GPS tracks (`shuttle-tracking-backend/prisma/schema.prisma:105-123`).
-- `GPSTrack`: time-series location record with trip, vehicle, geography location, speed, heading, station, and recorded time (`shuttle-tracking-backend/prisma/schema.prisma:129-145`).
+- `GPSTrack`: sampled time-series location record with trip, vehicle, geography location, speed, heading, station, optional source, and recorded time (`shuttle-tracking-backend/prisma/schema.prisma:131-149`).
 - `Feedback`: data-only feedback table with type, message, IP address, and created time (`shuttle-tracking-backend/prisma/schema.prisma:151-160`).
 
 ## 3. Database Strengths
@@ -37,23 +37,23 @@ Model summary:
 
 3. **Route-stop ordering is protected by a unique constraint.** `@@unique([routeId, stopOrder])` prevents two stops from occupying the same order on one route (`shuttle-tracking-backend/prisma/schema.prisma:96`).
 
-4. **The migration history is small and understandable.** One initial migration creates tables, indexes, and FKs; one later migration adds `heading` and `station` to `gps_tracks` (`shuttle-tracking-backend/prisma/migrations/20260217070749_init/migration.sql:1-160`, `shuttle-tracking-backend/prisma/migrations/20260227072309_add_station_to_gps/migration.sql:1-3`).
+4. **The migration history is small and understandable.** The initial schema is followed by additive GPS, feedback, and tracking-source migrations. The latest migration also adds the active-trip database guard (`shuttle-tracking-backend/prisma/migrations/20260217070749_init/migration.sql:1-160`, `shuttle-tracking-backend/prisma/migrations/20260227072309_add_station_to_gps/migration.sql:1-3`, `shuttle-tracking-backend/prisma/migrations/20260714155233_add_tracking_sources/migration.sql:1-32`).
 
-5. **The existing indexes support several current reads.** Vehicles have indexes on status and assigned route, route stops have route/stop indexes, trips have vehicle/route/status/start indexes, and GPS tracks have trip and vehicle/time indexes (`shuttle-tracking-backend/prisma/schema.prisma:59-60`, `shuttle-tracking-backend/prisma/schema.prisma:97-98`, `shuttle-tracking-backend/prisma/schema.prisma:119-122`, `shuttle-tracking-backend/prisma/schema.prisma:143-144`).
+5. **The existing indexes support several current reads.** Vehicles have indexes on status and assigned route, route stops have route/stop indexes, trips have vehicle/route/status/start indexes, and GPS tracks have trip and vehicle/time indexes (`shuttle-tracking-backend/prisma/schema.prisma:59-60`, `shuttle-tracking-backend/prisma/schema.prisma:97-98`, `shuttle-tracking-backend/prisma/schema.prisma:121-124`, `shuttle-tracking-backend/prisma/schema.prisma:147-149`).
 
 ## 4. Critical Issues
 
-### Critical Issue 1: No database-level tracking source or device identity
+### Critical Issue 1: Tracking source identity exists but is not fully constrained or operationalized
 
-The schema has `Vehicle` and `GPSTrack`, but no `Device`, `TrackingSource`, source type, source health, source priority, or vehicle-device assignment (`shuttle-tracking-backend/prisma/schema.prisma:46-61`, `shuttle-tracking-backend/prisma/schema.prisma:129-145`). Architecture and backend audits also identify this as a major risk for Mobile, LoRaWAN, and ESP32 support (`docs/audits/architecture-audit.md:7-17`, `docs/audits/backend-audit.md:61-63`).
+The schema now has `TrackingSource` with type, status, priority, optional vehicle assignment, secret hash, last-seen timestamp, and `GPSTrack.sourceId` (`shuttle-tracking-backend/prisma/schema.prisma:131-172`). The migration and seed establish multiple source types and multiple sources per vehicle (`shuttle-tracking-backend/prisma/migrations/20260714155233_add_tracking_sources/migration.sql:2-29`, `shuttle-tracking-backend/prisma/seed.ts:120-138`).
 
-Impact: the database cannot answer which source produced a GPS row, whether a source is stale, or which source should be trusted when multiple devices report for one vehicle.
+Impact: source attribution is now possible for persisted samples, but source `type` and `status` remain free-form, assignment history is not modeled, and source ownership is not enforced at the database level. Raw observations remain Redis-only, so the database cannot reconstruct every source report or its freshness history.
 
-### Critical Issue 2: No database constraint prevents multiple active trips per vehicle
+### Critical Issue 2: Active-trip constraint exists, but lifecycle behavior is not idempotent
 
-`Trip.status` is a free-form string and there is no partial unique index such as one `in_progress` trip per `vehicle_id` (`shuttle-tracking-backend/prisma/schema.prisma:105-123`). The start trip controller creates a new `in_progress` trip every time and then updates the vehicle status separately (`shuttle-tracking-backend/src/controllers/trips.controller.ts:27-39`).
+The latest migration adds `unique_active_trip_per_vehicle`, a partial unique index on `trips(vehicle_id)` where `status = 'in_progress'` (`shuttle-tracking-backend/prisma/migrations/20260714155233_add_tracking_sources/migration.sql:31-32`). However, `Trip.status` is still free-form, `startTrip` does not return an existing active trip or translate the unique violation into a conflict, and trip/vehicle writes remain separate (`shuttle-tracking-backend/src/controllers/trips.controller.ts:27-39`).
 
-Impact: retries, duplicate requests, or device reconnects can create conflicting active trips for the same vehicle. This is a data integrity issue, not only a controller issue.
+Impact: the database now prevents duplicate active rows, but retries can still produce generic failures and leave the vehicle/trip state transition non-atomic. This is reduced from a critical schema gap but remains a high operational integrity risk.
 
 ### Critical Issue 3: GPS history storage does not match high-fidelity playback needs
 
@@ -63,7 +63,7 @@ Impact: the database can support lightweight history and reports, but not detail
 
 ### Critical Issue 4: No GPS retention, archiving, or partitioning strategy exists
 
-`gps_tracks` is a single unpartitioned table with no retention marker, archive table, deletion job, or documented lifecycle policy (`shuttle-tracking-backend/prisma/schema.prisma:129-145`). No migration or backend code was found for partitioning or retention.
+`gps_tracks` is a single unpartitioned table with no retention marker, archive table, deletion job, or documented lifecycle policy (`shuttle-tracking-backend/prisma/schema.prisma:131-149`). No migration or backend code was found for partitioning or retention.
 
 Impact: if persistence is increased from 60-second sampling to 1-3 second storage, table growth becomes a production concern quickly. At 10 vehicles, 1 row every second is about 864,000 rows/day before indexes.
 
@@ -79,9 +79,9 @@ Impact: if persistence is increased from 60-second sampling to 1-3 second storag
 
 `RouteStop` correctly models ordered many-to-many route membership. It prevents duplicate stop order per route but does not prevent the same stop being added twice to the same route at different orders. If loops intentionally revisit a stop, this may be acceptable; otherwise add `@@unique([routeId, stopId])`.
 
-`Trip` stores lifecycle fields but uses string `status` and has no uniqueness rule for active trips. It has no driver/device reference, no source, and no summary fields such as distance or sampled point count.
+`Trip` stores lifecycle fields and the latest migration enforces one `in_progress` row per vehicle, but `status` remains a free-form string and the model has no driver/source reference or summary fields such as distance or sampled point count.
 
-`GPSTrack` has the essential playback fields: trip, vehicle, geography location, speed, heading, station, and recorded time. It lacks source identity, device-reported timestamp, accuracy, altitude, battery/signal metadata, and ingestion timestamp separation.
+`GPSTrack` has the essential sampled-history fields: trip, vehicle, geography location, speed, heading, station, source, and recorded time. It still lacks device-reported timestamp, accuracy, altitude, battery/signal metadata, and separate ingestion timestamp.
 
 `Feedback` is isolated and data-only. It has no user workflow fields such as status, assigned admin, related route/vehicle/trip, or resolution notes.
 
@@ -113,14 +113,14 @@ Index fit:
 - `vehicles.assignedRouteId` supports vehicles-by-route admin reads (`shuttle-tracking-backend/prisma/schema.prisma:60`).
 - `stops.status` supports active stop reads (`shuttle-tracking-backend/prisma/schema.prisma:79`).
 - `route_stops.route_id` plus unique `(route_id, stop_order)` supports route-stop listing ordered by stop order (`shuttle-tracking-backend/prisma/schema.prisma:96-98`).
-- `gps_tracks.trip_id` supports trip playback lookups, but a composite `(trip_id, recorded_at)` would better support ordered playback by trip (`shuttle-tracking-backend/prisma/schema.prisma:143`).
-- `(vehicle_id, recorded_at DESC)` supports latest/history by vehicle (`shuttle-tracking-backend/prisma/schema.prisma:144`).
+- `gps_tracks.trip_id` supports trip playback lookups, but a composite `(trip_id, recorded_at)` would better support ordered playback by trip (`shuttle-tracking-backend/prisma/schema.prisma:147-149`).
+- `(vehicle_id, recorded_at DESC)` supports latest/history by vehicle (`shuttle-tracking-backend/prisma/schema.prisma:148`).
 
 Index gaps:
 
 - `routes.status` has no index, although public active routes filter by status. With few routes this is fine; add only if route count grows or query plans show benefit.
 - No GiST spatial index exists on `stops.location` or `gps_tracks.location`. Current queries only extract coordinates, so this is not hurting current reads, but future nearest stop, route proximity, bounding-box, and spatial analytics queries will need it.
-- No partial unique index enforces one active trip per vehicle.
+- A partial unique index now enforces one active trip per vehicle, but application conflict handling is not implemented (`shuttle-tracking-backend/prisma/migrations/20260714155233_add_tracking_sources/migration.sql:31-32`).
 - No `(trip_id, recorded_at)` index for playback-style ordered reads.
 - No index supports feedback workflow by unresolved status because feedback status does not exist.
 
@@ -130,7 +130,7 @@ For the stated target of 10 vehicles sending every 1-3 seconds:
 
 - Broadcast path receives every event through Socket.IO (`shuttle-tracking-backend/src/server.ts:68-75`).
 - Database persistence is throttled to 60 seconds per trip (`shuttle-tracking-backend/src/services/tracking.service.ts:4-25`).
-- The schema stores a `recordedAt` timestamp and indexes by vehicle/time (`shuttle-tracking-backend/prisma/schema.prisma:137`, `shuttle-tracking-backend/prisma/schema.prisma:144`).
+- The schema stores a `recordedAt` timestamp and indexes by vehicle/time (`shuttle-tracking-backend/prisma/schema.prisma:140`, `shuttle-tracking-backend/prisma/schema.prisma:148`).
 
 Conclusion: the current table design is acceptable for sampled operational history, but the current persistence policy is not aligned with detailed playback. If the product wants playback at the same resolution as live updates, the database needs a deliberate time-series plan: composite playback index, retention policy, and likely date-based partitioning before high-frequency storage is enabled.
 
@@ -139,20 +139,20 @@ Not Implemented:
 - Retention or archive policy.
 - Date partitioning for `gps_tracks`.
 - Device timestamp vs server ingestion timestamp.
-- Accuracy persisted, even though the socket payload includes `accuracy` and the broadcast result returns it (`shuttle-tracking-backend/src/services/tracking.service.ts:8`, `shuttle-tracking-backend/src/services/tracking.service.ts:43-45`).
+- Accuracy is accepted in the source observation and carried in Redis, but is not persisted in `gps_tracks` (`shuttle-tracking-backend/src/services/tracking.service.ts:13-22`, `shuttle-tracking-backend/src/services/tracking.service.ts:64-73`).
 
 ## 9. Multi-Device Readiness Review
 
-Current status: **not structurally ready**.
+Current status: **partially structurally ready**.
 
-At the database level, a GPS row can identify only `tripId` and `vehicleId`, not which device or source generated it (`shuttle-tracking-backend/prisma/schema.prisma:129-145`). The backend audit confirms Mobile/LoRaWAN/ESP32 are not modeled as device sources (`docs/audits/backend-audit.md:188-206`).
+At the database level, a sampled GPS row can identify `tripId`, `vehicleId`, and optional `sourceId`; `TrackingSource` supports source type, priority, status, vehicle assignment, and last-seen time (`shuttle-tracking-backend/prisma/schema.prisma:131-172`). The backend pipeline selects the highest-priority fresh source and persists the selected source ID (`shuttle-tracking-backend/src/services/tracking.service.ts:101-160`, `shuttle-tracking-backend/src/services/tracking.service.ts:226-237`).
 
-Minimum schema concepts needed:
+Remaining schema gaps:
 
-- `Device` or `TrackingSource`: id, type (`mobile`, `lorawan`, `esp32`, `simulator`), status, secret/token metadata, created time.
-- `VehicleDeviceAssignment`: current and historical assignment between vehicles and devices.
-- `GPSTrack.sourceId` or a separate raw `LocationObservation` table to attribute each observation.
-- `CurrentVehicleLocation`: optional read model for the selected canonical position per vehicle, including source, freshness, and quality.
+- Constrained source type/status values and a rule for valid source-to-vehicle assignments.
+- Historical assignment model if a source can move between vehicles.
+- Durable raw `LocationObservation` history if every source report must be auditable; current raw observations are Redis-only.
+- Database-backed current-location read model if Redis loss must not remove operational state.
 
 ## 10. Data Integrity Review
 
@@ -167,14 +167,14 @@ Integrity relying on application logic:
 
 - Allowed values for route, vehicle, and trip statuses.
 - Coordinate validity and non-null stop/GPS location.
-- One active trip per vehicle.
-- Whether `GPSTrack.vehicleId` matches the vehicle on `GPSTrack.tripId`.
+- Whether the active-trip rule is respected by all writers; the partial unique index now protects the final insert.
+- Whether `GPSTrack.vehicleId` matches the vehicle on `GPSTrack.tripId` or whether `GPSTrack.sourceId` belongs to that vehicle.
 - Whether route-stop duplicates are allowed.
 - Whether stop order must be positive.
 - Whether `endTime >= startTime`.
 - Whether speed and heading ranges are valid.
 
-High-risk example: `handleLocationData` inserts `tripId` and `vehicleId` from the socket payload without checking that the trip belongs to that vehicle (`shuttle-tracking-backend/src/services/tracking.service.ts:8-39`).
+High-risk example: the canonical persistence path selects an active trip by `vehicleId`, but the database has no composite constraint proving that a future or direct insert keeps `gps_tracks.vehicle_id` aligned with `trips.vehicle_id` (`shuttle-tracking-backend/src/services/tracking.service.ts:167-237`).
 
 ## 11. Migration Review
 
@@ -182,21 +182,24 @@ The migration history is coherent:
 
 - `20260217070749_init` creates PostGIS, tables, indexes, and foreign keys in a logical initial schema (`shuttle-tracking-backend/prisma/migrations/20260217070749_init/migration.sql:1-160`).
 - `20260227072309_add_station_to_gps` adds nullable `heading` and `station`, a safe additive change (`shuttle-tracking-backend/prisma/migrations/20260227072309_add_station_to_gps/migration.sql:1-3`).
+- `20260713083424_feedback_vehicle_id` adds an optional vehicle relation and index to feedback (`shuttle-tracking-backend/prisma/migrations/20260713083424_feedback_vehicle_id/migration.sql:1-11`).
+- `20260714155233_add_tracking_sources` adds source attribution, the source registry, foreign keys, indexes, and the partial unique active-trip index (`shuttle-tracking-backend/prisma/migrations/20260714155233_add_tracking_sources/migration.sql:1-32`).
 
 Safety observations:
 
 - PostGIS extension setup is idempotent through `CREATE EXTENSION IF NOT EXISTS`.
 - No destructive migrations were found.
+- The latest migration creates a unique index directly on `trips`; deployment will fail if existing duplicate `in_progress` rows are present. No pre-index duplicate check or cleanup step is included (`shuttle-tracking-backend/prisma/migrations/20260714155233_add_tracking_sources/migration.sql:31-32`).
 - Not Found: migration notes, rollback notes, or data backfill documentation.
 - Not Found: spatial GiST indexes in migrations.
 - Needs Confirmation: whether production migration workflow is `prisma migrate deploy`, because this audit only inspected repository files.
 
 ## 12. Missing Schema Capabilities
 
-- Trip History: partially supported by `Trip` and `GPSTrack`, but no active-trip uniqueness, no summary metrics, and sparse GPS persistence.
+- Trip History: partially supported by `Trip` and `GPSTrack`; active-trip uniqueness now exists, but there are no summary metrics and GPS persistence remains sparse.
 - GPS Playback: partially supported, but missing `(trip_id, recorded_at)` index and high-fidelity persistence policy.
-- Device Registration: not implemented at schema level.
-- Device Health: not implemented at schema level.
+- Device Registration: partially supported by `TrackingSource` and admin device CRUD; no assignment history or constrained type/status model.
+- Device Health: partially supported by `lastSeenAt` and `status`; no event/history/read model for stale or offline transitions.
 - Reports: partially supported by trips/GPS/feedback, but no aggregates, event tables, or lifecycle/status fields for feedback.
 - Feedback Workflow: `Feedback` exists, but no status, assignment, relation to route/vehicle/trip/stop, or resolution fields.
 - Admin User/Roles: not implemented beyond username/password.
@@ -205,27 +208,27 @@ Safety observations:
 
 ## 13. Recommended Improvements
 
-### Recommendation 1: Add tracking source/device schema
+### Recommendation 1: Complete tracking source integrity and operations
 
 ### Problem
 
-The database cannot distinguish Mobile, LoRaWAN, ESP32, simulator, or multiple sources for one vehicle.
+The database now distinguishes source types and can attribute sampled GPS rows, but source type/status are free-form and there is no assignment history or durable raw observation history.
 
 ### Impact
 
-GPS rows cannot be attributed, source health cannot be tracked, and future failover/source-priority logic has no durable data model.
+Source attribution exists for sampled rows, but invalid source categories, reassignment history, and every raw observation cannot be reliably audited from PostgreSQL.
 
 ### Recommendation
 
-Add `Device` or `TrackingSource`, `VehicleDeviceAssignment`, and a `sourceId` reference on GPS observations or a new raw `LocationObservation` table.
+Keep `TrackingSource` and `GPSTrack.sourceId`. Add database checks for supported source types/statuses, define assignment integrity, and add a raw observation table only if audit/replay requires every incoming report.
 
 ### Why
 
-Current schema only links GPS to trip and vehicle (`shuttle-tracking-backend/prisma/schema.prisma:129-145`), while architecture/backend audits identify multi-device support as planned and currently missing.
+The latest schema links sampled GPS to a source and supports multiple sources per vehicle (`shuttle-tracking-backend/prisma/schema.prisma:131-172`). The remaining gap is operational completeness, not absence of the core entity.
 
 ### Priority
 
-Critical
+High
 
 ### Difficulty
 
@@ -237,29 +240,29 @@ Device registry and source attribution.
 
 ### Related Files
 
-`shuttle-tracking-backend/prisma/schema.prisma`, `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`
+`shuttle-tracking-backend/prisma/schema.prisma`, `shuttle-tracking-backend/prisma/migrations/20260714155233_add_tracking_sources/migration.sql`, `shuttle-tracking-backend/src/services/tracking.service.ts`
 
 ### Recommendation 2: Enforce one active trip per vehicle
 
 ### Problem
 
-The database allows multiple `in_progress` trips for one vehicle.
+The database now prevents multiple `in_progress` trips per vehicle, but application behavior does not treat the constraint as an idempotency mechanism.
 
 ### Impact
 
-Trip history, active vehicle state, and playback can become inconsistent under retries or duplicate start requests.
+Retries can return generic errors, and separate trip/vehicle writes can still leave state transitions non-atomic.
 
 ### Recommendation
 
-Add a PostgreSQL partial unique index on `trips(vehicle_id)` where `status = 'in_progress'`. Also update application logic to handle conflict/idempotency.
+Keep the existing PostgreSQL partial unique index and update application logic to return the existing active trip or a clear 409, handle unique-violation errors, and use a transaction for trip plus vehicle updates.
 
 ### Why
 
-The controller creates a trip without checking for an existing active one (`shuttle-tracking-backend/src/controllers/trips.controller.ts:27-34`), and the schema has no uniqueness rule for this lifecycle invariant.
+The index is present in the latest migration, but the controller still creates blindly and updates the vehicle separately (`shuttle-tracking-backend/src/controllers/trips.controller.ts:27-39`, `shuttle-tracking-backend/prisma/migrations/20260714155233_add_tracking_sources/migration.sql:31-32`).
 
 ### Priority
 
-Critical
+High
 
 ### Difficulty
 
@@ -271,7 +274,7 @@ Partial unique indexes and idempotent writes.
 
 ### Related Files
 
-`shuttle-tracking-backend/prisma/schema.prisma`, `shuttle-tracking-backend/src/controllers/trips.controller.ts`
+`shuttle-tracking-backend/prisma/schema.prisma`, `shuttle-tracking-backend/prisma/migrations/20260714155233_add_tracking_sources/migration.sql`, `shuttle-tracking-backend/src/controllers/trips.controller.ts`
 
 ### Recommendation 3: Define GPS retention and sampling policy
 
@@ -487,4 +490,4 @@ Recommended next agents:
 - **Security & DevOps Audit Agent**: should review database integrity risks that overlap with trust boundaries, especially unauthenticated GPS writes, migration deployment policy, backups, secrets, and operational observability.
 - **Master Refactoring Roadmap Agent**: should use this audit to sequence schema changes before feature work such as device registration, trip history, GPS playback, reports, and feedback workflow.
 
-Completion note: `docs/audits/database-audit.md` has been created.
+Completion note: `docs/audits/database-audit.md` has been updated after re-inspecting the latest schema, migrations, seed data, and database-relevant backend queries.
