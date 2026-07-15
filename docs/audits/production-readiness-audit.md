@@ -6,7 +6,7 @@ Determination: **Not Ready** for production use with real vehicles, real drivers
 
 The system is a credible MVP and learning foundation. It has a working public map, admin CRUD, trip start/end flow, Socket.IO location updates, PostgreSQL/PostGIS persistence, Redis cache/throttling, and local Docker Compose orchestration (`docs/project-knowledge-base.md`, `docs/audits/backend-audit.md:1. Executive Summary`, `docs/audits/frontend-audit.md:1. Executive Summary`, `docs/audits/database-audit.md:1. Executive Summary`).
 
-It is not production-ready because the most important operational trust boundaries are still missing. The same high-risk patterns appear across multiple audits: unauthenticated vehicle/trip/GPS sender flow, no device/source identity, non-idempotent trip lifecycle, limited validation, weak freshness/staleness visibility, local-only deployment configuration, development runtimes, no backend readiness endpoint, unsafe production-capable defaults, and no monitoring path that can tell operators when vehicles or dependencies have gone silent.
+It is not production-ready because the most important operational trust boundaries are still missing. The same high-risk patterns appear across multiple audits: unauthenticated vehicle/trip/GPS sender flow, a newly added but not yet fully operationalized device/source model, non-idempotent trip lifecycle, limited validation, weak freshness/staleness visibility, local-only deployment configuration, development runtimes, unsafe production-capable defaults, and no monitoring path that can tell operators when vehicles or dependencies have gone silent.
 
 Mentor framing: for a student/MVP demo, it is acceptable that a simulator can move markers on a map and admins can manage core data. For production, the release question changes from "does the happy path work?" to "can we trust what the system says when devices reconnect, users make mistakes, attackers send bad data, Redis/DB is degraded, or a vehicle stops reporting?" On that standard, the current answer is no.
 
@@ -56,15 +56,15 @@ Yes.
 
 `shuttle-tracking-backend/src/controllers/auth.controller.ts`, `shuttle-tracking-backend/src/routes/trips.route.ts`, `shuttle-tracking-backend/src/server.ts`, `shuttle-tracking-backend/src/services/tracking.service.ts`
 
-### 2. No tracking source or device abstraction
+### 2. Tracking-source architecture exists but is not fully production-operational
 
 ### Problem
 
-The system models vehicles and GPS tracks, but not devices, tracking sources, source type, source health, source priority, or vehicle-device assignment. Mobile, LoRaWAN, ESP32, TTN, and simulator updates cannot be distinguished or reconciled.
+The latest Architecture Audit records a `TrackingSource` model, source-aware HTTP/Socket.IO/TTN ingestion, source priority, freshness selection, and canonical current-location handling. However, the prior Backend, Database, and Infrastructure audits still identify the missing/unfinished source boundary, and the latest Architecture Audit itself says stale/offline state, device health, admin visibility, and failover reporting are not operationalized. Sender authentication and production device operations therefore remain unresolved.
 
 ### Source Audit
 
-Architecture Audit, Critical: No tracking-source/device abstraction. Backend Audit, Critical Issue 2 and Recommendation 4. Database Audit, Critical Issue 1 and Recommendation 1. Infrastructure & Device Audit, Critical Issue 4 and Recommendation 4.
+Latest Architecture Audit, Executive Summary, Strength 6, and remaining risks. Backend Audit, Critical Issue 2 and Recommendation 4. Database Audit, Critical Issue 1 and Recommendation 1. Infrastructure & Device Audit, Critical Issue 4 and Recommendation 4.
 
 ### Cross-Cutting
 
@@ -72,7 +72,7 @@ Yes. Architecture, backend, database, infrastructure, observability, and future 
 
 ### Priority
 
-Critical in architecture, database, and infrastructure; High in backend recommendation.
+Partially addressed architecturally, but still Critical for a production scope that depends on authenticated multi-device operation and operational failover; High in the backend recommendation.
 
 ### Blocking for Production
 
@@ -82,15 +82,15 @@ Yes for real multi-device production and for any deployment expected to support 
 
 `shuttle-tracking-backend/prisma/schema.prisma`, `shuttle-tracking-backend/src/services/tracking.service.ts`, `shuttle-tracking-backend/src/server.ts`
 
-### 3. Trip lifecycle is not idempotent or transactionally protected
+### 3. Trip lifecycle is only partially idempotent and transactionally protected
 
 ### Problem
 
-Repeated trip start can create multiple in-progress trips for one vehicle, and trip end can update state blindly. The database also lacks a constraint preventing multiple active trips per vehicle.
+The latest Backend Audit records a partial unique index preventing more than one `in_progress` trip per vehicle, reducing the original duplicate-row risk. However, duplicate starts still surface as a generic 500 instead of an idempotent response or clear 409, trip and vehicle updates are not transactional, and trip end still updates by ID without checking status or ownership.
 
 ### Source Audit
 
-Backend Audit, Critical Issue 3 and Recommendation 2. Database Audit, Critical Issue 2 and Recommendation 2. Architecture Audit, High: Trip lifecycle logic is spread across controller and tracking service.
+Latest Backend Audit, Critical Issue 3. Database Audit, Critical Issue 2 and Recommendation 2. Architecture Audit, High: Trip lifecycle logic is spread across controller and tracking service.
 
 ### Cross-Cutting
 
@@ -98,7 +98,7 @@ Yes. Backend behavior and database integrity reinforce the same operational risk
 
 ### Priority
 
-Critical in backend and database; High in architecture.
+Still High/Critical for production reliability: the database guard is a meaningful reduction, but idempotent behavior, ownership checks, and transaction boundaries remain unresolved.
 
 ### Blocking for Production
 
@@ -580,11 +580,11 @@ Yes only if TTN/LoRaWAN is part of the production scope. For a mobile-only MVP p
 
 ### A. Trust boundary for vehicle location is not production-safe
 
-This is the strongest no-go theme. Security says trip/GPS sender auth is Critical. Backend says sender identity is too weak. Architecture/database/infrastructure say there is no source/device abstraction. The combined risk is worse than any single finding: even if the map updates, the system cannot prove that a real authorized source produced the update or decide which source should be trusted.
+This remains the strongest no-go theme. Security says trip/GPS sender auth is Critical and Backend says sender identity is too weak. The latest Architecture Audit shows that source identity and canonical selection have started, but also says stale/offline state, device health, admin visibility, and failover reporting are unfinished; older Database and Infrastructure audits describe the pre-change gap. The combined risk remains: the system cannot yet prove that a real authorized source produced an update or give operators enough evidence to trust source selection in production.
 
 ### B. Operational truth can become internally inconsistent
 
-Backend and database audits agree that trip lifecycle is not idempotent and the database does not enforce one active trip per vehicle. Architecture adds that trip lifecycle rules are spread across controller and tracking service. That means retries, reconnects, and double actions can corrupt the very state admins use to decide what is running.
+The latest Backend Audit shows a partial unique index now enforces one active trip per vehicle, reducing the original duplicate-row risk. Architecture and Backend still agree that lifecycle rules are spread across controller/service, start is not idempotent, end lacks ownership/status checks, and updates are not transactional. Retries, reconnects, and double actions can therefore still leave the state admins use inconsistent.
 
 ### C. "Live" data can silently become stale
 
@@ -610,7 +610,7 @@ No direct factual contradiction was found that required source-code inspection. 
 |---|---|---|
 | Trip history | Product Audit marks admin trip history Phase 1 Critical; Backend Audit rates trip history/playback read APIs Medium. | Treat list/history as production-critical for accountability, while high-fidelity playback can remain later-phase. |
 | GPS tracks | Knowledge base and database/backend audits confirm trips and GPS tracks exist; Product Audit says admins cannot view trip history. | Not a contradiction. Persistence exists, but product/admin review workflow is missing. |
-| Device/source abstraction priority | Backend recommendation rates the model High, while architecture/database/infrastructure call it Critical. | For production readiness, treat it as Critical because multiple audits show it blocks multi-device trust and stale/source observability. |
+| Device/source abstraction status | Earlier Backend/Database/Infrastructure audits describe no source/device model, while the latest Architecture Audit documents `TrackingSource`, source-aware ingestion, and canonical selection. | Treat the architectural model as partially addressed. The remaining production blocker is authenticated source ownership plus stale/offline state, device health, admin visibility, and failover reporting. The exact current implementation state needs confirmation because this report is audit synthesis and the other audits were not rewritten. |
 | Alerts/offline detection | Product Audit places alerts/offline detection in Phase 2 Important, while Frontend/UX/Security rate stale visibility High. | For production, freshness/stale state is a minimum trust feature; broader alerting/reporting can follow. |
 | GPS persistence frequency | Infrastructure notes 60-second sampling may be acceptable for TTN history to control growth; Database says current policy is not high-fidelity playback-ready. | Not a contradiction. Sampled history is acceptable only if production expectations explicitly exclude high-fidelity playback. |
 
@@ -619,27 +619,27 @@ No direct factual contradiction was found that required source-code inspection. 
 | Dimension | Readiness | Reasoning |
 |---|---|---|
 | Product Completeness | Not Ready | Product Audit lists Phase 1 Critical gaps: route-stop UI, driver/mobile workflow, admin trip history, and stale/offline vehicle status. |
-| Architecture Soundness | Partially Ready | Architecture is good for MVP, but no source/device abstraction, conflated ingestion/canonical location, spread trip lifecycle, and frontend-owned tracking intelligence block production growth. |
-| Backend Reliability | Not Ready | Sender auth, trip idempotency, validation, route-stop cache invalidation, and realtime accepted-vs-received semantics remain Critical/High. |
+| Architecture Soundness | Partially Ready | The latest Architecture Audit shows meaningful progress: source-aware ingestion, priority selection, canonical current location, and a `TrackingSource` model. Stale/offline state, route-scoped realtime, cache correctness, trip ownership, and frontend-owned tracking intelligence remain unresolved. |
+| Backend Reliability | Not Ready | Sender auth, complete trip idempotency/transactionality, validation, route-stop cache invalidation, and realtime accepted-vs-received semantics remain Critical/High; the new active-trip database guard reduces but does not remove the risk. |
 | Frontend Reliability | Partially Ready | Public/admin flows exist, but realtime status, stale markers, route geometry cache correctness, and component maintainability remain High risks. |
-| Data Layer Readiness | Not Ready | No device/source schema, no one-active-trip constraint, sparse GPS policy, and no retention/partitioning/index strategy for higher-fidelity history. |
-| Infrastructure & Device Readiness | Not Ready | Current config is local/dev, production provider configuration is missing, dev runtimes are used, health/readiness is missing, and TTN/ESP32 readiness is partial. |
+| Data Layer Readiness | Not Ready | Source schema and a one-active-trip partial unique index now exist, but explicit current-state persistence, sparse GPS policy, and retention/partitioning/index strategy for higher-fidelity history remain unresolved. |
+| Infrastructure & Device Readiness | Not Ready | Source-aware HTTP/TTN ingestion and health/readiness endpoints are now reported in the latest Architecture Audit, but production provider configuration is missing, development runtimes remain, admin device operations are incomplete, and TTN/ESP32 production readiness is partial. |
 | User Experience Readiness | Partially Ready | Public map and admin CRUD are usable, but public no-data states and admin operational exception visibility are not production-safe. |
 | Security Readiness | Not Ready | Vehicle/trip/GPS sender auth is absent, admin token storage is weak, default secrets/admin passwords are unsafe, validation/rate limits are missing. |
-| Operability | Not Ready | No backend readiness endpoint, minimal monitoring, no stale vehicle/device observability, no structured logging, and no deployment gates. |
+| Operability | Not Ready | Health/readiness endpoints are now reported as present, but stale vehicle/device observability, source failover reporting, structured logging, monitoring, and deployment gates remain missing or insufficient. |
 
 ## 7. Minimum Viable Production Bar
 
 The smallest responsible bar before production is:
 
 1. Add authenticated device/vehicle sender flow for trip start, trip end, and Socket.IO GPS updates; validate token ownership of `vehicleId` and `tripId`.
-2. Add minimal `Device` or `TrackingSource` identity with source attribution, last-seen status, and vehicle assignment, or explicitly scope the production pilot to a single audited mobile source and still authenticate it.
-3. Make trip lifecycle idempotent and transactionally safe, with a database guard preventing multiple in-progress trips per vehicle.
+2. Complete and verify the new `TrackingSource` path: authenticate source identity, enforce source-to-vehicle ownership, expose last-seen/stale/device health and failover state to operators, and explicitly scope the pilot if only one source type is supported.
+3. Finish trip lifecycle hardening: return existing trips or clear conflicts on repeated starts, enforce trip/vehicle ownership and status checks on end, and make trip plus vehicle updates transactional; retain the new database guard preventing multiple in-progress trips per vehicle.
 4. Add validation for trip, GPS, auth, vehicle, route, stop, and public write payloads, including coordinate ranges and trip/vehicle mismatch rejection.
 5. Remove production-capable default secrets and seeded admin credentials; fail production startup on known defaults.
 6. Create production deployment configuration for Vercel/Render/Neon or the chosen target, including CORS, Socket.IO origin, DB URL, Redis URL, build/start commands, and migration deployment.
 7. Run production builds/runtimes instead of `nodemon` and `next dev`.
-8. Add `/health` and `/ready`, with DB/Redis readiness checks, and configure deployment health checks.
+8. Verify the newly reported `/health` and `/ready` endpoints include DB/Redis readiness checks, then configure deployment health checks for the chosen production target.
 9. Add live freshness/stale-state handling in public and admin UIs, backed by last-seen state from the realtime/backend flow.
 10. Add route-stop management UI and cache invalidation so admins can safely manage actual route order.
 11. Add minimum admin trip history list for accountability; high-fidelity playback may wait if the release scope says history is sampled.
@@ -668,7 +668,7 @@ If the team wants a narrower pilot, the only plausible downgrade is **Ready with
 
 This report is intentionally synthesis-only. It did not perform a fresh deep source-code review except through evidence already captured in the prior audits.
 
-All required audit inputs were present, so there is no missing audit coverage. Remaining uncertainty is about current implementation drift after the prior audits were written. If code has changed since those audits, the production readiness decision should be revalidated against the changed files.
+All required audit inputs were present. This re-audit was triggered by a revised Architecture Audit; the other audit documents still contain earlier conclusions, so their overlapping source/device findings are treated as historical evidence and the latest architecture conclusions are called out explicitly. A source-code verification pass is still required before relying on the new ingestion and readiness claims for a release decision.
 
 ## 11. Handoff
 
@@ -676,6 +676,6 @@ Recommended next agent: Master Refactoring Roadmap Agent.
 
 Handoff summary:
 
-- Treat sender authentication, device/source identity, trip idempotency, secure defaults, deployment config, health/readiness, stale-state observability, route-stop management UI, and admin trip history as the Phase 1 production readiness package.
+- Treat sender authentication, completion of the device/source operational model, trip idempotency, secure defaults, deployment config, health/readiness verification, stale-state observability, route-stop management UI, and admin trip history as the Phase 1 production readiness package.
 - Keep broader analytics, feedback inbox, announcements, advanced playback, full TTN/ESP32 support, structured logging maturity, and dashboard polish in later phases unless the release scope expands.
 - Preserve traceability to the source audits when building the roadmap; this audit did not create independent new technical findings.

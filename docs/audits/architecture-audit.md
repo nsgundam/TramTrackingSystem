@@ -1,20 +1,23 @@
 # Architecture Audit: Tram Tracking System
 
+Last re-audited: 2026-07-15.
+
 ## 1 Executive Summary
 
-Overall assessment: the current architecture is suitable for a real-time tracking MVP and can support the next small product phases if the team keeps the design simple. The core shape is appropriate: Next.js frontend, Express REST API, Socket.IO realtime channel, PostgreSQL/PostGIS for operational and spatial data, and Redis for public read caching, Socket.IO scale-out, and GPS write throttling.
+Overall assessment after the latest repository changes: the architecture is stronger than the previous audit. The project is still a simple monolith-style web system, which remains appropriate for this MVP, but it now includes the beginning of a real multi-source tracking architecture. The core shape is Next.js frontend, Express REST API, Socket.IO realtime channel, PostgreSQL/PostGIS for operational and spatial data, Redis for public read/current-location state, Socket.IO scale-out, GPS write throttling, and source-selection analytics.
 
-The main architectural risk is not the technology stack. The risk is that the system currently treats "vehicle" and "tracking source" as the same concept. Product and discovery documents expect mobile, LoRaWAN/TTN, and ESP32 sources, possibly multiple sources for one vehicle. The repository currently has only one implemented ingestion path: Socket.IO `send-location` to `handleLocationData`, then `location-update` broadcast. There is no device/source model, source priority, source health, failover, or canonical "current vehicle position" concept.
+The previous critical risk, "vehicle and tracking source are the same concept," has been partially addressed. The database now has `TrackingSource`, `GPSTrack.sourceId`, source priority, status, secret hash, and last-seen fields. The backend now has Socket.IO, generic HTTP, and TTN ingestion paths that feed a shared `processObservation` pipeline. That pipeline stores per-source last location in Redis, evaluates the highest-priority fresh source for a vehicle, writes canonical current vehicle location to Redis, and persists sampled GPS history with `source_id`.
 
-The second major risk is responsibility placement. Some domain behavior is in backend services, but significant operational rules live directly in controllers and frontend map components. This is acceptable for an MVP, but it will become harder to add trip history, stale/offline status, replay, analytics, and multiple tracking sources without duplicating logic.
+The remaining architectural risk is now subtler: the new source-selection pipeline exists, but it is not yet fully surfaced as an operations model. Stale/offline state returns `null` instead of becoming an explicit vehicle status event, current canonical location is Redis-only, route-scoped realtime subscriptions are still absent, route-stop cache invalidation is still missing, and frontend map logic still owns ETA/snapping/next-stop behavior.
 
 Recommended production-before-growth focus:
 
-1. Introduce a minimal tracking-source/device concept.
-2. Create a backend-owned tracking domain service for trip lifecycle, location ingestion, source selection, current vehicle state, and stale/offline status.
-3. Add query/read models for active vehicles and trip history.
-4. Move route geometry/ETA ownership toward a stable contract, even if final visualization remains frontend-side.
-5. Keep the deployment architecture simple; the current monolith backend is still the right level of complexity.
+1. Finish operationalizing the tracking-source model: stale/offline state, device health, admin visibility, and source failover reporting.
+2. Keep developing the backend-owned tracking pipeline into the source of truth for current vehicle state.
+3. Add query/read models for active vehicles, active trips, and trip history.
+4. Fix route-stop cache invalidation and add route-stop management support.
+5. Move route geometry/ETA ownership toward a stable contract, even if final visualization remains frontend-side.
+6. Keep the deployment architecture simple; the current monolith backend is still the right level of complexity.
 
 ## 2 Architecture Overview
 
@@ -33,64 +36,79 @@ Evidence:
 
 Backend:
 
-- Express app mounts auth, public, admin vehicle/route/stop/route-stop, and trip routes.
-- Socket.IO receives `send-location`, passes raw payload to `handleLocationData`, and broadcasts the result as `location-update`.
+- Express app mounts auth, public, admin vehicle/route/stop/route-stop/device, trip, and ingest routes.
+- Socket.IO receives legacy `send-location`, adapts it into source-based observation input, calls `processObservation`, and broadcasts the returned canonical location.
+- HTTP and TTN ingestion routes also call the same tracking pipeline and broadcast the canonical location when one is selected.
+- Health and readiness endpoints are present.
 
 Evidence:
 
-- Route mounting is centralized in `server.ts` (`shuttle-tracking-backend/src/server.ts:50-62`).
-- Socket.IO location event flow is in `server.ts` (`shuttle-tracking-backend/src/server.ts:68-80`).
+- Route mounting is centralized in `server.ts` (`shuttle-tracking-backend/src/server.ts:53-67`).
+- Socket.IO adapts `send-location` into `processObservation` and emits `location-update` (`shuttle-tracking-backend/src/server.ts:97-126`).
+- HTTP and TTN ingest routes feed `processObservation` (`shuttle-tracking-backend/src/routes/ingest.route.ts:10-61`, `shuttle-tracking-backend/src/routes/ingest.route.ts:67-142`).
+- Health and readiness checks exist (`shuttle-tracking-backend/src/server.ts:68-89`).
 
 Database:
 
 - PostgreSQL/PostGIS via Prisma schema.
-- Domain entities include User, Route, Vehicle, Stop, RouteStop, Trip, GPSTrack, and Feedback.
+- Domain entities include User, Route, Vehicle, Stop, RouteStop, Trip, GPSTrack, TrackingSource, and Feedback.
 - Stop and GPSTrack use PostGIS geography fields.
+- GPSTrack can now reference the selected tracking source that produced the canonical persisted location.
 
 Evidence:
 
-- Prisma models and relationships are defined in `schema.prisma` (`shuttle-tracking-backend/prisma/schema.prisma:16-160`).
+- Prisma models and relationships are defined in `schema.prisma` (`shuttle-tracking-backend/prisma/schema.prisma:16-193`).
 - Stop has `location Unsupported("geography")` (`shuttle-tracking-backend/prisma/schema.prisma:67-80`).
-- GPSTrack has trip, vehicle, location, speed, heading, station, and recorded time (`shuttle-tracking-backend/prisma/schema.prisma:129-145`).
+- GPSTrack has trip, vehicle, source, location, speed, heading, station, and recorded time (`shuttle-tracking-backend/prisma/schema.prisma:131-149`).
+- TrackingSource has type, vehicle assignment, priority, status, secret hash, and last seen time (`shuttle-tracking-backend/prisma/schema.prisma:155-173`).
 
 Redis:
 
-- Used for public API cache, GPS write throttle, and Socket.IO Redis adapter.
+- Used for public API cache, per-source last location, canonical current vehicle location, source-selection analytics, GPS write throttle, and Socket.IO Redis adapter.
 
 Evidence:
 
-- Server connects Redis and attaches Socket.IO Redis adapter (`shuttle-tracking-backend/src/server.ts:84-96`).
-- Public API caches reads for 300 seconds (`shuttle-tracking-backend/src/controllers/public.controller.ts:5-24`).
-- GPS write throttle uses `trip:last_saved:<tripId>` with 60-second expiration (`shuttle-tracking-backend/src/services/tracking.service.ts:4-25`).
+- Server connects Redis and attaches Socket.IO Redis adapter (`shuttle-tracking-backend/src/server.ts:130-142`).
+- Public API caches route and stop reads for 300 seconds (`shuttle-tracking-backend/src/controllers/public.controller.ts:5-24`, `shuttle-tracking-backend/src/controllers/public.controller.ts:73-143`).
+- Source last location is stored in `source:last_location:<sourceId>` (`shuttle-tracking-backend/src/services/tracking.service.ts:63-77`).
+- Current canonical location is stored in `vehicle:current_location:<vehicleId>` (`shuttle-tracking-backend/src/services/tracking.service.ts:151-155`).
+- GPS write throttle uses `trip:last_saved:<tripId>` with 60-second expiration (`shuttle-tracking-backend/src/services/tracking.service.ts:218-240`).
 
 Realtime:
 
-- Socket.IO is the single realtime channel.
-- Backend emits all location updates globally with `io.emit("location-update", result)`.
+- Socket.IO remains the realtime channel to browsers.
+- Backend emits selected canonical location updates globally with `io.emit("location-update", canonicalLocation)`.
+- Ingestion is no longer Socket.IO-only; HTTP and TTN can produce the same realtime event.
 
 Evidence:
 
-- Socket handler uses `io.emit` after processing `send-location` (`shuttle-tracking-backend/src/server.ts:72-75`).
+- Socket handler emits after `processObservation` returns a canonical location (`shuttle-tracking-backend/src/server.ts:101-116`).
+- HTTP and TTN ingest routes emit the same event through the app-shared Socket.IO instance (`shuttle-tracking-backend/src/routes/ingest.route.ts:37-43`, `shuttle-tracking-backend/src/routes/ingest.route.ts:118-124`).
 
 Devices:
 
-- Implemented device path is vehicle verification, trip start/end, and Socket.IO location submission.
-- Mobile app, LoRaWAN, TTN, and ESP32 are not present as separate modules.
+- Implemented device architecture now includes a `TrackingSource` registry and admin device CRUD API.
+- Supported ingestion paths are legacy Socket.IO `send-location`, generic HTTP `/api/ingest/http`, and TTN webhook `/api/ingest/ttn`.
+- Device/source priority and freshness are used to choose canonical vehicle location.
+- Admin frontend still does not expose device management in the sidebar, so the device capability is backend/API-level.
 
 Evidence:
 
-- Vehicle login only verifies vehicle ID and returns vehicle data (`shuttle-tracking-backend/src/controllers/auth.controller.ts:68-88`).
-- Trip API exposes only start and end (`shuttle-tracking-backend/src/routes/trips.route.ts:6-8`).
-- Knowledge base states mobile, LoRaWAN, and ESP32 source modules are not implemented (`docs/project-knowledge-base.md:218-222`).
+- TrackingSource model exists (`shuttle-tracking-backend/prisma/schema.prisma:155-173`).
+- Admin device routes exist under `/api/admin/devices` (`shuttle-tracking-backend/src/server.ts:56-62`, `shuttle-tracking-backend/src/routes/devices.route.ts:13-21`).
+- HTTP and TTN ingestion routes exist (`shuttle-tracking-backend/src/routes/ingest.route.ts:10-142`).
+- Source priority and 30-second freshness selection are implemented (`shuttle-tracking-backend/src/services/tracking.service.ts:97-160`).
+- Admin sidebar still exposes only Dashboard, Vehicles, Routes, and Stops (`shuttle-tracking-web/components/admin/Sidebar.tsx:15-36`).
 
 External services:
 
-- Runtime external services include PostgreSQL/PostGIS, Redis, map tiles, CARTO tiles, OSRM fallback, and Flaticon icons.
-- Production hosting targets and TTN integration are not evidenced in repo.
+- Runtime external services include PostgreSQL/PostGIS, Redis, map tiles, CARTO tiles, OSRM fallback, Flaticon icons, and optional TTN webhook integration.
+- Production hosting targets are still not evidenced in repo.
 
 Evidence:
 
 - Knowledge base lists external runtime services and missing TTN/production provider evidence (`docs/project-knowledge-base.md:345-411`).
+- TTN webhook route expects a TTN-like uplink payload and optional `TTN_WEBHOOK_SECRET` (`shuttle-tracking-backend/src/routes/ingest.route.ts:67-142`).
 
 ## 3 Architecture Strengths
 
@@ -133,101 +151,52 @@ Evidence:
 
 ### Strength 5: GPS track persistence supports trip history and replay foundations
 
-Trip and GPSTrack entities already exist. Product features like trip history, reports, and playback can be added without replacing the data store.
+Trip and GPSTrack entities already exist, and GPS tracks now optionally record source identity. Product features like trip history, reports, device comparison, and playback can be added without replacing the data store.
 
 Evidence:
 
 - Trip model includes vehicle, route, start/end, status, and indexes (`shuttle-tracking-backend/prisma/schema.prisma:105-123`).
-- GPSTrack links to trip and vehicle with recorded time (`shuttle-tracking-backend/prisma/schema.prisma:129-145`).
+- GPSTrack links to trip, vehicle, optional tracking source, and recorded time (`shuttle-tracking-backend/prisma/schema.prisma:131-149`).
 - Product audit recommends trip history because trips and GPS tracks are already stored (`docs/audits/product-audit.md:240-266`).
+
+### Strength 6: Multi-source tracking architecture has started
+
+The repository now has an actual tracking-source registry, source-aware ingestion, source priority selection, and canonical current vehicle location cache. This directly addresses the biggest device architecture concern from the first architecture audit.
+
+Evidence:
+
+- `TrackingSource` captures device/source identity, type, priority, status, secret hash, vehicle assignment, and last seen time (`shuttle-tracking-backend/prisma/schema.prisma:155-173`).
+- `processObservation` authenticates/validates a source observation, stores per-source last location, updates last seen, evaluates canonical vehicle location, and persists sampled history (`shuttle-tracking-backend/src/services/tracking.service.ts:24-245`).
+- HTTP and TTN ingestion routes share the same observation pipeline (`shuttle-tracking-backend/src/routes/ingest.route.ts:10-142`).
 
 ## 4 Architecture Risks
 
-### Critical: No tracking-source/device abstraction
+### High: Tracking-source architecture exists but is not fully operationalized
 
 Problem
 
-The architecture models `Vehicle` but not `Device`, `TrackingSource`, or `VehicleDeviceAssignment`. All current GPS ingestion assumes a payload with `tripId`, `vehicleId`, `lat`, `lng`, speed, bearing, accuracy, and station.
+The architecture now models `TrackingSource`, source priority, source status, source secrets, and `GPSTrack.sourceId`. However, the model is still mostly backend/API-level. It is not yet fully exposed as an operational capability for admins, and stale/offline source state is not represented as an explicit event or durable vehicle state.
 
 Current Impact
 
-The current simulator/mobile-like flow can send live locations, but the backend cannot distinguish phone GPS, LoRaWAN, TTN, ESP32, or future devices for the same vehicle.
+The backend can distinguish phone-like, HTTP, TTN/LoRaWAN, ESP32-style, and simulator sources if they are registered as tracking sources. It can choose a canonical location by priority and 30-second freshness. Admin users still cannot manage devices from the frontend, and dashboards do not yet show device/source health.
 
 Future Risk
 
-Multiple tracking sources for one vehicle will create ambiguity: which source is authoritative, which one is stale, which one should be shown, and how failover should work.
+Multiple tracking sources can now be ingested, but operational questions remain: why did failover happen, which sources are stale, which source is currently authoritative, and whether a vehicle is live, stale, or offline. Without surfacing those states, the system can silently stop broadcasting when all sources are stale.
 
 Recommendation
 
-Add a small device/source model before implementing LoRaWAN/ESP32:
+Finish the tracking-source operating model:
 
-- TrackingSource or Device: source ID, type, vehicle assignment, status, last seen, priority.
-- LocationObservation: raw observation from one source.
-- CurrentVehicleLocation: selected canonical position per vehicle.
-
-Reason
-
-The knowledge base says future mobile, LoRaWAN, and ESP32 integrations are expected but not implemented (`docs/project-knowledge-base.md:218-222`). Current schema has Vehicle and GPSTrack but no device/source entity (`shuttle-tracking-backend/prisma/schema.prisma:46-61`, `shuttle-tracking-backend/prisma/schema.prisma:129-145`).
-
-Difficulty
-
-Medium.
-
-Priority
-
-Critical.
-
-Research Topic
-
-Device registry and source priority for GPS systems.
-
-Expected Benefit
-
-The system can support phone, LoRaWAN, and ESP32 simultaneously without rewriting public/admin realtime flows.
-
-Mentor Mode
-
-What is it? A tracking-source abstraction separates the physical/technical GPS sender from the vehicle being tracked.
-
-Why does it exist? One vehicle can be reported by multiple devices, and each source may have different latency, accuracy, and reliability.
-
-Does this project need it? Yes, because future requirements explicitly mention LoRaWAN, TTN, and ESP32, while current code only has one Socket.IO payload path.
-
-Should it be implemented now? Yes, before real multi-device work begins.
-
-What happens if postponed? Every new device integration will likely add special-case code and make failover harder.
-
-Estimated learning difficulty: Medium.
-
-Learning priority: Critical.
-
-### High: Location ingestion and canonical location are conflated
-
-Problem
-
-`handleLocationData` both normalizes incoming location data, throttles DB writes, writes GPS history, and returns the broadcast payload. The server then immediately broadcasts that payload globally.
-
-Current Impact
-
-It works for a simple live map. The last received payload becomes the truth shown to clients.
-
-Future Risk
-
-The architecture cannot safely support source comparison, quality checks, stale detection, route validation, or failover because there is no separate canonical selection step.
-
-Recommendation
-
-Separate the tracking pipeline into stages:
-
-1. Ingest raw observation.
-2. Validate/normalize observation.
-3. Persist raw or sampled track.
-4. Select canonical current vehicle state.
-5. Broadcast public/admin event.
+- Add admin UI/API read models for source health, last seen, assigned vehicle, priority, and active source.
+- Emit or expose stale/offline vehicle state when `evaluateCanonicalLocation` finds no fresh source.
+- Decide whether source health/current vehicle state should remain Redis-only or be periodically persisted.
+- Add a clear failover/audit view showing which source was selected and why.
 
 Reason
 
-The current service writes and returns a broadcast shape in one function (`shuttle-tracking-backend/src/services/tracking.service.ts:6-46`). The server broadcasts that result immediately (`shuttle-tracking-backend/src/server.ts:72-75`).
+The schema now has `TrackingSource` and `GPSTrack.sourceId` (`shuttle-tracking-backend/prisma/schema.prisma:131-173`). `evaluateCanonicalLocation` selects the highest-priority source with a fresh Redis observation and returns `null` if all sources are stale (`shuttle-tracking-backend/src/services/tracking.service.ts:97-160`). Admin device routes exist, but admin navigation still does not expose device management (`shuttle-tracking-backend/src/routes/devices.route.ts:13-21`, `shuttle-tracking-web/components/admin/Sidebar.tsx:15-36`).
 
 Difficulty
 
@@ -239,27 +208,85 @@ High.
 
 Research Topic
 
-Location ingestion pipeline and current-state read model.
+Device health, source failover, and realtime operational state.
 
 Expected Benefit
 
-Clean support for stale/offline dashboard status, trip history, source priority, and source comparison.
+Admins can trust the live map because they can see not only the chosen location, but also whether source data is fresh, stale, failed over, or offline.
 
 Mentor Mode
 
-What is it? A pipeline splits one complex operation into clear stages with one responsibility each.
+What is it? Operationalizing tracking sources means turning device/source data into states people can monitor and act on.
 
-Why does it exist? Realtime systems need to treat "received a signal" differently from "this is the location users should trust."
+Why does it exist? A source registry is useful only when the system can explain which source is being trusted and whether other sources are healthy.
 
-Does this project need it? Yes for multi-source tracking and offline/stale alerts.
+Does this project need it? Yes. The source abstraction now exists, so the next architectural need is making it visible and reliable for operations.
 
-Should it be implemented now? Phase 1, before adding more tracking clients.
+Should it be implemented now? Yes, before relying on multiple physical devices in daily operation.
 
-What happens if postponed? Public and admin screens may display whichever source reported last, even if that source is low-quality or stale.
+What happens if postponed? Failover may happen invisibly or stale sources may simply disappear from realtime output without a clear operator-facing explanation.
 
 Estimated learning difficulty: Medium.
 
 Learning priority: High.
+
+### Medium: Location ingestion pipeline is improved but raw observation history is not durable
+
+Problem
+
+The location pipeline now separates ingestion, validation/authentication, per-source Redis observation, canonical source selection, current-location cache, and sampled GPS persistence. However, raw source observations are stored only in Redis as last-known values, while the database stores sampled canonical history.
+
+Current Impact
+
+The live map receives a cleaner canonical location, and GPSTrack rows include `source_id`. This is enough for MVP live tracking and basic trip history.
+
+Future Risk
+
+Detailed source comparison, debugging, and replay may be limited because non-selected source observations are not durably stored. A LoRaWAN source and a phone source can both report, but only the selected sampled canonical location is persisted to `gps_tracks`.
+
+Recommendation
+
+Keep the current simple design for MVP, but make an explicit retention decision:
+
+1. Store only canonical sampled history for normal operations.
+2. Store raw source observations for a short debug window.
+3. Store raw source observations only for selected vehicles/incidents.
+
+Reason
+
+`processObservation` stores raw latest source data in Redis (`shuttle-tracking-backend/src/services/tracking.service.ts:63-77`). `persistSampledHistory` writes only the selected canonical location to `gps_tracks` with source ID (`shuttle-tracking-backend/src/services/tracking.service.ts:167-245`).
+
+Difficulty
+
+Medium.
+
+Priority
+
+Medium.
+
+Research Topic
+
+Raw observation retention versus canonical history.
+
+Expected Benefit
+
+The team can balance storage cost and debugging needs without over-building the data model.
+
+Mentor Mode
+
+What is it? Raw observation retention is the decision of whether to store every source report, not only the selected location.
+
+Why does it exist? Debugging GPS quality and source failover often requires seeing rejected or lower-priority source data.
+
+Does this project need it? Maybe. It is valuable for production diagnostics, but not always needed for the first MVP.
+
+Should it be implemented now? Decide now; implement durable raw history only if operations require it.
+
+What happens if postponed? Source comparison and incident investigation will rely on Redis last-known state and sampled canonical GPS history only.
+
+Estimated learning difficulty: Medium.
+
+Learning priority: Medium.
 
 ### High: Trip lifecycle logic is spread across controller and tracking service
 
@@ -515,7 +542,7 @@ Add these concepts only when product phase requires them, starting with stale/of
 
 Reason
 
-Product audit identifies missing alerts, feedback, reports, device health, and admin user/role management (`docs/audits/product-audit.md:405-430`). Current schema includes only User, Route, Vehicle, Stop, RouteStop, Trip, GPSTrack, and Feedback (`shuttle-tracking-backend/prisma/schema.prisma:16-160`).
+Product audit identifies missing alerts, reports, device health, and admin user/role management (`docs/audits/product-audit.md:405-430`). Current schema now includes TrackingSource and Feedback, but does not yet include alert, incident, announcement, admin role, or audit-log concepts (`shuttle-tracking-backend/prisma/schema.prisma:16-193`).
 
 Difficulty
 
@@ -554,13 +581,14 @@ Learning priority: Medium.
 Vehicle:
 
 - Current model is good for fleet identity and route assignment.
-- Missing distinction between vehicle and tracking source/device.
+- Vehicle is now distinct from TrackingSource.
 - Vehicle status currently doubles as operational state and live tracking status.
 
 Trip:
 
 - Strong MVP foundation: vehicle, route, start/end time, status.
-- Missing active trip constraints, driver/source association, and derived current state.
+- A database partial unique index now prevents more than one `in_progress` trip per vehicle.
+- Missing explicit driver/source association at the trip level and derived trip/current-state read models.
 
 Route:
 
@@ -575,12 +603,13 @@ Stop:
 GPS Track:
 
 - Good history foundation.
-- Needs source/device ID, raw accuracy, raw received timestamp, selected/canonical flag, and possibly ingestion source metadata for future comparison.
+- Now records optional source ID.
+- Still needs an explicit decision on raw observation history, accuracy history, raw received timestamp, selected/canonical flag, and ingestion metadata if source comparison becomes important.
 
 Feedback:
 
-- Exists as data model only.
-- Needs product workflow before deep architecture work. Status/assignment may be needed if feedback becomes an admin inbox.
+- Public feedback submission API and service now exist.
+- Still needs admin review workflow, feedback status, assignment, or triage fields if it becomes an operational inbox.
 
 User:
 
@@ -589,11 +618,9 @@ User:
 
 Missing Concepts:
 
-- TrackingSource/Device.
-- VehicleDeviceAssignment.
-- CurrentVehicleLocation.
-- LocationObservation/raw source event.
-- DeviceHealth or SourceHealth.
+- Durable CurrentVehicleLocation if Redis-only state is not enough for operations.
+- LocationObservation/raw source event if source comparison/debugging is required.
+- Explicit DeviceHealth or SourceHealth read model.
 - Alert/Incident/Announcement.
 - Admin role/permission if staff grows.
 - AuditLog if operational accountability is needed.
@@ -620,11 +647,12 @@ Assessment: simple and appropriate for MVP. Missing route-stop UI and trip/alert
 
 Realtime flow:
 
-- Client/device emits `send-location`.
-- Backend service validates minimal fields, writes sampled GPS track, returns normalized payload.
-- Server broadcasts `location-update`.
+- Socket client can emit legacy `send-location`.
+- HTTP/ESP32-style client can post to `/api/ingest/http`.
+- TTN can post uplink data to `/api/ingest/ttn`.
+- Backend validates/authenticates source observations, stores per-source last location in Redis, evaluates canonical current vehicle location, persists sampled canonical GPS track, and broadcasts `location-update`.
 
-Assessment: clear MVP flow. Needs source-aware ingestion, canonical current location, route-scoped rooms, and stale/offline handling.
+Assessment: much stronger than the previous audit. Needs route-scoped rooms and explicit stale/offline handling.
 
 Trip flow:
 
@@ -638,24 +666,28 @@ Assessment: enough for simulator. Needs active-trip read path, driver workflow s
 
 GPS flow:
 
-- Writes are throttled to 60 seconds per trip.
-- All realtime updates are still broadcast.
+- Source observations update Redis last-known source state.
+- Canonical vehicle location is written to Redis.
+- Canonical GPS history writes are throttled to 60 seconds per trip.
+- All selected realtime updates are still broadcast globally.
 
 Assessment: write throttling protects DB volume for MVP. For analytics/replay, fixed 60-second sampling may be too coarse; decide retention and sampling policy before production.
 
 Feedback flow:
 
-- Feedback model exists.
-- No API/UI flow found.
+- Public feedback API exists at `/api/public/feedback`.
+- Feedback service validates vehicle existence before creating feedback.
+- No admin review UI/API flow was found.
 
-Assessment: data-only placeholder.
+Assessment: no longer data-only, but still not a full feedback workflow.
 
 Future IoT flow:
 
-- No TTN/LoRaWAN/ESP32 adapter exists.
-- Architecture should not wire TTN directly into the same raw Socket.IO event without a source adapter boundary.
+- TTN webhook path exists.
+- Generic HTTP ingest path exists for ESP32/mobile-style sources.
+- All source types use the same `processObservation` boundary.
 
-Assessment: not ready yet, but can be made ready with a small source adapter architecture.
+Assessment: architecture is directionally ready for early IoT experiments. Production still needs source health, failover visibility, and payload contract documentation.
 
 ## 7 Module Review
 
@@ -666,8 +698,8 @@ Authentication:
 
 Tracking:
 
-- Tracking service exists, which is good.
-- It should evolve into an ingestion/current-state service rather than only a write throttle and broadcast normalizer.
+- Tracking service now owns source observation processing, source priority selection, canonical current location, analytics counters, and sampled GPS persistence.
+- It should next expose explicit stale/offline state and clearer read models.
 
 Trip:
 
@@ -678,55 +710,61 @@ Vehicle:
 
 - Vehicle controller handles CRUD and public cache invalidation.
 - Vehicle assignment to route exists.
-- Device association does not exist.
+- Device association exists through TrackingSource.vehicleId.
 
 Admin:
 
 - Admin API areas are separated by entity.
+- Admin device API exists.
 - Future operations dashboard needs cross-entity read models, not only entity CRUD.
 
 Feedback:
 
-- Schema exists.
-- Module does not exist.
+- Public feedback module exists.
+- Admin review/triage module does not exist.
 
 Public:
 
 - Public API is read-focused and cached.
-- Should eventually expose active vehicle/current state from backend-owned read models.
+- Active vehicles now include current location from Redis when available.
+- Should eventually expose stale/offline and source-health state, not just active vehicles with optional location.
 
 ## 8 Device Architecture Review
 
 Phone:
 
-- Current flow resembles a phone/mobile client: vehicle login, trip start, Socket.IO location, trip end.
-- Missing full driver session and device identity.
+- Legacy Socket.IO still supports a phone/mobile-like sender.
+- Generic HTTP ingest can also support mobile-style sources if they are registered as TrackingSource.
+- Missing full driver UI/session.
 
 LoRaWAN:
 
-- Not implemented.
-- TTN adapter, payload decoder, source identity, and latency/accuracy rules are missing.
+- TTN webhook route exists and maps TTN `device_id`/`dev_eui` to `sourceId`.
+- Production payload decoder contract, source provisioning, and latency/accuracy rules still need to be documented.
 
 ESP32:
 
-- Not implemented.
-- Needs HTTP/MQTT/Socket adapter decision later, but the core backend should first accept normalized source observations.
+- Generic HTTP ingest route exists and can support ESP32-style posting.
+- MQTT is not present, but not required by current evidence.
 
 Multiple devices:
 
-- Not supported architecturally yet because GPSTrack ties only to vehicle/trip, not source/device.
+- Supported at the domain level through multiple TrackingSource rows assigned to one vehicle.
+- Canonical source selection uses priority and freshness.
 
 Failover:
 
-- Not supported. The system shows whatever update is broadcast.
+- Basic failover is implemented by choosing the first fresh source by priority.
+- Failover is not yet visible as an admin/operations event.
 
 Device Registration:
 
-- Not supported. Vehicle login verifies vehicle ID only.
+- Admin device CRUD API exists.
+- Admin frontend device management is not exposed.
 
 Tracking Source:
 
-- Missing and should be the first device architecture improvement.
+- Present and now one of the architecture strengths.
 
 ## 9 Scalability Review
 
@@ -750,7 +788,7 @@ Tracking Source:
 Future expansion without changing architecture:
 
 - Possible if "architecture" evolves inside the monolith: domain services, source adapters, read models, and scoped realtime subscriptions.
-- Not possible cleanly if every new device/source is wired directly into current `send-location` handling.
+- More possible than before because new source types can feed `processObservation`; still limited by route-scoped realtime, stale/offline state, and operational read models.
 
 ## 10 Maintainability Review
 
@@ -767,12 +805,13 @@ Modularity:
 Extensibility:
 
 - Entity CRUD is extensible.
-- Multi-source tracking is not extensible yet.
+- Multi-source tracking is now extensible at the ingestion/domain level.
+- Operational visibility is not yet extensible enough for production support.
 
 Technical Debt:
 
-- Acceptable MVP debt: frontend-heavy live map logic, global realtime broadcasts, one source event.
-- Production-risk debt: no device/source model, no current vehicle state, no stale/offline concept.
+- Acceptable MVP debt: frontend-heavy live map logic and global realtime broadcasts.
+- Production-risk debt: Redis-only current state, no stale/offline event/read model, no device UI, and trip lifecycle still split between controller and tracking service.
 
 ## 11 Future Readiness
 
@@ -805,52 +844,52 @@ Notifications:
 
 Multiple Device Sources:
 
-- Not ready until tracking source/device is modeled.
-- Readiness: Low.
+- Tracking source/device model now exists, with HTTP and TTN ingestion.
+- Needs operational health/failover visibility before production.
+- Readiness: Medium.
 
 Production:
 
-- MVP architecture is promising, but production needs device/source model, stale/offline state, route-stop cache correctness, operational read models, and clearer deployment ownership.
+- MVP architecture is promising, but production still needs stale/offline state, route-stop cache correctness, operational read models, admin device visibility, and clearer deployment ownership.
 - Readiness: Medium-Low.
 
 ## 12 Architecture Score
 
-Architecture: 7/10
+Architecture: 7.5/10
 
-Reason: Good MVP stack and clear high-level client/server/realtime/database structure. Missing source-aware tracking and domain service boundaries.
+Reason: Good MVP stack, clear high-level client/server/realtime/database structure, and a new source-aware tracking pipeline. Domain service boundaries and operational read models still need work.
 
-Scalability: 6/10
+Scalability: 6.5/10
 
-Reason: Redis adapter and write throttling help. Global broadcasts, frontend-heavy computation, and no current-state model limit growth.
+Reason: Redis adapter, write throttling, and Redis current-location state help. Global broadcasts and frontend-heavy computation still limit growth.
 
 Maintainability: 6/10
 
 Reason: Repository has recognizable module organization, but business rules are split across controllers, services, and frontend.
 
-Extensibility: 5/10
+Extensibility: 6.5/10
 
-Reason: CRUD modules are extensible. Device/source expansion is not yet architecturally prepared.
+Reason: CRUD modules are extensible, and device/source expansion now has a shared ingestion pipeline. Operations visibility and raw observation decisions remain open.
 
-Realtime: 6/10
+Realtime: 6.5/10
 
-Reason: Socket.IO flow is simple and works for MVP. Needs rooms, canonical current state, and source/failover logic.
+Reason: Socket.IO flow is simple and now broadcasts canonical source-selected locations. Needs rooms and explicit stale/offline events.
 
-Device Support: 3/10
+Device Support: 6/10
 
-Reason: Vehicle/mobile-like sender path exists, but no device registration, source priority, health, failover, LoRaWAN, TTN, or ESP32 adapter.
+Reason: TrackingSource registry, source priority, HTTP ingest, and TTN ingest exist. Needs admin UI, device health, failover visibility, and production payload contracts.
 
-Overall: 6/10
+Overall: 6.8/10
 
-Reason: Strong enough for MVP and near-term learning, not yet ready for production multi-source operations.
+Reason: Stronger than the first audit and now directionally ready for multi-source experiments, but not yet production-ready for operations.
 
 ## 13 Refactoring Roadmap
 
 ### Phase 1
 
-- Add tracking-source/device domain concept.
-- Create tracking ingestion/current-state service.
+- Add admin device/source management UI or at least an operations device-health page.
+- Add explicit stale/offline current vehicle state.
 - Move trip lifecycle rules from controller into a trip/operations service.
-- Add stale/offline current vehicle state.
 - Fix route-stop cache invalidation when route-stop APIs mutate data.
 - Add route-stop management support using existing ordered relationship.
 
@@ -858,9 +897,9 @@ Reason: Strong enough for MVP and near-term learning, not yet ready for producti
 
 - Add active trip and trip history read models.
 - Add route-scoped Socket.IO rooms.
-- Add device health fields and admin visibility.
-- Add source priority/failover rules.
-- Add feedback module if feedback remains in product scope.
+- Add failover history/analytics visible to admins.
+- Add feedback admin inbox if feedback remains in product scope.
+- Decide raw observation retention policy.
 
 ### Phase 3
 
@@ -877,11 +916,11 @@ What: Separating vehicle identity from GPS sender identity.
 
 Why: Required for mobile, LoRaWAN, and ESP32 support.
 
-When: Phase 1.
+When: Already started; continue in Phase 1 through device health and admin visibility.
 
 Difficulty: Medium.
 
-Priority: Critical.
+Priority: High.
 
 Domain Services
 
@@ -973,4 +1012,3 @@ Reason: Database should review whether schema supports tracking sources, device 
 Infrastructure & Device Audit Agent
 
 Reason: Device/infrastructure review should design TTN/LoRaWAN/ESP32 ingestion, deployment topology, Redis/Postgres production ownership, and realtime scaling constraints.
-
