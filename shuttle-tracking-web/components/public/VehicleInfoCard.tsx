@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Stop } from "@/types";
+import { Locate } from "lucide-react";
 
 interface VehicleInfoCardProps {
   routeId: string;
@@ -9,6 +10,8 @@ interface VehicleInfoCardProps {
   eta: number | null;
   stops: Stop[];
   nextStopId: string | number | null;
+  isTracking?: boolean;
+  onRecenter?: () => void;
 }
 
 export default function VehicleInfoCard({
@@ -19,6 +22,8 @@ export default function VehicleInfoCard({
   eta,
   stops,
   nextStopId,
+  isTracking,
+  onRecenter,
 }: VehicleInfoCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const nextIdx = stops.findIndex((s) => s.id === nextStopId);
@@ -53,8 +58,24 @@ export default function VehicleInfoCard({
     <div className="glass-panel backdrop-blur-sm rounded-xl p-3 sm:p-4 flex flex-col gap-2 w-full select-none">
       <div className="flex justify-between items-start">
         <div className="flex flex-col">
-          <div className="font-headline-md text-[16px] sm:text-headline-md text-on-surface">
+          <div className="font-headline-md text-[16px] sm:text-headline-md text-on-surface flex items-center gap-2">
             <strong>Tram {routeId} ({vehicleId})</strong>
+            {onRecenter && (
+              <button
+                onClick={onRecenter}
+                className="p-1 hover:bg-white/20 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center"
+                title="Track & Center Camera"
+              >
+                <Locate 
+                  size={16} 
+                  className={`transition-colors duration-300 ${
+                    isTracking 
+                      ? "text-primary" 
+                      : "text-on-surface-variant/40 hover:text-on-surface-variant/80"
+                  }`} 
+                />
+              </button>
+            )}
           </div>
           <div className="font-body-lg text-[14px] sm:text-body-lg text-on-surface-variant mt-1">
             Next Station: {nextStop}
