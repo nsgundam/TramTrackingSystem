@@ -3,6 +3,8 @@ import { io } from 'socket.io-client';
 const API_URL = 'http://localhost:3001/api';
 const SOCKET_URL = 'http://localhost:3001'; // URL สำหรับต่อ Socket
 const VEHICLE_ID = 'VH001';
+const SOURCE_ID = process.env.TRACKING_SOURCE_ID || 'TS_MOB_01';
+const SOURCE_SECRET = process.env.TRACKING_SOURCE_SECRET;
 
 const STATIONS = [
   { id: 'ST001', lng: 100.587563, lat: 13.964772 },
@@ -22,7 +24,7 @@ const STATIONS = [
   { id: 'ST015', lng: 100.587415, lat: 13.965706 },
 ];
 
-const socket = io(SOCKET_URL);
+const socket = io(SOCKET_URL, { autoConnect: false });
 
 socket.on('connect', () => {
   console.log(`🟢 Connected to WebSocket server with ID: ${socket.id}`);
@@ -30,6 +32,10 @@ socket.on('connect', () => {
 
 socket.on('disconnect', () => {
   console.log('🔴 Disconnected from WebSocket server');
+});
+
+socket.on('connect_error', (error) => {
+  console.error('WebSocket authentication/connection failed:', error.message);
 });
 
 function interpolate(start, end, steps) {
@@ -59,10 +65,36 @@ function getBearing(startLat, startLng, destLat, destLng) {
   return (brng + 360) % 360;
 }
 
-async function startTrip() {
-  const res = await fetch(`${API_URL}/trips/start`, {
+async function loginSender() {
+  if (!SOURCE_SECRET) {
+    throw new Error('TRACKING_SOURCE_SECRET must be set before running the simulator');
+  }
+
+  const res = await fetch(`${API_URL}/auth/vehicle-login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sourceId: SOURCE_ID,
+      vehicleId: VEHICLE_ID,
+      secret: SOURCE_SECRET,
+    }),
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.token) {
+    throw new Error(`Sender login failed: ${JSON.stringify(data)}`);
+  }
+
+  return data.token;
+}
+
+async function startTrip(token) {
+  const res = await fetch(`${API_URL}/trips/start`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify({ vehicleId: VEHICLE_ID })
   });
   const data = await res.json();
@@ -77,7 +109,11 @@ async function startTrip() {
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function runSimulation() {
-  let tripId = await startTrip();
+  const senderToken = await loginSender();
+  socket.auth = { token: senderToken };
+  socket.connect();
+
+  let tripId = await startTrip(senderToken);
   if (!tripId) {
      console.log("Could not obtain a tripId. Exiting.");
      return;
@@ -116,16 +152,17 @@ async function runSimulation() {
 async function sendLocation(tripId, lat, lng, speed, bearing, station) {
   try {
 
-    const payload = {
-      tripId,
-      vehicleId: VEHICLE_ID,
-      lat,
-      lng,
-      speed,
-      bearing,
-      accuracy: 100,
-      station
-    };
+      const payload = {
+        tripId,
+        sourceId: SOURCE_ID,
+        vehicleId: VEHICLE_ID,
+        lat,
+        lng,
+        speed,
+        bearing,
+        accuracy: 100,
+        station
+      };
 
     socket.emit('send-location', payload);
 

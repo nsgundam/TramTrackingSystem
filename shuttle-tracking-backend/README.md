@@ -32,6 +32,10 @@ PORT=3001
 # JWT Secret logic for Admin Authentication checks
 JWT_SECRET="YOUR_SUPER_SECRET_STRING"
 JWT_EXPIRES_IN=8h
+SENDER_JWT_EXPIRES_IN=15m
+
+# Required for TTN webhook ingestion
+TTN_WEBHOOK_SECRET="YOUR_TTN_WEBHOOK_SECRET"
 
 # CORS
 CORS_ORIGINS={YOUR FRONTEND URL}
@@ -46,6 +50,7 @@ Once your `.env` is setup, initialize your application using these commands:
 - `npm run db:migrate` - Propagate Prisma schemas into the actual PostgreSQL database.
 - `npm run db:seed` - Populate fundamental mock data (default roles, stops, shuttles, tracks) into your database.
 - `npm run db:studio` - Launches the Prisma graphical tool to view and edit your database contents.
+- `npm test` - Builds the backend and runs sender JWT boundary tests.
 
 ### Local Development
 
@@ -54,6 +59,26 @@ Launch the backend with hot-reloading (via nodemon):
 ```bash
 npm run dev
 ```
+
+### Sender Authentication
+
+Vehicle/mobile/ESP32 senders must first exchange a registered source secret for a short-lived
+sender token:
+
+```http
+POST /api/auth/vehicle-login
+Content-Type: application/json
+
+{"sourceId":"TS_MOB_01","vehicleId":"VH001","secret":"<source-secret>"}
+```
+
+Use the returned token as `Authorization: Bearer <token>` for trip start/end and HTTP GPS
+ingestion. Socket.IO senders provide the same token in `auth.token` during the handshake and must
+include the registered `sourceId` in `send-location`. Public viewers may connect to Socket.IO but
+cannot emit GPS writes. TTN webhook requests require `Authorization: Bearer <TTN_WEBHOOK_SECRET>`.
+
+The simulator uses the same flow. Set `TRACKING_SOURCE_SECRET` before running it; do not put a
+source secret in committed frontend code.
 
 ### Architecture Summary
 

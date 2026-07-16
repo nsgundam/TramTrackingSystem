@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
+import { timingSafeEqual } from 'node:crypto';
 import { processObservation } from '../services/tracking.service.js';
+import { authenticateSenderToken } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -7,25 +9,25 @@ const router = Router();
  * Ingest location from ESP32 or Mobile fallback via HTTP POST.
  * Path: POST /api/ingest/http
  */
-router.post('/http', async (req: Request, res: Response) => {
+router.post('/http', authenticateSenderToken, async (req: Request, res: Response) => {
   try {
-    const { sourceId, token: bodyToken, lat, lng, speed, bearing, accuracy, station } = req.body;
-    
-    // Extract token from either body or Authorization Bearer header
-    let token = bodyToken;
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.substring(7);
-    }
+    const { sourceId, lat, lng, speed, bearing, accuracy, station, tripId } = req.body;
+    const sender = req.sender;
 
     if (!sourceId) {
        res.status(400).json({ error: 'Missing sourceId' });
        return;
     }
 
+    if (!sender || sender.sourceId !== sourceId) {
+      res.status(403).json({ error: 'Sender cannot submit for this source' });
+      return;
+    }
+
     const canonicalLocation = await processObservation({
       sourceId,
-      token,
+      sender,
+      tripId,
       lat,
       lng,
       speed,
@@ -50,9 +52,9 @@ router.post('/http', async (req: Request, res: Response) => {
 
   } catch (error: any) {
     console.error('[Ingest HTTP] Error processing location:', error.message);
-    if (error.message.includes('not found') || error.message.includes('Invalid authentication')) {
-      res.status(401).json({ error: error.message });
-    } else if (error.message.includes('required') || error.message.includes('bounds')) {
+    if (error.message.includes('source') || error.message.includes('credential')) {
+      res.status(403).json({ error: error.message });
+    } else if (error.message.includes('required') || error.message.includes('bounds') || error.message.includes('Trip')) {
       res.status(400).json({ error: error.message });
     } else {
       res.status(500).json({ error: 'Internal server error during HTTP ingestion' });
@@ -66,11 +68,21 @@ router.post('/http', async (req: Request, res: Response) => {
  */
 router.post('/ttn', async (req: Request, res: Response) => {
   try {
-    // 1. Verify TTN Webhook Authorization Header (Optional during local dev, enforced if secret exists)
+    // TTN is a server-to-server boundary. It must always have an explicit secret.
     const authHeader = req.headers.authorization;
     const expectedSecret = process.env.TTN_WEBHOOK_SECRET;
 
-    if (expectedSecret && (!authHeader || authHeader !== `Bearer ${expectedSecret}`)) {
+    if (!expectedSecret) {
+      res.status(503).json({ error: 'TTN webhook authentication is not configured' });
+      return;
+    }
+
+    const expectedHeader = `Bearer ${expectedSecret}`;
+    const provided = Buffer.from(authHeader || '');
+    const expected = Buffer.from(expectedHeader);
+    const validSecret = provided.length === expected.length && timingSafeEqual(provided, expected);
+
+    if (!validSecret) {
       res.status(401).json({ error: 'Unauthorized TTN Webhook call' });
       return;
     }
@@ -107,6 +119,7 @@ router.post('/ttn', async (req: Request, res: Response) => {
     // 4. Send to Observation Pipeline
     const canonicalLocation = await processObservation({
       sourceId,
+      expectedSourceType: 'lorawan',
       lat,
       lng,
       speed,

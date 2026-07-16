@@ -40,6 +40,8 @@ The fastest way to get everything running. One command sets up the entire stack 
    POSTGRES_DB=shuttle_tracking_backend
    JWT_SECRET=your_jwt_secret
    JWT_EXPIRES_IN=8h
+   SENDER_JWT_EXPIRES_IN=15m
+   TTN_WEBHOOK_SECRET=your_ttn_webhook_secret
    ```
 
 3. **Start all services**:

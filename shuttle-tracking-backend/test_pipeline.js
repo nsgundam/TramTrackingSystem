@@ -5,6 +5,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const BASE_URL = 'http://localhost:3001/api';
+const ESP32_SECRET = process.env.TRACKING_SOURCE_SECRET_ESP32;
+const MOBILE_SECRET = process.env.TRACKING_SOURCE_SECRET_MOBILE;
+const TTN_WEBHOOK_SECRET = process.env.TTN_WEBHOOK_SECRET;
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -14,6 +17,35 @@ async function testPipeline() {
   console.log('🏁 Starting pipeline integration tests...\n');
 
   try {
+    if (!ESP32_SECRET || !MOBILE_SECRET || !TTN_WEBHOOK_SECRET) {
+      throw new Error(
+        'Set TRACKING_SOURCE_SECRET_ESP32, TRACKING_SOURCE_SECRET_MOBILE, and TTN_WEBHOOK_SECRET before running the pipeline test',
+      );
+    }
+
+    // ============================================
+    // 0. Trust boundary checks
+    // ============================================
+    console.log('🛡️ [Auth] Verifying unauthenticated writes are rejected...');
+    const unauthenticatedIngest = await fetch(`${BASE_URL}/ingest/http`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sourceId: 'TS_ESP_01', lat: 13.964139, lng: 100.587520 }),
+    });
+    if (unauthenticatedIngest.status !== 401) {
+      throw new Error(`FAIL: unauthenticated HTTP ingestion returned ${unauthenticatedIngest.status}`);
+    }
+
+    const unauthenticatedTrip = await fetch(`${BASE_URL}/trips/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vehicleId: 'VH001' }),
+    });
+    if (unauthenticatedTrip.status !== 401) {
+      throw new Error(`FAIL: unauthenticated trip start returned ${unauthenticatedTrip.status}`);
+    }
+    console.log('   ✅ Unauthenticated REST writes rejected.\n');
+
     // ============================================
     // 1. Admin Login to get token
     // ============================================
@@ -31,16 +63,35 @@ async function testPipeline() {
     const token = loginData.token;
     console.log('   🟢 Admin login successful. Token acquired.\n');
 
+    async function loginSender(sourceId, secret, vehicleId) {
+      const senderRes = await fetch(`${BASE_URL}/auth/vehicle-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sourceId, secret, vehicleId }),
+      });
+      const senderData = await senderRes.json();
+      if (!senderRes.ok || !senderData.token) {
+        throw new Error(`Sender login failed: ${JSON.stringify(senderData)}`);
+      }
+      return senderData.token;
+    }
+
+    const espSenderToken = await loginSender('TS_ESP_01', ESP32_SECRET, 'VH001');
+    const mobileSenderToken = await loginSender('TS_MOB_01', MOBILE_SECRET, 'VH001');
+    console.log('   🟢 Sender credentials issued.\n');
+
     // ============================================
     // 2. Test Ingest ESP32 Location (HTTP REST)
     // ============================================
     console.log('📡 [Ingest] Sending ESP32 location (Priority 2)...');
     const espRes = await fetch(`${BASE_URL}/ingest/http`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${espSenderToken}`,
+      },
       body: JSON.stringify({
         sourceId: 'TS_ESP_01',
-        token: 'esp32_secret_key',
         lat: 13.964139,
         lng: 100.587520,
         speed: 5.5,
@@ -61,10 +112,14 @@ async function testPipeline() {
     // 3. Test Ingest TTN Webhook (LoRaWAN)
     // ============================================
     console.log('📡 [Ingest] Sending mock TTN Webhook payload...');
+    if (!TTN_WEBHOOK_SECRET) {
+      throw new Error('TTN_WEBHOOK_SECRET must be set to run the TTN integration check');
+    }
     const ttnRes = await fetch(`${BASE_URL}/ingest/ttn`, {
       method: 'POST',
       headers: { 
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${TTN_WEBHOOK_SECRET}`,
       },
       body: JSON.stringify({
         end_device_ids: {
@@ -100,10 +155,12 @@ async function testPipeline() {
     console.log('📡 [Priority Test] Sending Mobile location (Priority 1)...');
     const mobRes = await fetch(`${BASE_URL}/ingest/http`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${mobileSenderToken}`,
+      },
       body: JSON.stringify({
         sourceId: 'TS_MOB_01',
-        token: 'mobile_secret_key',
         lat: 13.963993,
         lng: 100.587064,
         speed: 1.0,
