@@ -8,9 +8,16 @@ export interface SenderContext {
   credentialVersion: number;
 }
 
+export class SenderAuthDependencyError extends Error {
+  constructor(message = 'Sender authentication dependency unavailable') {
+    super(message);
+    this.name = 'SenderAuthDependencyError';
+  }
+}
+
 const getJwtSecret = (): string => {
   if (!process.env.JWT_SECRET) {
-    throw new Error('JWT_SECRET is not configured');
+    throw new SenderAuthDependencyError('JWT_SECRET is not configured');
   }
 
   return process.env.JWT_SECRET;
@@ -57,16 +64,21 @@ export const parseSenderClaims = (token: string): SenderContext => {
 
 export const getSenderFromToken = async (token: string): Promise<SenderContext> => {
   const claims = parseSenderClaims(token);
-  const source = await prisma.trackingSource.findUnique({
-    where: { id: claims.sourceId },
-    select: {
-      id: true,
-      vehicleId: true,
-      type: true,
-      status: true,
-      credentialVersion: true,
-    },
-  });
+  let source;
+  try {
+    source = await prisma.trackingSource.findUnique({
+      where: { id: claims.sourceId },
+      select: {
+        id: true,
+        vehicleId: true,
+        type: true,
+        status: true,
+        credentialVersion: true,
+      },
+    });
+  } catch {
+    throw new SenderAuthDependencyError();
+  }
 
   if (
     !source ||
@@ -80,6 +92,17 @@ export const getSenderFromToken = async (token: string): Promise<SenderContext> 
   }
 
   return claims;
+};
+
+export const isAdminClaims = (
+  user: unknown,
+): user is jwt.JwtPayload & { userId: string } => {
+  if (typeof user !== 'object' || user === null) {
+    return false;
+  }
+
+  const claims = user as jwt.JwtPayload & { kind?: unknown; userId?: unknown };
+  return claims.kind !== 'sender' && typeof claims.userId === 'string' && claims.userId.length > 0;
 };
 
 export const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
@@ -97,7 +120,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
+    if (err || !isAdminClaims(user)) {
       res.status(403).json({ error: 'Invalid token' });
       return;
     }
@@ -122,7 +145,12 @@ export const authenticateSenderToken = async (
   try {
     req.sender = await getSenderFromToken(token);
     next();
-  } catch {
+  } catch (error) {
+    if (error instanceof SenderAuthDependencyError) {
+      res.status(503).json({ error: 'Sender authentication temporarily unavailable' });
+      return;
+    }
+
     res.status(401).json({ error: 'Invalid or inactive sender credential' });
   }
 };

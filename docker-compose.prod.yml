@@ -56,9 +56,10 @@ services:
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:-ReplaceWithSecureProductionSecretKey}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      SENDER_JWT_EXPIRES_IN: ${SENDER_JWT_EXPIRES_IN:-15m}
       API_URL: ${API_URL:-http://localhost:3001}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
-      TTN_WEBHOOK_SECRET: ${TTN_WEBHOOK_SECRET:-ttn_secure_webhook_secret_key}
+      TTN_WEBHOOK_SECRET: ${TTN_WEBHOOK_SECRET:?TTN_WEBHOOK_SECRET must be set for production}
     ports:
       - "3001:3001"
     depends_on:

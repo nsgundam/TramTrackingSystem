@@ -15,7 +15,13 @@ import publicRouter from "./routes/public.route.js";
 import ingestRouter from "./routes/ingest.route.js";
 import devicesRouter from "./routes/devices.route.js";
 
-import { authenticateToken, extractBearerToken, getSenderFromToken } from "./middleware/auth.js";
+import {
+  authenticateToken,
+  extractBearerToken,
+  getSenderFromToken,
+  SenderAuthDependencyError,
+} from "./middleware/auth.js";
+import type { SenderContext } from "./middleware/auth.js";
 
 import { processObservation } from "./services/tracking.service.js";
 
@@ -108,9 +114,14 @@ io.use(async (socket, next) => {
 
   try {
     socket.data.sender = await getSenderFromToken(authToken);
+    socket.data.senderToken = authToken;
     next();
-  } catch {
-    next(new Error('Invalid or inactive sender credential'));
+  } catch (error) {
+    next(new Error(
+      error instanceof SenderAuthDependencyError
+        ? 'Sender authentication temporarily unavailable'
+        : 'Invalid or inactive sender credential',
+    ));
   }
 });
 
@@ -120,9 +131,9 @@ io.on("connection", (socket) => {
 
   socket.on("send-location", async (rawData, acknowledge) => {
     const respond = typeof acknowledge === 'function' ? acknowledge : () => {};
-    const sender = socket.data.sender;
+    const senderToken = socket.data.senderToken;
 
-    if (!sender) {
+    if (typeof senderToken !== 'string') {
       const error = { ok: false, code: 'SENDER_AUTH_REQUIRED', error: 'Sender authentication required' };
       respond(error);
       socket.emit('error-response', error);
@@ -130,8 +141,42 @@ io.on("connection", (socket) => {
     }
 
     try {
+      // Handshake authentication is not enough for a long-lived sender socket.
+      // Revalidate expiry, source status, vehicle binding, and credential version
+      // for every write so rotation/revocation takes effect immediately.
+      let sender: SenderContext;
+      try {
+        sender = await getSenderFromToken(senderToken);
+      } catch (error) {
+        if (error instanceof SenderAuthDependencyError) {
+          const response = {
+            ok: false,
+            code: 'SENDER_AUTH_UNAVAILABLE',
+            error: 'Sender authentication temporarily unavailable',
+          };
+          respond(response);
+          socket.emit("error-response", response);
+          return;
+        }
+
+        const response = {
+          ok: false,
+          code: 'SENDER_CREDENTIAL_INVALID',
+          error: 'Sender credential is invalid or no longer active',
+        };
+        respond(response);
+        socket.emit("error-response", response);
+        socket.disconnect(true);
+        return;
+      }
+
+      socket.data.sender = sender;
+
       if (!rawData || typeof rawData !== 'object' || !rawData.sourceId) {
-        throw new Error('sourceId is required');
+        const error = { ok: false, code: 'SOURCE_ID_REQUIRED', error: 'sourceId is required' };
+        respond(error);
+        socket.emit('error-response', error);
+        return;
       }
 
       if (
@@ -151,7 +196,7 @@ io.on("connection", (socket) => {
         lat: rawData.lat,
         lng: rawData.lng,
         speed: rawData.speed,
-        bearing: rawData.bearing || rawData.heading,
+        bearing: rawData.bearing ?? rawData.heading,
         accuracy: rawData.accuracy,
         station: rawData.station
       });
@@ -162,8 +207,14 @@ io.on("connection", (socket) => {
 
       respond({ ok: true, canonicalLocation });
     } catch (error: any) {
-      console.error("[Socket.IO] Error processing send-location:", error.message);
-      const response = { ok: false, code: 'LOCATION_REJECTED', error: error.message };
+      const message = error instanceof Error ? error.message : '';
+      const response = message.includes('Trip')
+        ? { ok: false, code: 'TRIP_OWNERSHIP_MISMATCH', error: 'Trip is invalid or does not belong to the sender vehicle' }
+        : message.includes('bounds')
+          ? { ok: false, code: 'INVALID_COORDINATES', error: 'Coordinates are invalid' }
+          : message.includes('sender') || message.includes('credential')
+            ? { ok: false, code: 'SENDER_CREDENTIAL_INVALID', error: 'Sender credential is invalid or no longer active' }
+            : { ok: false, code: 'LOCATION_REJECTED', error: 'Location observation was rejected' };
       respond(response);
       socket.emit("error-response", response);
     }

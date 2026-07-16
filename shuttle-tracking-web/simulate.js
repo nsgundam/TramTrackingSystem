@@ -24,7 +24,9 @@ const STATIONS = [
   { id: 'ST015', lng: 100.587415, lat: 13.965706 },
 ];
 
-const socket = io(SOCKET_URL, { autoConnect: false });
+const socket = io(SOCKET_URL, { autoConnect: false, reconnection: false });
+let senderToken;
+let reconnectPromise;
 
 socket.on('connect', () => {
   console.log(`🟢 Connected to WebSocket server with ID: ${socket.id}`);
@@ -108,8 +110,39 @@ async function startTrip(token) {
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
+async function reconnectSender() {
+  if (reconnectPromise) {
+    return reconnectPromise;
+  }
+
+  reconnectPromise = (async () => {
+    senderToken = await loginSender();
+    socket.auth = { token: senderToken };
+    if (socket.connected) {
+      socket.disconnect();
+    }
+    socket.connect();
+    await new Promise((resolve, reject) => {
+      const onConnect = () => {
+        socket.off('connect_error', onError);
+        resolve();
+      };
+      const onError = (error) => {
+        socket.off('connect', onConnect);
+        reject(error);
+      };
+      socket.once('connect', onConnect);
+      socket.once('connect_error', onError);
+    });
+  })().finally(() => {
+    reconnectPromise = undefined;
+  });
+
+  return reconnectPromise;
+}
+
 async function runSimulation() {
-  const senderToken = await loginSender();
+  senderToken = await loginSender();
   socket.auth = { token: senderToken };
   socket.connect();
 
@@ -151,20 +184,35 @@ async function runSimulation() {
 
 async function sendLocation(tripId, lat, lng, speed, bearing, station) {
   try {
+    if (!socket.connected) {
+      await reconnectSender();
+    }
 
-      const payload = {
-        tripId,
-        sourceId: SOURCE_ID,
-        vehicleId: VEHICLE_ID,
-        lat,
-        lng,
-        speed,
-        bearing,
-        accuracy: 100,
-        station
-      };
+    const payload = {
+      tripId,
+      sourceId: SOURCE_ID,
+      vehicleId: VEHICLE_ID,
+      lat,
+      lng,
+      speed,
+      bearing,
+      accuracy: 100,
+      station
+    };
 
-    socket.emit('send-location', payload);
+    const response = await new Promise((resolve) => {
+      socket.timeout(5000).emit('send-location', payload, (timeoutError, acknowledgement) => {
+        resolve(timeoutError || acknowledgement);
+      });
+    });
+
+    if (!response || response.ok !== true) {
+      console.error('Location rejected:', response);
+      if (response?.code === 'SENDER_CREDENTIAL_INVALID') {
+        await reconnectSender();
+      }
+      return;
+    }
 
     console.log(`📡 Emit Socket: lat=${lat.toFixed(6)}, lng=${lng.toFixed(6)}, speed=${speed}, station=${station}`);
   } catch (e) {

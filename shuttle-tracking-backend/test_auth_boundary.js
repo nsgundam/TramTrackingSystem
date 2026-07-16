@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 process.env.JWT_SECRET = 'test-only-sender-secret';
 
-const { parseSenderClaims } = await import('./dist/middleware/auth.js');
+const { parseSenderClaims, isAdminClaims } = await import('./dist/middleware/auth.js');
 
 const validToken = jwt.sign(
   {
@@ -42,5 +42,34 @@ const mismatchedClaimsToken = jwt.sign(
 );
 
 assert.throws(() => parseSenderClaims(mismatchedClaimsToken), /Invalid sender token claims/);
+
+const expiredToken = jwt.sign(
+  {
+    kind: 'sender',
+    sourceId: 'TS_TEST_01',
+    vehicleId: 'VH001',
+    credentialVersion: 1,
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: -1 },
+);
+
+assert.throws(() => parseSenderClaims(expiredToken), /jwt expired/);
+
+const invalidSignatureToken = jwt.sign(
+  {
+    kind: 'sender',
+    sourceId: 'TS_TEST_01',
+    vehicleId: 'VH001',
+    credentialVersion: 1,
+  },
+  'different-test-secret',
+  { expiresIn: '5m' },
+);
+
+assert.throws(() => parseSenderClaims(invalidSignatureToken), /invalid signature/);
+
+assert.equal(isAdminClaims({ userId: 'admin-user', username: 'admin' }), true);
+assert.equal(isAdminClaims({ kind: 'sender', sourceId: 'TS_TEST_01' }), false);
 
 console.log('Sender JWT boundary tests passed.');

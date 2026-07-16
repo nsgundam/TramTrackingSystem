@@ -51,6 +51,7 @@ Once your `.env` is setup, initialize your application using these commands:
 - `npm run db:seed` - Populate fundamental mock data (default roles, stops, shuttles, tracks) into your database.
 - `npm run db:studio` - Launches the Prisma graphical tool to view and edit your database contents.
 - `npm test` - Builds the backend and runs sender JWT boundary tests.
+- `npm run test:socket` - Verifies that an unauthenticated Socket.IO viewer cannot emit GPS writes (requires a running backend).
 
 ### Local Development
 
@@ -75,7 +76,9 @@ Content-Type: application/json
 Use the returned token as `Authorization: Bearer <token>` for trip start/end and HTTP GPS
 ingestion. Socket.IO senders provide the same token in `auth.token` during the handshake and must
 include the registered `sourceId` in `send-location`. Public viewers may connect to Socket.IO but
-cannot emit GPS writes. TTN webhook requests require `Authorization: Bearer <TTN_WEBHOOK_SECRET>`.
+cannot emit GPS writes. Sender sockets revalidate the token on every GPS write, so clients must
+login again after expiry or credential rotation. TTN webhook requests require
+`Authorization: Bearer <TTN_WEBHOOK_SECRET>` and fail closed when the production secret is absent.
 
 The simulator uses the same flow. Set `TRACKING_SOURCE_SECRET` before running it; do not put a
 source secret in committed frontend code.

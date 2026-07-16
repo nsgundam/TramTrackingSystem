@@ -44,20 +44,23 @@ router.post('/http', authenticateSenderToken, async (req: Request, res: Response
       }
     }
 
-    res.status(200).json({
-      success: true,
-      message: 'Location observation processed successfully',
-      canonicalLocation
-    });
+      res.status(200).json({
+        success: true,
+        message: 'Location observation processed successfully',
+        canonicalLocation
+      });
 
   } catch (error: any) {
-    console.error('[Ingest HTTP] Error processing location:', error.message);
-    if (error.message.includes('source') || error.message.includes('credential')) {
-      res.status(403).json({ error: error.message });
-    } else if (error.message.includes('required') || error.message.includes('bounds') || error.message.includes('Trip')) {
-      res.status(400).json({ error: error.message });
+    const message = error instanceof Error ? error.message : '';
+    console.error('[Ingest HTTP] Location observation rejected:', message);
+    if (message.includes('source') || message.includes('credential')) {
+      res.status(403).json({ code: 'SOURCE_CREDENTIAL_INVALID', error: 'Sender cannot submit for this source' });
+    } else if (message.includes('Trip')) {
+      res.status(403).json({ code: 'TRIP_OWNERSHIP_MISMATCH', error: 'Trip is invalid or does not belong to the sender vehicle' });
+    } else if (message.includes('required') || message.includes('bounds')) {
+      res.status(400).json({ code: 'INVALID_LOCATION', error: 'Location payload is invalid' });
     } else {
-      res.status(500).json({ error: 'Internal server error during HTTP ingestion' });
+      res.status(500).json({ code: 'INGESTION_ERROR', error: 'Internal server error during HTTP ingestion' });
     }
   }
 });
@@ -98,17 +101,23 @@ router.post('/ttn', async (req: Request, res: Response) => {
 
     // 3. Extract Decoded Payload fields
     const decoded = payload.uplink_message?.decoded_payload;
-    if (!decoded) {
-      res.status(400).json({ error: 'Missing decoded_payload in TTN uplink' });
-      return;
+
+    if (!decoded || !decoded.latitude || !decoded.longitude) {
+      // Respond with 200 OK so TTN doesn't mark the webhook as failed, 
+      // but skip the Prisma database insertion.
+      return res.status(200).json({
+        message: "Tracker status update received. No GPS coordinates present.",
+        warnings: ["Missing latitude/longitude in payload"],
+        errors: []
+      });
     }
 
     // Support standard keys for coordinates
     const lat = decoded.latitude !== undefined ? decoded.latitude : decoded.lat;
     const lng = decoded.longitude !== undefined ? decoded.longitude : decoded.lng;
     const speed = decoded.speed;
-    const bearing = decoded.bearing || decoded.heading;
-    const accuracy = decoded.accuracy || decoded.hdop;
+    const bearing = decoded.bearing ?? decoded.heading;
+    const accuracy = decoded.accuracy ?? decoded.hdop;
     const station = decoded.station;
 
     if (lat === undefined || lng === undefined) {
@@ -143,13 +152,16 @@ router.post('/ttn', async (req: Request, res: Response) => {
     });
 
   } catch (error: any) {
-    console.error('[Ingest TTN] Error processing TTN Webhook:', error.message);
-    if (error.message.includes('not found')) {
-      res.status(404).json({ error: error.message });
-    } else if (error.message.includes('bounds')) {
-      res.status(400).json({ error: error.message });
+    const message = error instanceof Error ? error.message : '';
+    console.error('[Ingest TTN] TTN webhook rejected:', message);
+    if (message.includes('not found')) {
+      res.status(404).json({ code: 'SOURCE_NOT_FOUND', error: 'TTN source is not registered' });
+    } else if (message.includes('not a lorawan')) {
+      res.status(400).json({ code: 'SOURCE_TYPE_MISMATCH', error: 'TTN source type is invalid' });
+    } else if (message.includes('bounds')) {
+      res.status(400).json({ code: 'INVALID_COORDINATES', error: 'Coordinates are invalid' });
     } else {
-      res.status(500).json({ error: 'Internal server error during TTN ingestion' });
+      res.status(500).json({ code: 'INGESTION_ERROR', error: 'Internal server error during TTN ingestion' });
     }
   }
 });

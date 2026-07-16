@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
 dotenv.config();
 
 const BASE_URL = 'http://localhost:3001/api';
@@ -81,7 +82,118 @@ async function testPipeline() {
     console.log('   🟢 Sender credentials issued.\n');
 
     // ============================================
-    // 2. Test Ingest ESP32 Location (HTTP REST)
+    // 2. Negative sender boundary checks
+    // ============================================
+    console.log('🛡️ [Auth] Verifying invalid, expired, and mismatched sender writes...');
+    const invalidTokenRes = await fetch(`${BASE_URL}/ingest/http`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer not-a-valid-sender-token',
+      },
+      body: JSON.stringify({ sourceId: 'TS_ESP_01', lat: 13.964139, lng: 100.587520 }),
+    });
+    if (invalidTokenRes.status !== 401) {
+      throw new Error(`FAIL: invalid sender token returned ${invalidTokenRes.status}`);
+    }
+
+    const expiredToken = jwt.sign(
+      { kind: 'sender', sourceId: 'TS_ESP_01', vehicleId: 'VH001', credentialVersion: 1 },
+      process.env.JWT_SECRET,
+      { expiresIn: -1 },
+    );
+    const expiredTokenRes = await fetch(`${BASE_URL}/trips/start`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${expiredToken}`,
+      },
+      body: JSON.stringify({ vehicleId: 'VH001' }),
+    });
+    if (expiredTokenRes.status !== 401) {
+      throw new Error(`FAIL: expired sender token returned ${expiredTokenRes.status}`);
+    }
+
+    const mismatchedSourceRes = await fetch(`${BASE_URL}/ingest/http`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${espSenderToken}`,
+      },
+      body: JSON.stringify({ sourceId: 'TS_MOB_01', lat: 13.964139, lng: 100.587520 }),
+    });
+    if (mismatchedSourceRes.status !== 403) {
+      throw new Error(`FAIL: source ownership mismatch returned ${mismatchedSourceRes.status}`);
+    }
+
+    const mismatchedVehicleRes = await fetch(`${BASE_URL}/trips/start`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${espSenderToken}`,
+      },
+      body: JSON.stringify({ vehicleId: 'VH002' }),
+    });
+    if (mismatchedVehicleRes.status !== 403) {
+      throw new Error(`FAIL: vehicle ownership mismatch returned ${mismatchedVehicleRes.status}`);
+    }
+
+    const foreignSenderToken = await loginSender('TS_MOB_02', MOBILE_SECRET, 'VH002');
+    let foreignTrip = await prisma.trip.findFirst({
+      where: { vehicleId: 'VH002', status: 'in_progress' },
+      select: { id: true },
+    });
+    let createdForeignTrip = false;
+    if (!foreignTrip) {
+      const foreignStartRes = await fetch(`${BASE_URL}/trips/start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${foreignSenderToken}`,
+        },
+        body: JSON.stringify({ vehicleId: 'VH002' }),
+      });
+      const foreignStartData = await foreignStartRes.json();
+      if (!foreignStartRes.ok || !foreignStartData.trip?.id) {
+        throw new Error(`FAIL: could not create foreign trip fixture: ${JSON.stringify(foreignStartData)}`);
+      }
+      foreignTrip = { id: foreignStartData.trip.id };
+      createdForeignTrip = true;
+    }
+
+    const mismatchedTripRes = await fetch(`${BASE_URL}/trips/${foreignTrip.id}/end`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${mobileSenderToken}` },
+    });
+    if (mismatchedTripRes.status !== 403) {
+      throw new Error(`FAIL: trip ownership mismatch returned ${mismatchedTripRes.status}`);
+    }
+
+    if (createdForeignTrip) {
+      const cleanupRes = await fetch(`${BASE_URL}/trips/${foreignTrip.id}/end`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${foreignSenderToken}` },
+      });
+      if (!cleanupRes.ok) {
+        throw new Error(`FAIL: could not clean up foreign trip fixture (${cleanupRes.status})`);
+      }
+    }
+
+    const invalidTtnSecretRes = await fetch(`${BASE_URL}/ingest/ttn`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer invalid-ttn-secret',
+      },
+      body: JSON.stringify({}),
+    });
+    if (invalidTtnSecretRes.status !== 401) {
+      throw new Error(`FAIL: invalid TTN secret returned ${invalidTtnSecretRes.status}`);
+    }
+    console.log('   ✅ Invalid, expired, and mismatched sender writes rejected.\n');
+
+    // ============================================
+    // 3. Test Ingest ESP32 Location (HTTP REST)
     // ============================================
     console.log('📡 [Ingest] Sending ESP32 location (Priority 2)...');
     const espRes = await fetch(`${BASE_URL}/ingest/http`, {
@@ -109,7 +221,7 @@ async function testPipeline() {
     console.log('   🟢 Selected Device Type:', espData.canonicalLocation.sourceType, '\n');
 
     // ============================================
-    // 3. Test Ingest TTN Webhook (LoRaWAN)
+    // 4. Test Ingest TTN Webhook (LoRaWAN)
     // ============================================
     console.log('📡 [Ingest] Sending mock TTN Webhook payload...');
     if (!TTN_WEBHOOK_SECRET) {
@@ -150,7 +262,7 @@ async function testPipeline() {
     console.log('   🟢 Selected Device Type:', ttnData.canonicalLocation.sourceType, '\n');
 
     // ============================================
-    // 4. Multi-Source Priority Conflict Test
+    // 5. Multi-Source Priority Conflict Test
     // ============================================
     console.log('📡 [Priority Test] Sending Mobile location (Priority 1)...');
     const mobRes = await fetch(`${BASE_URL}/ingest/http`, {
@@ -190,7 +302,7 @@ async function testPipeline() {
     console.log('   ✅ Priority routing works correctly.\n');
 
     // ============================================
-    // 5. Developer Analytics Logs Check
+    // 6. Developer Analytics Logs Check
     // ============================================
     console.log('📊 [Analytics] Retrieving developer selection metrics...');
     const anaRes = await fetch(`${BASE_URL}/admin/devices/analytics`, {
@@ -207,7 +319,7 @@ async function testPipeline() {
     console.log('   ✅ Analytics logging successfully verified.\n');
 
     // ============================================
-    // 6. DB History Sample Check
+    // 7. DB History Sample Check
     // ============================================
     console.log('🗄️ [Database] Verifying auto-created virtual trip...');
     const tripRes = await prisma.trip.findMany({
