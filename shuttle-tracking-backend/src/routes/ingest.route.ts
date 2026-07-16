@@ -94,10 +94,7 @@ router.post('/ttn', async (req: Request, res: Response) => {
 
     // 2. Extract Device ID — support both top-level and nested (location_solved) formats
     const sourceId =
-      payload.end_device_ids?.device_id ||
-      payload.end_device_ids?.dev_eui ||
-      payload.data?.end_device_ids?.device_id ||
-      payload.data?.end_device_ids?.dev_eui;
+      payload.end_device_ids?.device_id;
 
     if (!sourceId) {
       res.status(400).json({ error: 'Missing device_id or dev_eui in TTN payload' });
@@ -115,16 +112,29 @@ router.post('/ttn', async (req: Request, res: Response) => {
     let station: string | undefined;
 
     const decoded = payload.uplink_message?.decoded_payload;
+    const uplinkLocations = payload.uplink_message?.locations;
     const locationSolved = payload.data?.location_solved?.location;
 
     if (decoded && (decoded.latitude !== undefined || decoded.longitude !== undefined)) {
-      // Standard uplink_message with decoded_payload
+      // Standard uplink_message with decoded_payload containing coordinates
       lat = decoded.latitude !== undefined ? decoded.latitude : decoded.lat;
       lng = decoded.longitude !== undefined ? decoded.longitude : decoded.lng;
       speed = decoded.speed;
       bearing = decoded.bearing ?? decoded.heading;
       accuracy = decoded.accuracy ?? decoded.hdop;
       station = decoded.station;
+    } else if (uplinkLocations) {
+      // Heartbeat / Location Failure — coordinates are in uplink_message.locations
+      // e.g. locations: { "frm-payload": { latitude: ..., longitude: ... } }
+      const locEntry = uplinkLocations['frm-payload'] || Object.values(uplinkLocations)[0] as any;
+      if (locEntry && locEntry.latitude !== undefined && locEntry.longitude !== undefined) {
+        lat = locEntry.latitude;
+        lng = locEntry.longitude;
+        speed = undefined;
+        bearing = undefined;
+        accuracy = undefined;
+        station = undefined;
+      }
     } else if (locationSolved && locationSolved.latitude !== undefined && locationSolved.longitude !== undefined) {
       // TTN location_solved event (as.up.location.forward)
       lat = locationSolved.latitude;
