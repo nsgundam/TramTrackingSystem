@@ -105,6 +105,7 @@ router.post('/ttn', async (req: Request, res: Response) => {
     if (!decoded || !decoded.latitude || !decoded.longitude) {
       // Respond with 200 OK so TTN doesn't mark the webhook as failed, 
       // but skip the Prisma database insertion.
+      console.log('   TTN payload does not contain GPS coordinates (latitude/longitude)');
       return res.status(200).json({
         message: "Tracker status update received. No GPS coordinates present.",
         warnings: ["Missing latitude/longitude in payload"],
