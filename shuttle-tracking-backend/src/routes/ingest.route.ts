@@ -98,6 +98,8 @@ router.post('/ttn', async (req: Request, res: Response) => {
       res.status(400).json({ error: 'Missing device_id or dev_eui in TTN payload' });
       return;
     }
+    
+    console.log(sourceId);
 
     // 3. Extract Decoded Payload fields
     const decoded = payload.uplink_message?.decoded_payload;
