@@ -146,6 +146,7 @@ model GPSTrack {
 
   @@index([tripId])
   @@index([vehicleId, recordedAt(sort: Desc)])
+  @@index([sourceId, recordedAt(sort: Desc)])
   @@map("gps_tracks")
 }
 
@@ -160,6 +161,9 @@ model TrackingSource {
   priority   Int       @default(1)
   status     String    @default("active") @db.VarChar(50)
   secretHash String?   @map("secret_hash") @db.VarChar(255)
+  credentialVersion   Int       @default(1) @map("credential_version")
+  credentialIssuedAt  DateTime? @map("credential_issued_at") @db.Timestamp(6)
+  credentialRotatedAt DateTime? @map("credential_rotated_at") @db.Timestamp(6)
   lastSeenAt DateTime? @map("last_seen_at") @db.Timestamp(6)
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
 
@@ -167,8 +171,8 @@ model TrackingSource {
   vehicle   Vehicle?   @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
   gpsTracks GPSTrack[]
 
-  @@index([vehicleId])
-  @@index([status])
+  @@index([vehicleId, status, priority, id])
+  @@index([status, lastSeenAt(sort: Desc)])
   @@map("tracking_sources")
 }
 

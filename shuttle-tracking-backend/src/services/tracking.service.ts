@@ -1,8 +1,38 @@
 import { prisma } from '../config/prisma.js';
 import { redisClient } from '../config/redis.js';
-import bcrypt from 'bcrypt';
+import type { SenderContext } from '../middleware/auth.js';
 
 const THROTTLE_SECONDS = 60;
+export const SOURCE_FRESHNESS_WINDOW_MS = 30_000;
+
+export const TRACKING_SOURCE_TYPES = ['mobile', 'lorawan', 'esp32', 'simulator'] as const;
+export const TRACKING_SOURCE_STATUSES = ['provisioning', 'active', 'inactive', 'retired'] as const;
+
+export type SourceHealth = 'never_seen' | 'online' | 'stale' | 'disabled';
+
+export interface SourceHealthInput {
+  status: string;
+  lastSeenAt: Date | null;
+}
+
+export const getSourceHealth = (
+  source: SourceHealthInput,
+  now = Date.now()
+): SourceHealth => {
+  if (source.status !== 'active') {
+    return 'disabled';
+  }
+
+  if (!source.lastSeenAt) {
+    return 'never_seen';
+  }
+
+  return now - source.lastSeenAt.getTime() <= SOURCE_FRESHNESS_WINDOW_MS
+    ? 'online'
+    : 'stale';
+};
+
+export const sourceRequiresCredential = (sourceType: string): boolean => sourceType !== 'lorawan';
 
 // Bounds representing approximate geographical range of Thailand
 const LAT_MIN = 5.0;
@@ -12,7 +42,9 @@ const LNG_MAX = 106.0;
 
 export interface ObservationData {
   sourceId: string;
-  token?: string;
+  sender?: SenderContext;
+  expectedSourceType?: 'lorawan';
+  tripId?: string;
   lat: number;
   lng: number;
   speed?: number;
@@ -26,7 +58,7 @@ export interface ObservationData {
  * Validates, authenticates, and records the raw observation from a specific device source.
  */
 export const processObservation = async (data: ObservationData) => {
-  const { sourceId, token, lat, lng, speed, bearing, accuracy, station } = data;
+  const { sourceId, lat, lng, speed, bearing, accuracy, station } = data;
 
   if (!sourceId || lat === undefined || lng === undefined) {
     throw new Error('Missing required fields: sourceId, lat, or lng');
@@ -49,14 +81,33 @@ export const processObservation = async (data: ObservationData) => {
     throw new Error(`Active tracking source with ID "${sourceId}" not found`);
   }
 
-  // 3. Authenticate Device (Skip for LoRaWAN which is authenticated at webhook router level)
-  if (source.type !== 'lorawan' && source.secretHash) {
-    if (!token) {
-      throw new Error(`Authentication token required for device "${sourceId}"`);
+  if (data.expectedSourceType && source.type !== data.expectedSourceType) {
+    throw new Error(`Tracking source "${sourceId}" is not a ${data.expectedSourceType} source`);
+  }
+
+  // 3. Authenticate the source and bind it to the credential claims.
+  if (sourceRequiresCredential(source.type)) {
+    if (!data.sender) {
+      throw new Error('Verified sender credential is required');
     }
-    const isMatch = await bcrypt.compare(token, source.secretHash);
-    if (!isMatch) {
-      throw new Error(`Invalid authentication token for device "${sourceId}"`);
+
+    if (
+      data.sender.sourceId !== source.id ||
+      data.sender.vehicleId !== source.vehicleId ||
+      data.sender.credentialVersion !== source.credentialVersion
+    ) {
+      throw new Error('Sender credential does not match the tracking source');
+    }
+  }
+
+  if (data.tripId) {
+    const trip = await prisma.trip.findUnique({
+      where: { id: data.tripId },
+      select: { vehicleId: true, status: true },
+    });
+
+    if (!trip || trip.vehicleId !== source.vehicleId || trip.status !== 'in_progress') {
+      throw new Error('Trip is invalid or does not belong to the sender vehicle');
     }
   }
 
@@ -101,7 +152,10 @@ export const processObservation = async (data: ObservationData) => {
 export const evaluateCanonicalLocation = async (vehicleId: string) => {
   const sources = await prisma.trackingSource.findMany({
     where: { vehicleId, status: 'active' },
-    orderBy: { priority: 'asc' } // Priority 1 is highest, then 2, 3, etc.
+    orderBy: [
+      { priority: 'asc' },
+      { id: 'asc' }
+    ] // Priority 1 is highest; ID makes equal priorities deterministic.
   });
 
   if (sources.length === 0) return null;
@@ -116,7 +170,7 @@ export const evaluateCanonicalLocation = async (vehicleId: string) => {
     if (rawData) {
       const parsed = JSON.parse(rawData);
       // Freshness check: data must be recorded within the last 30 seconds
-      if (nowMs - parsed.timestamp <= 30000) {
+      if (nowMs - parsed.timestamp <= SOURCE_FRESHNESS_WINDOW_MS) {
         selectedObservation = parsed;
         selectedSourceId = src.id;
         break; // Stop at highest priority fresh source
@@ -153,6 +207,7 @@ export const evaluateCanonicalLocation = async (vehicleId: string) => {
 
   // Log Developer Analytics (Device selection count)
   await redisClient.hIncrBy(`analytics:vehicle:${vehicleId}:source_selection`, selectedObservation.sourceType, 1);
+  await redisClient.hIncrBy(`analytics:source:${selectedSourceId}:source_selection`, 'selected', 1);
 
   // Trigger DB persistence
   await persistSampledHistory(vehicleId, canonicalLocation);

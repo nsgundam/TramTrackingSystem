@@ -97,6 +97,11 @@ export const updateDevice = async (req: Request, res: Response) => {
     
     if (secret) {
       data.secretHash = await bcrypt.hash(secret, 12);
+      data.credentialVersion = { increment: 1 };
+      data.credentialRotatedAt = new Date();
+      if (!existing.credentialIssuedAt) {
+        data.credentialIssuedAt = new Date();
+      }
     }
 
     const updated = await prisma.trackingSource.update({

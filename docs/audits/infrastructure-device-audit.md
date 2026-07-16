@@ -13,7 +13,7 @@ User-provided deployment direction for test/product evolution:
 - LoRaWAN will use TTN. The intended flow has two parts: TTN MQTT data to frontend directly for realtime display, and separate history persistence to the database. The history path is not designed yet and does not need realtime writes; 60-second sampling is acceptable to avoid database growth.
 - ESP32 transmission protocol is not decided yet.
 
-Device integration readiness is **partial**. The current implemented path is simulator/mobile-like Socket.IO `send-location` into backend `handleLocationData`, followed by global `location-update` broadcast (`shuttle-tracking-web/simulate.js:116-130`, `shuttle-tracking-backend/src/server.ts:72-75`, `shuttle-tracking-backend/src/services/tracking.service.ts:6-46`). This is sufficient for a simple mobile/simulator MVP, but not ready for multiple simultaneous sources because the system has no device/source identity, source priority, source health, source assignment, or canonical current location model (`docs/audits/architecture-audit.md:7-17`, `docs/audits/database-audit.md:48-54`, `docs/audits/backend-audit.md:61-63`).
+Device integration readiness is now **partially implemented**. In addition to the legacy Socket.IO path, the repository now has a tracking-source registry, HTTP ingestion, TTN webhook ingestion, source priority selection, last-seen tracking, canonical vehicle location selection, and 60-second history sampling (`shuttle-tracking-backend/src/routes/ingest.route.ts:6-158`, `shuttle-tracking-backend/src/services/tracking.service.ts:13-245`, `shuttle-tracking-backend/prisma/schema.prisma:150-177`). It is not complete for production or for the user's final TTN topology: direct TTN MQTT-to-frontend is not implemented, TTN history currently uses a webhook rather than MQTT, and ESP32 transport remains undecided.
 
 ## 2. Current Infrastructure Overview
 
@@ -43,8 +43,9 @@ Environment configuration:
 
 Runtime backend behavior:
 
-- Express mounts auth, public, admin, and trip routes in `server.ts` (`shuttle-tracking-backend/src/server.ts:50-62`).
-- Socket.IO receives `send-location`, calls `handleLocationData`, and emits `location-update` globally (`shuttle-tracking-backend/src/server.ts:68-75`).
+- Express mounts auth, public, admin, trip, HTTP ingest, and TTN webhook routes in `server.ts` (`shuttle-tracking-backend/src/server.ts:53-66`).
+- Socket.IO receives `send-location`, maps `sourceId` with a legacy `vehicleId` fallback, sends it through `processObservation`, and emits canonical `location-update` events globally (`shuttle-tracking-backend/src/server.ts:97-121`).
+- `/health` checks process liveness and `/ready` checks PostgreSQL and Redis connectivity (`shuttle-tracking-backend/src/server.ts:68-89`).
 - Redis connects at startup and is also used for the Socket.IO Redis adapter (`shuttle-tracking-backend/src/server.ts:84-96`).
 
 ## 3. Infrastructure Strengths
@@ -75,17 +76,17 @@ The user confirmed test deployment target as Vercel frontend, Render backend and
 
 Impact: deploying the current config directly would break cross-service connectivity, CORS, Socket.IO origin, database URLs, Redis URLs, and frontend backend URL resolution.
 
-### Critical Issue 3: No backend health/readiness endpoint was found
+### Critical Issue 3: Production deployment configuration is still incomplete
 
-Repository search found DB/Redis Compose health checks but no backend `/health`, `/ready`, or equivalent route. Backend route mounting only includes auth, admin, public, and trips (`shuttle-tracking-backend/src/server.ts:50-62`).
+The backend now has liveness/readiness endpoints, but there is still no provider-specific Vercel/Render/Neon configuration or runbook in the repository. The Dockerfiles and Compose stack remain development-oriented (`shuttle-tracking-backend/Dockerfile:25-28`, `shuttle-tracking-web/Dockerfile:16-18`).
 
-Impact: Render or an organization server will have weaker deployment health checks. Operators cannot distinguish "process is listening" from "backend can reach DB and Redis".
+Impact: the endpoints improve Render integration, but deployments can still fail through wrong URLs, CORS/Socket.IO origins, startup commands, migrations, or managed-service connection settings.
 
-### Critical Issue 4: No device/source abstraction exists for LoRaWAN, ESP32, and mobile
+### Critical Issue 4: Source registry exists, but the ingestion boundary is not production-complete
 
-Current GPS records and live updates identify `tripId` and `vehicleId`, not the physical or logical source. Prior audits identify this as a critical architecture/database/backend gap (`docs/audits/architecture-audit.md:7-17`, `docs/audits/database-audit.md:48-54`, `docs/audits/backend-audit.md:61-63`).
+The repository now distinguishes sources through `TrackingSource`, `sourceId`, `sourceType`, `priority`, `status`, `lastSeenAt`, and source-attributed `gps_tracks` (`shuttle-tracking-backend/prisma/schema.prisma:92-127`, `shuttle-tracking-backend/src/services/tracking.service.ts:42-160`). However, `/api/ingest/http` is publicly mounted and device authentication is optional when a source has no `secretHash`; TTN webhook authentication is also optional when `TTN_WEBHOOK_SECRET` is absent (`shuttle-tracking-backend/src/routes/ingest.route.ts:10-74`).
 
-Impact: the system cannot reliably distinguish phone GPS, TTN/LoRaWAN, ESP32, or simulator updates for the same vehicle.
+Impact: the multi-source model is substantially better than the previous audit found, but an incorrectly provisioned source can become an unauthenticated write path. Direct TTN MQTT frontend delivery and a durable server-side MQTT history subscriber are also still absent.
 
 ## 5. Local/Dev vs. Production Gap Analysis
 
@@ -124,20 +125,20 @@ Current implemented path:
 1. Simulator uses `API_URL=http://localhost:3001/api`, `SOCKET_URL=http://localhost:3001`, and `VEHICLE_ID=VH001` (`shuttle-tracking-web/simulate.js:3-6`).
 2. Simulator starts a trip by calling `POST /api/trips/start` with `{ vehicleId }` (`shuttle-tracking-web/simulate.js:62-74`).
 3. Simulator emits `send-location` payloads containing `tripId`, `vehicleId`, `lat`, `lng`, `speed`, `bearing`, `accuracy`, and `station` (`shuttle-tracking-web/simulate.js:116-130`).
-4. Backend listens to `send-location`, calls `handleLocationData`, and broadcasts `location-update` to all clients (`shuttle-tracking-backend/src/server.ts:72-75`).
-5. `handleLocationData` validates only presence of `tripId`, `vehicleId`, `lat`, and `lng`, normalizes moving station to `En Route`, throttles DB writes through Redis, stores a GPS row at most once per trip per 60 seconds, and returns a broadcast payload (`shuttle-tracking-backend/src/services/tracking.service.ts:4-46`).
+4. Backend listens to `send-location`, resolves `sourceId` (falling back to legacy `vehicleId`), passes the observation to `processObservation`, and broadcasts a canonical `location-update` only when a fresh assigned source can be selected (`shuttle-tracking-backend/src/server.ts:101-121`, `shuttle-tracking-backend/src/services/tracking.service.ts:28-160`).
+5. `processObservation` validates coordinates, checks the source registry, optionally authenticates the source secret, caches the latest source observation, updates `lastSeenAt`, selects the highest-priority fresh source, and persists source-attributed history at most once per trip per 60 seconds (`shuttle-tracking-backend/src/services/tracking.service.ts:28-245`).
 6. Public tracker subscribes to `location-update` and updates vehicle markers (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:695-711`).
 7. Admin live map subscribes to `location-update` and updates active vehicle state (`shuttle-tracking-web/components/admin/LiveMap.tsx:27-43`).
 
 Mobile readiness:
 
 - Implemented: simulator/mobile-like data contract exists.
-- Not Implemented: real mobile app, device session/token, Socket.IO authentication, location acknowledgement, offline/stale status, and source identity.
+- Not Implemented: real mobile app, device session/token, Socket.IO authentication, and location acknowledgement. Source identity and stale-source selection are now implemented at the backend registry/pipeline level, but device health presentation is not implemented.
 - Needs Confirmation: whether real mobile will keep the exact same payload and whether `accuracy`, device timestamp, battery, app version, and driver/session ID are required.
 
 ## 7. LoRaWAN Integration Readiness
 
-Current status: **not implemented, but direction is now partially confirmed by user**.
+Current status: **partially implemented; target topology is not complete**.
 
 Confirmed by user:
 
@@ -148,14 +149,14 @@ Confirmed by user:
 
 Repository evidence:
 
-- No TTN endpoint, LoRaWAN decoder, MQTT client, or LoRaWAN source module exists in the repository (`docs/project-knowledge-base.md:408-422`, `docs/audits/backend-audit.md:181-188`).
-- Architecture audit already warns that TTN should not be wired directly into the same raw Socket.IO event without a source adapter boundary (`docs/audits/architecture-audit.md:655-658`).
+- A TTN webhook endpoint now exists and extracts `device_id`/`dev_eui`, decoded coordinates, and optional motion fields before passing the data into the common observation pipeline (`shuttle-tracking-backend/src/routes/ingest.route.ts:63-158`).
+- No TTN MQTT client, direct browser MQTT integration, or payload decoder for the actual hardware format exists in the repository. The webhook assumes TTN already provides `decoded_payload` with latitude/longitude fields.
 
 Assessment:
 
 - Direct TTN MQTT to frontend can be useful for a demo or low-latency visualization, but it should not become the only system-of-record path. Browser clients should not own durable history writes.
-- The history path should be server-side: TTN MQTT subscriber, TTN webhook receiver, or a small ingestion worker that normalizes uplinks into backend observations before persistence.
-- The current `send-location` Socket.IO path is not ideal as the TTN history ingestion boundary because TTN is server-to-server style data, not an interactive browser/mobile socket client.
+- The current webhook is a viable server-side history path: it enters the common observation pipeline, applies the 60-second persistence throttle, and writes source-attributed history when the TTN source is assigned to a vehicle (`shuttle-tracking-backend/src/routes/ingest.route.ts:107-129`, `shuttle-tracking-backend/src/services/tracking.service.ts:157-245`).
+- It does not yet satisfy the requested direct TTN MQTT-to-frontend realtime path. That path needs a browser-compatible, explicitly secured delivery design and a clear mapping to the frontend's canonical `location-update` contract.
 
 Open LoRaWAN design questions:
 
@@ -191,28 +192,27 @@ Needs Confirmation:
 
 ## 9. Multi-Device Architecture Readiness
 
-Current readiness: **not structurally ready**.
+Current readiness: **partially ready at the backend integration level**.
 
-Current GPS payload contains `tripId`, `vehicleId`, `lat`, `lng`, `speed`, `bearing`, `accuracy`, and `station`, but no `sourceId`, `sourceType`, `deviceId`, `priority`, or device health metadata (`shuttle-tracking-web/simulate.js:119-128`, `shuttle-tracking-backend/src/services/tracking.service.ts:8-46`).
+The normalized observation now contains `sourceId` and the registry supplies `sourceType`, `priority`, `status`, `lastSeenAt`, and vehicle assignment. Canonical updates include `sourceId` and `sourceType` (`shuttle-tracking-backend/src/services/tracking.service.ts:13-22`, `shuttle-tracking-backend/src/services/tracking.service.ts:138-149`). The simulator itself still uses the legacy `vehicleId` fallback and is not yet a representative registered-device client (`shuttle-tracking-web/simulate.js:116-130`, `shuttle-tracking-backend/src/server.ts:103-105`).
 
 Existing public/admin live maps key vehicle state by `vehicleId`, not by device/source (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:315-329`, `shuttle-tracking-web/components/admin/LiveMap.tsx:31-37`).
 
 Minimum integration-level concepts needed:
 
-- Device or tracking source registry.
-- Vehicle-to-device/source assignment.
-- Source type: mobile, TTN/LoRaWAN, ESP32, simulator.
-- Source authentication or trust boundary.
-- Last seen and freshness status.
-- Source priority/failover rule.
-- Canonical current vehicle location selected from observations.
-- Raw observation/history path that can retain source attribution.
+- Device or tracking source registry: implemented in Prisma and admin API.
+- Vehicle-to-device/source assignment: implemented through `TrackingSource.vehicleId`.
+- Source type and source authentication: represented by `type` and optional `secretHash`, with enforcement gaps noted above.
+- Last seen and freshness status: implemented in Redis/DB and 30-second selection logic.
+- Source priority/failover rule: implemented as ascending priority among fresh active sources.
+- Canonical current vehicle location and source-attributed history: implemented in the tracking service.
+- Admin-facing device health/comparison view and a production provisioning workflow: Not Implemented.
 
 Failover and comparison mode:
 
 - Needs Confirmation: whether frontend should show all sources for a vehicle, only the selected canonical source, or a comparison/debug view for admins.
 - Needs Confirmation: source priority when mobile, TTN, and ESP32 disagree.
-- Recommendation: keep public map simple by showing canonical vehicle position, while admin/device dashboard can expose per-source health and comparison details.
+- Recommendation: keep public map simple by showing canonical vehicle position, while admin/device dashboard can expose per-source health and comparison details. The current public/admin clients consume canonical vehicle updates, but no dedicated source-health UI was found.
 
 ## 10. Secrets and Configuration Review (Structural)
 
@@ -237,19 +237,19 @@ Out of scope here:
 
 ## 11. Missing Infrastructure Capabilities
 
-- Backend health/readiness endpoint: Not Found.
+- Backend health/readiness endpoint: Implemented (`/health`, `/ready`).
 - Production backend build/start configuration: Not Found in Dockerfile/Compose.
 - Frontend production deployment config for Vercel: Not Found.
 - Render service config: Not Found.
 - Neon migration/runbook: Not Found.
 - Production Redis configuration/runbook: Not Found.
 - Log destination beyond console output: Not Found.
-- Device registry and source identity: Not Implemented.
-- Device health monitoring: Not Implemented.
-- TTN ingestion adapter for DB history: Not Implemented.
+- Device registry and source identity: Partially Implemented (schema, admin CRUD, and common pipeline exist).
+- Device health monitoring: Partially Implemented at backend data level (`lastSeenAt`, freshness, status); admin UI/alerts are Not Implemented.
+- TTN ingestion adapter for DB history: Partially Implemented through webhook; MQTT subscriber/worker is Not Implemented.
 - TTN MQTT frontend integration: Not Implemented in repo.
 - ESP32 ingestion path: Needs Confirmation.
-- Source priority/failover rules: Needs Confirmation.
+- Source priority/failover rules: Implemented as a basic priority/freshness rule; business policy for conflicts still Needs Confirmation.
 
 ## 12. Recommended Improvements
 
@@ -325,7 +325,7 @@ Development server vs. production server.
 
 ### Problem
 
-No backend health/readiness route was found.
+The backend now exposes health/readiness routes, but the deployment platform is not yet configured to use them.
 
 ### Impact
 
@@ -333,11 +333,11 @@ Render or organization-hosted deployment cannot reliably know whether backend is
 
 ### Recommendation
 
-Add `/health` for process liveness and `/ready` for dependency readiness. Readiness should check PostgreSQL and Redis connectivity without doing expensive work.
+Configure Render and the future organization deployment to use `/health` for liveness and `/ready` for dependency readiness. Keep the existing lightweight PostgreSQL and Redis checks, and document expected HTTP status behavior.
 
 ### Why
 
-Compose has DB/Redis health checks (`docker-compose.yml:19-40`) but backend routes only mount auth, admin, public, and trips (`shuttle-tracking-backend/src/server.ts:50-62`).
+The backend implements `/health` and `/ready` (`shuttle-tracking-backend/src/server.ts:68-89`), while Compose already has DB/Redis health checks (`docker-compose.yml:19-40`).
 
 ### Priority
 
@@ -359,19 +359,19 @@ Health checks and readiness probes.
 
 ### Problem
 
-The system tracks vehicles but not the GPS source/device producing a location.
+The source registry and canonical selection pipeline now exist, but clients and provisioning flows still have legacy assumptions.
 
 ### Impact
 
-Mobile, TTN/LoRaWAN, ESP32, and simulator updates cannot be distinguished or reconciled for the same vehicle.
+Without registered source IDs, assigned secrets, and consistent client payloads, some senders can still fall back to vehicle IDs and bypass the intended source model.
 
 ### Recommendation
 
-Add an integration-level tracking source concept with source ID, source type, assigned vehicle, last seen, status, and priority. Persist source attribution with GPS observations/history.
+Complete the integration-level source workflow: require registered source IDs for non-legacy clients, provision secrets, expose source health to admins, and document source priority/failover behavior. Keep source attribution in canonical updates and sampled history.
 
 ### Why
 
-Prior audits confirm no device/source abstraction exists (`docs/audits/architecture-audit.md:7-17`, `docs/audits/database-audit.md:48-54`, `docs/audits/backend-audit.md:61-63`).
+The registry is present in `schema.prisma`, admin CRUD is mounted under `/api/admin/devices`, and the service already performs priority/freshness selection (`shuttle-tracking-backend/src/server.ts:56-61`, `shuttle-tracking-backend/src/services/tracking.service.ts:101-160`).
 
 ### Priority
 
@@ -393,19 +393,19 @@ Device registry and source attribution.
 
 ### Problem
 
-User confirmed TTN MQTT direct-to-frontend for realtime, but DB history path is not designed yet.
+The requested direct TTN MQTT-to-frontend realtime path is not implemented. The repository currently offers a TTN webhook path that can persist sampled history.
 
 ### Impact
 
-Without a server-side persistence path, historical data may be missing, inconsistent, or dependent on browser clients being open.
+Without a completed MQTT frontend/relay design, realtime TTN data cannot yet follow the requested flow. The webhook also depends on TTN decoded payloads and source-to-vehicle assignment for history persistence.
 
 ### Recommendation
 
-Create a backend or worker adapter that receives TTN uplinks through MQTT or webhook, normalizes them into the same internal location observation format, applies 60-second sampling, and writes source-attributed history.
+Keep the existing TTN webhook as the initial server-side history adapter, add the actual TTN decoder contract and retry/idempotency behavior, and separately implement the chosen secured MQTT-to-frontend realtime path. If operational control over delivery is needed, add a Render worker MQTT subscriber that feeds `processObservation`.
 
 ### Why
 
-Repository has no TTN endpoint, MQTT client, or decoder (`docs/project-knowledge-base.md:408-422`), and current Socket.IO ingestion is mobile/simulator-oriented (`shuttle-tracking-backend/src/server.ts:72-75`).
+The TTN webhook and common observation pipeline now exist (`shuttle-tracking-backend/src/routes/ingest.route.ts:63-158`), but no MQTT client, browser MQTT integration, or hardware-specific decoder exists.
 
 ### Priority
 

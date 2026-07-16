@@ -5,9 +5,18 @@ import { redisClient } from '../config/redis.js';
 export const startTrip = async (req: Request, res: Response) => {
     try {
         const { vehicleId } = req.body;
+        const sender = req.sender;
+
+        if (!sender) {
+            return res.status(401).json({ error: 'Sender authentication required' });
+        }
 
         if (!vehicleId) {
             return res.status(400).json({ error: 'Missing vehicleId' });
+        }
+
+        if (vehicleId !== sender.vehicleId) {
+            return res.status(403).json({ error: 'Sender cannot operate this vehicle' });
         }
 
         const vehicle = await prisma.vehicle.findUnique({
@@ -52,6 +61,28 @@ export const startTrip = async (req: Request, res: Response) => {
 export const endTrip = async (req: Request, res: Response) => {
     try {
         const id = req.params.id as string;
+        const sender = req.sender;
+
+        if (!sender) {
+            return res.status(401).json({ error: 'Sender authentication required' });
+        }
+
+        const existingTrip = await prisma.trip.findUnique({
+            where: { id },
+            select: { vehicleId: true, status: true },
+        });
+
+        if (!existingTrip) {
+            return res.status(404).json({ error: 'Trip not found' });
+        }
+
+        if (existingTrip.vehicleId !== sender.vehicleId) {
+            return res.status(403).json({ error: 'Sender cannot operate this trip' });
+        }
+
+        if (existingTrip.status !== 'in_progress') {
+            return res.status(409).json({ error: 'Trip is not in progress' });
+        }
 
         const endedTrip = await prisma.trip.update({
             where: { id },
