@@ -92,40 +92,58 @@ router.post('/ttn', async (req: Request, res: Response) => {
 
     const payload = req.body;
 
-    // 2. Extract Device ID mapping to sourceId
-    const sourceId = payload.end_device_ids?.device_id || payload.end_device_ids?.dev_eui;
+    // 2. Extract Device ID — support both top-level and nested (location_solved) formats
+    const sourceId =
+      payload.end_device_ids?.device_id ||
+      payload.end_device_ids?.dev_eui ||
+      payload.data?.end_device_ids?.device_id ||
+      payload.data?.end_device_ids?.dev_eui;
+
     if (!sourceId) {
       res.status(400).json({ error: 'Missing device_id or dev_eui in TTN payload' });
       return;
     }
-    
-    console.log(sourceId);
 
-    // 3. Extract Decoded Payload fields
+    console.log(`[Ingest TTN] sourceId: ${sourceId}, event: ${payload.name || 'uplink'}`);
+
+    // 3. Extract location data — support both uplink_message and location_solved formats
+    let lat: number | undefined;
+    let lng: number | undefined;
+    let speed: number | undefined;
+    let bearing: number | undefined;
+    let accuracy: number | undefined;
+    let station: string | undefined;
+
     const decoded = payload.uplink_message?.decoded_payload;
+    const locationSolved = payload.data?.location_solved?.location;
 
-    if (!decoded || !decoded.latitude || !decoded.longitude) {
-      // Respond with 200 OK so TTN doesn't mark the webhook as failed, 
-      // but skip the Prisma database insertion.
+    if (decoded && (decoded.latitude !== undefined || decoded.longitude !== undefined)) {
+      // Standard uplink_message with decoded_payload
+      lat = decoded.latitude !== undefined ? decoded.latitude : decoded.lat;
+      lng = decoded.longitude !== undefined ? decoded.longitude : decoded.lng;
+      speed = decoded.speed;
+      bearing = decoded.bearing ?? decoded.heading;
+      accuracy = decoded.accuracy ?? decoded.hdop;
+      station = decoded.station;
+    } else if (locationSolved && locationSolved.latitude !== undefined && locationSolved.longitude !== undefined) {
+      // TTN location_solved event (as.up.location.forward)
+      lat = locationSolved.latitude;
+      lng = locationSolved.longitude;
+      speed = locationSolved.speed;
+      bearing = locationSolved.bearing ?? locationSolved.heading;
+      accuracy = locationSolved.accuracy;
+      station = undefined;
+    }
+
+    if (lat === undefined || lng === undefined) {
+      // Respond with 200 OK so TTN doesn't mark the webhook as failed,
+      // but skip the database insertion.
       console.log('   TTN payload does not contain GPS coordinates (latitude/longitude)');
       return res.status(200).json({
         message: "Tracker status update received. No GPS coordinates present.",
         warnings: ["Missing latitude/longitude in payload"],
         errors: []
       });
-    }
-
-    // Support standard keys for coordinates
-    const lat = decoded.latitude !== undefined ? decoded.latitude : decoded.lat;
-    const lng = decoded.longitude !== undefined ? decoded.longitude : decoded.lng;
-    const speed = decoded.speed;
-    const bearing = decoded.bearing ?? decoded.heading;
-    const accuracy = decoded.accuracy ?? decoded.hdop;
-    const station = decoded.station;
-
-    if (lat === undefined || lng === undefined) {
-      res.status(400).json({ error: 'Decoded payload does not contain coordinates (latitude/longitude)' });
-      return;
     }
 
     // 4. Send to Observation Pipeline
