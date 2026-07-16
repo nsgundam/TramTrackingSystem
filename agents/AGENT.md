@@ -30,17 +30,17 @@ This is an MVP Tram Tracking System with:
   sender types: mobile, LoRaWAN, and ESP32
 
 The current roadmap is the controlling implementation sequence. Its task IDs are `T1`
-through `T28` in `docs/master-refactoring-roadmap.md`.
+through `T28` in `docs/roadmap/master-refactoring-roadmap.md`.
 
 # Required Inputs
 
 Before changing code, read:
 
-1. `docs/master-refactoring-roadmap.md`
+1. `docs/roadmap/master-refactoring-roadmap.md`
 2. `docs/project-knowledge-base.md`
 3. The source audit(s) cited by the selected roadmap task
 4. The actual source files listed in that task's `Related Files`
-5. `agents/README.md` (or equivalent index of Level 2 agents)
+5. `agents/specialized/README.md` (or equivalent index of Level 2 agents)
 6. The Level 2 agent file(s) selected by the routing rules below
 
 If the roadmap, triggering task ID, source audit, or relevant source files are missing:
