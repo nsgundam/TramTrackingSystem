@@ -27,9 +27,10 @@ WORKDIR /app
 RUN npm install -g npm@11.11.0
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --legacy-peer-deps
-COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+RUN npx prisma generate
+COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 

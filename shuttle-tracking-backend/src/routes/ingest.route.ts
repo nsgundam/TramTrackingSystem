@@ -172,6 +172,7 @@ router.post('/ttn', async (req: Request, res: Response) => {
     if (canonicalLocation) {
       const io = req.app.get('socketio');
       if (io) {
+        console.log("IO is here")
         io.emit('location-update', canonicalLocation);
       }
     }
@@ -192,7 +193,12 @@ router.post('/ttn', async (req: Request, res: Response) => {
     } else if (message.includes('bounds')) {
       res.status(400).json({ code: 'INVALID_COORDINATES', error: 'Coordinates are invalid' });
     } else {
-      res.status(500).json({ code: 'INGESTION_ERROR', error: 'Internal server error during TTN ingestion' });
+      res.status(500).json({ 
+        code: 'INGESTION_ERROR', 
+        error: 'Internal server error during TTN ingestion',
+        details: message,
+        stack: error instanceof Error ? error.stack : undefined
+      });
     }
   }
 });
