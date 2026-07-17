@@ -17,12 +17,9 @@ interface VehicleInfoCardProps {
 }
 
 export default function VehicleInfoCard({
-  routeId,
   vehicleId,
   vehicleName,
-  prevStop,
   nextStop,
-  eta,
   stops,
   nextStopId,
   isTracking,
@@ -60,41 +57,41 @@ export default function VehicleInfoCard({
 
   return (
     <div className="glass-panel backdrop-blur-sm rounded-xl p-3 sm:p-4 flex flex-col gap-2 w-full select-none">
-      <div className="flex justify-between items-start">
-        <div className="flex flex-col">
-          <div className="font-headline-md text-[16px] sm:text-headline-md text-on-surface flex items-center gap-2">
-            <strong>{vehicleName || vehicleId}</strong>
-            {onRecenter && (
-              <button
-                onClick={onRecenter}
-                className="p-1 hover:bg-white/20 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center"
-                title="Track & Center Camera"
-              >
-                <Locate 
-                  size={16} 
-                  className={`transition-colors duration-300 ${
-                    isTracking 
-                      ? "text-primary" 
-                      : "text-on-surface-variant/40 hover:text-on-surface-variant/80"
-                  }`} 
-                />
-              </button>
-            )}
-          </div>
-          <div className="font-body-lg text-[14px] sm:text-body-lg text-on-surface-variant mt-1">
-            Next Station: {nextStop}
-          </div>
+      {/* Row 1: Vehicle Name, Recenter button, and Feedback button */}
+      <div className="flex justify-between items-center w-full">
+        <div className="font-headline-md text-[16px] sm:text-headline-md text-on-surface flex items-center gap-2">
+          <strong>{vehicleName || vehicleId}</strong>
+          {onRecenter && (
+            <button
+              onClick={onRecenter}
+              className="p-1 hover:bg-white/20 rounded-full transition-all duration-200 cursor-pointer flex items-center justify-center"
+              title="Track & Center Camera"
+            >
+              <Locate
+                size={16}
+                className={`transition-colors duration-300 ${isTracking
+                    ? "text-primary"
+                    : "text-on-surface-variant/40 hover:text-on-surface-variant/80"
+                  }`}
+              />
+            </button>
+          )}
         </div>
 
         {onFeedbackClick && (
           <button
             onClick={() => onFeedbackClick(vehicleId)}
-            className="px-2.5 py-1 text-[11px] sm:text-[12px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-all duration-200 cursor-pointer flex items-center gap-1 border border-primary/20 shadow-sm"
+            className="px-2.5 py-1 text-[11px] sm:text-[12px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-all duration-200 cursor-pointer flex items-center gap-1 border border-primary/20 shadow-sm shrink-0"
             title="แจ้งปัญหา/ข้อเสนอแนะเกี่ยวกับรถคันนี้"
           >
-            <span>💬 แจ้งปัญหา</span>
+            <span>แจ้งปัญหา</span>
           </button>
         )}
+      </div>
+
+      {/* Row 2: Next Station (takes 100% width so text doesn't wrap awkwardly next to the button) */}
+      <div className="font-body-lg text-[14px] sm:text-body-lg text-on-surface-variant leading-normal">
+        Next Station: {nextStop}
       </div>
 
       {/* Horizontally scrolling list of stations */}
@@ -109,11 +106,10 @@ export default function VehicleInfoCard({
             <span
               key={stop.id}
               data-active={isNext ? "true" : "false"}
-              className={`shrink-0 text-center whitespace-nowrap px-4 transition-colors py-1 ${
-                isNext
+              className={`shrink-0 text-center whitespace-nowrap px-4 transition-colors py-1 ${isNext
                   ? "font-bold text-primary border-b-2 border-primary pb-0.5"
                   : "text-on-surface-variant/70"
-              }`}
+                }`}
             >
               {stopName}
             </span>

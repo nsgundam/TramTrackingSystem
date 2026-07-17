@@ -175,7 +175,7 @@ export default function FeedbackModal({
                         : "border-slate-200 hover:border-slate-300 text-slate-600"
                     }`}
                   >
-                    <span className="text-lg"></span>
+                      
                     <span>{item.label}</span>
                   </button>
                 ))}
