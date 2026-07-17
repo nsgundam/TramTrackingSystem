@@ -10,17 +10,85 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({
   adapter,
 });
-async function main() {
-  console.log("🌱 Seeding database...");
-  // Create admin users
-  const hashedPassword = await bcrypt.hash("admin123", 12);
-  await prisma.user.createMany({
-    data: [
-      { username: "admin", passwordHash: hashedPassword },
-      { username: "transport", passwordHash: hashedPassword },
-    ],
-    skipDuplicates: true,
+
+const DEVELOPMENT_ENVIRONMENT = "development";
+const PRODUCTION_ENVIRONMENT = "production";
+const PLACEHOLDER_SECRET = "CHANGE_ME_IN_PRODUCTION";
+const MIN_INITIAL_ADMIN_PASSWORD_LENGTH = 16;
+
+const getConfiguredCredential = (name) => {
+  const value = process.env[name];
+  if (!value || value === PLACEHOLDER_SECRET) {
+    return undefined;
+  }
+
+  return value;
+};
+
+async function provisionInitialAdmin() {
+  if (
+    process.env.NODE_ENV !== PRODUCTION_ENVIRONMENT ||
+    process.env.PROVISION_INITIAL_ADMIN !== "true"
+  ) {
+    return false;
+  }
+
+  const username = process.env.INITIAL_ADMIN_USERNAME?.trim();
+  const password = process.env.INITIAL_ADMIN_PASSWORD;
+
+  if (
+    !username ||
+    !password ||
+    password.trim() === "" ||
+    password === PLACEHOLDER_SECRET ||
+    password.length < MIN_INITIAL_ADMIN_PASSWORD_LENGTH
+  ) {
+    throw new Error("Initial admin credentials are missing or weak");
+  }
+
+  const existingUsers = await prisma.user.count();
+  if (existingUsers > 0) {
+    throw new Error("Initial admin provisioning requires an empty users table");
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+  await prisma.user.create({
+    data: { username, passwordHash },
   });
+
+  console.log("level=info event=initial_admin.provisioned");
+  return true;
+}
+
+async function main() {
+  if (process.env.NODE_ENV !== DEVELOPMENT_ENVIRONMENT) {
+    if (await provisionInitialAdmin()) {
+      return;
+    }
+
+    throw new Error(
+      "Database seed is disabled outside development; use the explicit one-time initial-admin provisioning flow",
+    );
+  }
+
+  console.log("level=info event=seed.started environment=development");
+
+  const seedAdminPassword = getConfiguredCredential("SEED_ADMIN_PASSWORD");
+  if (seedAdminPassword) {
+    const hashedPassword = await bcrypt.hash(seedAdminPassword, 12);
+
+    for (const username of ["admin", "transport"]) {
+      await prisma.user.upsert({
+        where: { username },
+        create: { username, passwordHash: hashedPassword },
+        update: { passwordHash: hashedPassword },
+      });
+    }
+  } else {
+    console.warn(
+      "level=warn event=seed.admin_skipped reason=SEED_ADMIN_PASSWORD_missing_or_placeholder",
+    );
+  }
   // Create routes
   await prisma.route.createMany({
     data: [
@@ -116,83 +184,127 @@ async function main() {
     ],
     skipDuplicates: true,
   });
-  // Create tracking sources (Devices)
-  const espHash = await bcrypt.hash("esp32_secret_key", 12);
-  const mobHash = await bcrypt.hash("mobile_secret_key", 12);
-  await prisma.trackingSource.createMany({
-    data: [
-      {
-        id: "TS_MOB_01",
-        name: "คนขับมือถือ A1",
-        type: "mobile",
-        vehicleId: "VH001",
-        priority: 1,
-        secretHash: mobHash,
+  // Create tracking sources (Devices) only when explicit development credentials exist.
+  const mobileSecret = getConfiguredCredential("TRACKING_SOURCE_SECRET_MOBILE");
+  const espSecret = getConfiguredCredential("TRACKING_SOURCE_SECRET_ESP32");
+  const mobileSourceIds = ["TS_MOB_01", "TS_MOB_02", "TS_MOB_03"];
+  const espSourceIds = ["TS_ESP_01", "TS_ESP_02", "TS_ESP_N1"];
+
+  if (!mobileSecret) {
+    await prisma.trackingSource.updateMany({
+      where: { id: { in: mobileSourceIds } },
+      data: { status: "inactive" },
+    });
+    console.warn(
+      "level=warn event=seed.mobile_sources_skipped reason=TRACKING_SOURCE_SECRET_MOBILE_missing_or_placeholder",
+    );
+  }
+
+  if (!espSecret) {
+    await prisma.trackingSource.updateMany({
+      where: { id: { in: espSourceIds } },
+      data: { status: "inactive" },
+    });
+    console.warn(
+      "level=warn event=seed.esp_sources_skipped reason=TRACKING_SOURCE_SECRET_ESP32_missing_or_placeholder",
+    );
+  }
+
+  const trackingSources = [
+    ...(mobileSecret
+      ? [
+          {
+            id: "TS_MOB_01",
+            name: "คนขับมือถือ A1",
+            type: "mobile",
+            vehicleId: "VH001",
+            priority: 1,
+            secretHash: await bcrypt.hash(mobileSecret, 12),
+          },
+          {
+            id: "TS_MOB_02",
+            name: "คนขับมือถือ A2",
+            type: "mobile",
+            vehicleId: "VH002",
+            priority: 1,
+            secretHash: await bcrypt.hash(mobileSecret, 12),
+          },
+          {
+            id: "TS_MOB_03",
+            name: "คนขับมือถือ A3",
+            type: "mobile",
+            vehicleId: "VH003",
+            priority: 1,
+            secretHash: await bcrypt.hash(mobileSecret, 12),
+          },
+        ]
+      : []),
+    ...(espSecret
+      ? [
+          {
+            id: "TS_ESP_01",
+            name: "ESP32 กล่อง A1",
+            type: "esp32",
+            vehicleId: "VH001",
+            priority: 2,
+            secretHash: await bcrypt.hash(espSecret, 12),
+          },
+          {
+            id: "TS_ESP_02",
+            name: "ESP32 กล่อง A2",
+            type: "esp32",
+            vehicleId: "VH002",
+            priority: 2,
+            secretHash: await bcrypt.hash(espSecret, 12),
+          },
+          {
+            id: "TS_ESP_N1",
+            name: "ESP32 รถตู้ 1",
+            type: "esp32",
+            vehicleId: "VN001",
+            priority: 1,
+            secretHash: await bcrypt.hash(espSecret, 12),
+          },
+        ]
+      : []),
+    {
+      id: "TS_LORA_01",
+      name: "LoRa Node A1",
+      type: "lorawan",
+      vehicleId: "VH001",
+      priority: 3,
+      secretHash: null,
+    },
+    {
+      id: "TS_LORA_N2",
+      name: "LoRa รถตู้ 2",
+      type: "lorawan",
+      vehicleId: "VN002",
+      priority: 1,
+      secretHash: null,
+    },
+  ];
+
+  for (const source of trackingSources) {
+    await prisma.trackingSource.upsert({
+      where: { id: source.id },
+      create: source,
+      update: {
+        name: source.name,
+        type: source.type,
+        vehicleId: source.vehicleId,
+        priority: source.priority,
+        status: "active",
+        secretHash: source.secretHash,
       },
-      {
-        id: "TS_ESP_01",
-        name: "ESP32 กล่อง A1",
-        type: "esp32",
-        vehicleId: "VH001",
-        priority: 2,
-        secretHash: espHash,
-      },
-      {
-        id: "TS_LORA_01",
-        name: "LoRa Node A1",
-        type: "lorawan",
-        vehicleId: "VH001",
-        priority: 3,
-        secretHash: null,
-      },
-      {
-        id: "TS_MOB_02",
-        name: "คนขับมือถือ A2",
-        type: "mobile",
-        vehicleId: "VH002",
-        priority: 1,
-        secretHash: mobHash,
-      },
-      {
-        id: "TS_ESP_02",
-        name: "ESP32 กล่อง A2",
-        type: "esp32",
-        vehicleId: "VH002",
-        priority: 2,
-        secretHash: espHash,
-      },
-      {
-        id: "TS_MOB_03",
-        name: "คนขับมือถือ A3",
-        type: "mobile",
-        vehicleId: "VH003",
-        priority: 1,
-        secretHash: mobHash,
-      },
-      {
-        id: "TS_ESP_N1",
-        name: "ESP32 รถตู้ 1",
-        type: "esp32",
-        vehicleId: "VN001",
-        priority: 1,
-        secretHash: espHash,
-      },
-      {
-        id: "TS_LORA_N2",
-        name: "LoRa รถตู้ 2",
-        type: "lorawan",
-        vehicleId: "VN002",
-        priority: 1,
-        secretHash: null,
-      },
-    ],
-    skipDuplicates: true,
-  });
-  console.log("✅ Database seeded successfully!");
+    });
+  }
+
+  console.log("level=info event=seed.completed environment=development");
 }
 main()
-  .catch((e) => {
-    console.error("❌ Seeding failed:", e);
+  .catch(() => {
+    console.error("level=error event=seed.failed code=SEED_FAILED");
     process.exit(1);
   })
   .finally(async () => {

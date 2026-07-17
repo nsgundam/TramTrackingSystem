@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-shuttle_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-shuttle_pass}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME_IN_PRODUCTION}
       POSTGRES_DB: ${POSTGRES_DB:-shuttle_tracking}
     ports:
       - "5432:5432"
@@ -51,13 +51,17 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3001
-      DATABASE_URL: postgres://${POSTGRES_USER:-shuttle_user}:${POSTGRES_PASSWORD:-shuttle_pass}@db:5432/${POSTGRES_DB:-shuttle_tracking}
+      DATABASE_URL: postgres://${POSTGRES_USER:-shuttle_user}:${POSTGRES_PASSWORD:-CHANGE_ME_IN_PRODUCTION}@db:5432/${POSTGRES_DB:-shuttle_tracking}
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET:-TrackingJWTSecretKey}
+      JWT_SECRET: ${JWT_SECRET:-CHANGE_ME_IN_PRODUCTION}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      SENDER_JWT_EXPIRES_IN: ${SENDER_JWT_EXPIRES_IN:-15m}
       API_URL: http://localhost:3001
       FRONTEND_URL: http://localhost:3000
-      TTN_WEBHOOK_SECRET: ${TTN_WEBHOOK_SECRET:-LoRawanSecret}
+      TTN_WEBHOOK_SECRET: ${TTN_WEBHOOK_SECRET:-CHANGE_ME_IN_PRODUCTION}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+      TRACKING_SOURCE_SECRET_MOBILE: ${TRACKING_SOURCE_SECRET_MOBILE:-}
+      TRACKING_SOURCE_SECRET_ESP32: ${TRACKING_SOURCE_SECRET_ESP32:-}
     ports:
       - "3001:3001"
     volumes:

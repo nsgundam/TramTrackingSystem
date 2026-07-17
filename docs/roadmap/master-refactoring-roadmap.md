@@ -121,12 +121,15 @@ Exit: only the explicitly approved deferred capabilities are implemented.
 - Files: `shuttle-tracking-backend/.env.example`, `docker-compose.yml`, `shuttle-tracking-backend/prisma/seed.ts`, `shuttle-tracking-backend/docker-entrypoint.sh`
 - Implement: remove concrete JWT, TTN webhook, and password defaults; fail startup when production secrets are missing/weak; make seed admin credentials explicit and dev-only; provision the first production admin through a one-time secure setup; never log full Redis URLs.
 - Accept when: production startup fails closed with missing/unsafe secrets; no default admin credential is usable; env examples contain placeholders only; repository search finds no production-capable hard-coded secret or full credential-bearing URL.
+- Status: Complete
+- Evidence: `npm run build`, `npm test`, Prisma validation, Compose config checks, and controlled entrypoint/seed fail-closed smoke tests passed on 2026-07-17; scoped production-capable files contain placeholders or explicit required variables only.
 
 ### T6 - Define deployable production configuration
 
 - Source: Production Readiness Finding 5; Infrastructure Critical Issue 2 and Recommendation 1.
 - Phase: 1
 - Depends on: T5, T16
+- Note: T5 unblocked on 2026-07-17 after secret/default enforcement and production Compose required-variable checks landed.
 - Blocks: T7, T8
 - Priority: Critical
 - Difficulty: Medium
@@ -140,6 +143,7 @@ Exit: only the explicitly approved deferred capabilities are implemented.
 - Source: Production Readiness Finding 13; Infrastructure Critical Issue 1 and Recommendation 2; Security/DevOps Recommendation 5.
 - Phase: 1
 - Depends on: T5, T6
+- Note: T5 unblocked on 2026-07-17 after production startup secret validation and seed disablement landed.
 - Blocks: production release
 - Priority: High
 - Difficulty: Medium
