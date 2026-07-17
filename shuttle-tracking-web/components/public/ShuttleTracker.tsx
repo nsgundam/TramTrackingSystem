@@ -15,7 +15,8 @@ import AppTour from "@/components/public/AppTour";
 import { shouldMove, animateMove, getNearestPointIndex, getDirectionalPointIndex } from "@/utils/MapHelpers";
 import { Stop, LocationUpdateData } from "@/types";
 import Image from "next/image";
-import { Plus, Minus, Locate } from "lucide-react";
+import { Plus, Minus, Locate, MessageSquarePlus } from "lucide-react";
+import FeedbackModal from "./FeedbackModal";
 
 // === Constants & Icons ===
 const AVERAGE_BUS_SPEED_KMH = 15;
@@ -55,6 +56,16 @@ export default function ShuttleTracker() {
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [activeVehicleInfo, setActiveVehicleInfo] = useState<{ prev: string; next: string; eta: number | null; nextStopId: string | number | null } | null>(null);
   const [isTracking, setIsTracking] = useState<boolean>(false);
+  const [stopsByRoute, setStopsByRoute] = useState<Record<string, Stop[]>>({});
+
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
+  const [feedbackVehicleId, setFeedbackVehicleId] = useState<string | null>(null);
+  const [vehicleNames, setVehicleNames] = useState<Record<string, string>>({});
+
+  const handleOpenFeedback = (vehicleId?: string | null) => {
+    setFeedbackVehicleId(vehicleId || null);
+    setIsFeedbackOpen(true);
+  };
 
   // === 2. Refs (Background Data) ===
   const selectedRouteRef = useRef<string>("R01");
@@ -514,6 +525,42 @@ export default function ShuttleTracker() {
   });
 
   useEffect(() => {
+    const fetchVehicleNames = async () => {
+      try {
+        const apiOrigins = (() => {
+          const origins: string[] = [];
+          if (configuredBackendOrigin) origins.push(configuredBackendOrigin.replace(/\/$/, ""));
+          if (typeof window !== "undefined") origins.push(window.location.origin);
+          origins.push("http://localhost:3001");
+          return [...new Set(origins)];
+        })();
+
+        let data = null;
+        for (const origin of apiOrigins) {
+          try {
+            const res = await fetch(`${origin}/api/public/active-vehicles`);
+            if (res.ok) {
+              data = await res.json();
+              break;
+            }
+          } catch {}
+        }
+
+        if (data && Array.isArray(data)) {
+          const mapping = data.reduce((acc: Record<string, string>, v: { id: string | number; name: string }) => {
+            acc[String(v.id)] = v.name || String(v.id);
+            return acc;
+          }, {});
+          setVehicleNames(mapping);
+        }
+      } catch (err) {
+        console.error("Failed to fetch vehicle names:", err);
+      }
+    };
+    fetchVehicleNames();
+  }, [configuredBackendOrigin]);
+
+  useEffect(() => {
     const apiOrigins = (() => {
       const origins: string[] = [];
       if (configuredBackendOrigin) origins.push(configuredBackendOrigin.replace(/\/$/, ""));
@@ -549,6 +596,7 @@ export default function ShuttleTracker() {
 
         const stopLayer = L.layerGroup();
         stopsByRouteRef.current[routeId] = stops;
+        setStopsByRoute(prev => ({ ...prev, [routeId]: stops }));
 
         stops.forEach((stop) => {
           const marker = L.marker([stop.lat, stop.lng], { icon: DEFAULT_STOP_ICON }).addTo(stopLayer);
@@ -800,6 +848,14 @@ export default function ShuttleTracker() {
               </button>
             ))}
           </div>
+
+          <button 
+            className="w-full glass-panel backdrop-blur-sm rounded-full py-2 text-[13px] md:text-[14px] text-on-surface hover:bg-white/40! hover:scale-[1.02] transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 font-medium border border-outline-variant/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]"
+            onClick={() => handleOpenFeedback(selectedVehicleId)}
+          >
+            <MessageSquarePlus size={16} className="text-on-surface-variant" />
+            <span>ส่งข้อเสนอแนะ</span>
+          </button>
         </div>
 
         {/* Bottom Left: Floating Dock */}
@@ -817,13 +873,15 @@ export default function ShuttleTracker() {
             <VehicleInfoCard 
               routeId={selectedRoute}
               vehicleId={selectedVehicleId}
+              vehicleName={vehicleNames[selectedVehicleId]}
               prevStop={activeVehicleInfo.prev}
               nextStop={activeVehicleInfo.next}
               eta={activeVehicleInfo.eta}
-              stops={stopsByRouteRef.current[selectedRoute] || []}
+              stops={stopsByRoute[selectedRoute] || []}
               nextStopId={activeVehicleInfo.nextStopId}
               isTracking={isTracking}
               onRecenter={handleRecenter}
+              onFeedbackClick={handleOpenFeedback}
             />
           )}
         </div>
@@ -854,6 +912,15 @@ export default function ShuttleTracker() {
         </div>
       </div>
       <AppTour />
+
+      {isFeedbackOpen && (
+        <FeedbackModal
+          isOpen={isFeedbackOpen}
+          onClose={() => setIsFeedbackOpen(false)}
+          initialVehicleId={feedbackVehicleId}
+          apiOrigin={configuredBackendOrigin}
+        />
+      )}
     </div>
   );
 }
