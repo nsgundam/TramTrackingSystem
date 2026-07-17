@@ -46,6 +46,7 @@ services:
     build:
       context: ./shuttle-tracking-backend
       dockerfile: Dockerfile
+      target: development
     container_name: shuttle-backend
     restart: unless-stopped
     environment:
@@ -82,6 +83,7 @@ services:
     build:
       context: ./shuttle-tracking-web
       dockerfile: Dockerfile
+      target: development
     container_name: shuttle-frontend
     restart: unless-stopped
     environment:

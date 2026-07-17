@@ -172,7 +172,6 @@ router.post('/ttn', async (req: Request, res: Response) => {
     if (canonicalLocation) {
       const io = req.app.get('socketio');
       if (io) {
-        console.log("IO is here")
         io.emit('location-update', canonicalLocation);
       }
     }
