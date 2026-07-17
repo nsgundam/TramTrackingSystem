@@ -5,6 +5,7 @@ import { Locate } from "lucide-react";
 interface VehicleInfoCardProps {
   routeId: string;
   vehicleId: string;
+  vehicleName?: string;
   prevStop: string;
   nextStop: string;
   eta: number | null;
@@ -12,11 +13,13 @@ interface VehicleInfoCardProps {
   nextStopId: string | number | null;
   isTracking?: boolean;
   onRecenter?: () => void;
+  onFeedbackClick?: (vehicleId: string) => void;
 }
 
 export default function VehicleInfoCard({
   routeId,
   vehicleId,
+  vehicleName,
   prevStop,
   nextStop,
   eta,
@@ -24,6 +27,7 @@ export default function VehicleInfoCard({
   nextStopId,
   isTracking,
   onRecenter,
+  onFeedbackClick,
 }: VehicleInfoCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const nextIdx = stops.findIndex((s) => s.id === nextStopId);
@@ -59,7 +63,7 @@ export default function VehicleInfoCard({
       <div className="flex justify-between items-start">
         <div className="flex flex-col">
           <div className="font-headline-md text-[16px] sm:text-headline-md text-on-surface flex items-center gap-2">
-            <strong>Tram {routeId} ({vehicleId})</strong>
+            <strong>{vehicleName || vehicleId}</strong>
             {onRecenter && (
               <button
                 onClick={onRecenter}
@@ -81,6 +85,16 @@ export default function VehicleInfoCard({
             Next Station: {nextStop}
           </div>
         </div>
+
+        {onFeedbackClick && (
+          <button
+            onClick={() => onFeedbackClick(vehicleId)}
+            className="px-2.5 py-1 text-[11px] sm:text-[12px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-all duration-200 cursor-pointer flex items-center gap-1 border border-primary/20 shadow-sm"
+            title="แจ้งปัญหา/ข้อเสนอแนะเกี่ยวกับรถคันนี้"
+          >
+            <span>💬 แจ้งปัญหา</span>
+          </button>
+        )}
       </div>
 
       {/* Horizontally scrolling list of stations */}

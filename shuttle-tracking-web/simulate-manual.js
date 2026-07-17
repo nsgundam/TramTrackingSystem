@@ -1,37 +1,29 @@
 import dotenv from 'dotenv';
 import { io } from 'socket.io-client';
 import { jwtDecode } from 'jwt-decode';
+import readline from 'readline';
+
 dotenv.config();
 
 const API_URL = 'http://localhost:3001/api';
-const SOCKET_URL = 'http://localhost:3001';
+const SOCKET_URL = 'http://localhost:3001'; 
 const VEHICLE_ID = 'VH002';
 const SOURCE_ID = 'TS_MOB_01';
 
-// 🟢 ดึงค่าจาก ENV หรือใช้ค่า Seed Default ในกรณีที่ไม่ได้ตั้งค่าไว้
 const SOURCE_SECRET = process.env.TRACKING_SOURCE_SECRET_MOBILE || process.env.TRACKING_SOURCE_SECRET || 'mobile_secret_key';
-
-const STATIONS = [
-  { id: 'ST001', lng: 100.587563, lat: 13.964772 },
-  { id: 'ST002', lng: 100.587520, lat: 13.964139 },
-  { id: 'ST003', lng: 100.587064, lat: 13.963993 },
-  { id: 'ST004', lng: 100.586536, lat: 13.963872 },
-  { id: 'ST005', lng: 100.586054, lat: 13.964597 },
-  { id: 'ST006', lng: 100.585904, lat: 13.965161 },
-  { id: 'ST007', lng: 100.585705, lat: 13.965936 },
-  { id: 'ST008', lng: 100.585528, lat: 13.966800 },
-  { id: 'ST009', lng: 100.585251, lat: 13.967780 },
-  { id: 'ST010', lng: 100.583580, lat: 13.966698 },
-  { id: 'ST011', lng: 100.583931, lat: 13.968760 },
-  { id: 'ST012', lng: 100.585420, lat: 13.967890 },
-  { id: 'ST013', lng: 100.587314, lat: 13.968172 },
-  { id: 'ST014', lng: 100.586858, lat: 13.966451 },
-  { id: 'ST015', lng: 100.587415, lat: 13.965706 },
-];
 
 const socket = io(SOCKET_URL, { autoConnect: false, reconnection: true });
 let senderToken = null;
 let tripId = null;
+let lastLat = null;
+let lastLng = null;
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+const askQuestion = (query) => new Promise((resolve) => rl.question(query, resolve));
 
 socket.on('connect', () => {
   console.log(`🟢 Connected to WebSocket server with ID: ${socket.id}`);
@@ -44,18 +36,6 @@ socket.on('disconnect', () => {
 socket.on('connect_error', (error) => {
   console.error('❌ WebSocket Connection Error:', error.message);
 });
-
-function interpolate(start, end, steps) {
-  const points = [];
-  for (let i = 1; i <= steps; i++) {
-    const fraction = i / steps;
-    points.push({
-      lat: start.lat + (end.lat - start.lat) * fraction,
-      lng: start.lng + (end.lng - start.lng) * fraction,
-    });
-  }
-  return points;
-}
 
 function getBearing(startLat, startLng, destLat, destLng) {
   const startLatRad = (Math.PI * startLat) / 180;
@@ -72,7 +52,6 @@ function getBearing(startLat, startLng, destLat, destLng) {
   return (brng + 360) % 360;
 }
 
-// ล็อกอินตรงๆ ด้วยสิทธิ์ Mobile Device เท่านั้น ไม่หลบไปใช้สิทธิ์อื่น
 async function loginSender() {
   if (!SOURCE_SECRET) {
     throw new Error('TRACKING_SOURCE_SECRET_MOBILE is not defined in .env file');
@@ -118,18 +97,17 @@ async function startTrip(token) {
 
 async function establishSocketConnection() {
   senderToken = await loginSender();
-
-  // ส่งข้อมูลระบุตัวตนและชนิดอุปกรณ์ไปใน handshake ตอนเชื่อมต่อสตรีม
-  socket.auth = {
+  
+  socket.auth = { 
     token: senderToken,
     sourceId: SOURCE_ID,
     vehicleId: VEHICLE_ID
   };
-
+  
   if (socket.connected) {
     socket.disconnect();
   }
-
+  
   socket.connect();
 
   await new Promise((resolve, reject) => {
@@ -144,44 +122,6 @@ async function establishSocketConnection() {
     socket.once('connect', onConnect);
     socket.once('connect_error', onError);
   });
-}
-
-const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
-async function runSimulation() {
-  try {
-    await establishSocketConnection();
-    tripId = await startTrip(senderToken);
-    if (!tripId) tripId = null;
-  } catch (err) {
-    console.error('❌ Initialization Flow Broke:', err.message);
-    return;
-  }
-
-  console.log('🚀 Mobile Simulator Online! Streaming data via WebSocket...');
-  let currentStationIdx = 0;
-
-  while (true) {
-    const current = STATIONS[currentStationIdx];
-    const nextIdx = (currentStationIdx + 1) % STATIONS.length;
-    const next = STATIONS[nextIdx];
-
-    console.log(`📌 Vehicle arrived at station: ${current.id}`);
-    await sendLocation(current.lat, current.lng, 0, 0, current.id);
-    await sleep(2000);
-
-    const steps = 10;
-    const interpolated = interpolate(current, next, steps);
-    const bearing = getBearing(current.lat, current.lng, next.lat, next.lng);
-
-    for (let i = 0; i < interpolated.length; i++) {
-      const pt = interpolated[i];
-      await sendLocation(pt.lat, pt.lng, 22.0, bearing, 'En Route');
-      await sleep(1000);
-    }
-
-    currentStationIdx = nextIdx;
-  }
 }
 
 async function sendLocation(lat, lng, speed, bearing, station) {
@@ -222,10 +162,66 @@ async function sendLocation(lat, lng, speed, bearing, station) {
       return;
     }
 
-    console.log(`📡 [WS Emit] Lat: ${lat.toFixed(6)} | Lng: ${lng.toFixed(6)} | Status: ${station}`);
+    console.log(`📡 [WS Emit] Lat: ${lat.toFixed(6)} | Lng: ${lng.toFixed(6)} | Status: ${station} | Bearing: ${bearing.toFixed(2)}°`);
   } catch (e) {
     console.error('❌ Emission Failure:', e.message);
   }
 }
 
-runSimulation();
+async function runManualSimulator() {
+  try {
+    await establishSocketConnection();
+    tripId = await startTrip(senderToken);
+    if (!tripId) tripId = null;
+  } catch (err) {
+    console.error('❌ Initialization Flow Broke:', err.message);
+    rl.close();
+    return;
+  }
+
+  console.log('\n==================================================');
+  console.log('🚀 Manual GPS Simulator Online!');
+  console.log('Enter coordinates as: <lat> <lng> or <lat>,<lng>');
+  console.log('Example: 13.964772 100.587563');
+  console.log("Type 'exit' to quit.");
+  console.log('==================================================\n');
+
+  while (true) {
+    const input = await askQuestion('📍 Enter coords (lat lng): ');
+    const trimmed = input.trim();
+    if (trimmed.toLowerCase() === 'exit') {
+      console.log('👋 Exiting manual simulator.');
+      rl.close();
+      socket.disconnect();
+      break;
+    }
+
+    if (!trimmed) continue;
+
+    const parts = trimmed.split(/[\s,]+/);
+    if (parts.length < 2) {
+      console.log('⚠️ Invalid input. Format must be "latitude longitude"');
+      continue;
+    }
+
+    const lat = parseFloat(parts[0]);
+    const lng = parseFloat(parts[1]);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      console.log('⚠️ Invalid coordinates. Please enter valid numbers.');
+      continue;
+    }
+
+    let bearing = 0;
+    if (lastLat !== null && lastLng !== null) {
+      bearing = getBearing(lastLat, lastLng, lat, lng);
+    }
+
+    await sendLocation(lat, lng, 20.0, bearing, 'Manual Control');
+
+    lastLat = lat;
+    lastLng = lng;
+  }
+}
+
+runManualSimulator();
