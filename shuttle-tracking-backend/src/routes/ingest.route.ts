@@ -191,7 +191,7 @@ router.post('/ttn', async (req: Request, res: Response) => {
     } else if (message.includes('not a lorawan')) {
       res.status(400).json({ code: 'SOURCE_TYPE_MISMATCH', error: 'TTN source type is invalid' });
     } else if (message.includes('bounds')) {
-      res.status(400).json({ code: 'INVALID_COORDINATES', error: 'Coordinates are invalid' });
+      res.status(400).json({ code: 'INVALID_COORDINATES', error: 'Coordinates are invalid', details: message });
     } else {
       res.status(500).json({ 
         code: 'INGESTION_ERROR', 
