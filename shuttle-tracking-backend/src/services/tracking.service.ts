@@ -34,11 +34,13 @@ export const getSourceHealth = (
 
 export const sourceRequiresCredential = (sourceType: string): boolean => sourceType !== 'lorawan';
 
-// Bounds representing approximate geographical range of Thailand
-const LAT_MIN = 5.0;
-const LAT_MAX = 21.0;
-const LNG_MIN = 97.0;
-const LNG_MAX = 106.0;
+// GPS coordinates are global. Do not constrain observations to Thailand here:
+// a source may be tested elsewhere, and the transport layer must validate the
+// coordinate format rather than impose a business/geofence rule.
+const LAT_MIN = -90;
+const LAT_MAX = 90;
+const LNG_MIN = -180;
+const LNG_MAX = 180;
 
 export interface ObservationData {
   sourceId: string;
@@ -65,9 +67,16 @@ export const processObservation = async (data: ObservationData) => {
   }
 
   // 1. Basic Coordinate Validation
-  const numLat = parseFloat(lat as any);
-  const numLng = parseFloat(lng as any);
-  if (isNaN(numLat) || isNaN(numLng) || numLat < LAT_MIN || numLat > LAT_MAX || numLng < LNG_MIN || numLng > LNG_MAX) {
+  const numLat = typeof lat === 'number' ? lat : Number(lat);
+  const numLng = typeof lng === 'number' ? lng : Number(lng);
+  if (
+    !Number.isFinite(numLat) ||
+    !Number.isFinite(numLng) ||
+    numLat < LAT_MIN ||
+    numLat > LAT_MAX ||
+    numLng < LNG_MIN ||
+    numLng > LNG_MAX
+  ) {
     throw new Error(`Coordinates out of bounds: lat ${lat}, lng ${lng}`);
   }
 
