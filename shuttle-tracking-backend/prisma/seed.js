@@ -268,16 +268,16 @@ async function main() {
         ]
       : []),
     {
-      id: "TS_LORA_01",
-      name: "LoRa Node A1",
+      id: "sensor-c4",
+      name: "Sensor C4 (LoRaWAN)",
       type: "lorawan",
-      vehicleId: "VH001",
+      vehicleId: "VH003",
       priority: 3,
       secretHash: null,
     },
     {
-      id: "TS_LORA_N2",
-      name: "LoRa รถตู้ 2",
+      id: "sensor-f2",
+      name: "Sensor f2 (LoRaWAN)",
       type: "lorawan",
       vehicleId: "VN002",
       priority: 1,
