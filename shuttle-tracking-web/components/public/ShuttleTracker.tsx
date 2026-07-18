@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { io, Socket } from "socket.io-client";
 import "leaflet/dist/leaflet.css";
@@ -14,7 +14,7 @@ import VehicleInfoCard from "@/components/public/VehicleInfoCard";
 import AppTour from "@/components/public/AppTour";
 import { shouldMove, animateMove, getNearestPointIndex, getDirectionalPointIndex } from "@/utils/MapHelpers";
 import { Stop, LocationUpdateData } from "@/types";
-import Image from "next/image";
+
 import { Plus, Minus, Locate, MessageSquarePlus } from "lucide-react";
 import FeedbackModal from "./FeedbackModal";
 
@@ -61,6 +61,61 @@ export default function ShuttleTracker() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
   const [feedbackVehicleId, setFeedbackVehicleId] = useState<string | null>(null);
   const [vehicleNames, setVehicleNames] = useState<Record<string, string>>({});
+
+  // === Preloader States & Refs ===
+  const [showPreloader, setShowPreloader] = useState<boolean>(true);
+  const [isIntroFinished, setIsIntroFinished] = useState<boolean>(false);
+  const [loadingProgress, setLoadingProgress] = useState<number>(10);
+  const [loadingStatusText, setLoadingStatusText] = useState<string>("กำลังเตรียมแผนที่...");
+
+  const namesLoadedRef = useRef<boolean>(false);
+  const route1LoadedRef = useRef<boolean>(false);
+  const route2LoadedRef = useRef<boolean>(false);
+  const mapReadyRef = useRef<boolean>(false);
+
+  const checkLoadingComplete = useCallback(() => {
+    let progress = 10;
+    let status = "กำลังดาวน์โหลดข้อมูล...";
+    
+    if (mapReadyRef.current) progress += 30;
+    if (namesLoadedRef.current) progress += 20;
+    if (route1LoadedRef.current) progress += 20;
+    if (route2LoadedRef.current) progress += 20;
+
+    const finalProgress = Math.min(progress, 100);
+    setLoadingProgress(finalProgress);
+
+    if (!mapReadyRef.current) {
+      status = "กำลังจัดเตรียมแผนที่มหาลัย...";
+    } else if (!route1LoadedRef.current || !route2LoadedRef.current) {
+      status = "กำลังดาวน์โหลดพิกัดเส้นทางและจุดจอด...";
+    } else if (!namesLoadedRef.current) {
+      status = "กำลังเชื่อมโยงข้อมูลรถบัส...";
+    } else {
+      status = "ระบบพร้อมใช้งาน";
+    }
+    setLoadingStatusText(status);
+
+    if (mapReadyRef.current && route1LoadedRef.current && route2LoadedRef.current && namesLoadedRef.current) {
+      setTimeout(() => {
+        setIsIntroFinished(true);
+        setTimeout(() => {
+          setShowPreloader(false);
+        }, 800);
+      }, 500);
+    }
+  }, []);
+
+  useEffect(() => {
+    const safetyTimer = setTimeout(() => {
+      setIsIntroFinished(true);
+      setTimeout(() => {
+        setShowPreloader(false);
+      }, 800);
+    }, 5000); // 5 seconds safety timeout
+
+    return () => clearTimeout(safetyTimer);
+  }, []);
 
   const handleOpenFeedback = (vehicleId?: string | null) => {
     setFeedbackVehicleId(vehicleId || null);
@@ -555,10 +610,13 @@ export default function ShuttleTracker() {
         }
       } catch (err) {
         console.error("Failed to fetch vehicle names:", err);
+      } finally {
+        namesLoadedRef.current = true;
+        checkLoadingComplete();
       }
     };
     fetchVehicleNames();
-  }, [configuredBackendOrigin]);
+  }, [configuredBackendOrigin, checkLoadingComplete]);
 
   useEffect(() => {
     const apiOrigins = (() => {
@@ -690,6 +748,10 @@ export default function ShuttleTracker() {
         }
       } catch (err) {
         console.error(`Failed to load route ${routeId}`, err);
+      } finally {
+        if (routeId === "R01") route1LoadedRef.current = true;
+        if (routeId === "R02") route2LoadedRef.current = true;
+        checkLoadingComplete();
       }
     };
 
@@ -697,6 +759,8 @@ export default function ShuttleTracker() {
       if (mapRef.current && LRef.current) {
         clearInterval(interval);
         mapRef.current.flyTo(RSU_CENTER, 16.7, { animate: true, duration: 1.2 });
+        mapReadyRef.current = true;
+        checkLoadingComplete();
 
         mapRef.current.on('zoomstart', (e: L.LeafletEvent & { originalEvent?: unknown }) => { 
           isZoomingRef.current = true; 
@@ -744,7 +808,7 @@ export default function ShuttleTracker() {
 
     const interval = setInterval(waitForMap, 200);
     return () => clearInterval(interval);
-  }, [LRef, mapRef, configuredBackendOrigin]);
+  }, [LRef, mapRef, configuredBackendOrigin, checkLoadingComplete]);
 
   useEffect(() => {
     const handleZoomCenter = () => {
@@ -803,6 +867,43 @@ export default function ShuttleTracker() {
 
   return (
     <div className="h-dvh w-screen overflow-hidden font-body-sm text-on-surface bg-surface map-bg relative select-none">
+      {showPreloader && (
+        <div className={`preloader-overlay ${isIntroFinished ? "fade-out" : ""}`}>
+          <div className="preloader-card">
+            <div className="preloader-ring-glow-back" />
+            <div className="preloader-logo-wrapper">
+              <div className="preloader-ring-glowing" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src="/icons/RSU_logo.png" 
+                alt="RSU Logo" 
+                className="preloader-logo" 
+              />
+            </div>
+            <h2 className="font-headline-md text-[18px] text-on-surface mb-1 select-none">
+              RSU Tram Tracker
+            </h2>
+            <p className="font-body-sm text-[12px] text-on-surface-variant mb-4 select-none">
+              ระบบติดตามรถบริการภายใน ม.รังสิต
+            </p>
+            <div className="preloader-progress-container">
+              <div className="preloader-progress-track">
+                <div 
+                  className="preloader-progress-fill" 
+                  style={{ width: `${loadingProgress}%` }}
+                />
+              </div>
+            </div>
+            <div className="preloader-status-text select-none">
+              {loadingStatusText}
+            </div>
+            <div className="preloader-subtext select-none">
+              {loadingProgress}%
+            </div>
+          </div>
+        </div>
+      )}
+
       {isAppLocked && (
         <div 
           style={{ position: 'fixed', inset: 0, zIndex: 99999, cursor: 'wait', touchAction: 'none' }} 
@@ -816,6 +917,7 @@ export default function ShuttleTracker() {
 
         {/* Top Left: Branding */}
         <div className="absolute top-4 left-4 md:top-10 md:left-10 z-10 glass-panel backdrop-blur-sm rounded-full flex items-center gap-2.5 px-4 py-1.5 md:px-6 md:py-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             alt="RSU Logo" 
             className="h-9 md:h-11 w-auto object-contain drop-shadow-sm select-none" 
