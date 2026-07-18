@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { io, Socket } from "socket.io-client";
 import "leaflet/dist/leaflet.css";
-
+import "@/app/shuttle-tracker.css";
 import * as turf from "@turf/turf";
 import { RSU_CENTER } from "@/constants";
 import { useLeafletMap } from "@/hooks/useLeafletMap";
@@ -868,51 +868,21 @@ export default function ShuttleTracker() {
   return (
     <div className="h-dvh w-screen overflow-hidden font-body-sm text-on-surface bg-surface map-bg relative select-none">
       {showPreloader && (
-        <div className={`preloader-overlay ${isIntroFinished ? "fade-out" : ""}`}>
-          <div className="preloader-card">
-            <div className="preloader-ring-glow-back" />
-            <div className="preloader-logo-wrapper">
-              <div className="preloader-ring-glowing" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src="/icons/RSU_logo.png" 
-                alt="RSU Logo" 
-                className="preloader-logo" 
-              />
-            </div>
-            <h2 className="font-headline-md text-[18px] text-on-surface mb-1 select-none">
-              RSU Tram Tracker
-            </h2>
-            <p className="font-body-sm text-[12px] text-on-surface-variant mb-4 select-none">
-              ระบบติดตามรถบริการภายใน ม.รังสิต
-            </p>
-            <div className="preloader-progress-container">
-              <div className="preloader-progress-track">
-                <div 
-                  className="preloader-progress-fill" 
-                  style={{ width: `${loadingProgress}%` }}
-                />
-              </div>
-            </div>
-            <div className="preloader-status-text select-none">
-              {loadingStatusText}
-            </div>
-            <div className="preloader-subtext select-none">
-              {loadingProgress}%
-            </div>
-          </div>
-        </div>
-      )}
+      <div className={`preloader-overlay ${isIntroFinished ? "fade-out" : ""}`}>
+        <div className="loader-logo" />
+        <div className="loader"></div>
+      </div>
+    )}
 
-      {isAppLocked && (
-        <div 
-          style={{ position: 'fixed', inset: 0, zIndex: 99999, cursor: 'wait', touchAction: 'none' }} 
-          onTouchStart={(e) => e.preventDefault()}
-          onTouchMove={(e) => e.preventDefault()}
-        />
-      )}
+    {isAppLocked && (
+      <div 
+        style={{ position: 'fixed', inset: 0, zIndex: 99999, cursor: 'wait', touchAction: 'none' }} 
+        onTouchStart={(e) => e.preventDefault()}
+        onTouchMove={(e) => e.preventDefault()}
+      />
+    )}
 
-      <div className="w-full h-full relative z-0">
+      <div className={`w-full h-full relative z-0 transition-all duration-700 ${showPreloader ? 'map-blur-effect' : ''}`}>
         <div id="rsu-map" className="w-full h-full absolute inset-0 z-0" />
 
         {/* Top Left: Branding */}
