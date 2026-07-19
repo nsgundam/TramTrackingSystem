@@ -8,11 +8,13 @@ Discovery is current as of 2026-07-18. Since the prior audit-document refresh, r
 include authenticated sender sessions, tracking-source lifecycle work, sender/trip/realtime changes,
 production-mode Compose/startup work, feedback submission, and simulator/test additions.
 
-The Product, Architecture, Backend, Database, Infrastructure & Device, Dashboard & UX, and
-Security/DevOps/Observability Audits were re-run and validated on 2026-07-19. The product is a
-usable controlled tracking MVP, not yet a daily operations product. The architecture remains an
-appropriate monolith, but needs a backend-owned canonical vehicle-state contract and one
-Operations/Trip ownership boundary before it can support reliable operational workflows.
+The Product, Architecture, Backend, Database, Infrastructure & Device, Dashboard & UX,
+Security/DevOps/Observability, Frontend, and Production Readiness Audits were re-run and validated
+on 2026-07-19. The production determination is **Not Ready** for real vehicles, drivers, and public
+riders. The product is a usable controlled tracking MVP, not yet a daily operations product. The
+architecture remains an appropriate monolith, but needs a backend-owned canonical vehicle-state
+contract and one Operations/Trip ownership boundary before it can support reliable operational
+workflows.
 
 ## 2. Audit Progress, Validated Findings, and Remaining Risks
 
@@ -35,7 +37,12 @@ Operations/Trip ownership boundary before it can support reliable operational wo
 - Security/DevOps/Observability: Complete; sender trust boundaries and production secret checks are
   improved. Device secret-hash exposure, Redis URL logging, abuse controls, CI, and minimum
   monitoring remain High risks before public/daily use.
-- Frontend and Production Readiness: Needs Re-audit against current repository evidence.
+- Frontend: Complete; public feedback capture is resolved. Route-stop operations, visible
+  connection/freshness/no-service state, authoritative vehicle-route association, cache
+  invalidation, and maintainable public-map boundaries remain open.
+- Production Readiness: Complete; **No-Go** for daily/public production. Direct data/configuration
+  leakage, abuse controls, operational truth, lifecycle/workflow, deployment, real-device, CI, and
+  monitoring blockers must be resolved and validated before a Ready decision.
 
 Remaining product risk: the system may appear suitable for operation while key workflows still
 require manual/API-only/external-client work.
@@ -49,11 +56,13 @@ cycle. All are recorded in `docs/decision-queue.md` and remain unapproved.
 The Database re-audit reconciles the active-trip evidence: the database partial unique index exists;
 the unresolved issue is the non-transactional lifecycle code around it. Infrastructure & Device
 adds no new decision: D-003 governs production configuration/origin order and D-002 governs
-telemetry fidelity. Dashboard & UX confirms that canonical freshness and source health are not yet
-communicated truthfully to users. The recommended next audit action is Security, DevOps &
-Observability is complete and identifies High pre-production security/operability gaps. The
-recommended next audit action is Production Readiness, which can synthesize the refreshed evidence
-and identify release blockers without changing the roadmap.
+telemetry fidelity. Dashboard & UX and Frontend both confirm that canonical freshness and source
+health are not communicated truthfully to users. Frontend also establishes that rider route
+selection is incorrectly used as the initial vehicle-route assignment. Production Readiness
+consolidates these into a No-Go: the current service is limited to a controlled demonstration, with
+security, operational-truth, lifecycle, deployment, and observability blockers before daily/public
+use. The recommended next action is Roadmap Review using the Production Readiness minimum bar;
+owner decisions may remain pending until that plan is presented.
 
 ## 4. Confidence and Limitations
 

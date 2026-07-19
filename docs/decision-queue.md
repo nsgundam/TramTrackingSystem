@@ -6,7 +6,8 @@
 
 Related reports: `docs/audits/product-audit.md`, `docs/audits/backend-audit.md`,
 `docs/audits/database-audit.md`, `docs/audits/dashboard-ux-audit.md`,
-`docs/audits/security-devops-observability-audit.md`
+`docs/audits/security-devops-observability-audit.md`, `docs/audits/frontend-audit.md`,
+`docs/audits/production-readiness-audit.md`
 
 Current approach: the repository provides public tracking, basic admin CRUD, authenticated sender
 contracts, simulators, and public feedback submission. It does not provide route-stop management,
@@ -35,7 +36,8 @@ Roadmap effect: Wait for decision
 
 Related reports: `docs/audits/architecture-audit.md`, `docs/audits/product-audit.md`,
 `docs/audits/backend-audit.md`, `docs/audits/database-audit.md`,
-`docs/audits/infrastructure-device-audit.md`, `docs/audits/dashboard-ux-audit.md`
+`docs/audits/infrastructure-device-audit.md`, `docs/audits/dashboard-ux-audit.md`,
+`docs/audits/production-readiness-audit.md`
 
 Current approach: Redis keeps only the latest observation per source. PostgreSQL stores sampled
 canonical GPS history, rather than each source observation or an ordered event stream.
@@ -62,6 +64,8 @@ Roadmap effect: Wait for decision; governs T14, T26, T29, and playback scope.
 Related reports: `docs/audits/architecture-audit.md`,
 `docs/audits/infrastructure-device-audit.md`,
 `docs/audits/security-devops-observability-audit.md`,
+`docs/audits/frontend-audit.md`,
+`docs/audits/production-readiness-audit.md`,
 `docs/roadmap/master-refactoring-roadmap.md`
 
 Current approach: roadmap task T6 depends on T16, while T16 depends on T6. This forms a cycle that
