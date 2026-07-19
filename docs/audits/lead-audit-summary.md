@@ -64,7 +64,10 @@ health are not communicated truthfully to users. Frontend also establishes that 
 selection is incorrectly used as the initial vehicle-route assignment. Production Readiness
 consolidates these into a No-Go: the current service is limited to a controlled demonstration, with
 security, operational-truth, lifecycle, deployment, and observability blockers before daily/public
-use. The recommended next action is updating the Master Refactoring Roadmap (`docs/roadmap/master-refactoring-roadmap.md`) to reflect these approved decision gates and proceed with Phase 1 execution sequencing.
+use. The Master Refactoring Roadmap has been re-reviewed against the approved decision gates:
+D-001=A defers daily/public workflows, D-002=B creates bounded diagnostics research work, and
+D-003=A removes the topology/origin ordering cycle. The recommended next action is T1: remove
+secret-hash and credential-bearing configuration exposure before any further pilot expansion.
 
 ## 4. Confidence and Limitations
 
