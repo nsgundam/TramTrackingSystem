@@ -28,10 +28,11 @@ Read these files, in order, before starting:
 2. `docs/audits/product-audit.md`
 3. `docs/audits/architecture-audit.md`
 4. `docs/audits/backend-audit.md`
-5. `shuttle-tracking-backend/prisma/schema.prisma`
-6. `shuttle-tracking-backend/prisma/migrations/`
-7. `shuttle-tracking-backend/prisma/seed.ts`
-8. Any backend source code that constructs raw queries or Prisma queries relevant to GPS writes, throttling, or reads
+5. `docs/audits/database-audit.md` from the previous audit, if it exists
+6. `shuttle-tracking-backend/prisma/schema.prisma`
+7. `shuttle-tracking-backend/prisma/migrations/`
+8. `shuttle-tracking-backend/prisma/seed.ts`
+9. Any backend source code that constructs raw queries or Prisma queries relevant to GPS writes, throttling, or reads
 
 If any of items 1–4 are missing:
 
@@ -40,6 +41,14 @@ STOP.
 State which document is missing and explain that the Database Audit will proceed with reduced context. Do not fabricate assumptions about product intent, architecture decisions, or backend query patterns to fill the gap — note the limitation in the report instead.
 
 Do not repeat Discovery, Product, Architecture, or Backend Audit work. Only re-inspect other repository files when additional database-specific evidence is required.
+
+---
+
+# Re-audit Requirements
+
+Compare every important finding in the previous Database Audit with current evidence and classify
+it as **Resolved**, **Partially Resolved**, **Still Present**, **No Longer Relevant**, **Unable to
+Verify**, or **New Finding**. If no previous report exists, state that this is an initial audit.
 
 ---
 
@@ -248,6 +257,8 @@ The report must contain:
 
 ## 1. Executive Summary
 
+## Scope, Evidence, and Re-audit Status
+
 ## 2. Current Database Overview
 
 ## 3. Database Strengths
@@ -277,6 +288,14 @@ The report must contain:
 ## 15. Audit Limitations
 
 ## 16. Handoff
+
+## Roadmap Impact
+
+## Assumptions and Unknowns
+
+## Confidence
+
+## Required Decisions
 
 ---
 

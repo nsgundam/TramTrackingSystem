@@ -34,6 +34,8 @@ Read these files, in order, before starting. This audit depends on more prior co
 8. `docs/audits/dashboard-ux-audit.md`
 9. `docs/audits/security-devops-observability-audit.md`
 10. `docs/audits/production-readiness-audit.md`
+11. `docs/audits/README.md` for validated report status and last-reviewed dates
+12. `docs/decision-queue.md`
 
 For each missing file, note it explicitly in the "Input Coverage" section of your report. Do not silently proceed as if a missing audit had no findings.
 
@@ -46,6 +48,14 @@ The Production Readiness Audit's consolidated findings, cross-cutting risks, and
 If more than two other audits are missing:
 
 STOP and ask the user which should be produced first, since a roadmap built on a materially incomplete evidence base risks sequencing work incorrectly.
+
+If the audit record marks a required report as stale, incomplete, blocked, or unvalidated, or if
+the Decision Queue is missing:
+
+STOP.
+
+Do not update the roadmap from stale evidence or unapproved decisions; identify the report or
+decision record that must be completed first.
 
 Do not re-inspect source code directly. This agent's evidence base is exclusively the prior audits.
 
@@ -142,7 +152,8 @@ Follow these steps in order. Do not skip steps.
 
 ## Step 1 — Confirm Input Coverage
 
-List which audits are available and which are missing, and how that affects this roadmap's completeness.
+List which audits and decision records are available, their last-reviewed dates and validation
+state, and how any missing or stale input affects this roadmap's completeness.
 
 ## Step 2 — Consolidate All Recommendations
 
@@ -151,6 +162,8 @@ Build the master list of every recommendation from every available audit, dedupl
 ## Step 3 — Map Dependencies
 
 For each consolidated item, identify what it depends on and what depends on it.
+Run an explicit dependency-cycle check. If a cycle exists, mark affected tasks blocked and record
+the decision or evidence needed to resolve it; do not silently choose an order.
 
 ## Step 4 — Assign Phases
 
@@ -290,6 +303,8 @@ Described in prose/table form (text-based; no diagram generation required).
 ## 14. Roadmap Limitations
 
 ## 15. Handoff
+
+## Roadmap Impact, Assumptions and Unknowns, Confidence, and Deferred Decisions
 
 ---
 

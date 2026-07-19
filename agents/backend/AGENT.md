@@ -24,10 +24,11 @@
 1. `docs/project-knowledge-base.md`
 2. `docs/audits/product-audit.md`
 3. `docs/audits/architecture-audit.md`
-4. Backend source code
-5. Database schema และ migrations ที่เกี่ยวข้อง
-6. Redis และ Socket.IO configuration
-7. Environment examples และ deployment configuration ที่เกี่ยวข้อง
+4. `docs/audits/backend-audit.md` ก่อนหน้า (ถ้ามี)
+5. Backend source code
+6. Database schema และ migrations ที่เกี่ยวข้อง
+7. Redis และ Socket.IO configuration
+8. Environment examples และ deployment configuration ที่เกี่ยวข้อง
 
 หาก `architecture-audit.md` ยังไม่มี ให้ระบุว่า Backend Audit กำลังทำงานโดยไม่มีผล Architecture Audit และบอกข้อจำกัดไว้ในรายงาน
 
@@ -141,11 +142,28 @@
 
 ## Workflow
 
-### Step 1 — Understand Backend
+### Step 1 — Re-audit Previous Findings
+
+หากมี `docs/audits/backend-audit.md` ก่อนหน้า ให้ระบุประเด็นสำคัญทั้งหมดจากรายงานเดิม
+แล้วตรวจสอบกับโค้ดและ configuration ปัจจุบันก่อนสรุปผลใหม่
+
+กำหนดสถานะให้ทุกประเด็นสำคัญเป็นหนึ่งรายการต่อไปนี้:
+
+* Resolved
+* Partially Resolved
+* Still Present
+* No Longer Relevant
+* Unable to Verify
+* New Finding
+
+ทุกสถานะต้องมีหลักฐานปัจจุบันสั้น ๆ ประกอบ หากไม่มีรายงานเดิม ให้ระบุว่าเป็น Initial
+Audit และไม่มี prior findings ให้ revalidate
+
+### Step 2 — Understand Backend
 
 สรุปโครงสร้าง Backend และหน้าที่ของส่วนสำคัญ
 
-### Step 2 — Trace Main Flows
+### Step 3 — Trace Main Flows
 
 ตรวจ Flow หลัก:
 
@@ -157,19 +175,19 @@
 * End Trip
 * Admin CRUD
 
-### Step 3 — Review API Behavior
+### Step 4 — Review API Behavior
 
 ตรวจ Validation, Response, Error Handling และความสม่ำเสมอของ API
 
-### Step 4 — Review Realtime Flow
+### Step 5 — Review Realtime Flow
 
 ตรวจ Socket.IO, Redis และการบันทึก GPS
 
-### Step 5 — Review Multiple Device Support
+### Step 6 — Review Multiple Device Support
 
 ตรวจว่าระบบสามารถแยกข้อมูลจาก Mobile, LoRaWAN และ ESP32 ได้หรือไม่
 
-### Step 6 — Review Reliability
+### Step 7 — Review Reliability
 
 ตรวจกรณีผิดปกติ เช่น:
 
@@ -180,7 +198,7 @@
 * GPS มาจากอุปกรณ์หลายตัว
 * Redis หรือ Database มีปัญหา
 
-### Step 7 — Recommend Improvements
+### Step 8 — Recommend Improvements
 
 แนะนำการแก้ไขตามลำดับความสำคัญ โดยหลีกเลี่ยงการออกแบบที่ซับซ้อนเกินจำเป็น
 
@@ -266,33 +284,37 @@
 
 ### 1. Executive Summary
 
-### 2. Current Backend Overview
+### 2. Scope, Evidence, and Re-audit Status
 
-### 3. Backend Strengths
+สรุป evidence ที่ตรวจ และสถานะของ prior findings ตาม Re-audit workflow
 
-### 4. Critical Issues
+### 3. Current Backend Overview
 
-### 5. API Review
+### 4. Backend Strengths
 
-### 6. Trip Lifecycle Review
+### 5. Critical Issues
 
-### 7. WebSocket and GPS Review
+### 6. API Review
 
-### 8. Redis Review
+### 7. Trip Lifecycle Review
 
-### 9. Multiple Device Support Review
+### 8. WebSocket and GPS Review
 
-### 10. Reliability Review
+### 9. Redis Review
 
-### 11. Missing Backend Capabilities
+### 10. Multiple Device Support Review
 
-### 12. Recommended Improvements
+### 11. Reliability Review
 
-### 13. Backend Learning Topics
+### 12. Missing Backend Capabilities
 
-### 14. Audit Limitations
+### 13. Recommended Improvements
 
-### 15. Handoff
+### 14. Backend Learning Topics
+
+### 15. Audit Limitations
+
+### 16. Handoff
 
 ---
 
@@ -304,6 +326,7 @@
 * ตรวจ REST API และ WebSocket แล้ว
 * ตรวจ Redis และ GPS Processing แล้ว
 * ตรวจความพร้อมสำหรับหลายอุปกรณ์แล้ว
+* Revalidate ทุก prior finding สำคัญ หรือระบุว่าไม่มี prior report
 * ระบุความเสี่ยงก่อนใช้งานจริงแล้ว
 * มีคำแนะนำเรียงตาม Priority
 * มี Learning Topics ที่เข้าใจง่าย
