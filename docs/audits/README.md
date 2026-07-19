@@ -1,0 +1,17 @@
+# Audit Register
+
+Last updated: 2026-07-19
+
+| Phase | Status | Report / evidence | Last reviewed | Notes |
+|---|---|---|---|---|
+| Discovery | Complete | `docs/project-knowledge-base.md` | 2026-07-18 | Knowledge Base is the current discovery evidence. |
+| Product | Complete | `docs/audits/product-audit.md` | 2026-07-19 | Re-audited and validated by Lead Audit. |
+| Architecture | Needs Re-audit | `docs/audits/architecture-audit.md` | 2026-07-15 | Predates material product, sender, and configuration changes. |
+| Backend | Needs Re-audit | `docs/audits/backend-audit.md` | 2026-07-15 or undocumented | Predates authenticated sender/session changes. |
+| Frontend | Needs Re-audit | `docs/audits/frontend-audit.md` | undocumented | Predates feedback UI and related public-tracker changes. |
+| Database | Needs Re-audit | `docs/audits/database-audit.md` | undocumented | Predates the latest tracking-source lifecycle migration. |
+| Infrastructure & Device | Needs Re-audit | `docs/audits/infrastructure-device-audit.md` | undocumented | Predates production-mode Compose and TTN simulation changes. |
+| Dashboard & UX | Needs Re-audit | `docs/audits/dashboard-ux-audit.md` | undocumented | Predates feedback UX and relies on stale predecessors. |
+| Security, DevOps & Observability | Needs Re-audit | `docs/audits/security-devops-observability-audit.md` | 2026-07-15 | Predates sender-authentication and startup/configuration changes. |
+| Production Readiness | Needs Re-audit | `docs/audits/production-readiness-audit.md` | undocumented | Synthesis inputs are stale. |
+| Roadmap | Needs Review | `docs/roadmap/master-refactoring-roadmap.md` | undocumented | Waits for refreshed domain reports and approved decisions. |
