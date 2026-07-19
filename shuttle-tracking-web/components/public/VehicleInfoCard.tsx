@@ -3,12 +3,9 @@ import { Stop } from "@/types";
 import { Locate } from "lucide-react";
 
 interface VehicleInfoCardProps {
-  routeId: string;
   vehicleId: string;
   vehicleName?: string;
-  prevStop: string;
   nextStop: string;
-  eta: number | null;
   stops: Stop[];
   nextStopId: string | number | null;
   isTracking?: boolean;

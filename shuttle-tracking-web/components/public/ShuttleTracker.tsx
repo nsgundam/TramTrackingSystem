@@ -4,7 +4,6 @@ import L from "leaflet";
 import { io, Socket } from "socket.io-client";
 import "leaflet/dist/leaflet.css";
 import "@/app/shuttle-tracker.css";
-import * as turf from "@turf/turf";
 import { RSU_CENTER } from "@/constants";
 import { useLeafletMap } from "@/hooks/useLeafletMap";
 import { generateBusIconHtml } from "@/utils/IconHelpers";
@@ -28,6 +27,23 @@ interface RouteData {
 // === Constants & Icons ===
 const AVERAGE_BUS_SPEED_KMH = 15;
 const METERS_PER_MIN = AVERAGE_BUS_SPEED_KMH * (1000 / 60);
+const ROUTE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+type RouteGeometryCache = {
+  version: 2;
+  signature: string;
+  source: "osrm";
+  createdAt: number;
+  coords: [number, number][];
+};
+
+const createStopsSignature = (stops: Stop[]) =>
+  stops.map((stop, index) => `${index}:${stop.id}:${stop.lat.toFixed(6)}:${stop.lng.toFixed(6)}`).join("|");
+
+const isCoordinateList = (value: unknown): value is [number, number][] =>
+  Array.isArray(value) && value.length > 1 && value.every(
+    (point) => Array.isArray(point) && point.length === 2 && point.every(Number.isFinite)
+  );
 
 const DEFAULT_STOP_ICON = L.icon({
   iconUrl: "/icons/stop.png",
@@ -79,8 +95,6 @@ export default function ShuttleTracker() {
   // === Preloader States & Refs ===
   const [showPreloader, setShowPreloader] = useState<boolean>(true);
   const [isIntroFinished, setIsIntroFinished] = useState<boolean>(false);
-  const [loadingProgress, setLoadingProgress] = useState<number>(10);
-  const [loadingStatusText, setLoadingStatusText] = useState<string>("กำลังเตรียมแผนที่...");
 
   const namesLoadedRef = useRef<boolean>(false);
   const loadedRoutesRef = useRef<Set<string>>(new Set());
@@ -88,29 +102,7 @@ export default function ShuttleTracker() {
   const checkLoadingCompleteRef = useRef<() => void>(() => {});
 
   const checkLoadingComplete = useCallback(() => {
-    let progress = 10;
-    let status = "กำลังดาวน์โหลดข้อมูล...";
-    
-    if (mapReadyRef.current) progress += 30;
-    if (namesLoadedRef.current) progress += 20;
-
     const totalRoutes = routes.length > 0 ? routes.length : 1;
-    const routesProgress = (loadedRoutesRef.current.size / totalRoutes) * 40;
-    progress += routesProgress;
-
-    const finalProgress = Math.min(progress, 100);
-    setLoadingProgress(finalProgress);
-
-    if (!mapReadyRef.current) {
-      status = "กำลังจัดเตรียมแผนที่มหาลัย...";
-    } else if (loadedRoutesRef.current.size < totalRoutes) {
-      status = "กำลังดาวน์โหลดพิกัดเส้นทางและจุดจอด...";
-    } else if (!namesLoadedRef.current) {
-      status = "กำลังเชื่อมโยงข้อมูลรถบัส...";
-    } else {
-      status = "ระบบพร้อมใช้งาน";
-    }
-    setLoadingStatusText(status);
 
     if (mapReadyRef.current && loadedRoutesRef.current.size === totalRoutes && totalRoutes > 0 && namesLoadedRef.current) {
       setTimeout(() => {
@@ -468,7 +460,7 @@ export default function ShuttleTracker() {
 
     const rawLat = Number(data.lat);
     const rawLng = Number(data.lng);
-    let newPos: [number, number] = [rawLat, rawLng];
+    const newPos: [number, number] = [rawLat, rawLng];
 
     if (!vehicleRouteMapRef.current[id]) vehicleRouteMapRef.current[id] = selectedRouteRef.current;
     const routeId = vehicleRouteMapRef.current[id];
@@ -476,7 +468,7 @@ export default function ShuttleTracker() {
     // ดึงองศาการหมุนจาก Backend ตรงๆ
     const backendBearing = Number(data.bearing ?? data.heading ?? 0);
 
-    // 1. Turf.js
+    // 1. OSRM Path Index Calculation (เพื่อการประเมิน ETA และป้ายถัดไปเท่านั้น ไม่เปลี่ยนแปลงพิกัดรถจริง)
     const coords = routeGeometryRef.current[routeId];
     if (coords && coords.length > 0) {
       let currentIdx = vehicleLastPolyIndexRef.current[id] ?? -1;
@@ -494,21 +486,6 @@ export default function ShuttleTracker() {
         currentIdx = getDirectionalPointIndex([rawLat, rawLng], coords, currentIdx);
       }
       vehicleLastPolyIndexRef.current[id] = currentIdx;
-
-      const localLineCoords = [];
-      for (let i = -5; i <= 15; i++) {
-        const idx = (currentIdx + i + coords.length) % coords.length;
-        localLineCoords.push([coords[idx][1], coords[idx][0]]);
-      }
-
-      try {
-        const pt = turf.point([rawLng, rawLat]);
-        const localLine = turf.lineString(localLineCoords);
-        const snapped = turf.nearestPointOnLine(localLine, pt);
-        newPos = [snapped.geometry.coordinates[1], snapped.geometry.coordinates[0]];
-      } catch {
-        newPos = [coords[currentIdx][0], coords[currentIdx][1]]; 
-      }
     }
 
     // 2. สร้าง Marker รถใหม่ (ดึง HTML จากไฟล์แยกมาใช้)
@@ -749,47 +726,79 @@ export default function ShuttleTracker() {
         stopLayersRef.current[routeId] = stopLayer;
         if (routeId === selectedRouteRef.current && mapRef.current) stopLayer.addTo(mapRef.current);
 
-        const stopsSignature = stops.map(s => s.id).join(',');
+        // Resolution order: OSRM -> bundled JSON -> last known LocalStorage.
+        // A successful OSRM result is retained locally so it is available when
+        // the routing service is temporarily unreachable.
+        const stopsSignature = createStopsSignature(stops);
         const cacheKey = `rsu-route-cache-${routeId}`;
-        const cachedDataStr = localStorage.getItem(cacheKey);
-        
         let finalCoords: [number, number][] = [];
-        let needToFetchOSRM = false;
-        
-        if (cachedDataStr) {
-          const cachedData = JSON.parse(cachedDataStr) as {
-            signature: string;
-            coords: [number, number][];
-          };
-          if (cachedData.signature === stopsSignature && cachedData.coords.length > 0) finalCoords = cachedData.coords; 
-          else needToFetchOSRM = true;
-        } else {
+
+        if (stops.length > 1) {
           try {
-            const defaultRouteRes = await fetch(`/data/route-${routeId}.json`);
-            if (defaultRouteRes.ok) {
-              finalCoords = (await defaultRouteRes.json()) as [number, number][];
-              localStorage.setItem(cacheKey, JSON.stringify({ signature: stopsSignature, coords: finalCoords }));
-            } else needToFetchOSRM = true;
-          } catch {
-            needToFetchOSRM = true;
+            console.log(`[${routeId}] Fetching route geometry from OSRM...`);
+            const points = stops.map((stop) => `${stop.lng},${stop.lat}`);
+            points.push(points[0]);
+            const osrmRes = await fetch(
+              `https://router.project-osrm.org/route/v1/driving/${points.join(";")}?overview=full&geometries=geojson`
+            );
+            if (!osrmRes.ok) throw new Error(`OSRM returned HTTP ${osrmRes.status}`);
+
+            const osrmData = (await osrmRes.json()) as {
+              code?: string;
+              routes?: Array<{ geometry?: { coordinates?: unknown } }>;
+            };
+            const routeCoords = osrmData.routes?.[0]?.geometry?.coordinates;
+            if (osrmData.code !== "Ok" || !isCoordinateList(routeCoords)) {
+              throw new Error("OSRM did not return valid route geometry");
+            }
+
+            finalCoords = routeCoords.map(([lng, lat]) => [lat, lng]);
+            const cache: RouteGeometryCache = {
+              version: 2,
+              signature: stopsSignature,
+              source: "osrm",
+              createdAt: Date.now(),
+              coords: finalCoords,
+            };
+            localStorage.setItem(cacheKey, JSON.stringify(cache));
+          } catch (error) {
+            console.warn(`[${routeId}] OSRM unavailable; trying bundled route geometry.`, error);
           }
         }
 
-        if (needToFetchOSRM || finalCoords.length === 0) {
-          console.log(`[${routeId}] Fetching from OSRM...`);
-          const points = stops.map(p => `${p.lng},${p.lat}`);
-          if (points.length > 0) {
-            points.push(points[0]);
-            const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${points.join(";")}?overview=full&geometries=geojson`);
-            const osrmData = (await osrmRes.json()) as {
-              routes?: Array<{ geometry: { coordinates: number[][] } }>;
-            };
+        if (finalCoords.length === 0) {
+          try {
+            const bundledRouteRes = await fetch(`/data/route-${routeId}.json`);
+            const bundledCoords: unknown = bundledRouteRes.ok ? await bundledRouteRes.json() : null;
+            if (isCoordinateList(bundledCoords)) finalCoords = bundledCoords;
+          } catch (error) {
+            console.warn(`[${routeId}] Could not load bundled route geometry.`, error);
+          }
+        }
 
-            if (osrmData.routes?.[0]) {
-              finalCoords = osrmData.routes[0].geometry.coordinates.map((c: number[]) => [c[1], c[0]]);
-              localStorage.setItem(cacheKey, JSON.stringify({ signature: stopsSignature, coords: finalCoords }));
+        if (finalCoords.length === 0) {
+          const cachedDataStr = localStorage.getItem(cacheKey);
+          if (cachedDataStr) {
+            try {
+              const cachedData = JSON.parse(cachedDataStr) as Partial<RouteGeometryCache>;
+              const isFresh = typeof cachedData.createdAt === "number" && Date.now() - cachedData.createdAt < ROUTE_CACHE_TTL_MS;
+              if (
+                cachedData.version === 2 &&
+                cachedData.source === "osrm" &&
+                cachedData.signature === stopsSignature &&
+                isFresh &&
+                isCoordinateList(cachedData.coords)
+              ) {
+                finalCoords = cachedData.coords;
+              }
+            } catch {
+              localStorage.removeItem(cacheKey);
             }
           }
+        }
+
+        if (finalCoords.length === 0) {
+          console.error(`[${routeId}] No valid route geometry is available.`);
         }
 
         if (finalCoords.length > 0) {
@@ -850,8 +859,7 @@ export default function ShuttleTracker() {
       
       if (activeRoutes.length === 0) {
          activeRoutes = [
-           { id: "R01", name: "สาย 1 (ศาลาดนตรี)", color: "#FF8169", status: "active" },
-           { id: "R02", name: "สาย 2 (ตึก 11)", color: "#3B82F6", status: "active" }
+
          ];
       }
       
@@ -1091,12 +1099,9 @@ export default function ShuttleTracker() {
           {/* โชว์ Vehicle Info Card เมื่อเลือกรถ */}
           {selectedVehicleId && activeVehicleInfo && (
             <VehicleInfoCard 
-              routeId={selectedRoute}
               vehicleId={selectedVehicleId}
               vehicleName={vehicleNames[selectedVehicleId]}
-              prevStop={activeVehicleInfo.prev}
               nextStop={activeVehicleInfo.next}
-              eta={activeVehicleInfo.eta}
               stops={stopsByRoute[selectedRoute] || []}
               nextStopId={activeVehicleInfo.nextStopId}
               isTracking={isTracking}
