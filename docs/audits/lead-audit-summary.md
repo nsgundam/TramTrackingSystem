@@ -8,10 +8,11 @@ Discovery is current as of 2026-07-18. Since the prior audit-document refresh, r
 include authenticated sender sessions, tracking-source lifecycle work, sender/trip/realtime changes,
 production-mode Compose/startup work, feedback submission, and simulator/test additions.
 
-The Product, Architecture, and Backend Audits were re-run and validated on 2026-07-19. The product
-is a usable controlled tracking MVP, not yet a daily operations product. The architecture remains
-an appropriate monolith, but needs a backend-owned canonical vehicle-state contract and one
-Operations/Trip ownership boundary before it can support reliable operational workflows.
+The Product, Architecture, Backend, and Database Audits were re-run and validated on 2026-07-19.
+The product is a usable controlled tracking MVP, not yet a daily operations product. The
+architecture remains an appropriate monolith, but needs a backend-owned canonical vehicle-state
+contract and one Operations/Trip ownership boundary before it can support reliable operational
+workflows.
 
 ## 2. Audit Progress, Validated Findings, and Remaining Risks
 
@@ -23,8 +24,11 @@ Operations/Trip ownership boundary before it can support reliable operational wo
 - Backend: Complete; prior sender-authentication and unsafe realtime-result findings are resolved.
   Trip ownership/idempotency, device-response hash exposure, validation/error contracts,
   route-stop cache invalidation, and observation ordering remain open.
-- Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps, and Production
-  Readiness: Needs Re-audit against current repository evidence.
+- Database: Complete; tracking-source constraints and the partial active-trip unique index are
+  present. The remaining risk is transactional lifecycle behavior around that guard, canonical GPS
+  retention/fidelity, historical source meaning, and timestamp semantics.
+- Frontend, Infrastructure & Device, Dashboard & UX, Security/DevOps, and Production Readiness:
+  Needs Re-audit against current repository evidence.
 
 Remaining product risk: the system may appear suitable for operation while key workflows still
 require manual/API-only/external-client work.
@@ -35,10 +39,11 @@ Pending decisions: D-001 defines product operating scope; D-002 defines raw-tele
 and canonical-history fidelity; D-003 resolves the T6/T16 production-configuration dependency
 cycle. All are recorded in `docs/decision-queue.md` and remain unapproved.
 
-No additional owner decision was created by the Backend re-audit; D-001 and D-002 already govern
-the relevant release-scope and telemetry-retention choices. The recommended next audit action is
-the Database re-audit, which can validate the active-trip invariant, migrations, retention, and
-PostGIS query behavior against the backend findings.
+The Database re-audit reconciles the active-trip evidence: the database partial unique index exists;
+the unresolved issue is the non-transactional lifecycle code around it. No additional owner
+decision was created; D-001 and D-002 govern scope and telemetry retention. The recommended next
+audit action is Infrastructure & Device, which can validate runtime data durability, deployment
+evidence, and physical-source/TTN assumptions that source review cannot observe.
 
 ## 4. Confidence and Limitations
 
