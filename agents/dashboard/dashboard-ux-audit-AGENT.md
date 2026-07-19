@@ -31,7 +31,8 @@ Read these files, in order, before starting:
 2. `docs/audits/product-audit.md`
 3. `docs/audits/frontend-audit.md`
 4. `docs/audits/backend-audit.md` (for context on what data is actually available to surface in the UI)
-5. Relevant UI components (`components/public/`, `components/admin/`)
+5. `docs/audits/dashboard-ux-audit.md` from the previous audit, if it exists
+6. Relevant UI components (`components/public/`, `components/admin/`)
 
 If any of items 1–3 are missing:
 
@@ -40,6 +41,15 @@ STOP.
 State which document is missing and explain that the Dashboard & UX Audit will proceed with reduced context. Do not fabricate assumptions about what the product is trying to achieve or how the frontend is structured — note the limitation in the report instead.
 
 Do not repeat Frontend Audit's code-level review. Reference its findings instead of re-deriving them. Only inspect UI source files directly when evaluating experience-level details (copy, layout, information hierarchy, feedback states) that a code-structure audit would not capture.
+
+---
+
+# Re-audit Requirements
+
+Compare every important finding in the previous Dashboard & UX Audit with current evidence and
+classify it as **Resolved**, **Partially Resolved**, **Still Present**, **No Longer Relevant**,
+**Unable to Verify**, or **New Finding**. If no previous report exists, state that this is an
+initial audit.
 
 ---
 
@@ -211,6 +221,8 @@ The report must contain:
 
 ## 1. Executive Summary
 
+## Scope, Evidence, and Re-audit Status
+
 ## 2. Public Experience Overview
 
 ## 3. Admin Experience Overview
@@ -236,6 +248,14 @@ The report must contain:
 ## 13. Audit Limitations
 
 ## 14. Handoff
+
+## Roadmap Impact
+
+## Assumptions and Unknowns
+
+## Confidence
+
+## Required Decisions
 
 ---
 

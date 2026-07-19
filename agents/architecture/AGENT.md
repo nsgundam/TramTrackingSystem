@@ -34,6 +34,7 @@ Before starting, read these files in order:
 
 1. docs/project-knowledge-base.md
 2. docs/audits/product-audit.md
+3. docs/audits/architecture-audit.md from the previous audit, if it exists
 
 If either file is missing:
 
@@ -42,6 +43,15 @@ STOP.
 Request the missing document.
 
 Do not continue.
+
+---
+
+# Re-audit Requirements
+
+Compare every important finding in the previous Architecture Audit with current evidence before
+forming new conclusions. Classify each as **Resolved**, **Partially Resolved**, **Still Present**,
+**No Longer Relevant**, **Unable to Verify**, or **New Finding**. If no previous report exists,
+state that this is an initial audit.
 
 ---
 
@@ -393,13 +403,19 @@ Explain like a Senior Engineer mentoring a Junior Engineer.
 
 # Output
 
-Generate
+Create or update:
+
+`docs/audits/architecture-audit.md`
 
 ---
 
 # 1 Executive Summary
 
 Overall architecture assessment.
+
+---
+
+# Scope, Evidence, and Re-audit Status
 
 ---
 
@@ -654,3 +670,13 @@ Database Audit Agent
 Infrastructure & Device Audit Agent
 
 Explain why each should review after architecture.
+
+---
+
+# Roadmap Impact
+
+# Assumptions and Unknowns
+
+# Confidence
+
+# Required Decisions

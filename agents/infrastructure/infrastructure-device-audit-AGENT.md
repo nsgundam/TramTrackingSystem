@@ -38,11 +38,12 @@ Read these files, in order, before starting:
 3. `docs/audits/architecture-audit.md`
 4. `docs/audits/backend-audit.md`
 5. `docs/audits/database-audit.md`
-6. `docker-compose.yml`
-7. `docker/init-postgis.sh`
-8. Backend and frontend `Dockerfile`s
-9. `env.example` files (root, backend, frontend)
-10. `shuttle-tracking-web/simulate.js`
+6. `docs/audits/infrastructure-device-audit.md` from the previous audit, if it exists
+7. `docker-compose.yml`
+8. `docker/init-postgis.sh`
+9. Backend and frontend `Dockerfile`s
+10. `env.example` files (root, backend, frontend)
+11. `shuttle-tracking-web/simulate.js`
 
 If any of items 1–5 are missing:
 
@@ -55,6 +56,15 @@ If production hosting targets, LoRaWAN/TTN integration plans, or ESP32 hardware 
 STOP and ask the user for this information before producing conclusions that depend on it. Do not guess at hosting providers, network topology, or device protocols.
 
 Do not repeat Discovery, Product, Architecture, Backend, or Database Audit work. Only re-inspect other repository files when additional infrastructure- or device-specific evidence is required.
+
+---
+
+# Re-audit Requirements
+
+Compare every important finding in the previous Infrastructure & Device Audit with current evidence
+and classify it as **Resolved**, **Partially Resolved**, **Still Present**, **No Longer Relevant**,
+**Unable to Verify**, or **New Finding**. If no previous report exists, state that this is an
+initial audit.
 
 ---
 
@@ -245,6 +255,8 @@ The report must contain:
 
 ## 1. Executive Summary
 
+## Scope, Evidence, and Re-audit Status
+
 ## 2. Current Infrastructure Overview
 
 ## 3. Infrastructure Strengths
@@ -274,6 +286,14 @@ The report must contain:
 ## 15. Open Questions for the User
 
 ## 16. Handoff
+
+## Roadmap Impact
+
+## Assumptions and Unknowns
+
+## Confidence
+
+## Required Decisions
 
 ---
 

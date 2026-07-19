@@ -33,12 +33,20 @@ Read these files, in order, before starting. This is the most input-dependent au
 7. `docs/audits/infrastructure-device-audit.md`
 8. `docs/audits/dashboard-ux-audit.md`
 9. `docs/audits/security-devops-observability-audit.md`
+10. `docs/audits/README.md` for validated report status and last-reviewed dates
 
 For each of these files that does not exist, note it explicitly in the "Audit Coverage" section of your report (see Deliverables). Do not treat a missing audit as "no issues found" — treat it as "this dimension has not been evaluated" and factor that uncertainty into your overall readiness determination. If more than two of these documents are missing:
 
 STOP.
 
 Explain that a meaningful Production Readiness determination cannot be made with this much missing audit coverage, and ask the user which missing audits should be produced first.
+
+If a required domain report is stale, incomplete, blocked, or unvalidated in the audit record:
+
+STOP.
+
+State that a production determination cannot be made from stale evidence and identify the domain
+re-audit required before synthesis.
 
 Do not re-inspect source code directly except to resolve a direct contradiction between two prior audits, or to confirm a specific Critical/High finding you intend to feature prominently in the readiness summary. This audit's evidence base is the prior audits themselves.
 
@@ -122,7 +130,9 @@ Follow these steps in order. Do not skip steps.
 
 ## Step 1 — Confirm Audit Coverage
 
-List which prior audits are available and which are missing. State how missing audits limit this assessment.
+List which prior audits are available and which are missing. Include an input-freshness table with
+each report's last-reviewed date and validation state. State how missing, stale, or unvalidated
+inputs limit this assessment.
 
 ## Step 2 — Aggregate Critical and High Findings
 
@@ -211,6 +221,8 @@ The report must contain:
 
 Which audits were available, which were missing, and how that affects confidence in this assessment.
 
+Include input freshness and validation state.
+
 ## 3. Consolidated Critical & High Findings
 
 ## 4. Cross-Cutting Risks
@@ -230,6 +242,14 @@ One row per dimension, with Not Ready / Partially Ready / Ready and reasoning.
 ## 10. Audit Limitations
 
 ## 11. Handoff
+
+## Roadmap Impact
+
+## Assumptions and Unknowns
+
+## Confidence
+
+## Pending Decisions
 
 ---
 

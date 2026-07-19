@@ -34,10 +34,11 @@ Read these files, in order, before starting:
 4. `docs/audits/backend-audit.md`
 5. `docs/audits/database-audit.md`
 6. `docs/audits/infrastructure-device-audit.md`
-7. Backend authentication and middleware source (`src/middleware/`, `src/controllers/` for auth)
-8. `docker-compose.yml`, Dockerfiles, and all `.env.example` files
-9. Any CI/CD configuration files, if present (e.g., `.github/workflows/`)
-10. `package.json` files (backend and frontend) for dependency and script review
+7. `docs/audits/security-devops-observability-audit.md` from the previous audit, if it exists
+8. Backend authentication and middleware source (`src/middleware/`, `src/controllers/` for auth)
+9. `docker-compose.yml`, Dockerfiles, and all `.env.example` files
+10. Any CI/CD configuration files, if present (e.g., `.github/workflows/`)
+11. `package.json` files (backend and frontend) for dependency and script review
 
 If any of items 1–6 are missing:
 
@@ -46,6 +47,15 @@ STOP.
 State which document is missing and explain that this audit will proceed with reduced context. Do not fabricate assumptions about prior findings — note the limitation in the report instead.
 
 Do not repeat prior audits' work. Reference their findings instead of re-deriving them. Only re-inspect source files when additional security/DevOps/observability-specific evidence is required.
+
+---
+
+# Re-audit Requirements
+
+Compare every important finding in the previous Security, DevOps & Observability Audit with current
+evidence and classify it as **Resolved**, **Partially Resolved**, **Still Present**, **No Longer
+Relevant**, **Unable to Verify**, or **New Finding**. If no previous report exists, state that this
+is an initial audit.
 
 ---
 
@@ -248,6 +258,8 @@ The report must contain:
 
 ## 1. Executive Summary
 
+## Scope, Evidence, and Re-audit Status
+
 ## 2. Security Overview
 
 ## 3. Security Strengths
@@ -283,6 +295,14 @@ The report must contain:
 ## 18. Audit Limitations
 
 ## 19. Handoff
+
+## Roadmap Impact
+
+## Assumptions and Unknowns
+
+## Confidence
+
+## Required Decisions
 
 ---
 

@@ -1,485 +1,850 @@
 # Master Refactoring Roadmap
 
-## Input Coverage
+Last reviewed: 2026-07-20
 
-All required inputs are available and must be treated as the evidence base:
+## 1. Executive Summary
 
-- `docs/project-knowledge-base.md`
-- `docs/audits/product-audit.md`
-- `docs/audits/architecture-audit.md`
-- `docs/audits/backend-audit.md`
-- `docs/audits/frontend-audit.md`
-- `docs/audits/database-audit.md`
-- `docs/audits/infrastructure-device-audit.md`
-- `docs/audits/dashboard-ux-audit.md`
-- `docs/audits/security-devops-observability-audit.md`
-- `docs/audits/production-readiness-audit.md`
+This roadmap supersedes the earlier task list. It uses all completed re-audits and the approved decisions:
 
-## Execution Rules
+- D-001 = A: the next release is a supervised controlled demonstration/pilot, not daily operations or a public launch.
+- D-002 = B: retain bounded raw diagnostics to compare mobile, LoRaWAN, and ESP32 senders for research.
+- D-003 = A: define the deployment topology and origin contract first, then align REST and Socket configuration.
 
-1. Execute phases in order. Parallelize only tasks with no shared files or dependency.
-2. For every task: preserve existing behavior, add/update tests, run the relevant checks, and update migrations/types/config together.
-3. Do not implement ESP32, high-fidelity playback, reports, roles, audit log, or announcements until the decision gates below are resolved. Implement TTN only after its confirmed topology prerequisites pass.
-4. A task is complete only when its acceptance criteria pass and no Critical/High audit finding covered by the task remains unresolved.
-5. Do not introduce new product scope. Every change must map to the cited audit sections.
+The production determination remains No-Go. D-001 reduces the immediate product scope but does not make public/daily risks acceptable. Phase 1 improves controlled-MVP safety and repeatability. Phase 2 creates the reusable technical contracts. Phase 3 stays deferred until D-001 is upgraded. Do not add playback, microservices, a second ingestion pipeline, or an operations suite early.
 
-## Phase Gates
+## 2. Input Coverage
 
-### Phase 1 - Production Blockers
+| Input | Date | Status | Use |
+|---|---:|---|---|
+| Knowledge Base | 2026-07-18 | Current | Repository baseline |
+| Product, Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps/Observability audits | 2026-07-19 | Complete | Findings and task traceability |
+| Production Readiness Audit | 2026-07-19 | Complete | No-Go and production bar |
+| Decision Queue | 2026-07-20 | Approved | D-001=A, D-002=B, D-003=A |
 
-Entry: current MVP codebase and all audits available.
+No required input is missing, stale, blocked, or unvalidated. Hosting, TLS, production recovery, browser/runtime behavior, physical devices, and TTN console state remain external unknowns.
 
-Exit: authenticated sender flow, safe trip lifecycle, validation, safe defaults, deployable production runtime/config, health/readiness, freshness visibility, route-stop operations, minimum trip history, and abuse controls are implemented and verified.
+## 3. Consolidated Recommendation List
 
-### Phase 2 - Structural Foundations
+| ID | Consolidated recommendation | Priority | Source audit sections | Disposition |
+|---|---|---|---|---|
+| T1 | Remove secret-hash/config URL exposure | High | Production 3.4; Security 4, 13; Backend 5 | Phase 1 |
+| T2 | Shared validation, safe errors, and abuse controls | High | Production 3.4; Security 4, 6, 16; Backend 6 | Phase 1 |
+| T3 | Align simulator fixtures and add repeatable pipeline evidence | High | Production 3.6; Infrastructure 4, 6–9, 12 | Phase 1 |
+| T4 | CI gates and redacted operational signals | High | Production 3.8; Security 9–16; Infrastructure 5 | Phase 1 |
+| T5 | Transactional/idempotent Operations/Trip owner | High | Production 3.3; Architecture 5; Backend 5, 7; Database 4, 13 | Phase 2 |
+| T6 | Versioned canonical state, ordering, freshness, and route authority | High | Production 3.2; Architecture 5, 7; Backend 8–10; Frontend 4, 7 | Phase 2 |
+| T7 | D-002 bounded raw diagnostics and research reads | High for approved research | Production 3.3, 3.6; Database 4, 8–9; Architecture 5, 9 | Phase 2 |
+| T8 | Truthful maps: canonical state, stale/no-service UI, correct route, cache safety | High | Production 3.2, 3.7; Frontend 4, 7, 9; Dashboard 5, 10 | Phase 2 |
+| T9 | Topology/origin contract, then deployment configuration alignment | High | Production 3.5; Infrastructure 4–5, 12; Security 7, 9–11; D-003 | Phase 2 |
+| T10 | Route-stop operations and cache invalidation | Critical for daily operations | Production 3.1, 3.7; Product 7; Frontend 4, 13; Backend 9, 12 | Phase 3, deferred by D-001=A |
+| T11 | Supported sender operations, trip history, and exception view | Critical/High for daily operations | Production 3.1, 3.3; Product 7–9; Dashboard 7, 10 | Phase 3, deferred by D-001=A |
+| T12 | Feedback triage and device/source operations views | High for broad public support | Product 7, 11; Frontend 12; Dashboard 10; Database 12 | Phase 3, deferred by D-001=A |
+| T13 | Production deployment/recovery drill and monitoring | High before production | Production 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16 | Phase 4 |
+| T14 | Map maintainability, onboarding/accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4 |
+| T15 | Physical senders, research dashboard, playback/reports, scale extensions | Deferred | Product 11; Architecture 9–10, 12; Infrastructure 7–9; D-002 | Phase 5 |
 
-Entry: Phase 1 exit criteria pass.
-
-Exit: canonical location selection, GPS policy, service-layer boundaries, admin session security, cache/config consistency, and structured logging are stable.
-
-### Phase 3 - Feature Completion
-
-Entry: Phase 2 exit criteria pass.
+Every Critical/High finding is represented. T10–T12 are carried forward because the approved controlled-MVP scope does not include daily/public operating workflows.
 
-Exit: driver/mobile workflow, feedback workflow, operations dashboard, and public trust/empty-state UX are usable.
-
-### Phase 4 - Hardening and Scale
-
-Entry: Phase 3 exit criteria pass and pilot usage data exists.
-
-Exit: automated release gates, focused frontend modules, stronger operational monitoring, and scale-related database/runtime improvements are verified.
-
-### Phase 5 - Decisions and Deferred Scope
-
-Entry: user decisions are recorded for ESP32, retention/fidelity, and extended product scope; TTN prerequisites are complete.
-
-Exit: only the explicitly approved deferred capabilities are implemented.
-
-## Consolidated Tasks
-
-### T1 - Authenticate all trip and GPS senders
-
-- Source: Production Readiness Finding 1; Security/DevOps Recommendation 1; Backend Critical Issue 1 and Recommendation 1.
-- Phase: 1
-- Depends on: T2 source registry exists; migrate legacy vehicle-only clients before removing fallback behavior.
-- Blocks: T3, T13, T19, T27
-- Priority: Critical
-- Difficulty: Medium
-- Agent: Level 2 Auth/Security Agent, then Level 3 Refactoring Agent
-- Files: `shuttle-tracking-backend/src/controllers/auth.controller.ts`, `shuttle-tracking-backend/src/routes/trips.route.ts`, `shuttle-tracking-backend/src/server.ts`, `shuttle-tracking-backend/src/services/tracking.service.ts`
-- Implement: require credentials for every active non-public source and TTN webhook; issue short-lived sender credentials; authenticate trip start/end and Socket.IO handshake/events; bind sender to vehicle/source; reject spoofed vehicle/trip IDs; retire `vehicleId -> sourceId` fallback after client migration; never log secrets.
-- Accept when: an active source cannot exist without a credential; missing production `TTN_WEBHOOK_SECRET` fails closed; unauthenticated REST, webhook, and socket writes fail; authenticated sender can operate only its own source/trip; tests cover the trust boundary.
-
-### T2 - Operationalize `TrackingSource` and device identity
-
-- Source: Production Readiness Finding 2; Architecture Strength 6 and remaining risks; Backend Critical Issue 2 and Recommendation 4; Database Critical Issue 1 and Recommendation 1; Infrastructure Critical Issue 4 and Recommendation 4; Security/DevOps Recommendations 1 and 3.
-- Phase: 1
-- Depends on: none for schema/API design; T1 for sender enforcement.
-- Blocks: T13, T19, T26, T27
-- Priority: High; Critical only for multi-device production
-- Difficulty: Medium
-- Agent: Level 2 Device Registry Agent, then Level 3 Refactoring Agent
-- Files: `shuttle-tracking-backend/prisma/schema.prisma`, `shuttle-tracking-backend/src/services/tracking.service.ts`, `shuttle-tracking-backend/src/server.ts`
-- Implement: complete the existing registry integration and provisioning flow; require registered source IDs for non-legacy clients; expose safe source fields only (never `secretHash`); add rotation without returning secrets; document priority/failover and admin source health.
-- Accept when: source-to-vehicle ownership is enforced; active sources require credentials; device list/detail/create/update responses exclude `secretHash`; source health/last-seen/analytics are queryable; migrations and fixtures remain valid.
-
-### T3 - Make trip lifecycle idempotent and transactional
-
-- Source: Production Readiness Finding 3; Backend Critical Issue 3 and Recommendation 2; Database Critical Issue 2 and Recommendation 2; Architecture trip lifecycle finding.
-- Phase: 1
-- Depends on: T1, T2
-- Blocks: T11, T13, T19, T21
-- Priority: High/Critical
-- Difficulty: Medium
-- Agent: Level 3 Refactoring Agent
-- Files: `shuttle-tracking-backend/src/controllers/trips.controller.ts`, `shuttle-tracking-backend/prisma/schema.prisma`
-- Implement: move lifecycle rules into one service; use Prisma transactions; return the existing active trip or explicit 409 on duplicate start; end only an owned `in_progress` trip; update vehicle state atomically.
-- Accept when: duplicate start is deterministic; invalid/foreign/end-twice requests return safe 4xx; database constraint and service logic agree; unit/integration tests cover concurrent starts and end behavior.
-
-### T4 - Add central validation and safe API errors
-
-- Source: Production Readiness Finding 10; Backend Recommendation 3; Security/DevOps Recommendation 3; Database Recommendation 5.
-- Phase: 1
-- Depends on: T1, T2, T3
-- Blocks: T12, T19, T26, T27
-- Priority: High
-- Difficulty: Easy-Medium
-- Agent: Level 3 Refactoring Agent
-- Files: `shuttle-tracking-backend/src/controllers/*.ts`, `shuttle-tracking-backend/src/services/tracking.service.ts`
-- Implement: add schemas/DTOs for auth, vehicle, route, stop, route-stop, trip, and GPS payloads; validate coordinates, IDs, enums, ownership, and required fields; add one error-to-response mapping.
-- Accept when: malformed payloads never reach Prisma or broadcast; invalid coordinates and mismatched trip/vehicle are rejected; responses use stable status/code/message fields; tests cover every write endpoint.
-
-### T5 - Remove unsafe defaults and enforce secret configuration
-
-- Source: Production Readiness Finding 4; Security/DevOps Recommendation 4.
-- Phase: 1
-- Depends on: none
-- Blocks: T6, T7
-- Priority: Critical
-- Difficulty: Easy
-- Agent: Level 3 Refactoring Agent
-- Files: `shuttle-tracking-backend/.env.example`, `docker-compose.yml`, `shuttle-tracking-backend/prisma/seed.ts`, `shuttle-tracking-backend/docker-entrypoint.sh`
-- Implement: remove concrete JWT, TTN webhook, and password defaults; fail startup when production secrets are missing/weak; make seed admin credentials explicit and dev-only; provision the first production admin through a one-time secure setup; never log full Redis URLs.
-- Accept when: production startup fails closed with missing/unsafe secrets; no default admin credential is usable; env examples contain placeholders only; repository search finds no production-capable hard-coded secret or full credential-bearing URL.
-- Status: Complete
-- Evidence: `npm run build`, `npm test`, Prisma validation, Compose config checks, and controlled entrypoint/seed fail-closed smoke tests passed on 2026-07-17; scoped production-capable files contain placeholders or explicit required variables only.
-
-### T6 - Define deployable production configuration
-
-- Source: Production Readiness Finding 5; Infrastructure Critical Issue 2 and Recommendation 1.
-- Phase: 1
-- Depends on: T5, T16
-- Note: T5 unblocked on 2026-07-17 after secret/default enforcement and production Compose required-variable checks landed.
-- Blocks: T7, T8
-- Priority: Critical
-- Difficulty: Medium
-- Agent: Level 2 Deployment/Cloud Agent, then Level 3 Refactoring Agent
-- Files: `docker-compose.yml`, `env.example`, `shuttle-tracking-backend/.env.example`, `shuttle-tracking-web/.env.example`
-- Implement: add provider env templates and a deployment runbook for Vercel frontend, Render backend/Redis, and Neon database; document build/start/migration commands, `/health` and `/ready` probes, CORS/Socket.IO origins, Neon migration policy, Redis eviction/persistence, backup/restore ownership, and log destination.
-- Accept when: staging configuration is reproducible from environment variables; frontend REST and Socket.IO resolve the same backend; Render uses health/readiness probes; CORS/WebSocket origins are explicit; no local-only URL is required.
-
-### T7 - Use production build and runtime commands
-
-- Source: Production Readiness Finding 13; Infrastructure Critical Issue 1 and Recommendation 2; Security/DevOps Recommendation 5.
-- Phase: 1
-- Depends on: T5, T6
-- Note: T5 unblocked on 2026-07-17 after production startup secret validation and seed disablement landed.
-- Blocks: production release
-- Priority: High
-- Difficulty: Medium
-- Agent: Level 3 Refactoring Agent
-- Files: `shuttle-tracking-backend/Dockerfile`, `shuttle-tracking-web/Dockerfile`, `shuttle-tracking-backend/package.json`, `shuttle-tracking-web/package.json`, `docker-compose.yml`
-- Implement: create production backend build/start and frontend build/start paths; remove dev server/source mounts from production path; set production runtime explicitly; keep a separate local-dev path.
-- Accept when: clean build succeeds; production containers do not run `nodemon` or `next dev`; health checks can start against the production command.
-
-### T8 - Add health/readiness and minimum monitoring
-
-- Source: Production Readiness Finding 12; Infrastructure Critical Issue 3 and Recommendation 3; Security/DevOps Recommendation 7.
-- Phase: 1
-- Depends on: T6, T7
-- Blocks: production release, T21
-- Priority: High
-- Difficulty: Easy-Medium
-- Agent: Level 3 Refactoring Agent
-- Files: `shuttle-tracking-backend/src/server.ts`, `shuttle-tracking-backend/src/config/prisma.ts`, `shuttle-tracking-backend/src/config/redis.ts`, `docker-compose.yml`
-- Implement: keep the existing `/health` and `/ready` contracts; configure deployment probes; check DB/Redis readiness without leaking internals; add metrics/log fields for accepted/rejected observations, stale sources, source selection, dependency errors, and broadcasts.
-- Accept when: liveness works without dependencies; readiness fails when DB/Redis is unavailable; Render/staging health checks use the endpoints; operators can query the minimum counters without secrets or raw tokens.
-
-### T9 - Add realtime freshness and stale-state handling
-
-- Source: Production Readiness Finding 11; Frontend Recommendation 1; Dashboard/UX Recommendation 1; Product Phase 1 stale/offline gap; Security/DevOps Recommendation 8.
-- Phase: 1
-- Depends on: T2, T8
-- Blocks: T21, T22
-- Priority: High
-- Difficulty: Medium
-- Agent: Level 3 Refactoring Agent
-- Files: `shuttle-tracking-web/components/public/ShuttleTracker.tsx`, `shuttle-tracking-web/components/admin/LiveMap.tsx`, `shuttle-tracking-web/app/admin/dashboard/page.tsx`
-- Implement: track socket lifecycle and per-vehicle `lastSeenAt`; define Live/Stale/Offline thresholds; show connection state, last update, stale markers, and recoverable errors in public/admin views.
-- Accept when: stale vehicles are not presented as live; disconnect/reconnect is visible; thresholds are centralized; public and admin views render the same state semantics.
-
-### T10 - Add route-stop management and invalidate caches
-
-- Source: Production Readiness Findings 6 and 17; Product Feature Gap 1; Frontend Recommendations 2 and 4; Dashboard/UX Recommendation 8; Backend Recommendation 5; Architecture cache finding.
-- Phase: 1
-- Depends on: T4, T6
-- Blocks: T22
-- Priority: Critical
-- Difficulty: Medium
-- Agent: Level 3 Refactoring Agent
-- Files: `shuttle-tracking-web/app/admin/routes/page.tsx`, `shuttle-tracking-web/components/admin/RouteModal.tsx`, `shuttle-tracking-web/components/admin/Sidebar.tsx`, `shuttle-tracking-backend/src/routes/routeStops.route.ts`, `shuttle-tracking-backend/src/controllers/routeStops.controller.ts`, `shuttle-tracking-backend/src/services/cache.service.ts`
-- Implement: add route detail/manage-stops UI with add/remove/reorder and save validation; invalidate public route-stop and geometry caches after every membership/order/coordinate mutation; replace broad Redis `KEYS` when touching cache logic.
-- Accept when: admin can create the ordered route-stop list without API/manual work; invalid order/membership is rejected; next public read sees the new order/geometry; tests cover create/delete/reorder invalidation.
-
-### T11 - Add minimum admin trip history
-
-- Source: Production Readiness Finding 8; Product Feature Gap 3; Backend Recommendation 7; Database GPS history review.
-- Phase: 1
-- Depends on: T3, T4
-- Blocks: T21, advanced playback
-- Priority: Critical for list/history; Medium for playback
-- Difficulty: Medium
-- Agent: Level 3 Refactoring Agent
-- Files: trip/GPS controllers and routes, `shuttle-tracking-backend/prisma/schema.prisma`, admin navigation/pages
-- Implement: add protected admin list/detail APIs with date, route, vehicle, and status filters; add a scan-friendly admin history page; keep high-fidelity playback deferred to T14.
-- Accept when: admins can find completed/active trips and inspect metadata; unauthorized users cannot access history; pagination/filter tests pass.
-
-### T12 - Add rate limiting and abuse controls
-
-- Source: Production Readiness Finding 16; Security/DevOps Recommendation 10.
-- Phase: 1
-- Depends on: T1, T4, T6
-- Blocks: public production release
-- Priority: High
-- Difficulty: Medium
-- Agent: Level 2 Security/Abuse Agent, then Level 3 Refactoring Agent
-- Files: `shuttle-tracking-backend/src/server.ts`, `shuttle-tracking-backend/src/routes/public.route.ts`, `shuttle-tracking-backend/src/routes/trips.route.ts`
-- Implement: rate-limit admin/vehicle login, feedback, trip writes, HTTP ingestion, TTN webhook, and Socket.IO events; rate by authenticated `sourceId` for GPS; reject impossible frequencies; add brute-force/backoff behavior and Redis-backed limits where required.
-- Accept when: limits are configurable; excess requests receive safe 429 responses; authenticated source limits are separated from public limits; tests cover login, HTTP/TTN ingestion, socket flooding, and GPS abuse.
-
-### T13 - Separate ingestion from canonical current location
-
-- Source: Production Readiness Finding 9; Architecture location-ingestion finding; Backend Recommendation 6; Security/DevOps Recommendation 8.
-- Phase: 2
-- Depends on: T1, T2, T3, T4
-- Blocks: T21, T26, T27
-- Priority: High
-- Difficulty: Medium
-- Agent: Level 2 Realtime/Location Agent, then Level 3 Refactoring Agent
-- Files: `shuttle-tracking-backend/src/services/tracking.service.ts`, `shuttle-tracking-backend/src/server.ts`
-- Implement: normalize and persist accepted observations separately from canonical vehicle state; select canonical location by source priority, freshness, validity, and ownership; broadcast only the canonical validated result; return typed accepted/rejected results.
-- Accept when: rejected observations are never broadcast; canonical state is deterministic with multiple sources; source failover is observable; sender receives ack/error state.
-
-### T14 - Define GPS sampling, retention, and index policy
-
-- Source: Production Readiness Finding 14; Database Critical Issues 3/4 and Recommendations 3/4; Infrastructure TTN sampling note.
-- Phase: 2
-- Depends on: T2, T11, T13
-- Blocks: high-fidelity playback, reports, scale work
-- Priority: High; Critical if high-fidelity history is promised
-- Difficulty: Medium
-- Agent: User Decision Required, then Level 2 Database/Time-Series Agent
-- Files: `shuttle-tracking-backend/prisma/schema.prisma`, `shuttle-tracking-backend/src/services/tracking.service.ts`
-- Decide only: retention period, archive/delete ownership, and whether high-fidelity playback is in scope. The current TTN history sampling target is 60 seconds and may be implemented as the MVP policy. Add indexes/migration for the approved query policy.
-- Accept when: 60-second sampled history is documented and enforced for MVP; retention/archiving behavior is testable; indexes match list/history queries; product copy does not promise unsupported fidelity.
-
-### T15 - Create a trip/operations domain service
-
-- Source: Architecture trip lifecycle finding; Backend trip lifecycle review; Product active-trip/stale dashboard gaps.
-- Phase: 2
-- Depends on: T3, T4, T13
-- Blocks: T19, T21, future reports
-- Priority: High
-- Difficulty: Medium
-- Agent: Level 3 Refactoring Agent
-- Files: trip controllers/services, `shuttle-tracking-backend/src/services/tracking.service.ts`
-- Implement: centralize start/end/current-trip/source-health rules behind typed service APIs; keep controllers thin; prevent frontend from becoming the source of operational truth.
-- Accept when: lifecycle and canonical-state rules have one owner; controllers only translate HTTP/socket input/output; service tests cover state transitions.
-
-### T16 - Align REST and Socket.IO environment configuration
-
-- Source: Frontend Recommendation 6; Infrastructure production configuration analysis; Production Readiness Finding 5.
-- Phase: 2
-- Depends on: T6
-- Blocks: reliable T9 and production deployment
-- Priority: Medium
-- Difficulty: Easy
-- Agent: Level 3 Refactoring Agent
-- Files: frontend env/API/socket config, backend CORS/socket config
-- Implement: use one explicit backend origin model for REST and Socket.IO; validate required client/server variables at startup/build; remove divergent defaults.
-- Accept when: local/staging/prod each use the intended origin; browser REST and socket requests target the same environment; missing config fails clearly.
-
-### T17 - Harden admin session handling
-
-- Source: Production Readiness Finding 15; Security/DevOps Recommendation 2; Frontend Issue 4 and Recommendation 7.
-- Phase: 2
-- Depends on: T5, T6
-- Blocks: public admin deployment
-- Priority: High
-- Difficulty: Medium
-- Agent: Level 2 Auth/Security Agent, then Level 3 Refactoring Agent
-- Files: `shuttle-tracking-web/contexts/AuthContext.tsx`, `shuttle-tracking-web/services/api.ts`, `shuttle-tracking-backend/src/controllers/auth.controller.ts`
-- Implement: use server-managed `httpOnly`, `secure`, `sameSite` cookies where compatible; validate token claims/expiry/role in backend and route protection; define logout/expiry behavior.
-- Accept when: JS cannot read the session token; invalid/expired/non-admin sessions are rejected server-side and redirected client-side; cookie behavior is tested over HTTPS/staging.
-
-### T18 - Split public tracker into focused modules
-
-- Source: Production Readiness Finding 18; Frontend Issue 3 and Recommendation 3; Architecture frontend-intelligence finding.
-- Phase: 4
-- Depends on: T9, T13, T22
-- Blocks: lower-risk future frontend changes
-- Priority: High
-- Difficulty: Medium
-- Agent: Level 3 Refactoring Agent
-- Files: `shuttle-tracking-web/components/public/ShuttleTracker.tsx`, `shuttle-tracking-web/hooks/useLeafletMap.ts`, `shuttle-tracking-web/utils/MapHelpers.ts`
-- Implement: extract socket/freshness state, route/stop loading, marker lifecycle, location/ETA calculation, geolocation, and presentation into focused hooks/modules; preserve behavior.
-- Accept when: component responsibilities are separated; unit tests cover extracted calculations/state; public behavior and performance do not regress.
-
-### T19 - Build the minimum driver/mobile workflow
-
-- Source: Production Readiness Finding 7; Product Feature Gap 2 and Phase 1 Critical roadmap; Infrastructure mobile readiness review.
-- Phase: 3
-- Depends on: T1, T2, T3, T4, T13, T16
-- Blocks: production operations if no external sender is supplied
-- Priority: Critical for real driver operations
-- Difficulty: Medium
-- Agent: Level 2 Mobile/Product Agent, then Level 3 Refactoring Agent
-- Files: sender client replacing/extending `shuttle-tracking-web/simulate.js`, trip/GPS API integration
-- Implement: provide vehicle login, assigned vehicle/route confirmation, start trip, permission/error handling, live send status, reconnect behavior, and end trip.
-- Accept when: a driver can complete the full lifecycle without simulator/manual API calls; auth and retry behavior are safe; device state is visible to operations.
-
-### T20 - Add feedback workflow
-
-- Source: Product Feature Gap 4 and Phase 2 roadmap; Database Recommendation 6; Dashboard/UX operational visibility gap.
-- Phase: 3
-- Depends on: T4, T12, T17
-- Blocks: rider incident triage
-- Priority: Medium
-- Difficulty: Easy-Medium
-- Agent: Level 3 Refactoring Agent
-- Files: feedback schema/controllers/routes and public/admin pages
-- Implement: add public feedback submission with validation/rate limits and admin review/status workflow; extend schema only as needed by the audit-defined workflow.
-- Accept when: rider can submit safely; admin can filter/review/resolve; abuse controls and error states are present.
-
-### T21 - Build an operations dashboard around exceptions
-
-- Source: Production Readiness Finding 19; Dashboard/UX Issue 2 and Recommendations 2/9; Product active-trip/offline gaps; Security/DevOps Recommendation 8.
-- Phase: 3
-- Depends on: T8, T9, T11, T13, T15
-- Blocks: operational readiness sign-off
-- Priority: High
-- Difficulty: Medium
-- Agent: Level 3 Refactoring Agent
-- Files: `shuttle-tracking-web/app/admin/dashboard/page.tsx`, `shuttle-tracking-web/components/admin/LiveMap.tsx`, admin API/dashboard data modules
-- Implement: add Attention Needed view for stale/silent vehicles, uncovered routes, active trip problems, source health, socket/API health, and recent failures; add a scan-friendly vehicle list beside the map.
-- Accept when: an admin can identify exceptions without clicking map markers; list and map share freshness state; loading/error/empty states are recoverable.
-
-### T22 - Improve public trust, labels, ETA confidence, and tour anchors
-
-- Source: Production Readiness Finding 20; Dashboard/UX Recommendations 3-6; Frontend error/empty-state review.
-- Phase: 3
-- Depends on: T9, T10, T13
-- Blocks: trustworthy rider-facing release
-- Priority: High for no-data states; Medium for labels/ETA/tour
-- Difficulty: Easy
-- Agent: Level 3 Refactoring Agent
-- Files: `shuttle-tracking-web/components/public/ShuttleTracker.tsx`, `AvailabilityCard.tsx`, `StopInfoCard.tsx`, `AppTour.tsx`
-- Implement: distinguish no service/no assignment/no GPS/socket failure; show route meaning, freshness, and approximate/ranged ETA; add stable `data-tour` anchors; add route-load retry UI.
-- Accept when: zero/no-data states explain cause and next action; ETA does not imply unsupported precision; tour selectors match rendered controls; mobile layout remains usable.
-
-### T23 - Improve admin CRUD feedback and client validation
-
-- Source: Frontend Recommendation 5; Dashboard/UX Recommendation 7.
-- Phase: 3
-- Depends on: T4, T17
-- Blocks: admin workflow polish
-- Priority: Medium
-- Difficulty: Easy
-- Agent: Level 3 Refactoring Agent
-- Files: admin vehicle/route/stop pages and forms
-- Implement: replace browser `alert`/console-only failures with inline banners/toasts and retry actions; add client validation aligned with backend schemas.
-- Accept when: every mutation has pending/success/error states; failures are recoverable; client/server validation messages are consistent.
-
-### T24 - Add structured redacted logging
-
-- Source: Security/DevOps Recommendations 3, 9, 11, and 12; Production Readiness monitoring requirements.
-- Phase: 2
-- Depends on: T1, T4, T8
-- Blocks: dependable incident diagnosis
-- Priority: Medium
-- Difficulty: Easy-Medium
-- Agent: Level 3 Refactoring Agent
-- Files: backend server/services/config modules
-- Implement: standardize structured logs with request/event IDs, source/vehicle IDs, status, latency, and error codes; redact tokens, passwords, `secretHash`, secrets, and credential-bearing URLs; remove high-volume frontend live-location logs; add lightweight frontend/backend error tracking with environment and release tags.
-- Accept when: auth failures, rejected GPS, lifecycle failures, dependency failures, and stale sources produce searchable fields; device APIs never expose `secretHash`; Redis URLs are redacted; error events are correlated to environment/release; redaction tests pass.
-
-### T25 - Add automated tests and release gates
-
-- Source: Backend Recommendation 8; Security/DevOps Recommendations 5, 6, and 8; all production-readiness verification requirements.
-- Phase: 4
-- Depends on: T1-T24 as applicable
-- Blocks: release sign-off
-- Priority: Medium
-- Difficulty: Medium
-- Agent: Level 3 Refactoring Agent
-- Files: package scripts, test directories, CI/deploy configuration
-- Implement: add CI/CD that installs from lockfiles, runs backend build/test, frontend lint/build, migration checks, vulnerability scan, and the converted `test_pipeline.js` smoke/integration test; gate Vercel/Render deployment on required checks.
-- Accept when: CI/build/test/migration/smoke commands are documented and reproducible; `npm test` is no longer a placeholder; production deployment cannot pass with failing required checks.
-
-### T26 - Implement TTN realtime and sampled history paths
-
-- Source: Infrastructure Recommendation 5 and LoRaWAN readiness; Production Readiness Finding 21.
-- Phase: 4
-- Depends on: T1, T2, T4, T13, T14
-- Blocks: TTN-backed production scope
-- Priority: High
-- Difficulty: Hard
-- Agent: Level 2 LoRaWAN/TTN Agent, then Level 3 Refactoring Agent
-- Implement the confirmed topology: secured TTN MQTT-to-frontend realtime delivery, plus server-side TTN history ingestion using the existing webhook or a Render worker MQTT subscriber; normalize decoded uplinks, authenticate, deduplicate, sample history at 60 seconds, retry safely, and expose source health.
-- Accept when: TTN realtime and history paths are separately testable; missing webhook/MQTT credentials fail closed; duplicate/delayed/malformed uplinks are safe; source-to-vehicle assignment and sampled history are observable.
-
-### T27 - ESP32 ingestion [DECISION GATE]
-
-- Source: Infrastructure ESP32 readiness and Recommendation 6; Architecture multi-source readiness.
-- Phase: 5
-- Depends on: T2, T4, T13, T16
-- Blocks: ESP32-backed production scope
-- Priority: Medium unless ESP32 is selected as a production source
-- Difficulty: Medium-Hard
-- Agent: User Decision Required, then Level 2 ESP32/IoT Agent
-- Decide protocol and provisioning model first. Then implement the smallest authenticated ESP32 adapter that emits the normalized observation contract.
-- Accept when: protocol, transport, payload, provisioning, retry, and offline behavior are approved; integration tests cover auth and duplicate/out-of-order observations.
-
-### T28 - Deferred product capabilities
-
-- Source: Product Reports/Analytics/Announcements roadmap; Database feedback expansion; Security/DevOps admin roles/audit log; Database playback indexes.
-- Phase: 5
-- Depends on: T11, T14, T17, T20, T21, T25 and explicit product decisions
-- Blocks: none
-- Priority: Low-Medium
-- Difficulty: Medium
-- Agent: User Decision Required, then specialized Level 2 agent as needed
-- Scope: high-fidelity playback, reports/analytics, announcements, admin roles, audit log, and expanded feedback/reporting.
-- Accept when: each capability has an approved product definition, data-retention/security requirements, and a separate implementation task. Do not bundle these into production-blocker work.
-
-## Dependency Map
-
-```text
-T2 -> T1 -> T3 -> T13 -> T19/T21/T26/T27
-T4 depends on T1/T2/T3 -> T10/T12/T19/T20
-T5 -> T6 -> T7/T8 -> T9/T21
-T10 -> T22
-T11 + T14 -> playback/reports
-T17 -> admin production access
-T8 + T9 + T13 + T15 -> T21
-T9 + T13 -> T18/T22
-T24 -> T25
-```
-
-Safe parallel work after prerequisites: T5 with T2/T3; T6 with T10 backend preparation; T8 with T10 UI/API work; T17 with T14; T22 with T23. Avoid parallel edits to `schema.prisma`, `tracking.service.ts`, and `ShuttleTracker.tsx` unless ownership is explicitly assigned.
-
-## Research Queue
-
-1. Request validation/DTOs and safe error contracts.
-2. Authentication, JWT claims, httpOnly cookies, Socket.IO handshake auth.
-3. Idempotency, transactions, unique/partial database constraints.
-4. Device registry and source provisioning/rotation.
-5. Realtime freshness, reconnect, stale/offline state, and canonical-source selection.
-6. Redis rate limiting, abuse controls, and cache invalidation without `KEYS`.
-7. Production Docker/build/runtime and Vercel/Render/Neon configuration.
-8. Health/readiness endpoints and structured redacted logging.
-9. Ordered many-to-many route-stop management.
-10. GPS sampling, retention, partitioning, spatial/time-series indexes.
-11. Map-plus-list operations dashboards and ETA confidence framing.
-12. Mobile sender workflow and offline/retry behavior.
-13. TTN/LoRaWAN webhook/history ingestion.
-14. ESP32 protocol/provisioning.
-
-## Risk Carry-Forward
-
-- Sender spoofing: accepted until T1 passes; no real production vehicle data.
-- Multi-source failover: accepted until T2/T13 pass; no claim of reliable TTN/ESP32/mobile arbitration.
-- GPS history fidelity/cost: accepted until the T14 decision; document sampled-history limits.
-- Driver operations: accepted only if an external authenticated sender is supplied and audited; otherwise T19 blocks production.
-- TTN: topology is confirmed; implementation remains blocked only by T1/T2/T4/T13/T14 and provider credentials.
-- ESP32: explicitly deferred until the protocol decision in T27.
-- Reports, roles, audit log, announcements, and advanced playback: explicitly deferred under T28.
-
-## Agent Routing
-
-- Direct Level 3: T3, T4, T5, T7, T8, T9, T10, T11, T13, T15, T16, T18, T20, T21, T22, T23, T24, T25.
-- Level 2 first: T1/T17 (Auth/Security), T2 (Device Registry), T6/T7 (Deployment), T12 (Security/Abuse), T13 (Realtime/Location), T14 (Database/Time-Series), T19 (Mobile/Product), T26 (LoRaWAN/TTN), T27 (ESP32/IoT).
-- User decision required: T14 retention/archive scope, T27, T28.
-
-## Production Go/No-Go Checklist
-
-- [ ] T1-T12 complete, or every exception is explicitly accepted by the user.
-- [ ] No unsafe production secret/admin defaults.
-- [ ] Production build/runtime and target deployment configuration verified.
-- [ ] Health/readiness checks pass against real DB/Redis configuration.
-- [ ] Public/admin freshness and stale-state behavior verified.
-- [ ] Route-stop changes invalidate public data and geometry.
-- [ ] Admin can inspect minimum trip history.
-- [ ] Rate limits and safe error responses verified.
-- [ ] Real sender workflow is authenticated and tested, either via T19 or an approved external client.
-- [ ] Follow-up audit/test evidence changes readiness from Not Ready to Ready.
+## 4. Dependency Map
+
+| Task | Depends on | Blocks |
+|---|---|---|
+| T1 | None | T3, T4, safe device administration |
+| T2 | T1 conventions | T3, T5, T6, T10 |
+| T3 | T1, T2 | T7 and device-pipeline claims |
+| T4 | T1 | T13 and reliable release evidence |
+| T5 | T2 and current partial unique index | T6, T11, T13 |
+| T6 | T2, T5 lifecycle vocabulary | T7, T8, T11, T15 |
+| T7 | T3, T6, retention parameter record | Research comparison |
+| T8 | T6; T10 for final route invalidation | Truthful tracking claims |
+| T9 | D-003=A and topology facts | T13/public deployment |
+| T10 | T2, T8, D-001=B/C | Operator-managed routes |
+| T11 | T5, T6, D-001=B/C | Daily service accountability |
+| T12 | D-001=C, T6 | Public support/device operations |
+| T13 | T4, T5, T6, T9 | Production readiness reassessment |
+| T14 | T8 and browser evidence | None |
+| T15 | T7 and physical provider/device facts | None |
+
+Cycle check: the previous topology/frontend configuration cycle is resolved by D-003=A. T9 defines topology and origins before configuration alignment. No technical cycle remains.
+
+Safe parallel work: T1 and the planning portion of T4. After Phase 1, T5 and the planning portion of T9 may run in parallel. Do not modify raw telemetry, canonical selection, and map consumers concurrently without accepting the T6 contract first.
+
+## 5. Phase 1 — Controlled MVP Safety and Production Blockers
+
+**Entry criteria:** all audits complete; D-001=A, D-002=B, and D-003=A approved; no daily/public claim.
+
+**Exit criteria:** no secret/config leakage; validated and bounded writes; fixture-aligned pipeline smoke evidence; repeatable CI/local gates and redacted operational signals. This makes the pilot safer but does not change the production No-Go.
+
+### T1 — Remove sensitive response and logging exposure
+
+### Source Audit(s)
+
+Production Readiness 3.4; Security 4, 13, 16; Backend 5.
+
+### Phase
+
+1.
+
+### Depends On
+
+None.
+
+### Blocks
+
+T3, T4, safe device operations.
+
+### Priority
+
+High.
+
+### Difficulty
+
+Easy.
+
+### Suggested Agent
+
+Level 3 Refactoring Agent (direct).
+
+### Execution Mode
+
+Antigravity Implementation Ready.
+
+### Task Brief
+
+Create safe device response DTOs for list/get/create/update, never return secretHash, and replace Redis connection URL logs with redacted/static events. Preserve sender credential rotation without returning credential material. Allowed scope is device response/test and Redis logging paths only.
+
+### Related Files
+
+Device controller/routes/types, Redis configuration, backend route tests.
+
+### Acceptance Criteria and Verification
+
+No secretHash appears in device responses and no credential-bearing URL appears in logs. Device CRUD/rotation remains functional. Add absence tests; run backend test/build and a repository search for unsafe output.
+
+### T2 — Add validated, bounded public and sender write boundaries
+
+### Source Audit(s)
+
+Production Readiness 3.4; Security 4, 6, 16; Backend 6, 13.
+
+### Phase
+
+1.
+
+### Depends On
+
+T1 response/error conventions.
+
+### Blocks
+
+T3, T5, T6, T10, public release.
+
+### Priority
+
+High.
+
+### Difficulty
+
+Medium.
+
+### Suggested Agent
+
+Level 2 Security/Abuse specialist, then Level 3 Refactoring Agent.
+
+### Execution Mode
+
+Codex + Specialist.
+
+### Task Brief
+
+Add shared schemas and safe error mapping for login, feedback, device, route-stop, trip, and observation writes. Add configurable request-size/rate limits, separating public/auth limits from authenticated source quotas. Keep sender acknowledgements and avoid logging secrets.
+
+### Related Files
+
+Server middleware, auth/public/ingest/trip/device/route-stop controllers, tracking service, tests.
+
+### Acceptance Criteria and Verification
+
+Malformed writes receive stable 4xx/429 responses and never reach Prisma/broadcast; source-aware limits work; authenticated sender behavior remains valid. Run backend tests and configured integration smoke tests.
+
+### T3 — Align device fixtures and document pipeline smoke tests
+
+### Source Audit(s)
+
+Production Readiness 3.6; Infrastructure & Device 4, 6–9, 12.
+
+### Phase
+
+1.
+
+### Depends On
+
+T1, T2.
+
+### Blocks
+
+T7 and all device-pipeline validation claims.
+
+### Priority
+
+High.
+
+### Difficulty
+
+Easy.
+
+### Suggested Agent
+
+Level 3 Refactoring Agent (direct).
+
+### Execution Mode
+
+Antigravity Implementation Ready.
+
+### Task Brief
+
+Make simulator source/vehicle IDs and credentials environment-driven and consistent with development seed fixtures. Document mobile and TTN smoke commands that exercise authentication, ingestion, canonical selection, and safe acknowledgement. Do not add MQTT or another pipeline.
+
+### Related Files
+
+Frontend simulator scripts, backend TTN simulator/pipeline test, seed data, environment examples, test documentation.
+
+### Acceptance Criteria and Verification
+
+Checked-in defaults match seed fixtures; documented mobile and TTN smoke commands pass on a disposable configured stack; failures reveal no secrets. Run Compose configuration validation and the smoke commands.
+
+### T4 — Automate current checks and emit minimum redacted signals
+
+### Source Audit(s)
+
+Production Readiness 3.8; Security 9–16; Infrastructure 5, 12; Backend 11.
+
+### Phase
+
+1.
+
+### Depends On
+
+T1 and existing commands.
+
+### Blocks
+
+T13 and credible release evidence.
+
+### Priority
+
+High.
+
+### Difficulty
+
+Medium.
+
+### Suggested Agent
+
+Level 2 Observability/DevOps specialist, then Level 3 Refactoring Agent.
+
+### Execution Mode
+
+Codex + Specialist.
+
+### Task Brief
+
+Automate backend test, frontend lint/build, Prisma validation, and Compose configuration validation. Add redacted structured events for startup/readiness, accepted/rejected ingestion, source staleness, and history persistence failure. Do not select a monitoring vendor until T9.
+
+### Related Files
+
+Package scripts, CI workflow, server/tracking logging paths, Compose, documentation.
+
+### Acceptance Criteria and Verification
+
+CI runs all listed checks and blocks failures; logs/metrics contain no secrets and distinguish operational outcomes. Run every local equivalent and inspect sample output.
+
+## 6. Phase 2 — Structural Foundations and Approved Research
+
+**Entry criteria:** Phase 1 exit criteria pass.
+
+**Exit criteria:** one lifecycle owner and one versioned canonical contract exist; maps consume canonical truth; D-002 research diagnostics has a bounded policy; D-003 topology/origin contract is written. Daily/public workflows remain deferred by D-001=A.
+
+### T5 — Create one transactional, idempotent Operations/Trip boundary
+
+### Source Audit(s)
+
+Production Readiness 3.3; Architecture 5, 8; Backend 5, 7, 11, 13; Database 4, 10, 13.
+
+### Phase
+
+2.
+
+### Depends On
+
+T2 and the existing partial active-trip index.
+
+### Blocks
+
+T6, T11, T13.
+
+### Priority
+
+High.
+
+### Difficulty
+
+Medium.
+
+### Suggested Agent
+
+Level 2 Database/transaction specialist, then Level 3 Refactoring Agent.
+
+### Execution Mode
+
+Codex + Specialist.
+
+### Task Brief
+
+Move start/end/virtual-trip policy into one Operations/Trip service. Preserve the partial unique active-trip index, make trip/vehicle/history changes atomic, define duplicate start/end behavior, then add status/time integrity checks.
+
+### Related Files
+
+Trip controller/routes, tracking service, Prisma schema/migrations, lifecycle integration tests.
+
+### Acceptance Criteria and Verification
+
+Duplicate start/end behavior is documented and deterministic; foreign/non-active writes fail safely; vehicle and active-trip state remain consistent under retry/race tests. Run Prisma validation, backend tests, and disposable Postgres/Redis integration tests.
+
+### T6 — Publish a versioned, route-aware canonical vehicle-state contract
+
+### Source Audit(s)
+
+Production Readiness 3.2; Architecture 5, 7, 11; Backend 8–10; Frontend 4, 7, 9; Dashboard 5, 10.
+
+### Phase
+
+2.
+
+### Depends On
+
+T2 and T5 lifecycle vocabulary.
+
+### Blocks
+
+T7, T8, T11, T15.
+
+### Priority
+
+High.
+
+### Difficulty
+
+Hard.
+
+### Suggested Agent
+
+Level 2 Realtime/telemetry specialist, then Level 3 Refactoring Agent.
+
+### Execution Mode
+
+Codex + Specialist.
+
+### Task Brief
+
+Implement one backend-owned event/read contract containing authoritative vehicle route, source, event/receive times, monotonic version, freshness/no-service state, and selection reason. Define duplicate/late/out-of-order disposition; broadcast only canonical state and retain the monolith/one ingestion path.
+
+### Related Files
+
+Tracking service, Socket.IO events, public reads/types, simulator payload types, frontend realtime types.
+
+### Acceptance Criteria and Verification
+
+Late data cannot move a marker backward; all-stale emits explicit state; UI can ignore lower versions and never infer route from selected UI route. Test priority, stale fallback, duplicate, late, and reconnect cases.
+
+### T7 — Implement D-002=B bounded raw diagnostics for research
+
+### Source Audit(s)
+
+Production Readiness 3.3, 3.6; Database 4, 8–9, 12; Architecture 5, 9; Infrastructure 9; D-002=B.
+
+### Phase
+
+2.
+
+### Depends On
+
+T3, T6, and documented retention/deletion parameters.
+
+### Blocks
+
+Research dashboard and any source-comparison/playback claim.
+
+### Priority
+
+High for approved research scope.
+
+### Difficulty
+
+Hard.
+
+### Suggested Agent
+
+Level 2 Database/time-series and telemetry specialist, then Level 3 Refactoring Agent.
+
+### Execution Mode
+
+Codex + Specialist.
+
+### Task Brief
+
+Add append-only bounded raw observations separate from canonical current state. Retain source/vehicle/trip identity, event/receive times, sequence/transport facts, reported accuracy, validation outcome, and canonical-selection disposition to compare mobile, LoRaWAN, and ESP32 behavior.
+
+### Related Files
+
+Prisma schema/migrations, tracking service, protected research reads, retention job, fixtures.
+
+### Acceptance Criteria and Verification
+
+Raw observations do not alter canonical state merely because they are retained; research reads compute latency, acceptance/rejection/duplicate/late rate, and fallback rate; retention and indexes are tested; secrets are absent from data/response paths.
+
+### T8 — Make maps truthful and repair route/cache behavior
+
+### Source Audit(s)
+
+Production Readiness 3.2, 3.7; Frontend 4, 7, 9, 13; Dashboard 5, 10–11; Backend 9, 12.
+
+### Phase
+
+2.
+
+### Depends On
+
+T6; T10 for final route mutation invalidation.
+
+### Blocks
+
+Truthful public/admin tracking and T14.
+
+### Priority
+
+High.
+
+### Difficulty
+
+Medium.
+
+### Suggested Agent
+
+Level 3 Refactoring Agent (direct).
+
+### Execution Mode
+
+Antigravity Implementation Ready after T6 acceptance.
+
+### Task Brief
+
+Use canonical route/state instead of UI-selected route. Show connect/reconnect/last-update/fresh/stale/offline/no-service meaning and degrade ETA when state is stale. Repair local geometry cache keys to include ordered stop data or backend revision; discard corrupt cache safely.
+
+### Related Files
+
+Public tracker/cards, admin LiveMap/dashboard, realtime/public API types, route cache helpers.
+
+### Acceptance Criteria and Verification
+
+An R02 event remains R02 even while R01 is selected; stale/no-service is visible in both surfaces; ETA is not current when stale; cache updates after route revision. Run lint, production build, and browser/socket interruption checks.
+
+### T9 — Define topology/origin contract, then align configuration
+
+### Source Audit(s)
+
+Production Readiness 3.5; Infrastructure 4–5, 10–12; Security 7, 9–11; Frontend evidence; D-003=A.
+
+### Phase
+
+2.
+
+### Depends On
+
+D-003=A plus hosting/domain/TLS facts.
+
+### Blocks
+
+T13 and public deployment.
+
+### Priority
+
+High.
+
+### Difficulty
+
+Medium.
+
+### Suggested Agent
+
+User Decision Required for topology facts, then Level 2 Deployment specialist.
+
+### Execution Mode
+
+Codex Only until facts exist; Codex + Specialist afterward.
+
+### Task Brief
+
+Write one topology/origin record covering host/provider, public origins, TLS terminator, database/Redis placement, secret source, backup/restore owner, Redis policy, migration/rollback owner, and log destination. Then align REST and Socket.IO to this one contract and verify in staging.
+
+### Related Files
+
+Production Compose/Dockerfiles, environment templates, frontend configuration, backend CORS/Socket settings, deployment runbook.
+
+### Acceptance Criteria and Verification
+
+No configuration cycle remains; REST and Socket.IO resolve the documented backend origin; TLS, secret, backup/restore, migration/rollback, and log ownership are assigned. Run staging/production Compose readiness and origin smoke tests.
+
+## 7. Phase 3 — Feature Completion
+
+**Entry criteria:** Phase 2 contracts are accepted and D-001 is upgraded to B or C.
+
+**Exit criteria:** operators can manage route stops, perform supported sender/trip workflows, inspect history, and see exceptions. Under C, public feedback has accountable triage.
+
+### T10 — Add route-stop management and invalidation
+
+### Source Audit(s)
+
+Production Readiness 3.1, 3.7; Product 7; Frontend 4, 13; Backend 9, 12; Dashboard 7.
+
+### Phase
+
+3.
+
+### Depends On
+
+T2, T8, D-001=B/C.
+
+### Blocks
+
+Operator-managed routes.
+
+### Priority
+
+Critical.
+
+### Difficulty
+
+Medium.
+
+### Suggested Agent
+
+Level 3 Refactoring Agent (direct).
+
+### Execution Mode
+
+Antigravity Implementation Ready after D-001 upgrade.
+
+### Task Brief
+
+Add authenticated route-detail add/remove/reorder operations, validate membership/order, invalidate backend/public caches, and refresh geometry/versioned route data.
+
+### Related Files
+
+Admin route/sidebar UI, route-stop controller/cache service, public route cache/types, tests.
+
+### Acceptance Criteria and Verification
+
+Admins can publish ordered stops without manual/API work; invalid ordering fails; next public read uses revised geometry. Run backend cache tests, frontend lint/build, and browser route-change smoke test.
+
+### T11 — Add sender operations, trip history, and exceptions
+
+### Source Audit(s)
+
+Production Readiness 3.1, 3.3; Product 7–9; Backend 7, 12; Dashboard 7, 10.
+
+### Phase
+
+3.
+
+### Depends On
+
+T5, T6, D-001=B/C.
+
+### Blocks
+
+Daily service accountability.
+
+### Priority
+
+Critical for daily operations.
+
+### Difficulty
+
+Hard.
+
+### Suggested Agent
+
+Level 2 Operations/mobile specialist, then Level 3 Refactoring Agent.
+
+### Execution Mode
+
+Codex + Specialist.
+
+### Task Brief
+
+Build a minimum driver-facing start/send/end/recovery workflow or formally integrate/audit an external sender client. Add protected trip history list/detail and a compact exception view for stale/silent vehicles, no active trip, and source freshness. Do not add playback.
+
+### Related Files
+
+Trip/history APIs, admin navigation/pages, sender client/external contract, canonical-state reads.
+
+### Acceptance Criteria and Verification
+
+A non-developer operator can complete the approved flow; admins can find active/completed trips; exceptions use canonical state. Run authorization, lifecycle, frontend, and operator acceptance checks.
+
+### T12 — Add feedback triage and source/device operations views
+
+### Source Audit(s)
+
+Product 7, 11; Frontend 12; Dashboard 10; Database 12; Production 3.1.
+
+### Phase
+
+3.
+
+### Depends On
+
+D-001=C, T6, feedback owner/privacy policy.
+
+### Blocks
+
+Accountable public support/device operations.
+
+### Priority
+
+High.
+
+### Difficulty
+
+Medium.
+
+### Suggested Agent
+
+Level 3 Refactoring Agent (direct).
+
+### Execution Mode
+
+Codex Only until owner/policy exists; Antigravity Implementation Ready afterward.
+
+### Task Brief
+
+Add feedback case status/owner/resolution and an admin inbox only after ownership/retention are agreed. Add safe device/source health views using canonical freshness and never exposing credentials.
+
+### Related Files
+
+Feedback schema/API, safe device DTOs, admin pages/navigation, source-health reads.
+
+### Acceptance Criteria and Verification
+
+Staff can manage feedback under the agreed policy; device/source views reveal safe facts only; unauthorized users are denied. Run migration, authorization, and UI workflow tests.
+
+## 8. Phase 4 — Hardening & Scale
+
+**Entry criteria:** Phase 2 is complete; T9 is complete for deployment work.
+
+**Exit criteria:** disposable production exercise, recovery evidence, alerts, browser verification, and maintainable map boundaries exist.
+
+### T13 — Validate deployment, recovery, and alerts
+
+### Source Audit(s)
+
+Production Readiness 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16.
+
+### Phase
+
+4.
+
+### Depends On
+
+T4, T5, T6, T9.
+
+### Blocks
+
+Any change from controlled pilot to daily/public production.
+
+### Priority
+
+High.
+
+### Difficulty
+
+Medium.
+
+### Suggested Agent
+
+Level 2 Deployment/observability specialist, then Level 3 Refactoring Agent.
+
+### Execution Mode
+
+Codex + Specialist.
+
+### Task Brief
+
+Build and document a disposable production-mode exercise: build, migrate, start, readiness, restart, source staleness, alerts, and backup/restore. Monitor readiness, startup/migration failures, ingestion rejections, history failures, and stale sources.
+
+### Related Files
+
+Deployment definitions, entrypoint, server/tracking logs/metrics, runbook, CI artifacts.
+
+### Acceptance Criteria and Verification
+
+Clean production build completes; simulated dependency/source failures change readiness/alerts; backup restore and migration recovery have owners and evidence. Run the documented drill.
+
+### T14 — Improve map maintainability and measured scale quality
+
+### Source Audit(s)
+
+Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10.
+
+### Phase
+
+4.
+
+### Depends On
+
+T8 and browser/runtime evidence.
+
+### Blocks
+
+None.
+
+### Priority
+
+Medium, with High maintainability value.
+
+### Difficulty
+
+Medium.
+
+### Suggested Agent
+
+Level 3 Refactoring Agent (direct).
+
+### Execution Mode
+
+Antigravity Implementation Ready after T8 acceptance.
+
+### Task Brief
+
+Split the public tracker into focused data, socket, marker, and ETA hooks; remove/merge the unused duplicate map; repair tour selectors, route labels, keyboard semantics, and recoverable admin errors. Add rooms/backend ETA only after measurement supports it.
+
+### Related Files
+
+Public tracker/map/helpers/tour/cards, admin dashboard/CRUD feedback, frontend tests.
+
+### Acceptance Criteria and Verification
+
+One maintained public realtime map path remains; extracted units clean up correctly; tour/accessibility/error behavior is browser-verified; no scale work occurs without captured measurement. Run lint, production build, browser/mobile smoke test.
+
+## 9. Phase 5 — Future Enhancements
+
+**Entry criteria:** Phase 2 is complete and physical provider/device facts are documented.
+
+**Exit criteria:** only approved future scope is delivered; research/public claims match available evidence.
+
+### T15 — Physical senders, research comparison, playback, and scale extensions
+
+### Source Audit(s)
+
+Production Readiness 3.6, 3.7; Product 11; Architecture 9–10, 12; Infrastructure 7–9; D-002=B.
+
+### Phase
+
+5.
+
+### Depends On
+
+T7, physical sender/provider facts, and T13 for public operation.
+
+### Blocks
+
+None.
+
+### Priority
+
+Deferred.
+
+### Difficulty
+
+Hard.
+
+### Suggested Agent
+
+User Decision Required for hardware/provider facts; Level 2 Device/LoRaWAN specialist; then Level 3 Refactoring Agent.
+
+### Execution Mode
+
+Codex Only until facts exist; Codex + Specialist afterward.
+
+### Task Brief
+
+Use existing server-side webhook/HTTP boundaries to test physical mobile, TTN, and ESP32 senders. Build protected research comparison from T7. Add playback, reports, analytics, rooms, or backend ETA only when a product question and telemetry/query evidence justify it.
+
+### Related Files
+
+External device contracts/firmware, TTN configuration, ingest/tracking/research APIs, research UI, history reads.
+
+### Acceptance Criteria and Verification
+
+Each device has mapping, payload, cadence, offline, credential, and test metadata; research data never changes public canonical state; fidelity claims match retention. Document physical failure/reconnect and provider webhook tests.
+
+## 10. Research Queue
+
+1. Safe DTOs, redaction, validation, and rate limits.
+2. Reproducible integration fixtures and pipeline smoke tests.
+3. Transactions, partial unique indexes, and idempotent lifecycle state machines.
+4. Canonical state, versioning, freshness, and out-of-order telemetry.
+5. Bounded raw-diagnostic retention, event/receive time, and research indexes.
+6. Browser realtime trust, cache invalidation, and map lifecycle hooks.
+7. Topology, origins, TLS, backups, Redis durability, and recovery drills.
+8. Operational dashboards, feedback privacy, device provisioning, TTN webhooks, and measured scale triggers.
+
+## 11. Accepted Risks (Carried Forward)
+
+| Risk | Why carried | What changes it |
+|---|---|---|
+| Route-stop, driver, trip-history, and exception workflows are absent | D-001=A limits release to a controlled MVP. | Approve D-001=B/C and complete T10–T11. |
+| Feedback triage is absent | No wider public support owner/policy exists. | Approve C and complete T12. |
+| Deployment/TLS/backup/recovery evidence is absent | No topology/domain/owner facts are supplied. | Supply facts, complete T9/T13. |
+| Physical device/TTN evidence is absent | Provider/hardware/provisioning facts are unknown. | Record facts and execute T15. |
+| Playback/reports are absent | D-002=B authorizes bounded diagnostics, not unbounded fidelity claims. | Approve query/fidelity scope after T7 evidence. |
+
+These are accepted only inside the controlled-MVP boundary; none are accepted for daily/public production.
+
+## 12. Blocking Decisions Required From User
+
+The Decision Queue is approved. Remaining implementation parameters are:
+
+| Needed information | Blocks | Reason |
+|---|---|---|
+| Hosting/topology, domains, TLS terminator, and operations owner | T9, T13 | D-003 resolves order, not provider/domain/recovery choice. |
+| Raw-diagnostic retention duration, deletion owner, and research access policy | T7 | D-002=B chooses bounded diagnostics but not the bound. |
+| TTN application/device IDs; ESP32 hardware/network/provisioning; simulator-only or physical pilot | T15 | Repository evidence cannot establish physical behavior. |
+| Feedback triage owner and privacy/retention policy | T12 | Needed only if scope becomes C. |
+
+## 13. Recommended Level 2/3 Agent Usage
+
+- Direct Level 3 tasks: T1, T3, T8 after T6, T10 after D-001 upgrade, and T14 after T8. Before handing any Antigravity-ready task to an implementation agent, create the matching task handoff document under docs/tasks with allowed files, approved decisions, invariants, steps, checks, rollout limits, and stop conditions.
+- Specialist-led: T2 security/abuse; T4, T9, T13 observability/deployment; T5 database transactions; T6/T7 realtime and time-series; T11 operations/mobile; T15 device/LoRaWAN.
+- T12 requires product-owner/privacy input before implementation.
+
+## 14. Roadmap Limitations
+
+This review does not implement or runtime-test code. It does not choose provider, domain, retention duration, hardware, or protocol. The monolith remains the supported architecture for the current target; this roadmap does not authorize a microservice split.
+
+## 15. Handoff
+
+Begin with T1. Then run T2 and T3 under their gates; do not reuse the earlier roadmap task ordering because the re-audits and approvals changed its dependencies.
+
+Validate each completed task against its originating audit finding before advancing. Re-run Production Readiness only after the production-bar tasks applicable to the desired release scope are complete.
+
+## Roadmap Impact, Assumptions and Unknowns, Confidence, and Deferred Decisions
+
+**Roadmap impact:** D-001=A defers daily/public workflows to Phase 3; D-002=B creates T7 research diagnostics; D-003=A removes the configuration cycle by sequencing T9 before alignment.
+
+**Assumptions and unknowns:** the next release is supervised and does not claim daily/public service; diagnostics are bounded/protected; no topology/provider/device fact is assumed.
+
+**Confidence:** High for the evidence-based task ordering. Medium for later execution because topology, retention parameters, and device facts are external inputs.
+
+**Deferred decisions:** topology details, raw-diagnostic retention/access parameters, physical sender facts, feedback ownership, playback/report scope, and scale-triggered features.

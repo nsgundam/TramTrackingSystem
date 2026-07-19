@@ -1,478 +1,234 @@
 # Backend Audit: Tram Tracking System
 
+Re-audited: 2026-07-19
+Scope: current Express/TypeScript backend, Prisma schema and migrations, Redis/Socket.IO pipeline,
+backend tests, and backend-facing configuration. This is a source review, not a live-service or
+penetration test.
+
 ## 1. Executive Summary
 
-Backend ปัจจุบันเป็น MVP ที่มี flow หลักและ ingestion pipeline หลายแหล่งแล้ว: admin login, public data API, admin CRUD, device registry, feedback, HTTP/TTN ingestion, Socket.IO GPS update, start trip, และ end trip. โครงสร้างหลักใช้ Express, Socket.IO, Prisma/PostGIS และ Redis ซึ่งสอดคล้องกับ architecture audit ว่าเหมาะกับ MVP และ phase ถัดไปขนาดเล็ก (`docs/audits/architecture-audit.md:5-17`).
+The backend is materially stronger than the prior audit. Sender credentials are short-lived,
+source- and vehicle-bound, revalidated on every Socket.IO write, and used by HTTP ingestion and
+trip routes. The tracking-source registry, deterministic source selection, canonical-location
+pipeline, and readiness endpoint are credible foundations for a controlled MVP.
 
-Assessment: **partially ready for MVP, not production-ready yet**.
+It is not yet an operations-grade backend. Trip lifecycle has competing writers and no database
+guarantee of one active trip per vehicle. Validation and error normalization remain inconsistent,
+device APIs disclose `secretHash`, and observations lack event-time, sequence, idempotency, and
+rejection semantics. The next implementation priority is one transactional Operations/Trip owner.
 
-จุดแข็งคือ route/API แยกเป็นหมวดชัดเจน, admin routes ถูก protect ด้วย JWT, มี registry และ secret hash ต่อ tracking source, มี source priority/freshness, public API มี Redis cache, GPS track เก็บลง PostGIS, และ Socket.IO Redis adapter ถูกเตรียมไว้สำหรับหลาย process (`shuttle-tracking-backend/src/server.ts:53-71`, `shuttle-tracking-backend/src/server.ts:130-142`, `shuttle-tracking-backend/prisma/schema.prisma:129-177`).
+## 2. Scope, Evidence, and Re-audit Status
 
-ความเสี่ยงหลักก่อนใช้งานจริงคือ trip/device flow บางส่วนยังเปิดเกินไป, Socket.IO ยังไม่มี auth/ack, HTTP source ที่ไม่มี `secretHash` สามารถส่งข้อมูลได้, auto-trip กับ explicit trip ยังมี race/ความกำกวม, validation ของ admin CRUD ยังบาง, route-stop mutation ไม่ invalidate public cache, และ GPS history ถูก throttle เหลือ 1 record ต่อ trip ต่อ 60 วินาที แม้ simulator ส่งทุก 1 วินาที (`shuttle-tracking-backend/src/services/tracking.service.ts:5-12`, `shuttle-tracking-backend/src/services/tracking.service.ts:167-239`, `shuttle-tracking-web/simulate.js:105-130`).
+Evidence reviewed:
 
-## 2. Current Backend Overview
+- `shuttle-tracking-backend/src/server.ts`, middleware, routes, controllers, services, Prisma
+  schema, and migration `20260716170000_operationalize_tracking_sources`.
+- `docs/project-knowledge-base.md`, current Product and Architecture reports, and the prior
+  Backend Audit.
+- `npm test` passed on 2026-07-19: TypeScript build plus sender-JWT boundary test. Socket.IO and
+  pipeline scripts require a configured running stack and were not run.
 
-Backend entrypoint คือ `server.ts` สร้าง Express app, HTTP server, Socket.IO server, CORS, JSON body parser, route mounts, Redis connection, และ Socket.IO Redis adapter (`shuttle-tracking-backend/src/server.ts:22-48`, `shuttle-tracking-backend/src/server.ts:64-96`).
+| Prior finding | Re-audit status | Current evidence |
+|---|---|---|
+| Trip and Socket.IO sender identity was weak | **Resolved** | Sender JWT is source/vehicle/version bound; HTTP/trip routes require it; Socket.IO revalidates it per write. |
+| Tracking-source/device abstraction was incomplete | **Resolved** | Source lifecycle fields, migration constraints, priority, and source-aware canonical selection are present. |
+| Trip lifecycle was only partially protected | **Still Present** | Start and auto-trip paths can both create `in_progress` trips; neither uses one transaction or a DB uniqueness invariant. |
+| REST/GPS validation and safe errors were inconsistent | **Partially Resolved** | GPS ownership/coordinate checks improved, but resource endpoints still admit untyped input and map many failures to 500. |
+| Tracking-source ingestion needed authentication/rotation | **Resolved** | Active non-LoRaWAN sources require secrets; credential rotation invalidates old sender tokens. |
+| Route-stop cache invalidation was missing | **Still Present** | Route-stop mutations do not invalidate `public:route_stops:*`. |
+| Realtime broadcast could report an invalid result | **Resolved** | Transports broadcast only a returned canonical location and acknowledge/reject the sender. |
+| Admin trip history/GPS playback reads were missing | **Still Present** | No protected trip-history or GPS-track read route is mounted. |
+| Automated backend tests were missing | **Partially Resolved** | Build/JWT boundary test exist; no repeatable service/controller integration suite is evidenced. |
+| Device responses expose credential hashes | **New Finding** | Device list/get/create/update directly serialize `TrackingSource`, including `secretHash`. |
+| Observation ordering and retention semantics were undefined | **New Finding** | Receipt time and sampled canonical points are stored; no event time, sequence, idempotency, or disposition contract exists. |
 
-REST route groups:
+## 3. Current Backend Overview
 
-- Auth: `/api/auth/login`, `/api/auth/vehicle-login`, `/api/auth/me` (`shuttle-tracking-backend/src/routes/auth.route.ts:8-13`).
-- Public: active routes, active vehicles, route stops, stops, feedback (`shuttle-tracking-backend/src/routes/public.route.ts:7-20`).
-- Protected admin: vehicles, routes, stops, route-stops, devices mounted with `authenticateToken` (`shuttle-tracking-backend/src/server.ts:56-61`).
-- Trips: `/api/trips/start` and `/api/trips/:id/end` mounted without auth middleware (`shuttle-tracking-backend/src/server.ts:62`, `shuttle-tracking-backend/src/routes/trips.route.ts:6-8`).
-- Ingest: `/api/ingest/http` for source-token authenticated observations and `/api/ingest/ttn` for TTN webhook observations (`shuttle-tracking-backend/src/server.ts:63-66`, `shuttle-tracking-backend/src/routes/ingest.route.ts:10-142`).
+Express exposes public reads and feedback, authenticated admin CRUD, sender trip controls, HTTP
+ingestion, and a TTN webhook. Redis holds latest source snapshots, canonical vehicle locations,
+sampling locks, public cache, and source-selection counters. PostgreSQL/PostGIS holds master data,
+trips, sampled canonical `gps_tracks`, feedback, and tracking sources.
 
-Database entities are User, Route, Vehicle, Stop, RouteStop, Trip, GPSTrack, and Feedback. Stop and GPSTrack use PostGIS geography fields (`shuttle-tracking-backend/prisma/schema.prisma:16-160`).
+Every accepted observation reaches `processObservation`: it validates coordinates and source/sender
+binding, chooses the highest-priority fresh source, stores canonical state in Redis, and attempts a
+60-second sampled history write. HTTP and Socket.IO broadcast only the returned canonical result.
 
-Redis responsibilities:
+## 4. Backend Strengths
 
-- Public API cache with 300 second TTL (`shuttle-tracking-backend/src/controllers/public.controller.ts:5-24`).
-- Public cache invalidation after route, stop, vehicle admin mutations (`shuttle-tracking-backend/src/services/cache.service.ts:8-27`).
-- GPS DB write throttle using `trip:last_saved:<tripId>` and 60 second expiration (`shuttle-tracking-backend/src/services/tracking.service.ts:4-25`).
-- Socket.IO Redis adapter for cross-process broadcast (`shuttle-tracking-backend/src/server.ts:89-96`).
+- Sender login issues source, vehicle, and credential-version claims; revocation, reassignment,
+  deactivation, and rotation take effect during revalidation.
+- TTN fails closed without a secret and compares its bearer value with `timingSafeEqual`.
+- The tracking-source migration constrains active non-LoRaWAN sources to have a vehicle and secret.
+- Source selection is deterministic by priority then ID, with a 30-second freshness window.
+- `/ready` checks PostgreSQL and Redis; a Redis Socket.IO adapter supports multi-process fan-out.
+- Sender acknowledgements/error codes are explicit; `npm test` passes.
 
-Realtime flow:
+## 5. Critical Issues
 
-- Client emits `send-location`.
-- Server calls `processObservation(rawData)`.
-- Server emits canonical `location-update` globally to all Socket.IO clients (`shuttle-tracking-backend/src/server.ts:101-120`).
+### High — Trip lifecycle has competing, non-transactional writers
 
-## 3. Backend Strengths
+`POST /api/trips/start` always creates an `in_progress` trip. The tracking service also creates a
+virtual active trip after a canonical observation when no active trip is found. Neither path checks
+and creates atomically; the schema has indexes but no partial unique constraint for one active trip
+per vehicle. Ending one trip also sets the vehicle inactive even if another active trip exists.
 
-1. **MVP stack is appropriate and simple.** Express REST + Socket.IO + PostgreSQL/PostGIS + Redis is coherent for a small real-time tracking system (`docs/audits/architecture-audit.md:5-17`).
+Impact: duplicate active trips, ambiguous sample ownership, and incorrect vehicle state under
+retries or concurrent sender/location traffic.
 
-2. **Admin CRUD is grouped and protected.** Vehicles, routes, stops, and route-stops are mounted behind `authenticateToken` (`shuttle-tracking-backend/src/server.ts:53-57`).
+Recommendation: create one Operations/Trip service with explicit idempotency, a transaction for
+trip/vehicle/history changes, and a database invariant. Decide whether virtual trips are a supported
+product behavior or are removed from the pipeline.
 
-3. **PostGIS foundation exists.** Stops and GPS tracks use geography fields, and public/admin stop APIs convert locations to lat/lng with PostGIS functions (`shuttle-tracking-backend/prisma/schema.prisma:67-80`, `shuttle-tracking-backend/prisma/schema.prisma:129-145`, `shuttle-tracking-backend/src/controllers/public.controller.ts:66-77`).
+Priority: High. Difficulty: Medium.
 
-4. **Trip and GPS history tables already exist.** This supports future trip history/playback APIs without replacing the storage model (`shuttle-tracking-backend/prisma/schema.prisma:105-145`).
+### High — Device APIs disclose credential hashes
 
-5. **Multiple tracking sources now have a concrete foundation.** `TrackingSource` stores type, vehicle assignment, priority, status, secret hash, and last-seen time; the service selects a fresh highest-priority source and persists its source ID (`shuttle-tracking-backend/prisma/schema.prisma:150-177`, `shuttle-tracking-backend/src/services/tracking.service.ts:101-160`).
+Device list, get, create, and update handlers serialize Prisma `TrackingSource` records without a
+response mapper; authenticated admin clients therefore receive `secretHash`.
 
-6. **Operational endpoints improved.** HTTP/TTN ingestion, `/health`, `/ready`, admin device CRUD/analytics, and public feedback are now present (`shuttle-tracking-backend/src/server.ts:68-89`, `shuttle-tracking-backend/src/routes/devices.route.ts:13-21`, `shuttle-tracking-backend/src/routes/public.route.ts:19-20`).
+Impact: copied admin API output exposes an offline-verifiable credential hash beyond the server
+boundary.
 
-5. **Redis is already used for the right MVP concerns.** The project uses Redis for public cache, source/current-location state, source analytics, Socket.IO adapter, and GPS write throttle (`shuttle-tracking-backend/src/server.ts:130-142`, `shuttle-tracking-backend/src/controllers/public.controller.ts:11-24`, `shuttle-tracking-backend/src/services/tracking.service.ts:75-87`).
+Recommendation: define a device response DTO that never serializes `secretHash`, return an explicit
+rotation/provisioning acknowledgement, and test this absence.
 
-## 4. Critical Issues
+Priority: High. Difficulty: Easy.
 
-### Critical Issue 1: Trip and Socket.IO sender identity is still too weak
+### High — Observation contract cannot reason about ordering or replay
 
-HTTP ingestion now authenticates sources when a `secretHash` exists, but vehicle login still only checks that a vehicle ID exists and returns vehicle data; it does not issue a token or session (`shuttle-tracking-backend/src/controllers/auth.controller.ts:68-88`). Trip routes remain open, and Socket.IO accepts `send-location` without socket authentication (`shuttle-tracking-backend/src/server.ts:63-66`, `shuttle-tracking-backend/src/server.ts:97-121`).
+The pipeline assigns `Date.now()` at receipt and accepts no sender event time, sequence,
+idempotency key, or typed payload envelope. Redis keeps only the latest source snapshot and
+PostgreSQL stores one canonical sample per 60 seconds. A delayed/retried observation can replace a
+newer one, while rejected/lower-priority observations cannot be explained later.
 
-Impact: any client that can reach the backend can try to start/end trips or emit location for a known `vehicleId`. This is not ready for real devices.
+Recommendation: define an observation and canonical-state contract with event/received time,
+version or sequence, source, freshness, and selection/rejection disposition. D-002 determines
+whether only canonical samples or bounded raw diagnostics are retained.
 
-### Resolved/Reduced Issue 2: Device/source abstraction
+Priority: High before playback, source comparison, or daily operations. Difficulty: Medium.
 
-`TrackingSource` now separates sender identity from Vehicle and includes type, status, priority, assignment, secret hash, last-seen time, and a GPS-track foreign key (`shuttle-tracking-backend/prisma/schema.prisma:150-177`, `shuttle-tracking-backend/prisma/migrations/20260714155233_add_tracking_sources/migration.sql:1-32`). This resolves the original schema gap for MVP, though provisioning, health/offline policy, and secure secret rotation are still incomplete.
+## 6. API Review
 
-Impact remaining: backend can distinguish and prioritize sources, but cannot yet safely manage their lifecycle or enforce credentials for every source.
+Sender ownership and coordinate validation improved substantially. HTTP ingestion returns structured
+rejection codes, while trip end rejects foreign/non-active trips. Resource controllers generally
+accept `any` request bodies, rely on Prisma/database failures, and return generic 500 responses for
+duplicates, foreign keys, invalid enum/status values, malformed priority, and constraints. TTN's
+generic 500 branch exposes error details and a stack.
 
-### Critical Issue 3: Trip lifecycle is only partially protected by the database
+There is no shared request/response DTO layer, OpenAPI contract, or centralized error mapper. Add
+schema validation and normalized 400/404/409/422 responses for device, route-stop, trip, feedback,
+sender-login, and observation requests. Rate limiting is not evidenced for login, feedback, sender
+login, or ingest endpoints; Security/DevOps should validate the broader abuse controls.
 
-The migration adds a partial unique index for one `in_progress` trip per vehicle (`shuttle-tracking-backend/prisma/migrations/20260714155233_add_tracking_sources/migration.sql:31-32`), which prevents duplicate active rows at the database level. However, `startTrip` still does not return the existing trip or map the unique violation to 409, and trip + vehicle updates are not transactional (`shuttle-tracking-backend/src/controllers/trips.controller.ts:27-39`). `endTrip` still updates by trip ID without checking current status or ownership (`shuttle-tracking-backend/src/controllers/trips.controller.ts:52-72`).
+## 7. Trip Lifecycle Review
 
-Impact: duplicate starts now fail rather than create multiple active rows, but clients receive a generic 500 and concurrent state updates can still leave trip and vehicle status inconsistent.
+Start is sender-vehicle-bound and end checks ownership/status, but repeated starts are not
+idempotent and do not coordinate with the virtual-trip creator. `gps_tracks` writes only when Redis
+grants a 60-second key; failures are logged and swallowed. There is no admin history/read API or
+explicit lifecycle model for cancellation, pause, or stale service.
 
-## 5. API Review
+## 8. WebSocket and GPS Review
 
-API structure is clear enough for MVP. Public routes are separated from admin routes, and protected admin route mounting is centralized (`shuttle-tracking-backend/src/server.ts:50-62`).
+Public viewers may connect anonymously. Sender sockets receive a verified context at handshake and
+revalidate token expiry, source status, vehicle binding, and credential version before every write.
+The event only broadcasts a canonical location and returns acknowledgement/error codes. This
+resolves the prior unauthenticated-write finding.
 
-Validation is inconsistent. Examples:
+Remaining protocol gaps: no event version, event time, sequence, duplicate rule, payload schema,
+vehicle room, or stale/offline event. Global `location-update` is acceptable for a controlled MVP
+but has a scale trigger.
 
-- `login` does not explicitly validate missing username/password before querying and comparing (`shuttle-tracking-backend/src/controllers/auth.controller.ts:6-23`).
-- `createVehicle`, `createRoute`, and many updates pass request body fields directly into Prisma with little validation (`shuttle-tracking-backend/src/controllers/vehicles.controller.ts:40-57`, `shuttle-tracking-backend/src/controllers/route.controller.ts:36-54`, `shuttle-tracking-backend/src/controllers/vehicles.controller.ts:60-74`).
-- `createStop` checks required fields, but `!lat || !lng` rejects valid numeric `0` and does not validate ranges (`shuttle-tracking-backend/src/controllers/stops.controller.ts:53-64`).
-- `processObservation` now validates source existence/status and approximate Thailand coordinate bounds, but optional numeric fields are only parsed and are not range-checked; admin CRUD still accepts many raw fields (`shuttle-tracking-backend/src/services/tracking.service.ts:31-60`, `shuttle-tracking-backend/src/controllers/devices.controller.ts:39-70`).
+## 9. Redis Review
 
-Status codes are partially correct: 400 for missing trip vehicleId, 404 for missing vehicle, 201 for successful trip start (`shuttle-tracking-backend/src/controllers/trips.controller.ts:9-44`). However, many Prisma errors such as duplicate IDs, missing records on update/delete, and FK violations become 500 responses (`shuttle-tracking-backend/src/controllers/vehicles.controller.ts:54-57`, `shuttle-tracking-backend/src/controllers/route.controller.ts:68-86`, `shuttle-tracking-backend/src/controllers/stops.controller.ts:118-136`).
+Redis is appropriate for latest-source/canonical state, sampling locks, public cache, analytics, and
+Socket.IO fan-out. It is not durable current state: Redis loss clears current location/freshness
+until new observations arrive. All-stale selection returns `null`, and the public API shows a null
+location rather than explicit freshness/no-service state.
 
-Response shapes are inconsistent: auth vehicle login returns `{ success, message, vehicle }`, admin login returns `{ token, user }`, trip errors return `{ error }`, and CRUD mostly returns raw records (`shuttle-tracking-backend/src/controllers/auth.controller.ts:35-40`, `shuttle-tracking-backend/src/controllers/auth.controller.ts:84-92`, `shuttle-tracking-backend/src/controllers/trips.controller.ts:41-48`).
+Route, stop, and vehicle mutations invalidate public cache. Route-stop mutations do not. The cache
+invalidator also uses `KEYS` for route-stop discovery, which should become targeted invalidation or
+`SCAN` before cache cardinality grows.
 
-Not Found: OpenAPI/Swagger or dedicated API contract documentation was not found; the knowledge base also records this limitation (`docs/project-knowledge-base.md:411-424`).
+## 10. Multiple Device Support Review
 
-## 6. Trip Lifecycle Review
+The registry separates sources from vehicles, offers deterministic priority/freshness selection, and
+derives source health from `lastSeenAt`. Credential-version rotation invalidates old sender tokens.
+It does not retain enough facts to compare sources later or expose an operational source-health /
+canonical-selection read model. Those needs are blocked by the canonical-state contract and D-002,
+not by a need for another pipeline.
 
-Vehicle login:
+## 11. Reliability Review
 
-- Implemented as `POST /api/auth/vehicle-login`.
-- Verifies only that `vehicleId` exists (`shuttle-tracking-backend/src/controllers/auth.controller.ts:68-88`).
-- No token/session is issued.
+Readiness and startup failure handling give a useful dependency boundary. History persistence errors
+are only logged, so a successful sender acknowledgement can coexist with lost history. No retry,
+dead-letter, timeout, correlation ID, metrics, or alerting behavior is evidenced. Tests prove token
+parsing but not configured Redis/Postgres, controller behavior, cache invalidation, trip races,
+credential rotation, or stale failover in repeatable CI.
 
-Start trip:
+## 12. Missing Backend Capabilities
 
-- Implemented as `POST /api/trips/start`.
-- Requires `vehicleId`.
-- Checks vehicle exists and has assigned route.
-- Creates Trip with status `in_progress`.
-- Updates Vehicle status to `active` (`shuttle-tracking-backend/src/controllers/trips.controller.ts:5-44`).
+- Transactional/idempotent single active-trip ownership.
+- Canonical state with freshness/no-service reason and version.
+- Safe device response projection and shared validation/error DTOs.
+- Admin trip/history/GPS-track read API.
+- D-002-aligned observation ordering and retention policy.
+- Route-stop cache invalidation and repeatable Postgres/Redis integration tests.
 
-Send location:
+## 13. Recommended Improvements
 
-- Implemented through Socket.IO `send-location`, HTTP `/api/ingest/http`, and TTN `/api/ingest/ttn`.
-- Calls `processObservation`, which resolves the source, authenticates a configured secret, selects the freshest highest-priority source, and writes sampled GPS history.
-- Writes GPS track only if the Redis throttle key does not already exist, then broadcasts the canonical location (`shuttle-tracking-backend/src/server.ts:101-120`, `shuttle-tracking-backend/src/routes/ingest.route.ts:10-60`, `shuttle-tracking-backend/src/services/tracking.service.ts:42-60`, `shuttle-tracking-backend/src/services/tracking.service.ts:101-160`).
+1. **Create the Operations/Trip service** with a database invariant and explicit virtual-trip policy. **High; Medium.**
+2. **Remove `secretHash` from all responses** using explicit device DTOs and route tests. **High; Easy.**
+3. **Publish a versioned observation/canonical-state contract**; decide retention through D-002. **High; Medium.**
+4. **Add shared validation and error mapping** for device, route-stop, sender, trip, feedback, and ingest requests. **Medium-High; Medium.**
+5. **Repair route-stop cache and operational reads** for stale/no-service and trip history. **Medium; Medium.**
+6. **Add an ephemeral-stack integration suite** for lifecycle, cache, and ingestion behavior. **Medium; Medium.**
 
-End trip:
+## 14. Backend Learning Topics
 
-- Implemented as `PUT /api/trips/:id/end`.
-- Updates trip to `completed`.
-- Updates vehicle to `inactive`.
-- Deletes Redis throttle key (`shuttle-tracking-backend/src/controllers/trips.controller.ts:52-80`).
+- Partial unique indexes and transaction isolation for lifecycle state transitions.
+- Idempotent/out-of-order telemetry processing.
+- DTO validation, safe response projections, and error-taxonomy design.
+- Redis freshness/cache invalidation and durable-versus-ephemeral state.
+- Disposable PostgreSQL/Redis integration testing.
 
-Gaps:
+## 15. Roadmap Impact
 
-- No active-trip lookup API.
-- No trip status API.
-- No trip history API.
-- No client-friendly idempotency behavior for duplicate start/end; the database index only rejects duplicate active starts.
-- No transaction around trip create + vehicle update or trip end + vehicle update.
-- No validation that a location's `vehicleId` belongs to the supplied `tripId`.
-- Auto-trip creation in the tracking service can race with explicit trip start and its unique-constraint failure is swallowed as a persistence error (`shuttle-tracking-backend/src/services/tracking.service.ts:167-245`).
+- Before daily operations: resolve the Operations/Trip owner, credential-hash exposure, canonical
+  freshness/ordering semantics, and route-stop cache invalidation.
+- D-002 gates raw telemetry, source comparison, and high-fidelity playback claims.
+- Admin history, source-health read models, feedback operations, rate limits, and observability are
+  downstream work; no microservice split is justified.
 
-## 7. WebSocket and GPS Review
+## 16. Assumptions and Unknowns
 
-The WebSocket path is minimal and easy to understand. It can handle simple realtime display for 10 vehicles if the Node process and DB/Redis are healthy, because broadcast is simple and Redis adapter exists for future multi-process operation (`shuttle-tracking-backend/src/server.ts:68-96`).
+- Deployment uses non-placeholder secrets and applied migrations; no live environment was queried.
+- Production sender, TTN, Redis durability, and database concurrency behavior were not exercised.
+- Virtual auto-trip policy and daily operating scope remain unresolved under D-001.
 
-Important behavior:
+## 17. Confidence
 
-- `send-location` still has no acknowledgement callback or socket authentication, although rejected observations now produce an `error-response` to the sender (`shuttle-tracking-backend/src/server.ts:101-120`).
-- The new service validates source status and coordinate bounds before canonical broadcast. Sampled DB persistence failures are logged internally, so a canonical response can still be broadcast even when history writing failed (`shuttle-tracking-backend/src/services/tracking.service.ts:167-245`).
-- Moving station is normalized to `En Route` when speed is at least 2 (`shuttle-tracking-backend/src/services/tracking.service.ts:132-149`).
+**High** for source-visible sender boundaries, lifecycle/observation behavior, device response shape,
+and the passing JWT boundary test. **Medium** for runtime reliability and race outcomes because no
+configured service or production data was used.
 
-GPS every 1-3 seconds:
+## 18. Required Decisions
 
-- Simulator emits `send-location` once per second while moving (`shuttle-tracking-web/simulate.js:105-130`).
-- Backend can broadcast every accepted canonical event because it calls `io.emit` for every successful `send-location`/HTTP/TTN observation (`shuttle-tracking-backend/src/server.ts:114-115`, `shuttle-tracking-backend/src/routes/ingest.route.ts:37-43`).
-- Backend persists only once every 60 seconds per trip because `THROTTLE_SECONDS = 60` (`shuttle-tracking-backend/src/services/tracking.service.ts:4-25`).
+- **D-001 — Operational MVP release scope:** determines whether unresolved trip/history and stale
+  state gaps block release beyond a controlled demonstration.
+- **D-002 — Telemetry retention and canonical-history fidelity:** determines canonical-only versus
+  bounded raw diagnostics before playback or source comparison.
 
-Conclusion: realtime display may satisfy 1-3 second updates, but GPS history/playback will not preserve that detail with the current throttle.
+No new owner decision is needed to remove hash exposure, add DTOs, invalidate route-stop cache, or
+make the active-trip invariant transactional.
 
-## 8. Redis Review
+## 19. Audit Limitations
 
-Redis is used in three places:
+No live database, Redis, Socket.IO server, sender hardware, TTN provider, browser client, load test,
+or penetration test was used. Socket.IO and pipeline scripts were inspected but not run because they
+need configured live services and credentials.
 
-- Main client with `REDIS_URL` defaulting to local Redis (`shuttle-tracking-backend/src/config/redis.ts:1-5`).
-- Socket.IO adapter clients duplicated at server start (`shuttle-tracking-backend/src/server.ts:89-96`).
-- Public cache and GPS throttle (`shuttle-tracking-backend/src/controllers/public.controller.ts:11-24`, `shuttle-tracking-backend/src/services/tracking.service.ts:19-25`).
+## 20. Handoff
 
-Good:
-
-- Cache TTL is explicit at 300 seconds.
-- Cache invalidation is best-effort, so admin mutation is not blocked by cache errors (`shuttle-tracking-backend/src/services/cache.service.ts:23-27`).
-- GPS write throttle and source freshness state use Redis `SET NX EX`, which works across multiple Node processes (`shuttle-tracking-backend/src/services/tracking.service.ts:81-86`, `shuttle-tracking-backend/src/services/tracking.service.ts:218-239`).
-
-Risks:
-
-- `invalidatePublicCache` uses `KEYS public:route_stops:*`, which can block Redis when key count grows (`shuttle-tracking-backend/src/services/cache.service.ts:17-20`). Acceptable for MVP, but should be changed before production.
-- Route-stop create/delete does not call `invalidatePublicCache`, although public route stops are cached per route (`shuttle-tracking-backend/src/controllers/routeStops.controller.ts:43-70`, `shuttle-tracking-backend/src/controllers/public.controller.ts:90-122`).
-- Redis startup failure stops the whole server (`shuttle-tracking-backend/src/server.ts:84-103`). That is acceptable if Redis is required for realtime scaling/throttle, but production should make this policy explicit.
-
-## 9. Multiple Device Support Review
-
-Current support: **partial only**.
-
-Implemented:
-
-- `TrackingSource` registry with source type, vehicle assignment, status, priority, secret hash, and `lastSeenAt`.
-- Admin device CRUD and source-selection analytics.
-- Source authentication for HTTP observations and a configurable TTN webhook secret.
-- HTTP/TTN observation ingestion, source priority/freshness selection, canonical vehicle location cache, and source ID on sampled GPS history.
-- Trip start/end and Socket.IO location submission remain available.
-
-Not Implemented:
-
-- Automated device provisioning/secret rotation.
-- Device health/offline alerts and operational heartbeat policy.
-- MQTT ingestion and production-grade TTN payload validation/signature handling.
-- Explicit source conflict resolution beyond priority and a 30-second freshness window.
-
-The original architecture gap is now partially addressed by a source registry and HTTP/TTN adapters. Mobile/ESP32 clients and full production device operations are still not present as independently testable modules.
-
-## 10. Reliability Review
-
-Duplicate GPS:
-
-- Redis throttle reduces DB writes per trip to once per 60 seconds, but all accepted canonical events are still broadcast (`shuttle-tracking-backend/src/services/tracking.service.ts:218-239`).
-- No event ID or timestamp-based dedupe exists.
-
-Late GPS:
-
-- Backend stamps `recordedAt = new Date()` on server receive, not device-reported time (`shuttle-tracking-backend/src/services/tracking.service.ts:17`).
-- There is no check for stale or out-of-order device timestamps.
-
-Unexpected disconnect:
-
-- Server only logs disconnect (`shuttle-tracking-backend/src/server.ts:77-79`).
-- No trip/device status update, stale marker, or heartbeat timeout exists.
-
-Server restart:
-
-- Trips and GPS tracks persist in DB.
-- No current location table/read model exists; live state depends on new incoming events.
-
-Database/Redis errors:
-
-- REST controllers generally catch and return 500.
-- Ingestion depends on Redis for source cache, freshness, analytics, and throttling; Redis errors therefore reject the observation. Sampled DB persistence errors are logged and do not prevent the canonical response (`shuttle-tracking-backend/src/services/tracking.service.ts:75-87`, `shuttle-tracking-backend/src/services/tracking.service.ts:242-245`).
-
-10 vehicle target:
-
-- For realtime display, 10 vehicles sending every 1-3 seconds is modest for Socket.IO if deployment resources are reasonable.
-- For DB persistence, current throttle greatly reduces writes, so DB pressure is low.
-- For correctness, missing sender auth, trip ownership checks, stale detection, and source conflict handling are the bigger risks than raw capacity.
-
-## 11. Missing Backend Capabilities
-
-- Trip History API: Not Implemented. Trip and GPSTrack models exist, but no trip history route/controller was found (`shuttle-tracking-backend/prisma/schema.prisma:105-145`, `shuttle-tracking-backend/src/routes/trips.route.ts:6-8`).
-- GPS Playback API: Not Implemented. GPSTrack exists, but no playback endpoint was found.
-- Feedback API: Implemented as public submission endpoint; admin listing/moderation endpoint is not implemented (`shuttle-tracking-backend/src/routes/public.route.ts:19-20`).
-- Device Registration: Implemented as admin CRUD for `TrackingSource`; automated provisioning and rotation are not implemented (`shuttle-tracking-backend/src/routes/devices.route.ts:16-21`).
-- Device Health: Partial. `lastSeenAt` is updated, but no offline status/alert policy exists.
-- Alerts: Not Implemented.
-- Reports: Not Implemented.
-- Admin Roles: Not Implemented. User model has username/password only (`shuttle-tracking-backend/prisma/schema.prisma:16-23`).
-- API contract docs: Not Found (`docs/project-knowledge-base.md:411-424`).
-- Automated backend tests: Not Implemented; `npm test` is a placeholder that exits with error (`shuttle-tracking-backend/package.json:6-8`).
-
-## 12. Recommended Improvements
-
-### Recommendation 1: Add device/session authentication for trip and GPS sender flow
-
-Problem: Vehicle login only verifies `vehicleId`, trip routes are public, and Socket.IO accepts raw locations.
-
-Impact: Real devices cannot be trusted. Anyone with a vehicle ID can spoof trip and GPS state if they can reach the backend.
-
-Recommendation: Make vehicle/device login issue a short-lived token. Require it for `POST /api/trips/start`, `PUT /api/trips/:id/end`, and Socket.IO connection or `send-location`. At MVP level, one shared device secret per vehicle is enough before building full provisioning.
-
-Why: Admin JWT already exists, so the team can reuse the same learning pattern for device-side auth with a narrower payload.
-
-Priority: Critical
-
-Difficulty: Medium
-
-Learning Topic: JWT for devices, Socket.IO auth middleware
-
-Related Files: `shuttle-tracking-backend/src/controllers/auth.controller.ts`, `shuttle-tracking-backend/src/routes/trips.route.ts`, `shuttle-tracking-backend/src/server.ts`
-
-### Recommendation 2: Make trip lifecycle idempotent and transactional
-
-Problem: Repeated start creates multiple trips; repeated/wrong end can update state blindly.
-
-Impact: Vehicle status and trip history can become incorrect under retries, double-clicks, mobile reconnects, or duplicate device requests.
-
-Recommendation: Before creating a trip, check if the vehicle already has an `in_progress` trip and return it or reject with 409. End only trips currently `in_progress`. Wrap trip + vehicle updates in a Prisma transaction.
-
-Why: Idempotency makes retry safe. A transaction keeps trip and vehicle status consistent.
-
-Priority: Critical
-
-Difficulty: Medium
-
-Learning Topic: Idempotency, database transactions, conflict status code 409
-
-Related Files: `shuttle-tracking-backend/src/controllers/trips.controller.ts`, `shuttle-tracking-backend/prisma/schema.prisma`
-
-### Recommendation 3: Add request validation DTOs for REST and GPS payloads
-
-Problem: Controllers accept raw `req.body`, and GPS payload validation only checks a few required fields.
-
-Impact: Invalid coordinates, bad statuses, duplicate IDs, wrong types, and unexpected fields become 500s or bad data.
-
-Recommendation: Add a small validation layer using a schema library such as Zod or a simple local validator. Start with `createVehicle`, `createRoute`, `createStop`, `startTrip`, `endTrip`, and `send-location`.
-
-Why: Validation gives better 400 responses and prevents bad data from entering Prisma/PostGIS.
-
-Priority: High
-
-Difficulty: Easy to Medium
-
-Learning Topic: Request validation, DTOs, data contracts
-
-Related Files: `shuttle-tracking-backend/src/controllers/*.ts`, `shuttle-tracking-backend/src/services/tracking.service.ts`
-
-### Recommendation 4: Harden the new TrackingSource ingestion pipeline
-
-Problem: The new source registry exists, but source secrets are optional, Socket.IO bypasses the source-authenticated HTTP path, and device provisioning/rotation is manual.
-
-Impact: A source created without a secret can ingest anonymously, and an unauthenticated socket client can attempt source submissions. The system can support multiple sources functionally, but not yet with production-grade trust boundaries.
-
-Recommendation: Require a credential for every non-webhook source, authenticate Socket.IO during handshake or per event, validate source type/secret format, and add a safe secret rotation/provisioning flow. Keep the current `TrackingSource` model and `sourceId` relation.
-
-Why: The foundation is now present; the next risk is ensuring that every accepted observation has a trustworthy source identity.
-
-Priority: High
-
-Difficulty: Medium
-
-Learning Topic: Device registry, source priority, canonical state
-
-Related Files: `shuttle-tracking-backend/src/routes/ingest.route.ts`, `shuttle-tracking-backend/src/server.ts`, `shuttle-tracking-backend/src/controllers/devices.controller.ts`, `shuttle-tracking-backend/src/services/tracking.service.ts`
-
-### Recommendation 5: Fix route-stop cache invalidation
-
-Problem: Public route stops are cached, but admin route-stop create/delete does not invalidate public cache.
-
-Impact: Public users can see stale stop order or route membership for up to 5 minutes or longer if invalidation is expected to be immediate.
-
-Recommendation: Call `invalidatePublicCache()` after route-stop create/delete. Later, replace Redis `KEYS` with `SCAN` or targeted route cache deletion.
-
-Why: Route-stop changes directly affect public map data.
-
-Priority: High
-
-Difficulty: Easy
-
-Learning Topic: Cache invalidation, Redis key scanning
-
-Related Files: `shuttle-tracking-backend/src/controllers/routeStops.controller.ts`, `shuttle-tracking-backend/src/services/cache.service.ts`, `shuttle-tracking-backend/src/controllers/public.controller.ts`
-
-### Recommendation 6: Separate realtime broadcast from persistence result
-
-Problem: If sampled GPS persistence fails, the pipeline logs the failure but still returns the canonical location to the broadcast layer.
-
-Impact: Clients can trust a location that is live-valid but missing from history, and the sender receives no persistence status.
-
-Recommendation: Return a typed result such as `{ ok, location, error }`. Broadcast only validated location data. Emit `location-error` or ack callback to the sender when rejected.
-
-Why: Realtime systems should distinguish "received" from "accepted".
-
-Priority: High
-
-Difficulty: Medium
-
-Learning Topic: Socket.IO acknowledgements, error handling, ingestion pipeline
-
-Related Files: `shuttle-tracking-backend/src/server.ts`, `shuttle-tracking-backend/src/services/tracking.service.ts`
-
-### Recommendation 7: Add trip history and GPS playback read APIs
-
-Problem: Trip and GPS data are stored, but no backend endpoints expose history/playback.
-
-Impact: Admins cannot investigate completed service, debug device behavior, or build reports.
-
-Recommendation: Add protected admin endpoints: `GET /api/admin/trips`, `GET /api/admin/trips/:id`, and `GET /api/admin/trips/:id/gps-tracks`.
-
-Why: Product audit marks trip history as a critical gap, and the schema already supports it (`docs/audits/product-audit.md:147-153`).
-
-Priority: Medium
-
-Difficulty: Medium
-
-Learning Topic: Pagination, filtering, read models
-
-Related Files: `shuttle-tracking-backend/prisma/schema.prisma`, `shuttle-tracking-backend/src/routes`, `shuttle-tracking-backend/src/controllers`
-
-### Recommendation 8: Add basic automated backend tests
-
-Problem: `npm test` is only a placeholder and exits with error.
-
-Impact: Students must manually verify every change, and regressions in trip or GPS behavior are easy to miss.
-
-Recommendation: Add a small test suite for validation, trip start/end rules, cache invalidation, and tracking service behavior. Start with unit tests before full integration tests.
-
-Why: A few focused tests will protect the riskiest backend flows without making the project too complex.
-
-Priority: Medium
-
-Difficulty: Medium
-
-Learning Topic: Unit tests, integration tests, test database
-
-Related Files: `shuttle-tracking-backend/package.json`, `shuttle-tracking-backend/src/controllers/trips.controller.ts`, `shuttle-tracking-backend/src/services/tracking.service.ts`
-
-## 13. Backend Learning Topics
-
-### Request Validation and DTO
-
-What it is: A DTO is a defined request/response shape. Validation checks incoming data before business logic.
-
-What problem it solves: Prevents invalid coordinates, missing fields, wrong types, and unexpected values from reaching the database.
-
-Needed now: Yes. Start small with trip and GPS payloads.
-
-Simpler approach: Write local helper functions first; add Zod later if the team is comfortable.
-
-Learning order: required fields -> type checks -> enum/status checks -> coordinate ranges -> reusable schemas.
-
-### Idempotency
-
-What it is: A request can be repeated and still produce one correct result.
-
-What problem it solves: Mobile reconnects, double taps, and network retries.
-
-Needed now: Yes for start/end trip.
-
-Simpler approach: Check for existing in-progress trip before creating a new one.
-
-Learning order: duplicate request examples -> 409 conflict -> returning existing active resource -> idempotency keys.
-
-### Service Layer
-
-What it is: A place for domain rules outside controllers.
-
-What problem it solves: Keeps trip lifecycle, validation, and state updates consistent across REST, Socket.IO, and future device adapters.
-
-Needed now: Partially. Tracking has a service, but trip lifecycle is still in controller.
-
-Simpler approach: Extract `trip.service.ts` only for start/end rules first.
-
-Learning order: controller vs service responsibility -> transactions -> reusable domain functions.
-
-### Retry and Timeout
-
-What it is: Retry repeats a failed operation; timeout stops waiting forever.
-
-What problem it solves: Mobile/device network instability and external service delays.
-
-Needed now: Basic client retries need backend idempotency first.
-
-Simpler approach: Start by making start/end safe to repeat.
-
-Learning order: timeout -> retry -> exponential backoff -> idempotency.
-
-### Device Registry
-
-What it is: A database record for each GPS sender, separate from vehicle. The project now implements this as `TrackingSource`.
-
-What problem it solves: Supports Mobile, LoRaWAN, ESP32, health status, and source priority.
-
-Needed now: Yes for provisioning, rotation, health monitoring, and production device integration.
-
-Simpler approach: Extend the current `TrackingSource` flow with required credentials, rotation, and offline status.
-
-Learning order: vehicle vs device -> assignment -> token/secret -> Socket.IO auth -> health -> source priority.
-
-## 14. Audit Limitations
-
-- This audit is based on repository code and docs only. No running database, Redis instance, or live device was tested.
-- No load test was performed, because the backend agent scope excludes real load testing.
-- Database index deep review is out of scope, but obvious schema evidence was read.
-- Mobile app and ESP32 client implementations could not be audited because they are not present in the repository. TTN adapter behavior is present in the backend, but no live webhook/device was tested.
-- Production deployment readiness is limited to Docker Compose and env examples; external production provider configs were not found (`docs/project-knowledge-base.md:411-418`).
-- Architecture audit exists and was used as input; therefore this backend audit is not missing architecture context (`docs/audits/architecture-audit.md:1-17`).
-
-## 15. Handoff
-
-For Database Audit Agent:
-
-- Review the new partial unique index for one active trip per vehicle and its interaction with auto-trip creation.
-- Review whether GPSTrack should store device timestamp and raw observations in addition to the new `sourceId`, accuracy, and canonical/current location fields.
-- Review GPS retention and playback sampling strategy because backend currently saves only once per 60 seconds.
-
-For Infrastructure & Device Audit Agent:
-
-- Define device identity/provisioning for Mobile, LoRaWAN/TTN, and ESP32.
-- Decide whether Socket.IO, HTTP, MQTT, or TTN webhook should be the ingestion path per device type.
-- Define heartbeat/last-seen behavior and offline thresholds.
-
-For Security & DevOps Audit Agent:
-
-- Review public trip routes and Socket.IO authentication.
-- Review JWT secret handling, token expiry policy, CORS policy, rate limiting, and production env separation.
-- Add basic automated tests and CI once backend validation/idempotency is implemented.
-
-For Master Roadmap Agent:
-
-- Phase 1 should prioritize sender auth, idempotent trip lifecycle, validation, route-stop cache invalidation, and trip history read APIs.
-- Phase 2 should harden the new device registry with secret rotation, health/offline alerts, and GPS playback; feedback submission is already present.
-- Phase 3 should add reports, admin roles, audit logs, and production observability.
+This report supersedes the prior Backend Audit. Lead Audit may mark Backend complete after shared
+minimum validation. The next phase should use this report as input and must not treat the resolved
+sender-authentication finding as open.

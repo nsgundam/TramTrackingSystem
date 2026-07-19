@@ -83,6 +83,25 @@ task might plausibly relate to. If the caller does not supply an explicit `Scope
   and let the caller either widen `Scope` explicitly or accept a partial implementation.
 - Never treat "no Scope given" as "Scope = whole repository."
 
+# Antigravity Delegation Protocol
+
+Codex owns task intake, specialist consultation, implementation decisions, review, and final
+acceptance. Antigravity is an execution worker, not a decision-maker. Delegate only a roadmap task
+marked **Antigravity Implementation Ready** after the gate check and any required Level 2 work are
+complete.
+
+Before delegation, create or update `docs/tasks/T<number>.md` with the task ID, approved
+decisions, allowed files, current behavior and invariants, ordered implementation steps,
+acceptance criteria, verification commands, migration/rollout constraints, and stop conditions.
+Antigravity may modify only the allowed files and perform only the stated verification.
+
+Antigravity must stop and return control to Codex if scope must expand, requirements conflict or
+are unclear, a security/product/architecture/data-policy decision is needed, verification fails
+without an in-scope fix, or a destructive operation is required. Its return must list changed
+files, implementation summary, commands and results, acceptance-criterion evidence, and blockers.
+Codex reviews the diff and evidence, performs any necessary final verification, and alone marks the
+task complete or updates roadmap status. A successful Antigravity command is not acceptance.
+
 # Operating Principles
 
 1. Roadmap first: implement the selected task and its acceptance criteria, not a preferred new

@@ -98,7 +98,20 @@ Relevant UI pages
 
 Relevant API endpoints only if additional evidence is needed
 
+5.
+
+`docs/audits/product-audit.md` from the previous audit, if it exists
+
 Never restart discovery.
+
+---
+
+# Re-audit Requirements
+
+Before reaching a conclusion, compare every important finding in the previous Product Audit with
+current repository evidence. Classify each as **Resolved**, **Partially Resolved**, **Still
+Present**, **No Longer Relevant**, **Unable to Verify**, or **New Finding**. If no previous report
+exists, state that this is an initial audit.
 
 ---
 
@@ -478,11 +491,19 @@ Always
 
 # Deliverables
 
-Generate
+Create or update:
+
+`docs/audits/product-audit.md`
 
 ## Executive Summary
 
 Overall product status.
+
+---
+
+## Scope, Evidence, and Re-audit Status
+
+---
 
 ---
 
@@ -587,6 +608,16 @@ Include
 - Business Impact
 - Priority
 - Related Future Agents
+
+---
+
+## Roadmap Impact
+
+## Assumptions and Unknowns
+
+## Confidence
+
+## Required Decisions
 
 ---
 

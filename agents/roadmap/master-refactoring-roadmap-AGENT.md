@@ -34,6 +34,8 @@ Read these files, in order, before starting. This audit depends on more prior co
 8. `docs/audits/dashboard-ux-audit.md`
 9. `docs/audits/security-devops-observability-audit.md`
 10. `docs/audits/production-readiness-audit.md`
+11. `docs/audits/README.md` for validated report status and last-reviewed dates
+12. `docs/decision-queue.md`
 
 For each missing file, note it explicitly in the "Input Coverage" section of your report. Do not silently proceed as if a missing audit had no findings.
 
@@ -46,6 +48,14 @@ The Production Readiness Audit's consolidated findings, cross-cutting risks, and
 If more than two other audits are missing:
 
 STOP and ask the user which should be produced first, since a roadmap built on a materially incomplete evidence base risks sequencing work incorrectly.
+
+If the audit record marks a required report as stale, incomplete, blocked, or unvalidated, or if
+the Decision Queue is missing:
+
+STOP.
+
+Do not update the roadmap from stale evidence or unapproved decisions; identify the report or
+decision record that must be completed first.
 
 Do not re-inspect source code directly. This agent's evidence base is exclusively the prior audits.
 
@@ -95,6 +105,25 @@ Each phase must state its entry criteria (what must be true before starting) and
 
 For each roadmap item, produce a task description specific enough to hand to an AI coding agent or a developer without requiring them to re-read the full audit. This is not full implementation detail — it is a clear, scoped brief.
 
+## Execution Mode and Antigravity Handoff
+
+For every task, select one execution mode:
+
+- **Codex Only** — analysis, planning, decision, validation, or documentation work requiring judgment.
+- **Codex + Specialist** — implementation is blocked until the named Level 2 specialist answers a focused question.
+- **Antigravity Implementation Ready** — deterministic implementation work that Codex may hand to Antigravity.
+
+Use the last mode only when the user decision status is approved, dependencies and phase gates are
+complete, scope and related files are bounded, expected behavior and invariants are clear, and
+acceptance criteria and verification commands are stated. Otherwise retain a Codex-led mode; do
+not use Antigravity to resolve ambiguity.
+
+For an Antigravity-ready task, the Level 3 Refactoring Agent must create or update
+`docs/tasks/T<number>.md` before delegation. The handoff must state the task ID, approved
+decisions, allowed files, current behavior/invariants, implementation steps, acceptance criteria,
+verification commands, migration or rollout constraints, and stop conditions. Antigravity may
+implement only that handoff. Codex reviews its result and remains the final acceptance authority.
+
 ## Research Queue
 
 Produce a single, deduplicated, ordered learning queue drawn from every audit's "Learning Topics" sections, sequenced so that concepts build on each other (e.g., input validation before rate limiting; basic indexing before spatial indexing).
@@ -123,7 +152,8 @@ Follow these steps in order. Do not skip steps.
 
 ## Step 1 — Confirm Input Coverage
 
-List which audits are available and which are missing, and how that affects this roadmap's completeness.
+List which audits and decision records are available, their last-reviewed dates and validation
+state, and how any missing or stale input affects this roadmap's completeness.
 
 ## Step 2 — Consolidate All Recommendations
 
@@ -132,6 +162,8 @@ Build the master list of every recommendation from every available audit, dedupl
 ## Step 3 — Map Dependencies
 
 For each consolidated item, identify what it depends on and what depends on it.
+Run an explicit dependency-cycle check. If a cycle exists, mark affected tasks blocked and record
+the decision or evidence needed to resolve it; do not silently choose an order.
 
 ## Step 4 — Assign Phases
 
@@ -201,11 +233,21 @@ Each roadmap item must use this structure:
 - Level 3 Refactoring Agent (direct)
 - User Decision Required
 
+### Execution Mode
+
+- Codex Only
+- Codex + Specialist
+- Antigravity Implementation Ready
+
 ### Task Brief
 
 A short, implementation-ready description an AI coding agent or developer could act on directly.
 
 ### Related Files
+
+### Acceptance Criteria and Verification
+
+State observable completion conditions and the commands or checks required to verify them.
 
 ---
 
@@ -262,6 +304,8 @@ Described in prose/table form (text-based; no diagram generation required).
 
 ## 15. Handoff
 
+## Roadmap Impact, Assumptions and Unknowns, Confidence, and Deferred Decisions
+
 ---
 
 # Success Criteria
@@ -287,6 +331,7 @@ This is the final Level 1 agent. Output from this roadmap should be used to:
 - Answer the "Blocking Decisions Required From User" section before Phase 1 work begins
 - Invoke Level 2 Specialized Agents where flagged, before invoking Level 3 Refactoring Agents on the same task
 - Invoke Level 3 Refactoring Agents directly on tasks simple enough not to need specialized deep-dives
-- Feed individual task briefs to an AI coding agent (e.g., Claude Code) for implementation, one task at a time, in phase order
+- Hand an **Antigravity Implementation Ready** task to Antigravity one at a time and in phase order;
+  Codex must validate the returned evidence before the task is considered complete
 
 The user should verify each completed task against its originating audit finding before moving to the next.
