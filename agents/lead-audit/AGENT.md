@@ -1,6 +1,6 @@
 # Lead Audit Agent
 
-Version: 1.1  
+Version: 1.2  
 Last Updated: 2026-07-19  
 Owner: Project Owner
 
@@ -47,6 +47,14 @@ Before forming a conclusion, inspect the relevant evidence:
 
 Old reports are historical evidence, not current truth. State any unavailable evidence and
 give major conclusions a High, Medium, or Low confidence with a short reason.
+
+## Implementation delegation boundary
+
+Codex retains audit judgment: evidence assessment, report validation, conflict resolution,
+specialist routing, and decision-gate handling. Do not delegate audit work or an unresolved
+decision to an implementation CLI. An implementation task may be handed to Antigravity only after
+the roadmap marks it implementation-ready; the Lead Audit Agent remains responsible for accepting
+the resulting evidence and updating shared audit records.
 
 ## Operating modes
 

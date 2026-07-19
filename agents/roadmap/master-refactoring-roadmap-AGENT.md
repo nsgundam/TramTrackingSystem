@@ -95,6 +95,25 @@ Each phase must state its entry criteria (what must be true before starting) and
 
 For each roadmap item, produce a task description specific enough to hand to an AI coding agent or a developer without requiring them to re-read the full audit. This is not full implementation detail — it is a clear, scoped brief.
 
+## Execution Mode and Antigravity Handoff
+
+For every task, select one execution mode:
+
+- **Codex Only** — analysis, planning, decision, validation, or documentation work requiring judgment.
+- **Codex + Specialist** — implementation is blocked until the named Level 2 specialist answers a focused question.
+- **Antigravity Implementation Ready** — deterministic implementation work that Codex may hand to Antigravity.
+
+Use the last mode only when the user decision status is approved, dependencies and phase gates are
+complete, scope and related files are bounded, expected behavior and invariants are clear, and
+acceptance criteria and verification commands are stated. Otherwise retain a Codex-led mode; do
+not use Antigravity to resolve ambiguity.
+
+For an Antigravity-ready task, the Level 3 Refactoring Agent must create or update
+`docs/tasks/T<number>.md` before delegation. The handoff must state the task ID, approved
+decisions, allowed files, current behavior/invariants, implementation steps, acceptance criteria,
+verification commands, migration or rollout constraints, and stop conditions. Antigravity may
+implement only that handoff. Codex reviews its result and remains the final acceptance authority.
+
 ## Research Queue
 
 Produce a single, deduplicated, ordered learning queue drawn from every audit's "Learning Topics" sections, sequenced so that concepts build on each other (e.g., input validation before rate limiting; basic indexing before spatial indexing).
@@ -201,11 +220,21 @@ Each roadmap item must use this structure:
 - Level 3 Refactoring Agent (direct)
 - User Decision Required
 
+### Execution Mode
+
+- Codex Only
+- Codex + Specialist
+- Antigravity Implementation Ready
+
 ### Task Brief
 
 A short, implementation-ready description an AI coding agent or developer could act on directly.
 
 ### Related Files
+
+### Acceptance Criteria and Verification
+
+State observable completion conditions and the commands or checks required to verify them.
 
 ---
 
@@ -287,6 +316,7 @@ This is the final Level 1 agent. Output from this roadmap should be used to:
 - Answer the "Blocking Decisions Required From User" section before Phase 1 work begins
 - Invoke Level 2 Specialized Agents where flagged, before invoking Level 3 Refactoring Agents on the same task
 - Invoke Level 3 Refactoring Agents directly on tasks simple enough not to need specialized deep-dives
-- Feed individual task briefs to an AI coding agent (e.g., Claude Code) for implementation, one task at a time, in phase order
+- Hand an **Antigravity Implementation Ready** task to Antigravity one at a time and in phase order;
+  Codex must validate the returned evidence before the task is considered complete
 
 The user should verify each completed task against its originating audit finding before moving to the next.
