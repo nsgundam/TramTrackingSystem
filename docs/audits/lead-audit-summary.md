@@ -8,30 +8,32 @@ Discovery is current as of 2026-07-18. Since the prior audit-document refresh, r
 include authenticated sender sessions, tracking-source lifecycle work, sender/trip/realtime changes,
 production-mode Compose/startup work, feedback submission, and simulator/test additions.
 
-The Product Audit was re-run and validated on 2026-07-19. It confirms a usable controlled tracking
-MVP, while daily operations remain incomplete because route-stop management, a supported
-driver/sender workflow, trip history, and actionable service freshness are absent as product
-surfaces. Public feedback capture is now implemented; staff triage is not.
+The Product and Architecture Audits were re-run and validated on 2026-07-19. The product is a
+usable controlled tracking MVP, not yet a daily operations product. The architecture remains an
+appropriate monolith, but needs a backend-owned canonical vehicle-state contract and one
+Operations/Trip ownership boundary before it can support reliable operational workflows.
 
 ## 2. Audit Progress, Validated Findings, and Remaining Risks
 
 - Discovery: Complete.
 - Product: Complete; prior feedback gap is Partially Resolved. Route-stop management, driver
   workflow, trip history, stale/offline visibility, and reports remain unresolved or incomplete.
-- All remaining Level-1 domain reports: Needs Re-audit against current repository evidence.
+- Architecture: Complete; source/vehicle identity is resolved, while source-health visibility,
+  canonical-state durability/versioning, trip ownership, and telemetry policy remain open.
+- Backend, Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps, and
+  Production Readiness: Needs Re-audit against current repository evidence.
 
 Remaining product risk: the system may appear suitable for operation while key workflows still
 require manual/API-only/external-client work.
 
 ## 3. Conflicts, Decisions, and Recommended Next Action
 
-Pending decision: D-001 defines whether the next product target is a controlled demonstration,
-daily campus operations, or a wider public rider release. The decision is recorded in
-`docs/decision-queue.md` and is not yet approved.
+Pending decisions: D-001 defines product operating scope; D-002 defines raw-telemetry retention
+and canonical-history fidelity; D-003 resolves the T6/T16 production-configuration dependency
+cycle. All are recorded in `docs/decision-queue.md` and remain unapproved.
 
-No specialist analysis is required at this phase. The recommended next audit action is the
-Architecture re-audit, which can assess how the validated product priorities fit the current system
-boundaries.
+No specialist analysis is required at this phase. The recommended next audit action is the Backend
+re-audit; it can validate the canonical-state and Operations/Trip boundaries against current source.
 
 ## 4. Confidence and Limitations
 
