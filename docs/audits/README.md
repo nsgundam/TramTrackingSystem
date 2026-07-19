@@ -7,7 +7,7 @@ Last updated: 2026-07-19
 | Discovery | Complete | `docs/project-knowledge-base.md` | 2026-07-18 | Knowledge Base is the current discovery evidence. |
 | Product | Complete | `docs/audits/product-audit.md` | 2026-07-19 | Re-audited and validated by Lead Audit. |
 | Architecture | Complete | `docs/audits/architecture-audit.md` | 2026-07-19 | Re-audited and validated by Lead Audit. |
-| Backend | Needs Re-audit | `docs/audits/backend-audit.md` | 2026-07-15 or undocumented | Predates authenticated sender/session changes. |
+| Backend | Complete | `docs/audits/backend-audit.md` | 2026-07-19 | Re-audited and validated by Lead Audit. Sender authentication is resolved; lifecycle and telemetry contracts remain open. |
 | Frontend | Needs Re-audit | `docs/audits/frontend-audit.md` | undocumented | Predates feedback UI and related public-tracker changes. |
 | Database | Needs Re-audit | `docs/audits/database-audit.md` | undocumented | Predates the latest tracking-source lifecycle migration. |
 | Infrastructure & Device | Needs Re-audit | `docs/audits/infrastructure-device-audit.md` | undocumented | Predates production-mode Compose and TTN simulation changes. |
