@@ -1,6 +1,6 @@
 # Lead Audit Summary
 
-Last updated: 2026-07-19
+Last updated: 2026-07-20
 
 ## 1. Executive Summary and Changes Detected
 
@@ -49,9 +49,12 @@ require manual/API-only/external-client work.
 
 ## 3. Conflicts, Decisions, and Recommended Next Action
 
-Pending decisions: D-001 defines product operating scope; D-002 defines raw-telemetry retention
-and canonical-history fidelity; D-003 resolves the T6/T16 production-configuration dependency
-cycle. All are recorded in `docs/decision-queue.md` and remain unapproved.
+Approved decisions (2026-07-20):
+- **D-001 (Approved A)**: Minimal controlled demonstration scope for MVP pilot testing.
+- **D-002 (Approved B)**: Bounded raw diagnostics retained to compare 3 senders (Mobile, LoRaWAN, ESP32) for latency and accuracy research.
+- **D-003 (Approved A)**: T6 production configuration precedes T16 Socket/REST origin alignment.
+
+All decision records have been moved from Pending to Approved in `docs/decision-queue.md`.
 
 The Database re-audit reconciles the active-trip evidence: the database partial unique index exists;
 the unresolved issue is the non-transactional lifecycle code around it. Infrastructure & Device
@@ -61,8 +64,7 @@ health are not communicated truthfully to users. Frontend also establishes that 
 selection is incorrectly used as the initial vehicle-route assignment. Production Readiness
 consolidates these into a No-Go: the current service is limited to a controlled demonstration, with
 security, operational-truth, lifecycle, deployment, and observability blockers before daily/public
-use. The recommended next action is Roadmap Review using the Production Readiness minimum bar;
-owner decisions may remain pending until that plan is presented.
+use. The recommended next action is updating the Master Refactoring Roadmap (`docs/roadmap/master-refactoring-roadmap.md`) to reflect these approved decision gates and proceed with Phase 1 execution sequencing.
 
 ## 4. Confidence and Limitations
 

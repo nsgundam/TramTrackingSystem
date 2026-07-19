@@ -2,6 +2,8 @@
 
 ## Pending
 
+## Approved
+
 ## D-001 — Operational MVP release scope
 
 Related reports: `docs/audits/product-audit.md`, `docs/audits/backend-audit.md`,
@@ -28,9 +30,9 @@ Recommendation: A — keep the current release limited to a controlled demonstra
 the owner explicitly chooses B or C. This matches the repository evidence without presenting
 API-only or external-client workflows as daily operational capability.
 
-Owner decision: Pending
+Owner decision: Approved A — Minimal controlled demonstration (Develop MVP scope for pilot testing prior to potential future expansions)
 
-Roadmap effect: Wait for decision
+Roadmap effect: Governs MVP release scope; focus remains on controlled demonstration.
 
 ## D-002 — Telemetry retention and canonical-history fidelity
 
@@ -55,9 +57,9 @@ capabilities.
 Recommendation: A — keep canonical sampled history for the controlled MVP. Revisit B only when
 the owner selects a scope that needs device comparison or incident diagnostics.
 
-Owner decision: Pending
+Owner decision: Approved B — Bounded raw diagnostics (Retain raw observation facts to compare 3 senders—mobile, LoRaWAN, ESP32—measuring latency, accuracy, etc. for research analysis)
 
-Roadmap effect: Wait for decision; governs T14, T26, T29, and playback scope.
+Roadmap effect: Unblocks T14, T26, T29, and telemetry retention/diagnostics tasks.
 
 ## D-003 — T6/T16 production-configuration dependency order
 
@@ -83,12 +85,11 @@ required, but the roadmap must define their sequence without a circular prerequi
 Recommendation: A — make T6 the provider/configuration prerequisite, then make T16 validate and
 enforce REST/Socket alignment against that contract.
 
-Owner decision: Pending
+Owner decision: Approved A — T6 first, T16 follows
 
-Roadmap effect: Wait for decision; update the dependency map after approval.
-
-## Approved
+Roadmap effect: Dependency order updated; T6 precedes T16, unblocking roadmap execution sequence.
 
 ## Postponed
 
 ## Rejected
+
