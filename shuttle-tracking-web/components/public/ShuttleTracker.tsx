@@ -744,13 +744,12 @@ export default function ShuttleTracker() {
         stopLayersRef.current[routeId] = stopLayer;
         if (routeId === selectedRouteRef.current && mapRef.current) stopLayer.addTo(mapRef.current);
 
-        // Resolution order: OSRM -> bundled JSON -> last known LocalStorage.
-        // A successful OSRM result is retained locally so it is available when
-        // the routing service is temporarily unreachable.
+        // Resolution order: OSRM -> LocalStorage -> bundled JSON
         const stopsSignature = createStopsSignature(stops);
         const cacheKey = `rsu-route-cache-${routeId}`;
         let finalCoords: [number, number][] = [];
 
+        // Step 1: OSRM API (online) — ดึง route geometry จากถนนจริง
         if (stops.length > 1) {
           try {
             console.log(`[${routeId}] Fetching route geometry from OSRM...`);
@@ -780,20 +779,11 @@ export default function ShuttleTracker() {
             };
             localStorage.setItem(cacheKey, JSON.stringify(cache));
           } catch (error) {
-            console.warn(`[${routeId}] OSRM unavailable; trying bundled route geometry.`, error);
+            console.warn(`[${routeId}] OSRM unavailable; trying LocalStorage.`, error);
           }
         }
 
-        if (finalCoords.length === 0) {
-          try {
-            const bundledRouteRes = await fetch(`/data/route-${routeId}.json`);
-            const bundledCoords: unknown = bundledRouteRes.ok ? await bundledRouteRes.json() : null;
-            if (isCoordinateList(bundledCoords)) finalCoords = bundledCoords;
-          } catch (error) {
-            console.warn(`[${routeId}] Could not load bundled route geometry.`, error);
-          }
-        }
-
+        // Step 2: LocalStorage cache (fallback เมื่อ OSRM ล้มเหลว)
         if (finalCoords.length === 0) {
           const cachedDataStr = localStorage.getItem(cacheKey);
           if (cachedDataStr) {
@@ -812,6 +802,17 @@ export default function ShuttleTracker() {
             } catch {
               localStorage.removeItem(cacheKey);
             }
+          }
+        }
+
+        // Step 3: bundled JSON (fallback สุดท้าย)
+        if (finalCoords.length === 0) {
+          try {
+            const bundledRouteRes = await fetch(`/data/route-${routeId}.json`);
+            const bundledCoords: unknown = bundledRouteRes.ok ? await bundledRouteRes.json() : null;
+            if (isCoordinateList(bundledCoords)) finalCoords = bundledCoords;
+          } catch (error) {
+            console.warn(`[${routeId}] Could not load bundled route geometry.`, error);
           }
         }
 
