@@ -33,7 +33,8 @@ Roadmap effect: Wait for decision
 ## D-002 — Telemetry retention and canonical-history fidelity
 
 Related reports: `docs/audits/architecture-audit.md`, `docs/audits/product-audit.md`,
-`docs/audits/backend-audit.md`, `docs/audits/database-audit.md`
+`docs/audits/backend-audit.md`, `docs/audits/database-audit.md`,
+`docs/audits/infrastructure-device-audit.md`
 
 Current approach: Redis keeps only the latest observation per source. PostgreSQL stores sampled
 canonical GPS history, rather than each source observation or an ordered event stream.
@@ -57,7 +58,8 @@ Roadmap effect: Wait for decision; governs T14, T26, T29, and playback scope.
 
 ## D-003 — T6/T16 production-configuration dependency order
 
-Related reports: `docs/audits/architecture-audit.md`, `docs/roadmap/master-refactoring-roadmap.md`
+Related reports: `docs/audits/architecture-audit.md`,
+`docs/audits/infrastructure-device-audit.md`, `docs/roadmap/master-refactoring-roadmap.md`
 
 Current approach: roadmap task T6 depends on T16, while T16 depends on T6. This forms a cycle that
 prevents either task from satisfying its dependency order.
