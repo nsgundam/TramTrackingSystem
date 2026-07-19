@@ -8,11 +8,11 @@ Discovery is current as of 2026-07-18. Since the prior audit-document refresh, r
 include authenticated sender sessions, tracking-source lifecycle work, sender/trip/realtime changes,
 production-mode Compose/startup work, feedback submission, and simulator/test additions.
 
-The Product, Architecture, Backend, Database, Infrastructure & Device, and Dashboard & UX Audits
-were re-run and validated on 2026-07-19. The product is a usable controlled tracking MVP, not yet
-a daily operations product. The architecture remains an appropriate monolith, but needs a
-backend-owned canonical vehicle-state contract and one Operations/Trip ownership boundary before it
-can support reliable operational workflows.
+The Product, Architecture, Backend, Database, Infrastructure & Device, Dashboard & UX, and
+Security/DevOps/Observability Audits were re-run and validated on 2026-07-19. The product is a
+usable controlled tracking MVP, not yet a daily operations product. The architecture remains an
+appropriate monolith, but needs a backend-owned canonical vehicle-state contract and one
+Operations/Trip ownership boundary before it can support reliable operational workflows.
 
 ## 2. Audit Progress, Validated Findings, and Remaining Risks
 
@@ -32,8 +32,10 @@ can support reliable operational workflows.
   registry, physical hardware, and fixture alignment remain open or unverified.
 - Dashboard & UX: Complete; public feedback is now usable, but public/admin freshness, connection
   truthfulness, stale/offline visibility, and exception-first operations UX remain open.
-- Frontend, Security/DevOps, and Production Readiness: Needs Re-audit against current repository
-  evidence.
+- Security/DevOps/Observability: Complete; sender trust boundaries and production secret checks are
+  improved. Device secret-hash exposure, Redis URL logging, abuse controls, CI, and minimum
+  monitoring remain High risks before public/daily use.
+- Frontend and Production Readiness: Needs Re-audit against current repository evidence.
 
 Remaining product risk: the system may appear suitable for operation while key workflows still
 require manual/API-only/external-client work.
@@ -49,8 +51,9 @@ the unresolved issue is the non-transactional lifecycle code around it. Infrastr
 adds no new decision: D-003 governs production configuration/origin order and D-002 governs
 telemetry fidelity. Dashboard & UX confirms that canonical freshness and source health are not yet
 communicated truthfully to users. The recommended next audit action is Security, DevOps &
-Observability, which can assess the trust-boundary, log, monitoring, and runtime side of those
-status claims.
+Observability is complete and identifies High pre-production security/operability gaps. The
+recommended next audit action is Production Readiness, which can synthesize the refreshed evidence
+and identify release blockers without changing the roadmap.
 
 ## 4. Confidence and Limitations
 
