@@ -115,7 +115,7 @@ const DEVICE_PRESETS = {
   },
   TS_LORA_01: {
     id: 'TS_LORA_01',
-    vehicleId: 'VH001',
+    vehicleId: 'VH002',
     routeName: 'R01 (วนภายในมหาลัย)',
     routeFile: '../shuttle-tracking-web/public/data/route-R01.json',
     defaultSpeed: 10,

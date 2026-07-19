@@ -11,6 +11,7 @@ import AvailabilityCard from "@/components/public/AvailabilityCard";
 import StopInfoCard from "@/components/public/StopInfoCard";
 import VehicleInfoCard from "@/components/public/VehicleInfoCard";
 import AppTour from "@/components/public/AppTour";
+import * as turf from "@turf/turf";
 import { shouldMove, animateMove, getNearestPointIndex, getDirectionalPointIndex } from "@/utils/MapHelpers";
 import { Stop, LocationUpdateData } from "@/types";
 
@@ -468,7 +469,7 @@ export default function ShuttleTracker() {
     // ดึงองศาการหมุนจาก Backend ตรงๆ
     const backendBearing = Number(data.bearing ?? data.heading ?? 0);
 
-    // 1. OSRM Path Index Calculation (เพื่อการประเมิน ETA และป้ายถัดไปเท่านั้น ไม่เปลี่ยนแปลงพิกัดรถจริง)
+    // 1. คำนวณ index บน polyline สำหรับ ETA และป้ายถัดไปเท่านั้น (ตำแหน่งรถใช้ GPS ดิบ พร้อม snap เข้าถนน OSM)
     const coords = routeGeometryRef.current[routeId];
     if (coords && coords.length > 0) {
       let currentIdx = vehicleLastPolyIndexRef.current[id] ?? -1;
@@ -487,6 +488,23 @@ export default function ShuttleTracker() {
       }
       vehicleLastPolyIndexRef.current[id] = currentIdx;
     }
+
+    // Snap GPS เข้าถนนจริงโดยใช้ OSRM Nearest API (snap ไปยัง road network ไม่ใช่ polyline)
+    (async () => {
+      try {
+        const nearestUrl = `https://router.project-osrm.org/nearest/v1/driving/${rawLng},${rawLat}?number=1`;
+        const res = await fetch(nearestUrl);
+        const nearestData = await res.json();
+        if (nearestData.code === 'Ok' && nearestData.waypoints?.[0]?.location) {
+          const snappedLng = nearestData.waypoints[0].location[0];
+          const snappedLat = nearestData.waypoints[0].location[1];
+          newPos[0] = snappedLat;
+          newPos[1] = snappedLng;
+        }
+      } catch {
+        // fallback: ใช้ GPS ดิบ
+      }
+    })();
 
     // 2. สร้าง Marker รถใหม่ (ดึง HTML จากไฟล์แยกมาใช้)
     if (!vehiclesRef.current[id]) {

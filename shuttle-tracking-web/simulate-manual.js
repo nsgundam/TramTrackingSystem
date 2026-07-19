@@ -7,7 +7,7 @@ dotenv.config();
 
 const API_URL = 'http://localhost:3001/api';
 const SOCKET_URL = 'http://localhost:3001'; 
-const VEHICLE_ID = 'VH002';
+const VEHICLE_ID = 'VH001';
 const SOURCE_ID = 'TS_MOB_01';
 
 const SOURCE_SECRET = process.env.TRACKING_SOURCE_SECRET_MOBILE || process.env.TRACKING_SOURCE_SECRET || 'mobile_secret_key';
