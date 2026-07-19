@@ -1,384 +1,617 @@
 # Tram Tracking System Project Knowledge Base
 
+Discovery refresh: 2026-07-18
+
+This document describes the current repository state from source code, configuration, schema,
+migrations, seed data, and repository documentation. It is a discovery artifact, not an audit or
+recommendation report.
+
 ## Executive Summary
 
-The Tram Tracking System is an MVP full-stack web application for real-time tram/shuttle tracking. The repository contains a Next.js frontend, an Express/Socket.IO backend, a PostgreSQL/PostGIS database, Redis caching, and Docker Compose orchestration.
+Tram Tracking System is an MVP full-stack university shuttle/tram tracking application. It provides
+a public live map for shuttle users and an authenticated administration area for operational data.
+The repository also contains a multi-source location ingestion pipeline for mobile, ESP32,
+LoRaWAN/TTN, and simulator sources.
 
-The system solves the problem of showing shuttle/tram locations to public users while giving administrators a management interface for routes, stops, vehicles, and live operations. Evidence: root `README.md`, `shuttle-tracking-backend/README.md`, and `shuttle-tracking-web/README.md`.
+The current implementation contains:
 
-Known users from the repository are:
+- Next.js public tracking and admin frontend.
+- Express and Socket.IO backend.
+- PostgreSQL with PostGIS for durable relational and spatial data.
+- Redis for public cache, source latest-location snapshots, source selection analytics, GPS history
+  write throttling, and the Socket.IO Redis adapter.
+- REST ingestion for authenticated mobile/ESP32-style senders and an authenticated TTN webhook.
+- Socket.IO sender ingestion with short-lived sender JWTs and per-write revalidation.
+- Canonical vehicle location selection by active source priority and a 30-second freshness window.
+- Docker Compose development and production-mode container configurations.
 
-- Public user: views live route, stop, ETA, nearest stop, and vehicle information on the public tracking map.
-- Admin user: logs into the admin portal and manages vehicles, routes, and stops.
-- Driver/mobile/device sender: starts/ends trips and sends GPS location updates through the trip REST API and Socket.IO event flow. The repository includes a simulator, not a full mobile app.
+The repository directly evidences these user groups:
 
-Current project objective: MVP implementation of a real-time shuttle tracking system, with a long-term target of production readiness according to `agents/discovery/AGENT.md`.
+- Public users who view routes, stops, vehicles, ETA, location, and submit feedback.
+- Admin users who manage vehicles, routes, stops, and tracking sources.
+- External senders such as mobile applications, ESP32 devices, and simulators that authenticate and
+  submit location observations.
+- TTN/LoRaWAN webhook senders that submit location payloads through the server-side webhook route.
+
+The declared project stage is MVP. The long-term goal in `agents/discovery/AGENT.md` is a
+production-ready system. A complete mobile application, ESP32 firmware, and deployed TTN provider
+configuration are not present in this repository.
 
 ## Project Overview
 
-Business context:
+### Business
 
-- The project supports university shuttle/tram tracking. Seed data and UI labels reference Rangsit University and routes such as `R01` and `R02`.
-- The public-facing workflow helps users see active route/service information and estimate shuttle arrivals.
-- The admin workflow manages operational data used by public tracking.
+The domain is university shuttle transportation. Seed data and interface text reference Rangsit
+University, routes `R01`, `R02`, and `R03`, campus stops, a train-station route, vehicles, trips,
+and rider feedback.
 
-System context:
+The public workflow is to select a route, inspect stops and vehicles on a map, see live positions,
+identify a nearby stop, estimate arrival time, and submit feedback about a vehicle. The admin
+workflow is to authenticate, inspect live fleet status and counts, and maintain routes, stops,
+vehicles, and tracking-source registrations.
 
-- Frontend: Next.js app with a public map and admin pages.
-- Backend: Express API with Socket.IO real-time messaging.
-- Database: PostgreSQL with PostGIS geography fields.
-- Cache: Redis for public API caching, Socket.IO scaling adapter, and GPS write throttling.
-- Deployment/runtime in repo: Docker Compose local/dev stack.
+### System
 
-Architecture context:
+The system has two frontend experiences and several backend boundaries:
 
-- Public frontend reads public REST endpoints, listens to Socket.IO `location-update`, renders Leaflet maps, and optionally calls OSRM when route geometry is not cached locally.
-- Admin frontend authenticates through JWT, stores `admin_token` in a cookie, calls protected admin REST endpoints, and listens to live vehicle updates on the dashboard map.
-- Backend receives trip start/end requests and socket location events, writes GPS tracks with PostGIS location data, and broadcasts location updates to connected clients.
+- Public web tracking at `/`.
+- Admin web application under `/admin/*`.
+- Admin REST APIs under `/api/admin/*`.
+- Public REST APIs under `/api/public/*`.
+- Sender trip and HTTP ingestion APIs.
+- TTN webhook ingestion.
+- Socket.IO for public viewers, admin live maps, and authenticated sender location writes.
+
+### Architecture
+
+The frontend reads route and stop data through REST, obtains live canonical vehicle updates through
+Socket.IO, and renders maps with Leaflet. The backend authenticates admin and sender traffic,
+resolves each accepted observation against the tracking-source registry, stores the latest raw
+snapshot per source in Redis, selects a canonical current location for an assigned vehicle,
+broadcasts that canonical result, and periodically persists canonical history to PostGIS-backed
+`gps_tracks`.
 
 ## Feature Inventory
 
 ### Public User
 
-- Public tracking page at `/` using `components/public/ShuttleTracker.tsx`.
-- Interactive Leaflet map centered on RSU coordinates.
-- Route toggle for `R01` and `R02`.
-- Public route stop loading from `GET /api/public/routes/:id/stops`.
-- Route geometry loading from `public/data/route-R01.json` and `public/data/route-R02.json`, with OSRM fallback.
-- Real-time vehicle marker updates from Socket.IO `location-update`.
-- Vehicle marker animation and route snapping using Leaflet and Turf.
-- Available active vehicle count display.
-- Stop selection and stop information card.
+- Public tracking page at `/`.
+- Leaflet map centered on the university area.
+- Route selection for `R01` and `R02` in the current public tracker.
+- Route stop loading from `GET /api/public/routes/:id/stops`.
+- Local route geometry files for `R01` and `R02`.
+- OSRM route geometry fallback when local route data or local cache is unavailable.
+- Live vehicle marker updates from Socket.IO `location-update`.
+- Vehicle movement animation and route-position calculations using Turf helpers.
+- Active vehicle availability count.
+- Stop markers, stop selection, and stop information card.
 - Vehicle selection and vehicle information card.
-- Browser geolocation marker.
-- Nearest stop lookup from current browser geolocation.
-- ETA calculation based on route geometry, current vehicle position, speed history, and stops between vehicle and target.
-- App tour component included in the public tracker.
+- Browser geolocation marker and nearest-stop lookup.
+- ETA calculation based on route geometry, vehicle position, speed history, and stops.
+- Public application tour.
+- Feedback modal with feedback type, vehicle selection, message submission, success state, and
+  error handling.
+- Public feedback submission through `POST /api/public/feedback`.
 
 ### Admin User
 
-- Admin login page at `/admin/login`.
-- JWT authentication through `POST /api/auth/login`.
-- Client-side auth context stores `admin_token` cookie and decodes JWT.
-- Next.js proxy protects `/admin/*` pages except `/admin/login`.
-- Admin logout from sidebar.
+- Admin login at `/admin/login`.
+- JWT-backed admin session stored by the frontend as the `admin_token` cookie.
+- Admin route protection through `shuttle-tracking-web/proxy.ts` and API Bearer tokens.
+- Admin logout from the sidebar.
 - Dashboard at `/admin/dashboard`.
-- Dashboard stats for active vehicles, total routes, and total stops.
-- Admin live map subscribing to Socket.IO `location-update`.
-- Vehicles management page:
-  - List vehicles.
-  - Create vehicle.
-  - Edit vehicle.
-  - Delete vehicle.
-  - Assign vehicle to route.
-  - Display vehicle status.
-- Routes management page:
-  - List routes.
-  - Create route.
-  - Edit route.
-  - Delete route.
-  - Manage route color and status.
-- Stops management page:
-  - List stops.
-  - Create stop.
-  - Edit stop.
-  - Delete stop.
-  - Manage Thai/English names and coordinates.
+- Dashboard counts for active vehicles, total routes, and total stops.
+- Admin live map subscribed to `location-update`.
+- Vehicle list, create, edit, delete, status display, and route assignment.
+- Route list, create, edit, delete, color, and status management.
+- Stop list, create, edit, delete, bilingual names, coordinates, image URL, and status management.
+- Backend route-stop list/create/delete API, with no route-stop management page found in the
+  frontend source.
+- Backend tracking-source/device CRUD API and source-selection analytics API. No admin device page
+  was found in the current frontend source.
 
-### Driver, Mobile App, Or Device Sender
+### Sender, Driver, Mobile, ESP32, Or Simulator
 
-- Vehicle ID verification through `POST /api/auth/vehicle-login`.
-- Trip start through `POST /api/trips/start`.
-- Trip end through `PUT /api/trips/:id/end`.
-- Real-time GPS submission through Socket.IO `send-location`.
-- The repository includes `shuttle-tracking-web/simulate.js`, which starts a trip and emits `send-location` events for simulated vehicle movement.
+- Source credential exchange through `POST /api/auth/vehicle-login`.
+- Short-lived sender JWT containing source ID, bound vehicle ID, and credential version.
+- Authenticated trip start through `POST /api/trips/start`.
+- Authenticated trip end through `PUT /api/trips/:id/end`.
+- Authenticated HTTP location ingestion through `POST /api/ingest/http`.
+- Authenticated Socket.IO location ingestion through `send-location`.
+- Socket sender handshake authentication and per-write credential/source/vehicle revalidation.
+- Acknowledgement responses and error codes for sender write outcomes.
+- Sender credential rotation through the admin device update API, which increments credential
+  version.
+- `shuttle-tracking-web/simulate.js` for mobile-style Socket.IO simulation.
+- `shuttle-tracking-web/simulate-manual.js` for manually entered mobile-style coordinates.
+- `shuttle-tracking-backend/simulate-ttn.js` for TTN webhook simulation.
+- `shuttle-tracking-backend/test_pipeline.js` for an end-to-end sender, TTN, and source-priority
+  integration exercise.
 
-### Backend API Only
+The repository does not contain a separate driver/mobile application or ESP32 firmware. These
+features are represented by backend contracts and simulators.
 
-- Route-stop mapping endpoints exist under `/api/admin/route-stops`.
-- Implemented operations: list all route stops, get stops by route, create route-stop mapping, and delete route-stop mapping.
-- No frontend caller for `route-stops` was found by repository search.
+### TTN / LoRaWAN Source
+
+- Server-side `POST /api/ingest/ttn` webhook.
+- Bearer-secret validation using `TTN_WEBHOOK_SECRET`.
+- TTN device ID extraction from `end_device_ids.device_id`.
+- Decoding support for `uplink_message.decoded_payload` coordinates.
+- Decoding support for `uplink_message.locations` coordinates.
+- Decoding support for `data.location_solved.location` coordinates.
+- Support for speed, bearing/heading, accuracy/HDOP, and station fields where supplied.
+- Graceful HTTP 200 response for TTN status payloads without coordinates.
+- Source-type check requiring the registered source to be `lorawan`.
 
 ## Technology Stack
 
-Frontend:
+### Frontend
 
-- Next.js 16.1.6
-- React 19.2.3
-- TypeScript
-- Leaflet and React-Leaflet
-- Socket.IO client
-- Axios
-- Turf.js
-- Tailwind CSS 4
-- Lucide React
-- cookies-next
-- jwt-decode
-- react-joyride
+- Node.js runtime in the Docker image.
+- Next.js `16.1.6`.
+- React `19.2.3`.
+- TypeScript.
+- Leaflet `1.9.4` and React-Leaflet `5.0.0`.
+- Turf.js `7.3.4`.
+- Socket.IO client `4.8.3`.
+- Axios `1.13.5`.
+- Tailwind CSS 4 and PostCSS integration.
+- Lucide React icons.
+- `cookies-next` and `jwt-decode` for the admin session.
+- `react-joyride` for the public application tour.
 
-Backend:
+### Backend
 
-- Node.js 22
-- Express 5
-- TypeScript
-- Socket.IO
-- Prisma 7 with `@prisma/adapter-pg`
-- PostgreSQL driver `pg`
-- Redis client
-- Socket.IO Redis adapter
-- JWT
-- bcrypt
-- CORS
-- dotenv
-- nodemon for local development
+- Node.js 22 Alpine Docker base image.
+- Express `5.2.1`.
+- TypeScript `5.9.3`.
+- Socket.IO `4.8.3`.
+- Prisma `7.3.0` with the PostgreSQL adapter.
+- PostgreSQL driver `pg`.
+- Redis client `redis` and Socket.IO Redis adapter.
+- JWT with `jsonwebtoken`.
+- Password and source-secret hashing with `bcrypt`.
+- CORS and dotenv.
+- Nodemon for local development.
 
-Database and infrastructure:
+### Data And Runtime
 
-- PostgreSQL
-- PostGIS extension
-- Redis
-- Docker Compose
-- Dockerfiles for backend and frontend
-
-External APIs/services used by runtime code:
-
-- OpenStreetMap tile server in public map hook and admin live map.
-- CARTO basemap tiles in `PublicMap.tsx`.
-- OSRM public router API in `ShuttleTracker.tsx` for route geometry fallback.
-- Flaticon CDN icon URLs in `PublicMap.tsx` and `LiveMap.tsx`.
+- PostgreSQL.
+- PostGIS geography columns and spatial SQL functions.
+- Redis.
+- Docker Compose.
+- Docker multi-stage builds for development and production targets.
 
 ## Repository Structure
 
-- `README.md`: root overview, quick start, Docker setup, default admin credentials, high-level architecture, and project structure.
-- `agents/discovery/AGENT.md`: discovery workflow and required output for this knowledge base.
-- `docker-compose.yml`: local/dev orchestration for PostGIS database, Redis, backend, and frontend.
-- `env.example`: root environment template for PostgreSQL and JWT values.
-- `docker/init-postgis.sh`: database initialization script enabling PostGIS extensions.
-- `shuttle-tracking-backend/`: Express, Socket.IO, Prisma backend.
-- `shuttle-tracking-backend/src/routes/`: Express route definitions.
-- `shuttle-tracking-backend/src/controllers/`: REST API controller logic.
-- `shuttle-tracking-backend/src/services/`: tracking and cache service logic.
+- `README.md`: root project overview, local setup, Docker setup, and component descriptions.
+- `agents/discovery/AGENT.md`: discovery role, workflow, evidence rules, deliverable, and handoff.
+- `agents/`: instructions for the discovery and later audit agents.
+- `docs/project-knowledge-base.md`: this shared discovery context.
+- `docs/audits/`: audit documents from other project dimensions; these are separate from the
+  discovery scope.
+- `docs/roadmap/`: refactoring and future-work roadmap; roadmap items are not treated as current
+  implementation unless source evidence also exists.
+- `docker-compose.yml`: local/development Compose stack with PostGIS, Redis, backend, and frontend.
+- `docker-compose.prod.yml`: production-mode Compose stack using production Docker targets and
+  required production secrets.
+- `docker/init-postgis.sh`: enables PostGIS and PostGIS topology extensions.
+- `env.example`: root Compose environment template.
+- `shuttle-tracking-backend/`: Express, Socket.IO, Prisma, ingestion, authentication, and seed code.
+- `shuttle-tracking-backend/src/routes/`: API and ingestion route definitions.
+- `shuttle-tracking-backend/src/controllers/`: REST request handlers for auth, CRUD, devices,
+  feedback, public data, and trips.
+- `shuttle-tracking-backend/src/services/`: tracking-source processing, canonical location
+  selection, feedback persistence, and public-cache invalidation.
 - `shuttle-tracking-backend/src/config/`: Prisma and Redis clients.
-- `shuttle-tracking-backend/src/middleware/`: JWT authentication middleware.
-- `shuttle-tracking-backend/prisma/schema.prisma`: database entity definitions.
-- `shuttle-tracking-backend/prisma/migrations/`: SQL migrations.
-- `shuttle-tracking-backend/prisma/seed.ts`: initial admin users, routes, stops, and vehicles.
+- `shuttle-tracking-backend/src/middleware/`: admin and sender JWT middleware and sender context
+  parsing.
+- `shuttle-tracking-backend/prisma/schema.prisma`: current database model definitions.
+- `shuttle-tracking-backend/prisma/migrations/`: PostGIS, feedback, tracking-source, and tracking
+  source credential lifecycle migrations.
+- `shuttle-tracking-backend/prisma/seed.js`: development fixtures and explicit production first-admin
+  provisioning path.
+- `shuttle-tracking-backend/simulate-ttn.js`: TTN webhook simulator using route coordinate presets.
+- `shuttle-tracking-backend/test_auth_boundary.js`: sender JWT and claim boundary checks.
+- `shuttle-tracking-backend/test_socket_boundary.js`: unauthenticated Socket.IO sender-write check.
+- `shuttle-tracking-backend/test_pipeline.js`: manual integration pipeline test for sender and TTN
+  ingestion.
 - `shuttle-tracking-web/`: Next.js frontend.
-- `shuttle-tracking-web/app/`: Next.js app router pages.
-- `shuttle-tracking-web/components/public/`: public tracking map UI components.
-- `shuttle-tracking-web/components/admin/`: admin UI components and modals.
-- `shuttle-tracking-web/services/`: Axios API clients.
-- `shuttle-tracking-web/contexts/`: admin auth context.
-- `shuttle-tracking-web/hooks/`: Leaflet map setup hook.
-- `shuttle-tracking-web/utils/`: map and icon helpers.
-- `shuttle-tracking-web/types/`: frontend TypeScript types.
-- `shuttle-tracking-web/public/data/`: local route geometry JSON files for `R01` and `R02`.
-- `shuttle-tracking-web/simulate.js`: socket/trip simulator.
+- `shuttle-tracking-web/app/`: public page, admin pages, and layouts.
+- `shuttle-tracking-web/components/public/`: public map, cards, tour, and feedback UI.
+- `shuttle-tracking-web/components/admin/`: admin dashboard map, sidebar, and CRUD modals.
+- `shuttle-tracking-web/services/`: authenticated admin and public Axios clients.
+- `shuttle-tracking-web/contexts/`: admin authentication context.
+- `shuttle-tracking-web/hooks/`: browser-only Leaflet map initialization.
+- `shuttle-tracking-web/utils/`: marker, icon, movement, and map helpers.
+- `shuttle-tracking-web/types/`: frontend entity and location types.
+- `shuttle-tracking-web/public/data/`: local route geometry for `R01` and `R02`.
+- `shuttle-tracking-web/simulate.js`: automated mobile-style Socket.IO simulator.
+- `shuttle-tracking-web/simulate-manual.js`: interactive mobile-style simulator.
 
 ## Architecture Summary
 
-Frontend:
+### Frontend
 
-- Public root page dynamically imports `ShuttleTracker` with SSR disabled.
-- Admin pages use a shared admin layout with sidebar navigation and `AuthProvider`.
-- `proxy.ts` redirects unauthenticated admin requests to `/admin/login`.
-- `services/api.ts` attaches `Authorization: Bearer <admin_token>` for admin API calls.
-- `services/publicApi.ts` provides a plain Axios client for public API calls.
+The public root page dynamically imports `ShuttleTracker` with server-side rendering disabled. The
+tracker initializes a Leaflet map in the browser, loads public route/stop data, and opens a public
+Socket.IO connection for canonical location updates.
 
-Backend:
+The admin area uses an App Router layout and `AuthProvider`. The frontend stores the admin JWT in
+the `admin_token` cookie, attaches it to Axios requests as a Bearer token, and redirects protected
+admin navigation to `/admin/login` when the cookie is absent.
 
-- `server.ts` creates an Express app, HTTP server, and Socket.IO server.
-- CORS allows configured `FRONTEND_URL`, `http://localhost:3000`, and `http://127.0.0.1:3000`.
-- Public routes are mounted at `/api/public`.
-- Admin routes for vehicles, routes, stops, and route-stops are protected by `authenticateToken`.
-- Trip routes are mounted at `/api/trips`.
-- Socket.IO listens for `send-location`, processes it through `handleLocationData`, and emits `location-update`.
+The current frontend has admin pages for dashboard, vehicles, routes, and stops. It does not contain
+pages for devices/tracking sources, route-stop management, feedback review, trips, or history.
 
-Database:
+### Backend
 
-- Prisma schema defines users, routes, vehicles, stops, route-stops, trips, GPS tracks, and feedback.
-- Stops and GPS tracks store PostGIS `geography` locations.
-- Migrations create PostGIS extension and relational constraints.
+`shuttle-tracking-backend/src/server.ts` creates the Express app, HTTP server, and Socket.IO
+server. It configures CORS, JSON parsing, route mounts, health checks, and the Redis adapter.
 
-Cache and real-time infrastructure:
+Current route mounts are:
 
-- Redis is connected at server startup.
-- Socket.IO Redis adapter is attached for cross-process broadcasting.
-- Public API responses are cached in Redis for 300 seconds.
-- Admin mutations on route, stop, and vehicle invalidate public cache keys.
-- GPS database writes are throttled with a Redis key `trip:last_saved:<tripId>` for 60 seconds.
+- `/api/auth`: admin and sender authentication.
+- `/api/admin/vehicles`: admin-protected vehicle CRUD.
+- `/api/admin/routes`: admin-protected route CRUD and route vehicle lookup.
+- `/api/admin/stops`: admin-protected stop CRUD.
+- `/api/admin/route-stops`: admin-protected route-stop operations.
+- `/api/admin/devices`: admin-protected tracking-source/device CRUD and analytics.
+- `/api/public`: public route, vehicle, stop, and feedback endpoints.
+- `/api/trips`: sender-authenticated trip lifecycle.
+- `/api/ingest`: sender-authenticated HTTP and secret-authenticated TTN ingestion.
 
-Authentication:
+Admin JWT middleware accepts claims with a `userId` and rejects sender-kind tokens. Sender JWT
+middleware verifies token type, source ID, vehicle ID, source status, source type, and credential
+version against the database. Sender tokens default to a 15-minute lifetime through
+`SENDER_JWT_EXPIRES_IN`.
 
-- Admin login checks `users.username`, compares bcrypt password hash, and signs a JWT.
-- `authenticateToken` validates Bearer tokens for protected admin routes.
-- Frontend stores the admin token in `admin_token` cookie and decodes it for client state.
-- Vehicle login verifies that a vehicle ID exists; no JWT is issued by this endpoint in the current repository code.
+### Multi-Source Tracking Pipeline
 
-Device integration:
+`tracking.service.ts` currently performs these stages:
 
-- Implemented ingestion path is Socket.IO `send-location`.
-- The repository has a simulator for one vehicle (`VH001`).
-- Mobile app, LoRaWAN, and ESP32 integrations are described in the discovery agent context but are not implemented as separate source modules in this repository.
+1. Validate source ID and latitude/longitude against global coordinate bounds.
+2. Load an active `TrackingSource` and its assigned vehicle.
+3. Require a matching sender context for non-LoRaWAN sources. LoRaWAN observations arrive through
+   the TTN webhook boundary.
+4. If a trip ID is supplied, verify that it belongs to the source vehicle and is in progress.
+5. Store the latest observation for the source in Redis under
+   `source:last_location:<sourceId>`.
+6. Update the source `lastSeenAt` database field at most once every 10 seconds per source.
+7. Inspect all active sources for the vehicle in ascending priority order.
+8. Select the first source with a latest observation no older than 30 seconds. Equal priorities are
+   ordered by source ID.
+9. Normalize moving observations with speed at least 2 to station `En Route`.
+10. Store the selected canonical location in Redis under
+    `vehicle:current_location:<vehicleId>`.
+11. Increment source-selection counters in Redis.
+12. Persist the canonical location to `gps_tracks` at most once per 60 seconds per trip key.
+13. Return the canonical location to the HTTP or Socket.IO boundary, which broadcasts it as
+    `location-update` when a canonical result exists.
+
+The current Redis source snapshot is the latest value per source, not an append-only raw
+observation table. Durable GPS history is sampled canonical history in `gps_tracks` and records
+the selected source ID.
+
+### Redis And Realtime
+
+Redis is used for:
+
+- Cached active routes, public stops, and route stops.
+- Latest source observation snapshots.
+- Current canonical vehicle locations.
+- `lastSeenAt` update throttling.
+- Trip GPS history write throttling.
+- Source-selection counters.
+- Socket.IO pub/sub adapter clients for multi-process broadcast support.
+
+Public viewers and admin live maps connect to Socket.IO without a sender token. Sender sockets must
+provide a sender token during handshake and are revalidated for every `send-location` write. A
+public viewer can receive `location-update` but unauthenticated sender writes receive
+`SENDER_AUTH_REQUIRED`.
+
+### Database
+
+Prisma models describe the relational entities. Raw SQL is used where PostGIS geography values
+need to be written or converted to latitude/longitude. Migrations create the PostGIS extension
+dependencies, relational constraints, tracking-source registry, source credential metadata, and
+indexes.
 
 ## Data Flow Summary
 
-### Public Tracking Data Flow
+### Public Initial Data Flow
 
-1. Browser opens `/`.
-2. Next.js renders public tracking page and loads `ShuttleTracker`.
-3. Frontend fetches `GET /api/public/routes/:id/stops`.
-4. Backend queries `route_stops` joined with `stops`, converts PostGIS location to `lat` and `lng`, caches the result in Redis, and returns stops.
-5. Frontend loads route geometry from `public/data/route-<id>.json` or calls OSRM if local geometry/cache is missing.
-6. Frontend renders route line, stop markers, and selected route state on Leaflet map.
+1. A browser opens `/`.
+2. `ShuttleTracker` requests active vehicle data and route stops from the public API.
+3. The backend reads active routes, active vehicles, and active stops from PostgreSQL or Redis
+   cache.
+4. Route-stop SQL converts PostGIS locations into `lat` and `lng` and orders stops by
+   `stop_order`.
+5. The frontend loads route geometry from `/public/data/route-R01.json` or
+   `/public/data/route-R02.json`, local storage, or the OSRM public router.
+6. Leaflet renders the map, route, stops, and any current vehicle locations.
 
-### Live GPS Data Flow
+### Live Canonical Location Flow
 
-1. Device/mobile/simulator starts a trip through `POST /api/trips/start`.
-2. Backend creates a `Trip` for the vehicle's assigned route and updates the vehicle status to `active`.
-3. Device/mobile/simulator emits Socket.IO `send-location` with `tripId`, `vehicleId`, `lat`, `lng`, `speed`, `bearing`, `accuracy`, and `station`.
-4. Backend `handleLocationData` validates required fields, normalizes moving station state to `En Route` when speed is at least 2, and applies Redis write throttling.
-5. If throttle allows, backend inserts a row into `gps_tracks` with PostGIS geography location, speed, heading, station, and recorded time.
-6. Backend emits Socket.IO `location-update` to connected clients.
-7. Public tracker and admin live map receive `location-update` and update vehicle markers.
-8. Device/mobile/simulator can end the trip through `PUT /api/trips/:id/end`.
-9. Backend marks trip `completed`, sets vehicle status to `inactive`, and deletes the trip write-throttle Redis key.
+1. A source authenticates through `/api/auth/vehicle-login` when the source is mobile, ESP32, or a
+   simulator.
+2. The source starts a trip through `/api/trips/start`, or a later accepted observation can cause
+   the tracking service to create a virtual daily trip for a routed vehicle when no active trip is
+   found.
+3. The source sends an observation through `/api/ingest/http` or Socket.IO `send-location`.
+4. The backend validates source ownership, coordinates, and optional trip ownership.
+5. The pipeline records the latest source snapshot in Redis and evaluates other active sources for
+   the same vehicle.
+6. The highest-priority fresh source becomes the canonical vehicle location.
+7. The backend stores that canonical location in Redis and may sample it into `gps_tracks`.
+8. The ingestion boundary emits `location-update` to all connected Socket.IO clients.
+9. The public tracker and admin live map update the corresponding vehicle marker.
+10. A sender can end the trip through `/api/trips/:id/end`, which marks the trip completed, marks the
+    vehicle inactive, and clears the trip throttle key.
 
-### Admin Management Data Flow
+### TTN / LoRaWAN Flow
 
-1. Admin logs in through `POST /api/auth/login`.
-2. Backend validates user credentials and returns JWT plus user info.
-3. Frontend stores token in `admin_token` cookie.
-4. Admin pages call protected endpoints with Bearer token.
-5. Backend CRUD controllers update routes, stops, and vehicles in PostgreSQL.
-6. Route, stop, and vehicle mutations call `invalidatePublicCache`.
-7. Public API responses are refreshed on subsequent reads.
+1. TTN or the TTN simulator sends `POST /api/ingest/ttn` with an Authorization Bearer secret.
+2. The backend compares the configured secret and extracts the registered TTN device ID.
+3. The route decodes coordinates from one of the supported TTN payload shapes.
+4. The tracking pipeline verifies that the source exists, is active, and has type `lorawan`.
+5. The source snapshot is stored, canonical selection is evaluated for the assigned vehicle, and a
+   canonical result is broadcast if one is available.
+6. A TTN status payload without coordinates receives HTTP 200 and does not create a GPS record.
 
-### Route Geometry Data Flow
+### Admin Management Flow
 
-1. Public tracker loads stops for route.
-2. Frontend computes a stop signature and checks `localStorage` route cache.
-3. If no valid local cache exists, frontend tries `public/data/route-<routeId>.json`.
-4. If no local route data exists, frontend calls OSRM public route API using stop coordinates.
-5. Frontend stores computed route geometry in `localStorage`.
+1. An admin posts credentials to `/api/auth/login`.
+2. The backend compares the bcrypt password hash and returns an admin JWT.
+3. The frontend stores the token in the `admin_token` cookie and adds it to admin API calls.
+4. Admin pages call protected CRUD APIs for vehicles, routes, and stops.
+5. Admin device APIs maintain `TrackingSource` registration, source assignment, priority, status,
+   and secret rotation.
+6. Route, stop, and vehicle mutations call public cache invalidation; device mutations are handled
+   through the device controller.
+
+### Feedback Flow
+
+1. The public tracker opens `FeedbackModal` and loads active vehicles.
+2. The user selects a feedback type and vehicle, then submits a message.
+3. The frontend posts `type`, `vehicleId`, and `message` to `/api/public/feedback`.
+4. The backend validates the fields, verifies the vehicle exists, captures `req.ip`, and creates a
+   `Feedback` row.
+5. The public client shows a success state. No feedback review API or admin feedback page is
+   present in the current repository.
+
+### Startup And Deployment Flow
+
+1. Docker starts PostGIS and Redis with health checks.
+2. Backend startup connects Redis, attaches the Socket.IO Redis adapter, and runs the entrypoint.
+3. The entrypoint runs `prisma migrate deploy`.
+4. Development containers run `prisma db seed`; non-development containers skip the seed.
+5. Production-mode startup validates JWT and TTN secrets before migrations and application startup.
+6. `docker-compose.prod.yml` starts production Docker targets for database, Redis, backend, and
+   frontend.
 
 ## Entity Summary
 
-- User: admin account with unique username and bcrypt password hash.
-- Route: shuttle route with ID, name, color, status, created timestamp; related to vehicles, route-stops, and trips.
-- Vehicle: shuttle vehicle with ID, name, type, status, optional assigned route; related to trips and GPS tracks.
-- Stop: physical stop with Thai name, optional English name, PostGIS geography location, optional image URL, and status.
-- RouteStop: junction table connecting routes to stops with `stopOrder`; unique per route and stop order.
-- Trip: operational trip for one vehicle on one route, with start time, optional end time, and status.
-- GPSTrack: time-series GPS record tied to a trip and vehicle, with PostGIS location, speed, heading, station, and recorded time.
-- Feedback: user feedback record with type, message, IP address, and created time; entity exists in schema, but no route/controller usage was found in the current source files.
+### User
 
-Relationships:
+Admin account with unique username and bcrypt password hash. The current schema has no role column;
+the admin middleware identifies admin-style tokens by the presence of a user ID and absence of the
+sender token kind.
 
-- One route can have many vehicles.
-- One vehicle can optionally be assigned to one route.
-- One route can have many route-stop mappings.
+### Route
+
+Shuttle route with ID, display name, color, status, and creation timestamp. A route has vehicles,
+ordered route-stop mappings, and trips.
+
+### Vehicle
+
+Shuttle vehicle with ID, name, type, status, and optional assigned route. A vehicle has trips, GPS
+tracks, feedback records, and tracking sources.
+
+### Stop
+
+Physical stop with Thai name, optional English name, PostGIS geography location, optional image
+URL, status, and route-stop mappings.
+
+### RouteStop
+
+Ordered junction entity connecting a route to a stop. The schema enforces uniqueness for a route and
+stop order pair. Seed data maps the campus stops to `R01` and `R02`.
+
+### Trip
+
+Operational trip for a vehicle and route with start time, optional end time, status, and related
+GPS tracks. Current code uses `in_progress` and `completed` statuses in the sender lifecycle.
+
+### GPSTrack
+
+Sampled durable GPS history row containing trip ID, vehicle ID, PostGIS location, optional speed,
+heading, station, optional selected source ID, and recorded timestamp. The current persistence
+path writes canonical selected locations, not every incoming observation.
+
+### TrackingSource
+
+Registered physical or logical source with ID, name, type, optional assigned vehicle, priority,
+status, optional bcrypt secret hash, credential lifecycle timestamps/version, last-seen timestamp,
+and relations to vehicle and GPS tracks.
+
+Source types declared by the current service and migration are `mobile`, `lorawan`, `esp32`, and
+`simulator`. Source statuses are `provisioning`, `active`, `inactive`, and `retired`. Active
+non-LoRaWAN sources use a secret-backed sender token; the TTN webhook is the authentication boundary
+for LoRaWAN sources.
+
+### Feedback
+
+Public feedback record with type, optional vehicle ID, message, IP address, and creation timestamp.
+The vehicle relation uses `ON DELETE SET NULL`. The current public flow requires a vehicle ID when
+creating feedback.
+
+### Relationships
+
+- One route can have many vehicles, route-stop mappings, and trips.
+- One vehicle can optionally belong to one assigned route.
 - One stop can appear in many route-stop mappings.
-- One vehicle can have many trips.
-- One route can have many trips.
-- One trip can have many GPS tracks.
-- One vehicle can have many GPS tracks.
+- One vehicle can have many trips, GPS tracks, feedback records, and tracking sources.
+- One trip belongs to one vehicle and one route and has many GPS tracks.
+- One GPS track may reference the selected tracking source.
+- One tracking source can be assigned to at most one vehicle and can have many GPS tracks.
+- One feedback record may reference one vehicle.
 
 ## API Summary
 
-### Authentication APIs
+All paths below are relative to the backend host, with REST routes under `/api` unless noted.
 
-- `POST /api/auth/login`: admin login; accepts username and password; returns JWT and user data.
-- `GET /api/auth/me`: protected admin identity lookup from JWT.
-- `POST /api/auth/vehicle-login`: verifies a vehicle ID exists and returns vehicle data.
+### Health
 
-### Public APIs
+- `GET /health`: process-level health response with status and timestamp.
+- `GET /ready`: checks PostgreSQL with `SELECT 1` and Redis with `PING`; returns ready or 503.
 
-- `GET /api/public/active-routes`: returns active routes; Redis cached.
-- `GET /api/public/active-vehicles`: returns active vehicles with route; Redis cached.
-- `GET /api/public/routes/:id/stops`: returns active stops for route with coordinates and stop order; Redis cached per route.
-- `GET /api/public/stops`: returns active stops with coordinates; Redis cached.
+### Authentication
 
-### Admin Vehicle APIs
+- `POST /api/auth/login`: admin username/password login; returns admin JWT and user identity.
+- `GET /api/auth/me`: admin JWT-protected current-user lookup.
+- `POST /api/auth/vehicle-login`: source ID, secret, and optional vehicle ID validation; returns a
+  short-lived sender JWT for active non-LoRaWAN sources.
 
-- `GET /api/admin/vehicles`: list vehicles with route.
-- `GET /api/admin/vehicles/:id`: get one vehicle with route.
-- `POST /api/admin/vehicles`: create vehicle.
-- `PUT /api/admin/vehicles/:id`: update vehicle.
-- `DELETE /api/admin/vehicles/:id`: delete vehicle.
+### Public REST
 
-### Admin Route APIs
+- `GET /api/public/active-routes`: active routes, cached in Redis.
+- `GET /api/public/active-vehicles`: active vehicles with route and current canonical location
+  snapshot from Redis.
+- `GET /api/public/routes/:id/stops`: active stops for a route with coordinates and stop order,
+  cached per route.
+- `GET /api/public/stops`: active stops with coordinates, cached in Redis.
+- `POST /api/public/feedback`: validates and creates public feedback for a vehicle.
 
-- `GET /api/admin/routes`: list routes.
-- `GET /api/admin/routes/:id`: get one route.
-- `POST /api/admin/routes`: create route.
-- `PUT /api/admin/routes/:id`: update route.
-- `DELETE /api/admin/routes/:id`: delete route.
-- `GET /api/admin/routes/:id/vehicles`: list vehicles assigned to route.
+### Admin Vehicle REST
 
-### Admin Stop APIs
+- `GET /api/admin/vehicles`
+- `GET /api/admin/vehicles/:id`
+- `POST /api/admin/vehicles`
+- `PUT /api/admin/vehicles/:id`
+- `DELETE /api/admin/vehicles/:id`
 
-- `GET /api/admin/stops`: list stops with coordinates.
-- `GET /api/admin/stops/:id`: get one stop with coordinates.
-- `POST /api/admin/stops`: create stop with PostGIS location.
-- `PUT /api/admin/stops/:id`: update stop data and optionally location.
-- `DELETE /api/admin/stops/:id`: delete stop.
+These endpoints list and maintain vehicles, including optional route assignment and status.
 
-### Admin Route-Stop APIs
+### Admin Route REST
 
-- `GET /api/admin/route-stops`: list route-stop mappings with route and stop.
-- `GET /api/admin/route-stops/:routeId`: list stops for a route.
-- `POST /api/admin/route-stops`: create route-stop mapping.
-- `DELETE /api/admin/route-stops/:id`: delete route-stop mapping.
+- `GET /api/admin/routes`
+- `GET /api/admin/routes/:id`
+- `POST /api/admin/routes`
+- `PUT /api/admin/routes/:id`
+- `DELETE /api/admin/routes/:id`
+- `GET /api/admin/routes/:id/vehicles`
 
-### Trip APIs
+### Admin Stop REST
 
-- `POST /api/trips/start`: starts a trip for a vehicle's assigned route and sets vehicle status to `active`.
-- `PUT /api/trips/:id/end`: completes a trip, sets vehicle status to `inactive`, and clears the trip GPS throttle key.
+- `GET /api/admin/stops`
+- `GET /api/admin/stops/:id`
+- `POST /api/admin/stops`
+- `PUT /api/admin/stops/:id`
+- `DELETE /api/admin/stops/:id`
+
+### Admin Route-Stop REST
+
+- `GET /api/admin/route-stops`
+- `GET /api/admin/route-stops/:routeId`
+- `POST /api/admin/route-stops`
+- `DELETE /api/admin/route-stops/:id`
+
+### Admin Device / Tracking-Source REST
+
+- `GET /api/admin/devices`
+- `GET /api/admin/devices/:id`
+- `POST /api/admin/devices`
+- `PUT /api/admin/devices/:id`
+- `DELETE /api/admin/devices/:id`
+- `GET /api/admin/devices/analytics`
+
+The CRUD endpoints operate on `TrackingSource`. The analytics endpoint returns Redis source
+selection counters grouped by vehicle. The current endpoint does not expose an admin frontend page.
+
+### Sender Trip REST
+
+- `POST /api/trips/start`: sender-authenticated start for the sender-bound vehicle; requires an
+  assigned route and sets vehicle status to active.
+- `PUT /api/trips/:id/end`: sender-authenticated completion for a trip belonging to the sender's
+  vehicle; sets the vehicle inactive and clears the GPS throttle key.
+
+### Sender HTTP Ingestion
+
+- `POST /api/ingest/http`: sender Bearer JWT-protected location observation for the sender-bound
+  source and vehicle. Returns `canonicalLocation` when a source is assigned to a vehicle.
+
+Accepted fields include `sourceId`, `lat`, `lng`, optional `speed`, `bearing`, `accuracy`, `station`,
+and optional `tripId`.
+
+### TTN Webhook Ingestion
+
+- `POST /api/ingest/ttn`: server-to-server TTN webhook protected by `Authorization: Bearer
+  <TTN_WEBHOOK_SECRET>`. It accepts supported TTN location payloads and returns the canonical
+  location when available.
 
 ### WebSocket Events
 
-- Client emits `send-location`: location payload from mobile/device/simulator.
-- Server emits `location-update`: normalized location data for public/admin live maps.
+- Client to server `send-location`: sender-only observation event. The sender provides a source ID
+  and optional vehicle/trip fields. The server revalidates credentials and responds through the
+  Socket.IO acknowledgement callback.
+- Server to client `location-update`: canonical vehicle location broadcast to public and admin
+  map clients.
+- Server to sender `error-response`: structured error event for rejected sender writes.
 
-### External APIs
-
-- OSRM route API: used by public tracker to compute route geometry if local/cache route data is unavailable.
-- OpenStreetMap tile endpoints: used for map tiles.
-- CARTO basemap tile endpoint: used by `PublicMap.tsx`.
-- Flaticon CDN URLs: used for bus/stop icons in some map components.
+Observed acknowledgement/error codes include `SENDER_AUTH_REQUIRED`, `SENDER_AUTH_UNAVAILABLE`,
+`SENDER_CREDENTIAL_INVALID`, `SOURCE_ID_REQUIRED`, `SENDER_OWNERSHIP_MISMATCH`,
+`TRIP_OWNERSHIP_MISMATCH`, `INVALID_COORDINATES`, and `LOCATION_REJECTED`.
 
 ## External Services
 
-- PostgreSQL: relational database.
-- PostGIS: spatial extension for stop and GPS geography fields.
-- Redis: public API cache, Socket.IO adapter backing store, and GPS write-throttle key storage.
-- Docker Compose: local/dev orchestration for database, cache, backend, and frontend.
-- OpenStreetMap: map tiles.
-- CARTO: alternate basemap tiles in `PublicMap.tsx`.
-- OSRM public router: route geometry fallback.
-- Flaticon CDN: external map icon images in `PublicMap.tsx` and `LiveMap.tsx`.
+### Runtime Services
 
-Services mentioned in discovery context but not evidenced as configured in this repo:
+- PostgreSQL: primary relational data store.
+- PostGIS: spatial extension for stop and GPS geography.
+- Redis: cache, source/current-location snapshots, throttles, analytics counters, and Socket.IO
+  adapter transport.
+- Docker Compose: local/development and production-mode container orchestration.
 
-- Neon
-- Render
-- Vercel
-- TTN
-- LoRaWAN network services
-- ESP32 integration service
+### Mapping And Routing Services
+
+- OpenStreetMap tile server in the main public map hook and admin live map.
+- CARTO raster tiles in the alternate `PublicMap` component.
+- OSRM public router API for route geometry fallback.
+- Flaticon CDN icon URLs in the alternate public map and admin live map components.
+
+### Device / Network Integration
+
+- TTN/LoRaWAN is represented by the authenticated HTTP webhook contract and
+  `simulate-ttn.js`.
+- No TTN MQTT client, external TTN application configuration, payload decoder service, or
+  LoRaWAN network deployment file is present.
+- No mobile application source or ESP32 firmware/provisioning project is present.
+
+### Hosting Providers
+
+No Vercel, Render, Neon, or other cloud-provider configuration was found. The repository does
+contain `docker-compose.prod.yml`, which describes a production-mode self-hosted container stack,
+but the actual deployment host, domain, TLS, and operations environment are not documented in the
+repository.
 
 ## Environment Configuration
 
-Root `env.example` includes:
+### Root Compose Variables
+
+`env.example` documents:
 
 - `POSTGRES_USER`
 - `POSTGRES_PASSWORD`
 - `POSTGRES_DB`
 - `JWT_SECRET`
 - `JWT_EXPIRES_IN`
+- `SENDER_JWT_EXPIRES_IN`
+- `TTN_WEBHOOK_SECRET`
 
-Backend `.env.example` includes:
+### Backend Variables
+
+`shuttle-tracking-backend/.env.example` documents:
 
 - `DATABASE_URL`
 - `REDIS_URL`
@@ -387,140 +620,219 @@ Backend `.env.example` includes:
 - `API_URL`
 - `JWT_SECRET`
 - `JWT_EXPIRES_IN`
+- `SENDER_JWT_EXPIRES_IN`
 - `FRONTEND_URL`
+- `TTN_WEBHOOK_SECRET`
+- `SEED_ADMIN_PASSWORD`
+- `TRACKING_SOURCE_SECRET_MOBILE`
+- `TRACKING_SOURCE_SECRET_ESP32`
+- `PROVISION_INITIAL_ADMIN`
+- `INITIAL_ADMIN_USERNAME`
+- `INITIAL_ADMIN_PASSWORD`
 
-Frontend `.env.example` includes:
+### Frontend Variables
 
-- `NEXT_PUBLIC_API_BASE_URL`
+`shuttle-tracking-web/.env.example` documents `NEXT_PUBLIC_API_BASE_URL`. Source code also reads
+`NEXT_PUBLIC_BACKEND_URL` and `NEXT_PUBLIC_SOCKET_URL` for some public/admin Socket.IO and feedback
+URL resolution paths, but those names are not in the frontend example file.
 
-Docker Compose supplies:
+### Seed And Production Startup Behavior
 
-- Database settings for PostGIS container.
-- Redis URL for backend.
-- Backend `DATABASE_URL`, `REDIS_URL`, JWT settings, `API_URL`, and `FRONTEND_URL`.
-- Frontend `NEXT_PUBLIC_API_BASE_URL`.
+- Development seed creates routes, stops, vehicles, route-stop mappings, and LoRaWAN source
+  fixtures. Mobile and ESP32 fixtures are created only when their development source secrets are
+  configured; otherwise those source IDs are marked inactive.
+- Development admin fixtures `admin` and `transport` are upserted only when
+  `SEED_ADMIN_PASSWORD` is explicitly configured. The current `seed.js` does not contain a built-in
+  admin password.
+- Non-development seed execution is disabled except for an explicit one-time initial-admin flow
+  requiring `PROVISION_INITIAL_ADMIN=true`, a chosen username, a password of at least 16 characters,
+  and an empty users table.
+- The backend production entrypoint validates `JWT_SECRET` and `TTN_WEBHOOK_SECRET`, rejects known
+  placeholder/default patterns and short values, requires the two values to differ, runs migrations,
+  skips seed, and starts the compiled server.
+- `docker-compose.prod.yml` requires production database password, JWT secret, and TTN webhook
+  secret values, and defaults sender JWT lifetime to 15 minutes.
 
 ## Known Limitations From Available Evidence
 
-These are descriptive observations only, not quality judgments:
+These are repository-state descriptions, not quality or security findings.
 
-- No separate mobile application source code is present in this repository.
-- No LoRaWAN, TTN, or ESP32 source module is present in this repository.
-- `Feedback` exists in the Prisma schema, but no REST route/controller for feedback was found.
-- Route-stop backend APIs exist, but no frontend caller was found.
-- Production deployment configuration for Vercel, Render, Neon, or TTN was not found.
-- Dedicated API documentation such as OpenAPI/Swagger was not found.
-- Automated test implementation was not found; backend `npm test` is a placeholder script.
+- No separate mobile app source is present; mobile behavior is represented by sender APIs and
+  simulators.
+- No ESP32 firmware or device-side protocol implementation is present.
+- No live TTN provider configuration, MQTT consumer, or external LoRaWAN deployment is present.
+- Tracking-source device CRUD and analytics exist only in backend APIs; no corresponding admin page
+  is present.
+- Route-stop CRUD exists only in backend APIs; no corresponding admin page is present.
+- Public feedback submission is implemented, but no feedback review/list/status API or admin page is
+  present.
+- The current source pipeline retains only the latest observation per source in Redis. There is no
+  append-only raw-observation model containing separate receive-time, event-time, sequence, or
+  rejection records.
+- `GPSTrack` persistence is sampled canonical history at a 60-second Redis throttle, not a complete
+  record of every input event.
+- The current canonical observation timestamp is generated when the backend receives/processes the
+  observation; no incoming event-time or sequence field is handled by the current observation
+  interface.
+- Source freshness is represented by a 30-second helper/classifier and selection check. A source
+  health helper exists, but no dedicated health REST response or device-health dashboard was found.
+- No trip-history, playback, reporting, notification, or alert route/page was found.
+- No OpenAPI/Swagger contract was found.
+- Test artifacts exist for sender claims, Socket.IO boundary, and an integration pipeline, but the
+  integration pipeline requires running infrastructure and configured secrets. No frontend test
+  script or implementation was found.
+- The root README still documents `admin`/`transport` with `admin123`, while the current seed code
+  requires `SEED_ADMIN_PASSWORD` and has no built-in password. The intended credential setup needs
+  confirmation.
+- The TTN simulator presets use IDs such as `TS_LORA_01` and `TS_LORA_N2`, while the current seed
+  data creates LoRaWAN sources named `sensor-c4` and `sensor-f2`. The intended mapping between these
+  fixtures needs confirmation.
 
 ## Missing Information
 
-- Production deployment diagram: needed to understand the target production topology beyond Docker Compose local/dev orchestration.
-- Production hosting targets and environment ownership: needed because services such as Vercel, Render, Neon, TTN, or similar are not configured in this repo.
-- Mobile app source and API contract: needed to understand the real driver/mobile GPS sender beyond `simulate.js`.
-- Device registration flow: needed because vehicle verification exists, but no full registration/provisioning process is documented or implemented in this repo.
-- LoRaWAN/TTN integration design: needed because the discovery context says LoRaWAN is a GPS source, but no TTN endpoint, payload decoder, or backend adapter is present.
-- ESP32 planned integration details: needed because the discovery context names ESP32 as planned, but no implementation contract is present.
-- Authentication and authorization policy: needed to clarify admin roles, permissions, token lifetime expectations, and production credential handling beyond current JWT login.
-- API contract documentation: needed so future audit agents can compare intended request/response shapes with implementation.
-- Operational requirements: needed for uptime, GPS update frequency, data retention, cache expectations, and acceptable delay.
-- User role definitions: needed because the code has admin and public flows, while the discovery context mentions multiple future audit agents and device sources.
-- Feedback workflow requirements: needed because `Feedback` exists in the schema but has no visible API/UI flow.
+The following information is not available in the repository and is required for later audits to
+fully compare intended behavior with implementation:
+
+- Production deployment topology beyond the self-hosted Docker Compose description, including host,
+  domain, TLS termination, network boundaries, and process scaling.
+- Production ownership and configuration for PostgreSQL, Redis, backups, monitoring, alerting, and
+  log retention.
+- The source repository and API contract for the real mobile/driver application.
+- Mobile offline, retry, authentication renewal, trip lifecycle, and background-location behavior.
+- ESP32 hardware, firmware, transport, payload, provisioning, and credential rotation contract.
+- TTN application/device registry, device IDs, webhook configuration, payload decoder ownership,
+  and whether the intended integration is webhook-only or also MQTT/history based.
+- Intended tracking-source provisioning workflow and who is allowed to create, assign, retire, or
+  rotate a source.
+- Product definition for admin roles and permissions beyond the current single admin-token shape.
+- GPS event-time semantics, expected update interval, clock synchronization, canonical-history
+  retention, raw-source retention, and archival/deletion ownership.
+- Intended stale/offline behavior for public vehicle display and admin operations.
+- Intended feedback moderation, review, status, retention, and privacy workflow.
+- Intended trip history, playback, reports, notifications, alerts, and announcements scope.
+- Formal REST and WebSocket request/response contract, including error semantics and versioning.
+- Confirmation of the credential setup documented in the root README versus the current seed flow.
+- Confirmation of whether current TTN simulator IDs should be changed to the current seeded source
+  IDs or whether a separate fixture set is expected.
 
 ## Assumptions
 
-No unsupported assumptions are used as facts in this document.
+No unsupported business or deployment assumptions are used as facts.
 
-Where wording such as "driver/mobile/device sender" is used, it is a label for repository evidence from `POST /api/trips/start`, `POST /api/auth/vehicle-login`, Socket.IO `send-location`, and `simulate.js`; the actual mobile application is not included in this repository.
+- “Sender”, “driver”, and “mobile/device” refer to the backend sender contract and simulator evidence;
+  they do not imply that a mobile or device application is included.
+- `docker-compose.prod.yml` is documented as a production-mode container configuration because it
+  uses production image targets and production secret checks. This does not establish that it is the
+  actual deployed production environment.
+- A source with type `lorawan` is treated as a TTN/LoRaWAN source because the service and webhook
+  explicitly use that type; no external TTN deployment is inferred.
+- The root README and current seed behavior are both recorded where they differ; this document does
+  not choose which credential instruction is intended.
 
 ## Audit Readiness
 
 Ready for Product Audit Agent.
 
-Reason: the repository's current MVP behavior, entities, APIs, data flows, technology stack, and known missing information have been documented from available evidence. Product audit can proceed using this knowledge base, while the missing information section should be treated as open questions for deeper production-readiness audits.
+The current repository behavior, multi-source tracking boundary, data model, APIs, frontend
+features, deployment files, simulators, tests, and open information gaps are documented from
+available evidence. Production-specific audits still require the missing deployment, device,
+operational, product, and credential decisions listed above.
 
 ## Project Knowledge Base
 
 ### Business Domain
 
-University tram/shuttle tracking with real-time public map visibility and admin operational management.
+University shuttle/tram tracking with real-time public visibility, route and stop data, operational
+vehicle management, multi-source location ingestion, and public rider feedback.
 
 ### Users
 
-- Public users viewing shuttle locations and stops.
-- Admin users managing operational data.
-- Vehicle/device senders producing GPS updates.
+- Public riders and visitors.
+- Admin/transport operators.
+- Mobile/driver/location senders.
+- ESP32 and simulator senders.
+- TTN/LoRaWAN device integrations.
 
 ### User Roles
 
-- Public User
-- Admin
-- Driver/Mobile App/Device Sender
+- Public user.
+- Admin user.
+- Sender/device identity bound to a tracking source and vehicle.
 
-No separate Super Admin role is evidenced in the repository.
+No separate super-admin, developer, driver-account, or role-based permission model is evidenced in
+the current application code.
 
 ### Features
 
-- Public live map.
-- Route selection.
-- Stop markers and stop cards.
-- Vehicle markers and vehicle cards.
-- ETA calculation.
-- Nearest stop lookup.
-- Browser geolocation display.
-- Admin login/logout.
-- Admin dashboard with live map and stats.
-- Admin vehicle CRUD.
-- Admin route CRUD.
-- Admin stop CRUD.
-- Backend route-stop CRUD.
-- Vehicle verification.
-- Trip start/end.
-- Socket GPS ingestion and broadcast.
-- GPS track persistence with PostGIS.
-- Public API caching.
+- Public live map, route selection, stops, vehicles, ETA, geolocation, nearest stop, and feedback.
+- Admin login, dashboard, live map, vehicle CRUD, route CRUD, and stop CRUD.
+- Backend route-stop and tracking-source/device CRUD.
+- Sender JWT authentication and credential-version validation.
+- Authenticated trip start/end.
+- HTTP and Socket.IO location ingestion.
+- TTN webhook ingestion and simulator.
+- Source priority and freshness-based canonical location selection.
+- Redis current-location/cache/throttle/analytics behavior.
+- Sampled PostGIS GPS history.
+- Health and readiness endpoints.
+- Boundary and pipeline test scripts.
 
 ### Technology Stack
 
-Next.js, React, TypeScript, Leaflet, Turf, Socket.IO client, Axios, Tailwind CSS, Express, Socket.IO, Prisma, PostgreSQL, PostGIS, Redis, JWT, bcrypt, Docker Compose.
+Next.js, React, TypeScript, Leaflet, React-Leaflet, Turf, Socket.IO client, Axios, Tailwind CSS,
+Express, Socket.IO, Prisma, PostgreSQL, PostGIS, Redis, JWT, bcrypt, Docker Compose, and Node.js 22.
 
 ### Repository Structure
 
-The repository is split into a root orchestration layer, `shuttle-tracking-backend`, and `shuttle-tracking-web`. Backend contains API, WebSocket, Prisma schema, migrations, and seed data. Frontend contains public tracking UI, admin UI, API clients, auth context, map utilities, and public route data.
+The repository consists of root Compose/configuration and documentation, a TypeScript backend with
+Prisma/migrations and ingestion services, and a Next.js frontend with public/admin map experiences,
+API clients, and simulators. Audit instructions and audit documents are stored under `agents/` and
+`docs/`.
 
 ### Architecture
 
-Client-server web architecture with REST APIs for CRUD and trip lifecycle, Socket.IO for live GPS updates, PostgreSQL/PostGIS for durable data, and Redis for caching, throttling, and Socket.IO adapter support.
+Browser clients use REST for initial/configuration data and Socket.IO for live canonical vehicle
+updates. Sender identities authenticate against registered tracking sources. The backend uses Redis
+for live source/current state and coordination, PostgreSQL/PostGIS for durable entities and sampled
+history, and Docker Compose for local and production-mode runtime composition.
 
 ### Data Flow
 
-Primary flows are public route/stop read flow, live GPS ingestion and broadcast flow, admin management flow, and frontend route geometry loading flow.
+The principal flows are public route/stop loading, live source observation ingestion and canonical
+selection, TTN webhook ingestion, admin CRUD, feedback submission, and migration/seed/startup.
 
 ### Business Entities
 
-User, Route, Vehicle, Stop, RouteStop, Trip, GPSTrack, Feedback.
+User, Route, Vehicle, Stop, RouteStop, Trip, GPSTrack, TrackingSource, and Feedback.
 
 ### APIs
 
-REST APIs are grouped into auth, public, admin vehicles, admin routes, admin stops, admin route-stops, and trips. WebSocket events are `send-location` and `location-update`.
+REST groups are health, auth, public, admin vehicle/route/stop/route-stop/device, trip lifecycle,
+HTTP ingestion, and TTN ingestion. Socket.IO events are `send-location`, `location-update`, and
+`error-response`.
 
 ### External Services
 
-PostgreSQL/PostGIS, Redis, OpenStreetMap tiles, CARTO tiles, OSRM public router, Flaticon CDN, Docker Compose local/dev runtime.
+PostgreSQL/PostGIS, Redis, Docker Compose, OpenStreetMap, CARTO, OSRM, Flaticon CDN, and the
+repository-defined TTN webhook boundary. No cloud hosting provider or live TTN deployment is
+configured in the repository.
 
 ### Known Limitations
 
-See "Known Limitations From Available Evidence" and "Missing Information".
+See “Known Limitations From Available Evidence” and “Missing Information”.
 
 ### Open Questions
 
-- What is the intended production deployment topology?
-- Which hosting/database/cache providers will be used in production?
-- Where is the mobile app source and formal API contract?
-- How will LoRaWAN, TTN, and ESP32 data enter the backend?
-- What are the intended roles and permissions beyond admin/public?
-- What are the target GPS update rates and retention policies?
-- Is feedback intended to be user-facing in the MVP?
-- Should route-stop management have an admin UI, or is API-only intended for now?
+- What is the actual production deployment topology and operations ownership?
+- Where is the real mobile/driver app and its formal contract?
+- What are the ESP32 and TTN device provisioning and payload contracts?
+- Which source IDs are authoritative for LoRaWAN fixtures and deployed devices?
+- What roles and permissions are intended beyond one admin token shape?
+- What are the GPS event-time, update-rate, retention, and stale-state policies?
+- Is raw observation research history required, and if so, what fields and retention apply?
+- Who reviews public feedback and what statuses/workflow are required?
+- Are route-stop and device management intentionally API-only or planned for the admin UI?
+- Which reports, alerts, notifications, trip history, and playback capabilities belong to the MVP?
 
 ## Handoff Recommendation
 

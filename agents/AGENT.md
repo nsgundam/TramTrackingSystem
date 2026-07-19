@@ -40,7 +40,7 @@ Before changing code, read:
 2. `docs/project-knowledge-base.md`
 3. The source audit(s) cited by the selected roadmap task
 4. The actual source files listed in that task's `Related Files`
-5. `agents/specialized/README.md` (or equivalent index of Level 2 agents)
+5. `agents/specialized/README.md` (or the equivalent specialist index in that directory)
 6. The Level 2 agent file(s) selected by the routing rules below
 
 If the roadmap, triggering task ID, source audit, or relevant source files are missing:
@@ -82,6 +82,16 @@ task might plausibly relate to. If the caller does not supply an explicit `Scope
   report this as a scope gap instead of silently expanding. State which file, why it is required,
   and let the caller either widen `Scope` explicitly or accept a partial implementation.
 - Never treat "no Scope given" as "Scope = whole repository."
+
+### Coordination-file exception
+
+The following coordination files are always writable in addition to the implementation scope:
+
+- `docs/tasks/<task-name>.md` for the bounded Antigravity implementation specification
+- The selected task metadata inside `docs/roadmap/master-refactoring-roadmap.md`
+
+This exception does not authorize changes to implementation files outside the approved Scope or
+the roadmap task's `Related Files`.
 
 # Operating Principles
 
@@ -127,22 +137,24 @@ a mechanical type-safe extraction, or a straightforward test added to an already
 
 ## Canonical Level 2 agents
 
-Use the files under `agents/` with the `lv2-` prefix; do not use an untracked or invented agent
-name when a canonical specialist exists.
+Use the canonical specialist agent files under `agents/specialized/`. Do not invent a new
+agent name when an existing specialist covers the concern. The Level 3 agent must invoke the
+relevant specialist agent as a separate focused delegation, wait for its result, and treat its
+decision as an implementation constraint.
 
 | Concern | Canonical Level 2 agent |
 |---|---|
-| JWT, sessions, sender credentials | `agents/lv2-jwt-auth.md` |
-| Roles and permissions | `agents/lv2-rbac.md` |
-| Redis | `agents/lv2-redis.md` |
-| Socket.IO / realtime protocol | `agents/lv2-websocket.md` |
-| PostgreSQL / PostGIS | `agents/lv2-postgresql.md` |
-| Express routes and API contracts | `agents/lv2-express.md` |
-| Next.js / React frontend | `agents/lv2-nextjs.md` |
-| LoRaWAN / TTN | `agents/lv2-lorawan.md` |
-| ESP32 integration | `agents/lv2-esp32.md` |
-| Structured logs and redaction | `agents/lv2-logging.md` |
-| Monitoring, health, freshness, alerts | `agents/lv2-monitoring.md` |
+| JWT, sessions, sender credentials | `agents/specialized/lv2-jwt-auth.md` |
+| Roles and permissions | `agents/specialized/lv2-rbac.md` |
+| Redis | `agents/specialized/lv2-redis.md` |
+| Socket.IO / realtime protocol | `agents/specialized/lv2-websocket.md` |
+| PostgreSQL / PostGIS | `agents/specialized/lv2-postgresql.md` |
+| Express routes and API contracts | `agents/specialized/lv2-express.md` |
+| Next.js / React frontend | `agents/specialized/lv2-nextjs.md` |
+| LoRaWAN / TTN | `agents/specialized/lv2-lorawan.md` |
+| ESP32 integration | `agents/specialized/lv2-esp32.md` |
+| Structured logs and redaction | `agents/specialized/lv2-logging.md` |
+| Monitoring, health, freshness, alerts | `agents/specialized/lv2-monitoring.md` |
 
 ## Routing the roadmap tasks
 
@@ -183,6 +195,22 @@ multiple specialists are allowed when the task crosses a real boundary.
 The roadmap uses older descriptive names such as "Device Registry Agent", "Realtime/Location
 Agent", and "Database/Time-Series Agent". Treat those as compositions of the canonical agents in
 this table, not as permission to invent new Level 2 instructions during implementation.
+
+## How to invoke a Level 2 specialist
+
+A Level 2 specialist is an existing agent definition under `agents/specialized/`. Invocation means
+that the Level 3 agent must delegate one focused question to that specialist agent, not merely read
+its Markdown file and answer in the Level 3 voice.
+
+Invocation procedure:
+
+1. Select the smallest relevant set of specialist agents from `agents/specialized/`.
+2. Send each specialist one narrow brief using the format below.
+3. Wait for the specialist response before finalizing the implementation plan.
+4. Record the decision that was applied.
+5. If specialists conflict, stop and report the conflict instead of choosing silently.
+6. Do not ask a specialist to edit code, update the roadmap, or perform a broad audit. Its job is
+   focused domain analysis and a binding implementation recommendation.
 
 ## Level 2 invocation brief
 
@@ -270,13 +298,42 @@ As part of this plan, list which audit documents (`docs/audits/*.md`) describe t
 
 ## Step 5 — Implement incrementally
 
-Use `apply_patch` for code and documentation edits. Keep each patch small enough to review.
-Do not rewrite entire files when a focused change is possible. Preserve unrelated working-tree
-changes.
+Codex is the planner, decision-maker, and reviewer. Antigravity CLI is the implementation worker
+for bounded, mechanical, and already-approved changes.
 
-Follow the repository's existing TypeScript/module conventions. Update code, types, configuration,
-migrations, and tests together when the contract requires it. Never place secrets in source, test
-fixtures, logs, or example values that could be used in production.
+Before delegation:
+
+1. Run `git status --short`, `git diff --stat`, and `git diff --name-only`.
+2. Record pre-existing user changes and avoid overwriting them.
+3. Create `docs/tasks/<task-name>.md` containing:
+   - Task ID and objective
+   - Allowed write files
+   - Read-only reference files
+   - Exact required changes
+   - Forbidden changes
+   - Validation commands
+   - Stop conditions
+4. Confirm that every allowed implementation file is inside the explicit Scope or the roadmap
+   task's `Related Files`, except mechanically required paired files already permitted by the scope
+   rules.
+
+Delegate implementation with:
+
+`./scripts/agy-worker.sh "Implement exactly docs/tasks/<task-name>.md"`
+
+Antigravity may create or edit only the files listed under `Allowed writes`. It must stop without
+expanding scope if another file is required.
+
+Codex must not reproduce the delegated implementation in its response or independently rewrite
+the same files. Codex may use `apply_patch` directly only for:
+
+- A small corrective change of approximately five trivial lines or fewer
+- The bounded task specification
+- Roadmap status/evidence metadata
+- A change Antigravity cannot safely perform, provided it remains inside scope
+
+Keep changes incremental and preserve unrelated working-tree changes. Never place secrets in
+source, fixtures, logs, task specifications, or example values that could be used in production.
 
 ## Step 6 — Verify
 
@@ -290,9 +347,9 @@ At minimum, choose from:
 - Security: unauthorized/forged/expired credential tests and secret-redaction checks
 - Config/runtime: production command, health/readiness, explicit origin/secret validation
 
-The current backend `npm test` script is a placeholder, so do not report tests as passing merely
-because that command exits successfully. If a required check cannot run, record the exact command,
-output, and reason.
+Inspect the current backend `package.json` before treating `npm test` as meaningful verification.
+Do not report tests as passing merely because a placeholder or non-covering command exits
+successfully. If a required check cannot run, record the exact command, output, and reason.
 
 Do not execute destructive database reset, broad cache flush, or data deletion as part of normal
 verification. Ask for explicit approval before any irreversible action.
@@ -315,7 +372,7 @@ If an acceptance criterion is not met, do not mark the task complete. Explain th
 
 A task is not done until the roadmap file itself reflects reality. After Step 7 passes:
 
-1. Open `docs/master-refactoring-roadmap.md` and locate the task's entry under
+1. Open `docs/roadmap/master-refactoring-roadmap.md` and locate the task's entry under
    `## Consolidated Tasks`.
 2. Update the task entry in place with:
    - A `Status:` field (`Not Started` / `In Progress` / `Complete` / `Partially Complete —
@@ -415,7 +472,7 @@ Explain compatibility, migrations, cache/config changes, and rollback/feature-fl
 Map each roadmap acceptance criterion to evidence. Do not use "done" without evidence.
 
 ### Roadmap Update
-State exactly what was changed in `docs/master-refactoring-roadmap.md` (status field, evidence
+State exactly what was changed in `docs/roadmap/master-refactoring-roadmap.md` (status field, evidence
 pointer, downstream notes). If the task was marked `Partially Complete`, restate what remains.
 
 ### Audit Staleness
@@ -454,3 +511,57 @@ in phase order. The next implementation task must start from the updated roadmap
 verified evidence from this task. If any audit was flagged stale in Step 9, tell the roadmap owner
 that downstream tasks relying on that audit's conclusions should be treated as running on
 unverified evidence until the flagged Level 1 agent is re-run.
+
+## Antigravity execution delegation
+
+Codex is the planning, reasoning, and review agent.
+
+Use Antigravity CLI as the implementation worker for bounded,
+mechanical, and clearly specified tasks.
+
+Delegate to Antigravity when the task involves:
+
+- creating files from an approved specification
+- writing boilerplate
+- copying an existing code pattern
+- updating imports and exports
+- renaming symbols
+- formatting code
+- creating straightforward tests from explicit cases
+- applying an already-approved implementation plan
+
+Codex must retain responsibility for:
+
+- architecture decisions
+- security decisions
+- database design
+- authentication and authorization
+- public API contracts
+- business-logic decisions
+- dependency selection
+- final review and validation
+
+Delegation procedure:
+
+1. Analyze the requirement.
+2. Write a bounded task specification to `docs/tasks/<task-name>.md`.
+3. Run:
+
+   `./scripts/agy-worker.sh "Implement exactly docs/tasks/<task-name>.md"`
+
+4. Do not reproduce the implementation in the Codex response.
+5. Inspect `git status --short`, `git diff --stat`, and `git diff --name-only` first.
+6. Compare the changed-file list against `Allowed writes` and stop if Antigravity exceeded scope.
+7. Inspect only the relevant changed files.
+8. Run the required tests and validation commands.
+9. Fix directly only when the correction is approximately five trivial lines or fewer; otherwise
+   send a precise correction back to Antigravity.
+
+Never allow Antigravity to:
+
+- commit or push
+- modify secrets
+- change dependencies without approval
+- edit files outside the repository
+- make architectural decisions
+- modify unrelated files

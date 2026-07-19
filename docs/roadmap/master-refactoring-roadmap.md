@@ -226,9 +226,9 @@ Exit: only the explicitly approved deferred capabilities are implemented.
 - Priority: High
 - Difficulty: Medium
 - Agent: Level 2 Realtime/Location Agent, then Level 3 Refactoring Agent
-- Files: `shuttle-tracking-backend/src/services/tracking.service.ts`, `shuttle-tracking-backend/src/server.ts`
-- Implement: normalize and persist accepted observations separately from canonical vehicle state; select canonical location by source priority, freshness, validity, and ownership; broadcast only the canonical validated result; return typed accepted/rejected results.
-- Accept when: rejected observations are never broadcast; canonical state is deterministic with multiple sources; source failover is observable; sender receives ack/error state.
+- Files: `shuttle-tracking-backend/src/services/tracking.service.ts`, `shuttle-tracking-backend/src/server.ts`, public/admin realtime consumers
+- Implement: normalize every safe-to-retain inbound observation into an append-only raw-observation record with `sourceId`, `vehicleId`, `recordedAt`, `receivedAt`, sequence/transport metadata, reported accuracy, validation outcome, and selection outcome. Keep this research/diagnostic record independent from the canonical vehicle state. Select canonical location only by authenticated ownership, source priority, freshness, quality, and event time; priority must never alter or overwrite raw observations. Maintain a monotonic canonical timestamp/version per vehicle, reject or retain-as-history late/out-of-order observations without broadcasting them, and use a configured fallback source only after the preferred source becomes stale. Broadcast only the canonical validated result; realtime clients must ignore an older canonical version.
+- Accept when: rejected, duplicate, and late observations are never broadcast but have safe diagnostic outcomes; a newer Mobile observation followed by an older delayed LoRaWAN observation cannot move the public/admin marker backward; raw observations remain queryable whether or not they became canonical; canonical state is deterministic with multiple sources; selection/failover reason is observable; sender receives typed ack/error state; tests cover stale-primary fallback, delayed secondary input, duplicate input, and client-side older-version rejection.
 
 ### T14 - Define GPS sampling, retention, and index policy
 
@@ -240,8 +240,21 @@ Exit: only the explicitly approved deferred capabilities are implemented.
 - Difficulty: Medium
 - Agent: User Decision Required, then Level 2 Database/Time-Series Agent
 - Files: `shuttle-tracking-backend/prisma/schema.prisma`, `shuttle-tracking-backend/src/services/tracking.service.ts`
-- Decide only: retention period, archive/delete ownership, and whether high-fidelity playback is in scope. The current TTN history sampling target is 60 seconds and may be implemented as the MVP policy. Add indexes/migration for the approved query policy.
-- Accept when: 60-second sampled history is documented and enforced for MVP; retention/archiving behavior is testable; indexes match list/history queries; product copy does not promise unsupported fidelity.
+- Decide only: retention period, archive/delete ownership, whether high-fidelity playback is in scope, and a separate retention/aggregation policy for research raw observations. The current TTN history sampling target is 60 seconds and may be implemented as the MVP policy. Raw research telemetry must retain enough event-time and receive-time metadata to calculate latency/reliability, while its retention must be bounded independently from canonical current location. Add indexes/migration for the approved query policy.
+- Accept when: 60-second sampled history is documented and enforced for MVP; canonical-history and raw-research retention/aggregation policies are documented separately and testable; indexes match list/history and research queries; product copy does not promise unsupported fidelity.
+
+### T29 - Add dev-only device research telemetry and comparison dashboard
+
+- Source: Product research requirement: compare Mobile, LoRaWAN, ESP32, or other tracking sources without allowing delayed/low-priority data to affect public tracking.
+- Phase: 2
+- Depends on: T2, T4, T13, T14, T17
+- Blocks: evidence-based device comparison only; does not block public MVP or canonical tracking.
+- Priority: Medium
+- Difficulty: Medium
+- Agent: Level 2 Device Research/Data Agent, then Level 3 Refactoring Agent
+- Files: tracking observation schema/service, protected research API/routes, developer-only admin pages, admin auth/authorization configuration
+- Implement: add a developer-only research area, enforced by backend authorization (developer role/claim or explicit environment allowlist; never menu visibility alone). Expose filtered, paginated source/device/vehicle/trip/time-window views and exportable aggregates. Calculate and display source-level latency (`receivedAt - recordedAt`), p50/p95 latency, reported accuracy/HDOP where supplied, accepted/rejected/duplicate/out-of-order rates, expected-versus-received interval gaps, stale/offline duration, and canonical-selection/fallback rate. Store raw observation facts append-only and aggregate separately; redact credentials and do not expose secrets. Record device model, firmware, transport, and installation/test metadata where available so comparisons across vehicles remain interpretable. Label reported accuracy separately from measured positional error; only calculate true positional error when an approved ground-truth reference is supplied.
+- Accept when: non-developer users receive 403 from all research APIs and cannot access the dashboard; Mobile and LoRaWAN observations from the same vehicle can be compared without changing the canonical marker; device metrics can be filtered by source, device, vehicle, route, trip, and time range; late/rejected observations are included in reliability/latency analysis; exports exclude secrets and personal credentials; tests verify authorization, metric calculations, retention behavior, and that the research recorder cannot delay or alter canonical broadcasts.
 
 ### T15 - Create a trip/operations domain service
 
@@ -395,8 +408,8 @@ Exit: only the explicitly approved deferred capabilities are implemented.
 - Priority: High
 - Difficulty: Hard
 - Agent: Level 2 LoRaWAN/TTN Agent, then Level 3 Refactoring Agent
-- Implement the confirmed topology: secured TTN MQTT-to-frontend realtime delivery, plus server-side TTN history ingestion using the existing webhook or a Render worker MQTT subscriber; normalize decoded uplinks, authenticate, deduplicate, sample history at 60 seconds, retry safely, and expose source health.
-- Accept when: TTN realtime and history paths are separately testable; missing webhook/MQTT credentials fail closed; duplicate/delayed/malformed uplinks are safe; source-to-vehicle assignment and sampled history are observable.
+- Implement the confirmed topology through a server-side TTN adapter: use the existing webhook or a Render worker MQTT subscriber to normalize decoded uplinks, authenticate, deduplicate, retain raw research telemetry, sample history at 60 seconds, retry safely, and expose source health. TTN must never publish directly to public/admin map clients; backend broadcasts only the versioned canonical location selected by T13.
+- Accept when: TTN realtime, sampled history, and raw-research paths are separately testable; missing webhook/MQTT credentials fail closed; duplicate/delayed/malformed uplinks are safe; a delayed TTN location cannot overwrite a newer canonical Mobile location; source-to-vehicle assignment, sampled history, and research latency are observable.
 
 ### T27 - ESP32 ingestion [DECISION GATE]
 
@@ -433,6 +446,7 @@ T11 + T14 -> playback/reports
 T17 -> admin production access
 T8 + T9 + T13 + T15 -> T21
 T9 + T13 -> T18/T22
+T13 + T14 + T17 -> T29 (dev-only research telemetry)
 T24 -> T25
 ```
 
@@ -454,6 +468,8 @@ Safe parallel work after prerequisites: T5 with T2/T3; T6 with T10 backend prepa
 12. Mobile sender workflow and offline/retry behavior.
 13. TTN/LoRaWAN webhook/history ingestion.
 14. ESP32 protocol/provisioning.
+15. Event-time versus receive-time, clock synchronization, sequence numbers, and monotonic canonical state.
+16. Device research metrics: latency percentiles, reliability, GPS quality, ground-truth accuracy, and experimental bias across vehicles.
 
 ## Risk Carry-Forward
 
@@ -462,13 +478,14 @@ Safe parallel work after prerequisites: T5 with T2/T3; T6 with T10 backend prepa
 - GPS history fidelity/cost: accepted until the T14 decision; document sampled-history limits.
 - Driver operations: accepted only if an external authenticated sender is supplied and audited; otherwise T19 blocks production.
 - TTN: topology is confirmed; implementation remains blocked only by T1/T2/T4/T13/T14 and provider credentials.
+- Research telemetry: raw observations are retained independently from canonical selection, but collection/retention cannot begin until T14 defines its cost, privacy, and deletion policy.
 - ESP32: explicitly deferred until the protocol decision in T27.
 - Reports, roles, audit log, announcements, and advanced playback: explicitly deferred under T28.
 
 ## Agent Routing
 
 - Direct Level 3: T3, T4, T5, T7, T8, T9, T10, T11, T13, T15, T16, T18, T20, T21, T22, T23, T24, T25.
-- Level 2 first: T1/T17 (Auth/Security), T2 (Device Registry), T6/T7 (Deployment), T12 (Security/Abuse), T13 (Realtime/Location), T14 (Database/Time-Series), T19 (Mobile/Product), T26 (LoRaWAN/TTN), T27 (ESP32/IoT).
+- Level 2 first: T1/T17 (Auth/Security), T2 (Device Registry), T6/T7 (Deployment), T12 (Security/Abuse), T13 (Realtime/Location), T14 (Database/Time-Series), T19 (Mobile/Product), T26 (LoRaWAN/TTN), T27 (ESP32/IoT), T29 (Device Research/Data).
 - User decision required: T14 retention/archive scope, T27, T28.
 
 ## Production Go/No-Go Checklist
