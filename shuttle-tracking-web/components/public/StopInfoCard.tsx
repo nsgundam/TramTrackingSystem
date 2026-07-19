@@ -5,7 +5,6 @@ import { Stop } from "@/types";
 interface StopInfoCardProps {
   targetStop: Stop | null;
   eta: number | null;
-  onFindNearest: () => void;
 }
 
 const MODAL_OVERLAY_STYLE: React.CSSProperties = {
@@ -28,7 +27,7 @@ const CLOSE_BTN_STYLE: React.CSSProperties = {
   display: "flex", justifyContent: "center", alignItems: "center"
 };
 
-export default function StopInfoCard({ targetStop, eta }: Omit<StopInfoCardProps, 'onFindNearest'>) {
+export default function StopInfoCard({ targetStop, eta }: StopInfoCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (!targetStop) return null;
@@ -83,7 +82,7 @@ export default function StopInfoCard({ targetStop, eta }: Omit<StopInfoCardProps
         </h2>
       </div>
 
-      <div className="flex justify-between items-center">
+      <div className="rsu-stop-eta-box flex justify-between items-center">
         <div className="flex flex-col">
           <span className="font-label-caps text-label-caps text-on-surface-variant">Estimated Waiting Time</span>
           <div className="flex items-baseline gap-1 mt-1">

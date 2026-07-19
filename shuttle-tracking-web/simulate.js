@@ -1,11 +1,13 @@
 import dotenv from 'dotenv';
 import { io } from 'socket.io-client';
 import { jwtDecode } from 'jwt-decode';
+import fs from 'fs';
+import path from 'path';
 dotenv.config();
 
 const API_URL = 'http://localhost:3001/api';
 const SOCKET_URL = 'http://localhost:3001';
-const VEHICLE_ID = 'VH002';
+const VEHICLE_ID = 'VH001';
 const SOURCE_ID = 'TS_MOB_01';
 
 // 🟢 ดึงค่าจาก ENV หรือใช้ค่า Seed Default ในกรณีที่ไม่ได้ตั้งค่าไว้
@@ -45,17 +47,65 @@ socket.on('connect_error', (error) => {
   console.error('❌ WebSocket Connection Error:', error.message);
 });
 
-function interpolate(start, end, steps) {
-  const points = [];
-  for (let i = 1; i <= steps; i++) {
-    const fraction = i / steps;
-    points.push({
-      lat: start.lat + (end.lat - start.lat) * fraction,
-      lng: start.lng + (end.lng - start.lng) * fraction,
-    });
-  }
-  return points;
+function getDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371e3; // Earth radius in meters
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
+
+function generateFineRoute(rawCoords, stepSizeMeters) {
+  const fineCoords = [];
+  for (let i = 0; i < rawCoords.length - 1; i++) {
+    const start = { lat: rawCoords[i][0], lng: rawCoords[i][1] };
+    const end = { lat: rawCoords[i + 1][0], lng: rawCoords[i + 1][1] };
+    const dist = getDistance(start.lat, start.lng, end.lat, end.lng);
+    
+    fineCoords.push(start);
+    if (dist > stepSizeMeters) {
+      const steps = Math.floor(dist / stepSizeMeters);
+      for (let j = 1; j < steps; j++) {
+        const fraction = j / steps;
+        fineCoords.push({
+          lat: start.lat + (end.lat - start.lat) * fraction,
+          lng: start.lng + (end.lng - start.lng) * fraction,
+        });
+      }
+    }
+  }
+  const last = rawCoords[rawCoords.length - 1];
+  fineCoords.push({ lat: last[0], lng: last[1] });
+  return fineCoords;
+}
+
+// โหลดพิกัดเส้นทางจริงของสาย 1 (R01)
+const routePath = path.resolve('./public/data/route-R01.json');
+const rawRouteCoords = JSON.parse(fs.readFileSync(routePath, 'utf8'));
+
+// สร้างเส้นทางที่มีพิกัดถี่ขึ้น (ห่างกันประมาณ 6 เมตรต่อก้าว)
+const fineRouteCoords = generateFineRoute(rawRouteCoords, 6);
+
+// แผนที่จับคู่อินเด็กซ์บนเส้นทางกับสถานีจุดจอด
+const stationIndices = new Map();
+STATIONS.forEach((station) => {
+  let closestIdx = 0;
+  let minDistance = Infinity;
+  fineRouteCoords.forEach((coord, idx) => {
+    const dist = getDistance(coord.lat, coord.lng, station.lat, station.lng);
+    if (dist < minDistance) {
+      minDistance = dist;
+      closestIdx = idx;
+    }
+  });
+  stationIndices.set(closestIdx, station);
+});
 
 function getBearing(startLat, startLng, destLat, destLng) {
   const startLatRad = (Math.PI * startLat) / 180;
@@ -119,7 +169,6 @@ async function startTrip(token) {
 async function establishSocketConnection() {
   senderToken = await loginSender();
 
-  // ส่งข้อมูลระบุตัวตนและชนิดอุปกรณ์ไปใน handshake ตอนเชื่อมต่อสตรีม
   socket.auth = {
     token: senderToken,
     sourceId: SOURCE_ID,
@@ -159,28 +208,26 @@ async function runSimulation() {
   }
 
   console.log('🚀 Mobile Simulator Online! Streaming data via WebSocket...');
-  let currentStationIdx = 0;
-
+  
+  let i = 0;
   while (true) {
-    const current = STATIONS[currentStationIdx];
-    const nextIdx = (currentStationIdx + 1) % STATIONS.length;
-    const next = STATIONS[nextIdx];
+    const current = fineRouteCoords[i];
+    const nextIdx = (i + 1) % fineRouteCoords.length;
+    const next = fineRouteCoords[nextIdx];
 
-    console.log(`📌 Vehicle arrived at station: ${current.id}`);
-    await sendLocation(current.lat, current.lng, 0, 0, current.id);
-    await sleep(2000);
-
-    const steps = 10;
-    const interpolated = interpolate(current, next, steps);
-    const bearing = getBearing(current.lat, current.lng, next.lat, next.lng);
-
-    for (let i = 0; i < interpolated.length; i++) {
-      const pt = interpolated[i];
-      await sendLocation(pt.lat, pt.lng, 22.0, bearing, 'En Route');
-      await sleep(1000);
+    // หากรถวิ่งมาถึงตำแหน่งสถานีจุดจอด
+    if (stationIndices.has(i)) {
+      const station = stationIndices.get(i);
+      console.log(`📌 Vehicle arrived at station: ${station.id}`);
+      await sendLocation(station.lat, station.lng, 0, 0, station.id);
+      await sleep(2000);
     }
 
-    currentStationIdx = nextIdx;
+    const bearing = getBearing(current.lat, current.lng, next.lat, next.lng);
+    await sendLocation(current.lat, current.lng, 22.0, bearing, 'En Route');
+    await sleep(1000);
+
+    i = nextIdx;
   }
 }
 

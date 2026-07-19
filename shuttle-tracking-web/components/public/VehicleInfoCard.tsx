@@ -3,12 +3,9 @@ import { Stop } from "@/types";
 import { Locate } from "lucide-react";
 
 interface VehicleInfoCardProps {
-  routeId: string;
   vehicleId: string;
   vehicleName?: string;
-  prevStop: string;
   nextStop: string;
-  eta: number | null;
   stops: Stop[];
   nextStopId: string | number | null;
   isTracking?: boolean;
@@ -90,7 +87,7 @@ export default function VehicleInfoCard({
       </div>
 
       {/* Row 2: Next Station (takes 100% width so text doesn't wrap awkwardly next to the button) */}
-      <div className="font-body-lg text-[14px] sm:text-body-lg text-on-surface-variant leading-normal">
+      <div className="rsu-vehicle-next-stop font-body-lg text-[14px] sm:text-body-lg text-on-surface-variant leading-normal">
         Next Station: {nextStop}
       </div>
 

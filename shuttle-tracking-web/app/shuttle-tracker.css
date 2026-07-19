@@ -440,3 +440,86 @@
     width: min(260px, calc(100vw - 24px));
   }
 }
+
+
+
+/* -------------------------------------------------
+   pre loader
+   ------------------------------------------------- */
+.loader {
+  width: 110px;
+  height: 40px;
+  background: #2cb2ff;
+  border-radius: 50px;
+  --c:no-repeat radial-gradient(farthest-side,#000 92%,#0000);
+  --s:28px 28px;
+  -webkit-mask:
+    var(--c) left  10px top 50%,
+    var(--c) center,
+    var(--c) right 10px top 50%,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+          mask-composite:exclude;
+  animation: l1 1.5s infinite;
+}
+.loader:before,
+.loader:after {
+  content: "";
+  grid-area: 1/1;
+  height: 30px;
+  aspect-ratio: 1;
+  background: #2cb2ff;
+  border-radius: 50%;
+}
+.loader:after {
+  margin-left: auto;
+}
+
+@keyframes l1 {
+  0%    {-webkit-mask-size:0    0  ,0    0  ,0    0  ,auto}
+  16.67%{-webkit-mask-size:var(--s),0    0  ,0    0  ,auto}
+  33.33%{-webkit-mask-size:var(--s),var(--s),0    0  ,auto}
+  50%   {-webkit-mask-size:var(--s),var(--s),var(--s),auto}
+  66.67%{-webkit-mask-size:0    0  ,var(--s),var(--s),auto}
+  83.33%{-webkit-mask-size:0    0  ,0    0  ,var(--s),auto}
+  100%  {-webkit-mask-size:0    0  ,0    0  ,0    0  ,auto}
+}
+
+.loader-logo {
+  width: 200px;
+  height: 200px;
+  background: url('/icons/RSU_logo.png') center/contain no-repeat;
+  pointer-events: none;
+  margin-bottom: 50px;
+}
+
+.preloader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(243, 246, 252, 0); /* หรือ rgba(0,0,0,0.2) ถ้าอยากให้ดูมืดลง */
+  transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.8s; 
+}
+
+.preloader-overlay.fade-out {
+  opacity: 0; 
+  visibility: hidden; 
+}
+.preloader-overlay.fade-out ~ .w-full #rsu-map {
+  filter: blur(0px);
+  transform: scale(1);
+}
+
+.w-full.h-full.relative.z-0 {
+  filter: blur(0px) scale(1);
+  transition: filter 0.8s cubic-bezier(0.25, 1, 0.5, 1), transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.map-blur-effect {
+  filter: blur(10px) !important;
+  transform: scale(1.03); 
+}

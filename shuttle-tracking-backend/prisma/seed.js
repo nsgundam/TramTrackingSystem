@@ -127,7 +127,7 @@ async function main() {
       ('ST007', 'ตึก 9', 'Building 9',
         ST_SetSRID(ST_MakePoint(100.585705, 13.965936), 4326)::geography, 'active'),
       ('ST008', 'ตึก 12/1', 'Building 12/1',
-        ST_SetSRID(ST_MakePoint(100.585528, 13.966800), 4326)::geography, 'active'),
+        ST_SetSRID(ST_MakePoint(100.585471, 13.966793), 4326)::geography, 'active'),
       ('ST009', 'ตรงข้ามตึก 15', 'Building 15 Opposite',
         ST_SetSRID(ST_MakePoint(100.585251, 13.967780), 4326)::geography, 'active'),
       ('ST010', 'ตึก 17', 'Building 17',
