@@ -1,651 +1,302 @@
 # Dashboard & UX Audit: Tram Tracking System
 
+Re-audited: 2026-07-19
+
 ## 1. Executive Summary
 
-The Tram Tracking System has a credible MVP user interface for two main surfaces: a public live map and an admin management portal. Public users can open the tracker, switch between `R01` and `R02`, see stops, see vehicle markers when GPS updates arrive, select stops/vehicles, and get ETA-like waiting time. Admin users can log in, view summary counts, watch a live map, and manage vehicles, routes, and stops.
+The public tracker remains a strong controlled-MVP experience: a full-screen responsive map, route toggles, stops, vehicle cards, ETA, nearest-stop location control, and an accessible-in-flow public feedback modal. The feedback submission gap from the prior UX audit is partially resolved because users now receive loading, validation, error, and success states.
 
-UX assessment: **partially ready for MVP, not yet ready for real daily operations**.
+The main trust failure remains unchanged: neither public nor admin UI communicates realtime connection state, data freshness, or stale/offline vehicles. The admin landing page can display “Live System Active” while its data fetch or socket has failed. It is a master-data dashboard with a live map, not an operational exception dashboard.
 
-The public experience is strongest when live data is flowing and a user already understands the route codes. It is weaker when a first-time user needs to know which route to choose, whether the data is current, what to do when no vehicles are active, or how much confidence to place in an ETA. Evidence: route controls render only `R01` and `R02` (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:747-758`), active vehicle count shows only a count (`shuttle-tracking-web/components/public/AvailabilityCard.tsx:5-15`), ETA is shown as a specific minute value (`shuttle-tracking-web/components/public/StopInfoCard.tsx:86-105`), route load failures only log to console (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:616-618`), and the socket handler listens only for `location-update` (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:695-711`).
+Before daily operations, surface explicit freshness/no-service state and replace the fixed healthy indicator. Fix the stale onboarding targets and inconsistent admin alerts now; those are small changes that make the existing UI more reliable without redesigning it.
 
-The admin dashboard is useful as a CRUD portal, but not yet as an operations dashboard. It answers "how many vehicles/routes/stops exist?" better than "is service healthy right now?" Evidence: the landing dashboard has three cards and a live map (`shuttle-tracking-web/app/admin/dashboard/page.tsx:70-133`), the status badge always says `Live System Active` (`shuttle-tracking-web/app/admin/dashboard/page.tsx:64-67`), and the admin live map stores incoming locations without connection, stale, or offline state (`shuttle-tracking-web/components/admin/LiveMap.tsx:24-43`).
+## Scope, Evidence, and Re-audit Status
+
+Reviewed the Knowledge Base; Product, Frontend, Backend, and Infrastructure reports; prior Dashboard & UX report; public tracker/cards/tour/feedback components; admin dashboard, map, sidebar, login, and CRUD UI. Frontend lint completed with zero errors and six non-blocking warnings. No browser session, real device, live socket, or user research was available.
+
+| Prior finding | Re-audit status | Current evidence |
+|---|---|---|
+| Live data had no user-visible freshness model | **Still Present** | Public and admin maps listen only for location updates; neither presents connection, stale, offline, or recorded-time state. |
+| Admin dashboard was not an operations dashboard | **Still Present** | It shows three static count cards and live map, but no exceptions, stale vehicles, trip, source health, feedback, or system status. |
+| Public route selection/ETA could overstate certainty | **Still Present** | Toggles are hard-coded as R01/R02 without route names; ETA is shown as a numeric waiting time without freshness/confidence framing. |
+| Public no-vehicle/no-data state was unclear | **Partially Resolved** | A selected stop says “ยังไม่มีรถในสายนี้”; the overall map/availability card still does not explain no service or stale data. |
+| Error and empty states were inconsistent | **Partially Resolved** | Feedback modal has inline states and CRUD lists have loading/empty views; dashboard errors are console-only and CRUD still uses browser alerts. |
+| Public feedback entry was missing | **Resolved** | Public feedback button/modal supports typed message, active-vehicle selection, inline error, loading, and success. |
+| Onboarding tour selectors appeared stale | **Still Present** | Tour references rsu-avail, route-selector, and gps-locate-btn, but those classes are not rendered by the public tracker. |
+| Operational source-health/device visibility was absent | **Still Present** | Backend has source/freshness facts but no admin UX surface or navigation entry exposes them. |
+| Keyboard/accessibility affordances were incomplete | **New Finding** | Several important controls have text/title, but the tour targets are absent, feedback close lacks an accessible name, and clickable stop imagery is a non-button div. |
 
 ## 2. Public Experience Overview
 
-From the Product Audit, the public user is a university rider trying to reduce uncertainty: choose a route, see current shuttle location, understand nearby stops, and estimate waiting time (`docs/audits/product-audit.md:36-52`). The repository supports this core journey through the public tracker inventory in the knowledge base (`docs/project-knowledge-base.md:41-56`).
+A first-time rider sees university branding, active-tram count, R01/R02 buttons, feedback entry, map, stop/vehicle cards, and map controls. Selecting a stop shows a name, image, “Estimated Waiting Time,” and a text-plus-color status. Selecting a vehicle shows its next station and a route-progress strip. Browser geolocation is used for the nearest-stop interaction.
 
-Current public strengths:
-
-- Full-screen map-first experience with RSU branding (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:714-741`).
-- Route switching between `R01` and `R02` (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:743-761`).
-- Stop markers, selected stop card, vehicle card, nearest-stop lookup, route geometry, and live marker updates (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:500-615`, `shuttle-tracking-web/components/public/ShuttleTracker.tsx:674-711`, `shuttle-tracking-web/components/public/ShuttleTracker.tsx:763-810`).
-- Stop card displays station name, optional image, ETA, and a status phrase (`shuttle-tracking-web/components/public/StopInfoCard.tsx:52-107`).
-
-Current public weaknesses:
-
-- Route labels are operational codes only. No direction, destination, service area, or route description is visible in the selector (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:747-758`).
-- No visible connection freshness or last-updated signal exists, even though the experience depends on live GPS (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:695-711`).
-- No explicit route-load or stops-load error state is shown to the user (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:616-618`).
-- No active vehicle state is reduced to `0 คัน`; it does not explain whether service is closed, vehicles are not transmitting, or the system is disconnected (`shuttle-tracking-web/components/public/AvailabilityCard.tsx:5-15`).
+This is useful for supervised tracking, but it does not tell a rider whether the displayed position is current. It also does not describe the two route codes in the route control, and it only offers R01/R02 even though repository data includes R03.
 
 ## 3. Admin Experience Overview
 
-From the Product Audit, the admin user is trying to operate and maintain the system: log in, monitor live operations, manage vehicles/routes/stops, and respond when service data is wrong or missing (`docs/audits/product-audit.md:58-79`). The current product supports basic data management but lacks operational visibility for stale GPS, device health, alerts, active trips, and route-stop management (`docs/audits/product-audit.md:129-130`, `docs/audits/product-audit.md:403-406`).
+An admin can sign in, see active-vehicle, route, and stop counts, observe a live map, and manage vehicles, routes, and stops from a responsive sidebar. CRUD pages provide loading and empty states plus browser-native confirmation before delete.
 
-Current admin strengths:
-
-- Login has inline loading and error feedback (`shuttle-tracking-web/app/admin/login/page.tsx:15-33`, `shuttle-tracking-web/app/admin/login/page.tsx:55-98`).
-- Sidebar is simple and predictable: Dashboard, Vehicles, Routes, Stops (`shuttle-tracking-web/components/admin/Sidebar.tsx:15-36`).
-- Dashboard shows active vehicles, total routes, total stops, and a live map (`shuttle-tracking-web/app/admin/dashboard/page.tsx:70-133`).
-- Vehicle, route, and stop pages provide list, create, edit, delete, loading, and empty states (`shuttle-tracking-web/app/admin/vehicles/page.tsx:79-264`, `shuttle-tracking-web/app/admin/routes/page.tsx:74-243`, `shuttle-tracking-web/app/admin/stops/page.tsx:70-215`).
-
-Current admin weaknesses:
-
-- Dashboard has no incident-oriented hierarchy: no stale GPS list, offline vehicles, active trips, route coverage, or data-quality warnings.
-- `Live System Active` is static and not tied to real socket/API health (`shuttle-tracking-web/app/admin/dashboard/page.tsx:64-67`).
-- Vehicle status is database status only: `active`, `inactive`, `maintenance`. It is not enough to distinguish moving, idle, silent, disconnected, or stale GPS (`shuttle-tracking-web/app/admin/vehicles/page.tsx:214-225`; backend schema at `shuttle-tracking-backend/prisma/schema.prisma:46-61`).
-- Route-stop ordering exists in the database and backend API, but there is no admin UI caller (`docs/project-knowledge-base.md:96-100`; `shuttle-tracking-backend/prisma/schema.prisma:86-99`).
+The landing view does not answer the operational question “what needs attention now?” It has no socket/API health, stale/silent vehicles, active trips, source status, feedback queue, history, route-stop composition, or recent failures. The green “Live System Active” badge is fixed UI, not a measured system state.
 
 ## 4. UX Strengths
 
-1. **Map-first public experience fits the rider goal.** Public users land directly on the tracker rather than a marketing page. The full-screen map, route controls, active count, stop card, vehicle card, and location controls are all present in one view (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:714-812`).
-
-2. **Selected-stop feedback is clear once a stop is tapped.** The stop icon enlarges from 32px to 48px, the map flies to the stop, and the stop card shows station name plus ETA/status (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:532-546`, `shuttle-tracking-web/components/public/StopInfoCard.tsx:79-105`).
-
-3. **Admin CRUD screens have expected basics.** Each management screen has a clear header, add button, loading state, responsive mobile cards, desktop table, edit/delete actions, and an empty state (`shuttle-tracking-web/app/admin/vehicles/page.tsx:79-264`, `shuttle-tracking-web/app/admin/routes/page.tsx:74-243`, `shuttle-tracking-web/app/admin/stops/page.tsx:70-215`).
-
-4. **Destructive actions require confirmation.** Vehicle, route, and stop deletion use `confirm(...)` before making delete requests (`shuttle-tracking-web/app/admin/vehicles/page.tsx:59-67`, `shuttle-tracking-web/app/admin/routes/page.tsx:53-61`, `shuttle-tracking-web/app/admin/stops/page.tsx:49-57`).
-
-5. **The data model already has useful operational foundations.** Trips, GPS tracks, route-stop ordering, and feedback are present in schema, even when not surfaced yet (`shuttle-tracking-backend/prisma/schema.prisma:86-160`).
+- Public map keeps core information visible without a multi-page journey and supports stop/vehicle drill-down.
+- Stop state includes text as well as color; selected-stop no-vehicle wording is clearer than an empty ETA.
+- Feedback modal gives clear required-field, loading, failure, and success feedback.
+- Admin login provides loading and inline error feedback; mobile admin navigation has labeled open/close controls.
+- Admin CRUD screens have clear add/edit affordances, responsive card/table layouts, loading indicators, empty states, and deletion confirmation.
+- Public and admin map updates are built around one canonical vehicle update, avoiding conflicting device markers for general users.
 
 ## 5. Critical UX Issues
 
-### Issue 1: Live data has no user-visible freshness model
+### High — Users cannot tell live data from stale or disconnected data
 
-Public and admin maps listen for `location-update`, but the UI does not expose connection status, reconnecting state, last update time, or stale vehicle markers (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:695-711`, `shuttle-tracking-web/components/admin/LiveMap.tsx:27-43`). The admin dashboard always says `Live System Active` (`shuttle-tracking-web/app/admin/dashboard/page.tsx:64-67`).
+The tracker and admin map subscribe to location updates but display no connection lifecycle or recorded timestamp. Markers persist until component cleanup. The backend can return no canonical location when all sources are stale, but the UI has no explicit stale/no-service presentation.
 
-Impact: both riders and admins can mistake stale data for current data. This directly weakens trust in the system.
+User impact: riders can trust an old vehicle position or precise-looking ETA; operators can mistake a silent feed for an operating service.
 
-### Issue 2: Admin dashboard is not yet an operations dashboard
+Recommendation: show a compact data-state label on public cards and an exception summary on admin: connected/reconnecting, last update age, stale/offline, and no active service. Treat missing/stale state as distinct from zero vehicles.
 
-The dashboard shows active vehicle count, total routes, total stops, and a live map (`shuttle-tracking-web/app/admin/dashboard/page.tsx:70-133`). It does not surface silent vehicles, GPS quality, active trips, routes without vehicles, recent failures, or alerts. Product Audit already identifies alerts, active trips, and device health as missing (`docs/audits/product-audit.md:403-406`).
+Priority: High before daily operations. Difficulty: Medium.
 
-Impact: an admin cannot answer "what needs attention right now?" without manually inspecting multiple screens or waiting for a user report.
+### High — The admin landing page has a misleading health signal
 
-### Issue 3: Public route selection and ETA framing can overstate certainty
+Dashboard load failures only log to the console; the “Live System Active” badge does not depend on API or socket status. Counts are a snapshot and the map has no stale cleanup.
 
-Route controls display only `R01` and `R02` (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:747-758`). ETA is presented as a specific minute value (`shuttle-tracking-web/components/public/StopInfoCard.tsx:86-105`) even though it is calculated client-side from route geometry, vehicle position, recent speed, and stop dwell assumptions (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:92-170`).
+User impact: an admin cannot reliably identify a real service, data, or source problem during morning operations.
 
-Impact: first-time users may choose the wrong route or over-trust a precise ETA when live inputs are incomplete.
+Recommendation: replace the fixed badge with verified API/socket status and add a short exception list: stale/silent vehicles, source/device freshness, vehicles without active trip, and unread feedback when those read models exist.
 
-### Issue 4: Error and empty states are inconsistent
+Priority: High before daily operations. Difficulty: Medium.
 
-Admin list pages show loading and empty states, but fetch failures often use browser alerts (`shuttle-tracking-web/app/admin/vehicles/page.tsx:27-30`, `shuttle-tracking-web/app/admin/routes/page.tsx:21-24`, `shuttle-tracking-web/app/admin/stops/page.tsx:21-24`). Dashboard fetch failure only logs to console (`shuttle-tracking-web/app/admin/dashboard/page.tsx:45-49`). Public route load failure only logs to console (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:616-618`).
+### Medium — Public onboarding and route choice are not dependable for newcomers
 
-Impact: users get different feedback patterns for similar problems, and some critical failures are invisible.
+Tour selectors are stale, so guided steps can target nothing. Route buttons use codes only and the public UI does not explain route names/destination or why only two routes appear.
 
-### Issue 5: Public onboarding tour targets appear stale
+User impact: new riders may not know which route to choose or may receive a broken first-use tour.
 
-`AppTour` targets `.rsu-avail`, `.route-selector`, `.rsu-stop-card-compact`, and `.gps-locate-btn` (`shuttle-tracking-web/components/public/AppTour.tsx:22-50`). Repository search found those selectors only in `app/shuttle-tracker.css` and `AppTour`, not in the active JSX controls (`rg` evidence from `shuttle-tracking-web/components` and `shuttle-tracking-web/app`). The current `AvailabilityCard` and route/location controls do not include these class names (`shuttle-tracking-web/components/public/AvailabilityCard.tsx:5-15`, `shuttle-tracking-web/components/public/ShuttleTracker.tsx:743-810`).
+Recommendation: either repair tour selectors against current controls or hide the tour until verified. Pair each route code with a concise destination/name and source route choices from current active data when that product workflow is ready.
 
-Impact: first-time help may fail to point at the intended elements, reducing discoverability for nearest stop, route switching, and active count.
+Priority: Medium. Difficulty: Easy to Medium.
+
+### Medium — Feedback/error quality varies by surface
+
+Feedback is recoverable and inline, while admin CRUD and dashboard use browser alerts or no visible error. Native confirm/alert interrupts context and gives no retry path.
+
+User impact: administrators cannot tell whether an operation failed, why, or what to do next.
+
+Recommendation: use a shared inline banner/toast pattern with the failed action and retry/refetch option; retain explicit destructive confirmation.
+
+Priority: Medium. Difficulty: Easy.
 
 ## 6. Public Journey Walkthrough
 
-### First-time user
-
-1. User opens `/` and sees a map with RSU branding (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:714-741`).
-2. User sees `Active Trams` and route buttons `R01` and `R02` (`shuttle-tracking-web/components/public/AvailabilityCard.tsx:13-14`, `shuttle-tracking-web/components/public/ShuttleTracker.tsx:743-761`).
-3. Friction: the route buttons do not explain direction, destination, route name, or which route serves which stops. The route names are available in admin route records, but the public selector does not surface them.
-4. User can tap a stop marker. The marker becomes larger, the map moves to it, and a stop card appears (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:532-546`, `shuttle-tracking-web/components/public/StopInfoCard.tsx:52-107`).
-5. User sees ETA. Friction: ETA is displayed as a precise minute number or `-` with status text (`shuttle-tracking-web/components/public/StopInfoCard.tsx:86-105`), without explaining if no vehicle, stale GPS, or route data failure is involved.
-6. User can tap current location. If browser location is unavailable, the app uses an alert (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:246-252`).
-7. Friction: the visible current-location button has a title, but no visible label; discoverability depends on icon recognition (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:803-809`).
-
-### Returning user
-
-1. Returning user likely knows route code and can switch quickly.
-2. Returning user benefits from direct map access and persistent route geometry cache (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:552-590`).
-3. Friction: returning users still have no freshness indicator. If a vehicle stopped reporting, the old marker can remain because no stale cleanup exists in the public tracker (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:70-87`, `shuttle-tracking-web/components/public/ShuttleTracker.tsx:695-711`).
+1. **First visit:** branding and map make the purpose understandable, but R01/R02 have no destination names. The tour is not trustworthy because target classes are absent.
+2. **Select a route and stop:** route line and stops appear; selected stop gives an ETA/status or “no vehicle.” This is the clearest current no-service message.
+3. **Track a vehicle:** card shows next stop and progress; however, no “updated at” or stale warning qualifies the position or ETA.
+4. **Find nearest stop:** a visible map control uses browser location; denied permission is only logged, not explained in the UI.
+5. **Send feedback:** the modal is clear and recoverable, but its fallback vehicle list can differ from live backend data when loading fails.
 
 ## 7. Admin Journey Walkthrough
 
-### Typical admin day
-
-1. Admin logs in. Login form provides required fields, loading text, and inline error (`shuttle-tracking-web/app/admin/login/page.tsx:61-98`).
-2. Admin lands on Dashboard. It shows `Live Dashboard`, a static `Live System Active` badge, three stat cards, and a live map (`shuttle-tracking-web/app/admin/dashboard/page.tsx:54-133`).
-3. Admin tries to answer "is everything okay?" Current UI partially answers count-level questions, but not operational-health questions. There is no list of vehicles that are active but silent, inactive but assigned, or reporting bad/stale GPS.
-4. Admin watches live map. The map shows markers only after `location-update` events and popups with speed and station (`shuttle-tracking-web/components/admin/LiveMap.tsx:57-73`). It does not show routes, stops, last seen time, connection health, or stale state.
-5. Admin manages vehicles. Vehicle page supports add/edit/delete, status, and route assignment (`shuttle-tracking-web/app/admin/vehicles/page.tsx:79-264`, `shuttle-tracking-web/components/admin/VehicleModal.tsx:74-143`).
-6. Admin manages routes. Route page supports id, name, color, status (`shuttle-tracking-web/components/admin/RouteModal.tsx:70-123`).
-7. Operational gap: admin cannot manage which stops belong to each route or their order from the UI, despite `RouteStop.stopOrder` existing in schema (`shuttle-tracking-backend/prisma/schema.prisma:86-99`).
-8. Admin notices a problem. Current UI gives no alerting surface for stale GPS, trip failure, disconnected socket, feedback, or incident reports.
+1. **Login:** clear form, loading state, and inline authentication error.
+2. **Check service:** dashboard shows counts and a map but not whether API/socket/telemetry is healthy. The fixed green status can mislead.
+3. **Find an operational issue:** no route to stale vehicles, device/source health, active trip/history, feedback, or exceptions exists.
+4. **Maintain master data:** vehicle/route/stop CRUD is usable for an MVP, with loading/empty states and confirm-before-delete.
+5. **Recover from an error:** CRUD uses alert dialogs; dashboard silently retains default/previous-looking counts after a failed load.
 
 ## 8. Information Hierarchy Review
 
-### Public surface
+Public hierarchy correctly prioritizes map and a selected stop/vehicle. It should elevate data age/no-service state beside ETA and availability, rather than leaving trust information invisible. Numeric ETA looks precise; label it as an estimate and suppress it when freshness is unknown.
 
-The public page prioritizes the map, which matches the primary task. The top-right active count and route selector are visible, and the selected stop/vehicle card appears in the bottom-left (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:724-810`).
-
-What works:
-
-- The map is the dominant element.
-- Active count and route switcher are always visible.
-- Selected stop/vehicle details do not require page navigation.
-
-What does not work yet:
-
-- The top-right hierarchy treats route code as enough context. For a new rider, route meaning is more important than internal route ID.
-- The active count is visually prominent, but freshness is more important than count alone for trust.
-- The stop card gives ETA prominence but not confidence or last-updated context.
-
-### Admin surface
-
-The admin dashboard prioritizes high-level counts (`shuttle-tracking-web/app/admin/dashboard/page.tsx:70-128`). This is useful for inventory awareness, but less useful for operations.
-
-What works:
-
-- Dashboard title and stats are simple.
-- CRUD pages have clear add actions and tables.
-- Sidebar is easy to scan.
-
-What does not work yet:
-
-- For live operations, the most important information is exceptions: no GPS, stale vehicle, route without coverage, active trip problems, or backend/socket failure. These are not visually represented.
-- The live map is below stat cards and does not contain operational overlays such as route lines, stop markers, stale colors, or last seen times.
+Admin hierarchy prioritizes aggregate counts and map visualisation. For daily operations, exception state should precede totals: silent/stale vehicle count, no-active-trip count, source/device state, and actionable feedback. That is progressive disclosure: keep the landing page concise, then link each exception to a focused list.
 
 ## 9. Feedback and Error State Review
 
-### Loading states
-
-Implemented:
-
-- Dashboard stat cards show spinners while loading (`shuttle-tracking-web/app/admin/dashboard/page.tsx:78-120`).
-- CRUD pages show loading rows/cards (`shuttle-tracking-web/app/admin/vehicles/page.tsx:100-103`, `shuttle-tracking-web/app/admin/routes/page.tsx:97-100`, `shuttle-tracking-web/app/admin/stops/page.tsx:88-91`).
-- Admin live map dynamic import shows a loading map placeholder (`shuttle-tracking-web/app/admin/dashboard/page.tsx:9-16`).
-- Login button shows `Signing in...` and disables submit (`shuttle-tracking-web/app/admin/login/page.tsx:90-98`).
-
-Not Found:
-
-- Public map route/stops loading indicator beyond initial map presence.
-- Public socket reconnecting indicator.
-
-### Empty states
-
-Implemented:
-
-- Vehicles, routes, and stops each have zero-data empty states with an action hint (`shuttle-tracking-web/app/admin/vehicles/page.tsx:249-253`, `shuttle-tracking-web/app/admin/routes/page.tsx:226-230`, `shuttle-tracking-web/app/admin/stops/page.tsx:202-206`).
-
-Partial:
-
-- Public active vehicle count can show `0 คัน` (`shuttle-tracking-web/components/public/AvailabilityCard.tsx:13-14`), but it does not explain why no vehicles are visible.
-
-Not Implemented:
-
-- Public route has no stops state.
-- Admin live map has no empty state explaining no vehicles have reported yet.
-
-### Error states
-
-Implemented:
-
-- Login error appears inline (`shuttle-tracking-web/app/admin/login/page.tsx:55-58`).
-
-Partial:
-
-- CRUD pages use browser `alert` for fetch/save/delete failures (`shuttle-tracking-web/app/admin/vehicles/page.tsx:27-30`, `shuttle-tracking-web/app/admin/routes/page.tsx:47-60`, `shuttle-tracking-web/app/admin/stops/page.tsx:43-56`).
-
-Not Implemented:
-
-- Dashboard visible fetch error (`shuttle-tracking-web/app/admin/dashboard/page.tsx:45-49`).
-- Public route load failure UI (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:616-618`).
-- Socket disconnect/reconnect UI on public or admin map.
+- **Loading:** feedback and admin CRUD show visible progress; dashboard cards and map use spinners/placeholders.
+- **Empty:** CRUD lists explain how to add data. Public selected-stop state explains no vehicle, but empty public map does not explain no service or stale feeds.
+- **Error:** feedback and login are inline; route-data/geolocation/dashboard errors are console-only; CRUD uses blocking browser alerts.
+- **Destructive actions:** native confirmation exists, but a custom confirmation with the entity name and impact would be more consistent when the UX is next touched.
+- **Accessibility basics:** stop status includes text, but several controls rely on title/visual affordance only. Stale tour targets and non-button clickable imagery reduce keyboard/screen-reader reliability. This is a targeted observation, not a formal WCAG result.
 
 ## 10. Operational Visibility Gap Analysis
 
-### Silent or stale vehicles
+An operator currently cannot see: last update age, stale/silent vehicles, source selection/health, active trip status, trip history, feedback queue, route-stop composition, dashboard/API/socket health, or an exception feed. Backend and database audits show some source/freshness facts exist or can be derived, but UX needs stable read contracts before surfacing them.
 
-Not Implemented. Vehicle records have `status`, but no `lastSeenAt`, GPS freshness, device health, or source health fields in the current schema (`shuttle-tracking-backend/prisma/schema.prisma:46-61`). Live maps store latest locations in frontend state/refs without stale cleanup (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:70-87`, `shuttle-tracking-web/components/admin/LiveMap.tsx:24-43`).
-
-Operational impact: an admin cannot tell whether a vehicle is active and healthy, active but silent, or simply not running.
-
-### Active trips and trip history
-
-Partial in backend storage; not surfaced in admin UI. `Trip` and `GPSTrack` exist (`shuttle-tracking-backend/prisma/schema.prisma:105-145`), but Product Audit notes no trip history/admin trip UI (`docs/audits/product-audit.md:242-254`).
-
-Operational impact: admins cannot verify service completion, investigate incidents, or compare current service against past trips.
-
-### Device health and GPS quality
-
-Not Implemented. Backend Audit states no device/source abstraction exists; the schema has Vehicle and GPSTrack but no device/source health model (`docs/audits/backend-audit.md:188-206`, `shuttle-tracking-backend/prisma/schema.prisma:46-61`).
-
-Operational impact: GPS device failures are invisible until riders or admins notice missing movement.
-
-### Route coverage
-
-Not Implemented as dashboard logic. Admin can see total routes and active vehicles, but not "which active routes currently have at least one reporting vehicle" (`shuttle-tracking-web/app/admin/dashboard/page.tsx:70-128`).
-
-Operational impact: an admin cannot quickly identify an uncovered route.
-
-### Rider feedback or incident reporting
-
-Schema exists, but no workflow is surfaced. `Feedback` exists in Prisma (`shuttle-tracking-backend/prisma/schema.prisma:151-160`), while Product Audit notes no public submission or admin review workflow (`docs/audits/product-audit.md:280-288`).
-
-Operational impact: rider-reported issues have no product path into daily operations.
+For a controlled demo, do not build every operational module. A minimal daily-operations dashboard needs visible freshness/no-service state and a small exception list before adding reports, playback, or advanced analytics.
 
 ## 11. Recommended Improvements
 
-### Recommendation 1: Add live freshness and stale vehicle states
+### Recommendation 1: Add explicit freshness and no-service states
 
 ### Problem
 
-Public and admin maps do not show socket connection status, last updated time, stale vehicles, or reconnecting state (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:695-711`, `shuttle-tracking-web/components/admin/LiveMap.tsx:27-43`).
+Maps and ETA lack user-visible connection, timestamp, stale, offline, and no-service meaning.
 
 ### User Impact
 
-Riders and admins can mistake stale GPS data for live service.
+Riders and admins can make decisions from old data that looks live.
 
 ### Recommendation
 
-Track socket lifecycle (`connect`, `disconnect`, `connect_error`, reconnect attempts) and store `lastSeenAt` per vehicle. Show a small map status label such as `Live`, `Reconnecting`, or `Last update 2 min ago`. Dim or label vehicles after a stale threshold.
+Show last-update age and a plain-language state near public ETA/availability; provide an admin stale/silent exception list. Hide or degrade ETA when the canonical state is stale.
 
 ### Why
 
-Trust is the core UX value of a live tracker. A simple freshness model is smaller than a redesign and directly addresses the highest-risk experience gap.
+Freshness is the smallest trust improvement and uses the canonical-state work already identified by Architecture/Backend.
 
 ### Priority
 
-High
+High — before daily operations.
 
 ### Difficulty
 
-Medium
+Medium.
 
 ### Learning Topic
 
-Realtime data freshness and status/traffic-light patterns.
+Status patterns, confidence framing, and empty-state design.
 
 ### Related Files
 
-`shuttle-tracking-web/components/public/ShuttleTracker.tsx`, `shuttle-tracking-web/components/admin/LiveMap.tsx`, `shuttle-tracking-web/app/admin/dashboard/page.tsx`
+Public tracker/cards, admin dashboard/map, and the backend canonical-state contract.
 
----
-
-### Recommendation 2: Reframe the admin dashboard around operational exceptions
+### Recommendation 2: Make dashboard health evidence-based
 
 ### Problem
 
-Dashboard cards show inventory counts, but not vehicles/routes requiring attention (`shuttle-tracking-web/app/admin/dashboard/page.tsx:70-128`).
+“Live System Active” is static while API and Socket.IO failures are not visible.
 
 ### User Impact
 
-An admin starting the day cannot quickly answer "is everything okay right now?"
+An admin may believe the service is healthy when it is disconnected or stale.
 
 ### Recommendation
 
-Add an "Attention Needed" section above or beside the map with: silent vehicles, active vehicles with stale GPS, routes with no active reporting vehicle, and socket/API health. Keep the current counts as secondary supporting metrics.
+Bind a compact status indicator to successful API load and socket lifecycle; show a retry action and distinguish “dashboard unavailable” from “no active vehicles.”
 
 ### Why
 
-Operational dashboards should prioritize exceptions because admins act on problems, not totals.
+It improves the existing dashboard without adding a new operations suite.
 
 ### Priority
 
-High
+High — before daily operations.
 
 ### Difficulty
 
-Medium
+Medium.
 
 ### Learning Topic
 
-Information hierarchy for operational dashboards.
+Operational dashboards and truthful system-status language.
 
 ### Related Files
 
-`shuttle-tracking-web/app/admin/dashboard/page.tsx`, `shuttle-tracking-web/components/admin/LiveMap.tsx`, `shuttle-tracking-backend/prisma/schema.prisma`
+Admin dashboard and LiveMap.
 
----
-
-### Recommendation 3: Make route selection understandable for first-time riders
+### Recommendation 3: Repair first-use route guidance
 
 ### Problem
 
-The public route selector shows only `R01` and `R02` (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:747-758`).
+Tour selectors do not match the rendered UI, and route codes lack destination context.
 
 ### User Impact
 
-New riders may not know which route to choose, especially if route codes are internal or campus-specific.
+New riders can miss the correct route or experience an incomplete tour.
 
 ### Recommendation
 
-Show route name or destination under the route code, for example `R01 - Campus Loop`. If space is tight on mobile, use a compact sheet or tooltip opened from the route selector.
+Repair/remove stale tour steps; label R01/R02 with concise route names/destinations. Review R03 visibility after Product decides the supported public scope.
 
 ### Why
 
-Route code is useful for operators; destination/service meaning is useful for riders.
+This is a targeted clarity fix, not a redesign.
 
 ### Priority
 
-Medium
+Medium.
 
 ### Difficulty
 
-Easy
+Easy.
 
 ### Learning Topic
 
-Recognition over recall in navigation labels.
+First-use onboarding and information scent.
 
 ### Related Files
 
-`shuttle-tracking-web/components/public/ShuttleTracker.tsx`, `shuttle-tracking-web/components/admin/RouteModal.tsx`, `shuttle-tracking-web/types/route.ts`
+AppTour, ShuttleTracker, and Product Audit.
 
----
-
-### Recommendation 4: Add ETA confidence framing
+### Recommendation 4: Standardize recoverable admin feedback
 
 ### Problem
 
-ETA appears as a precise minute value, but it is derived from client-side route geometry, recent speed history, and assumptions (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:92-170`, `shuttle-tracking-web/components/public/StopInfoCard.tsx:86-105`).
+Admin CRUD uses alerts and dashboard errors are invisible.
 
 ### User Impact
 
-Riders may over-trust the ETA, especially when GPS is stale, no vehicles are active, or the route just loaded.
+Users lose context and cannot retry or distinguish failure from empty data.
 
 ### Recommendation
 
-Label ETA as `ประมาณ X นาที` or `~X min`, and pair it with freshness: `updated just now`, `no live vehicle`, or `GPS stale`. Use ranges where confidence is low, such as `5-8 min`.
+Adopt a shared inline alert/toast with a concise cause, affected action, and retry/refetch affordance; preserve confirmation for deletes.
 
 ### Why
 
-Confidence framing makes estimates useful without pretending they are exact.
+Consistent feedback reduces operating mistakes and support burden.
 
 ### Priority
 
-Medium
+Medium.
 
 ### Difficulty
 
-Easy
+Easy.
 
 ### Learning Topic
 
-Confidence framing for estimated times.
+Recoverable error states and destructive-action confirmation.
 
 ### Related Files
 
-`shuttle-tracking-web/components/public/StopInfoCard.tsx`, `shuttle-tracking-web/components/public/ShuttleTracker.tsx`
-
----
-
-### Recommendation 5: Improve no-vehicle and no-data states on the public map
-
-### Problem
-
-`Active Trams` can show `0 คัน`, but the UI does not explain whether service is closed, no vehicle is assigned, no GPS has reported, or the socket is disconnected (`shuttle-tracking-web/components/public/AvailabilityCard.tsx:5-15`).
-
-### User Impact
-
-Riders may not know whether to wait, switch routes, walk, or report an issue.
-
-### Recommendation
-
-When count is zero, show a short state message near the route selector or stop card: `No live vehicles on this route right now` plus freshness/connection status. If route stops fail to load, show `Could not load stops. Try again`.
-
-### Why
-
-Empty states should explain the situation and suggest the next useful action.
-
-### Priority
-
-High
-
-### Difficulty
-
-Easy
-
-### Learning Topic
-
-Empty-state design.
-
-### Related Files
-
-`shuttle-tracking-web/components/public/AvailabilityCard.tsx`, `shuttle-tracking-web/components/public/ShuttleTracker.tsx`
-
----
-
-### Recommendation 6: Fix or remove stale onboarding tour selectors
-
-### Problem
-
-`AppTour` targets selectors that are not present in the active JSX controls (`shuttle-tracking-web/components/public/AppTour.tsx:22-50`; current controls at `shuttle-tracking-web/components/public/ShuttleTracker.tsx:743-810` and `shuttle-tracking-web/components/public/AvailabilityCard.tsx:5-15`).
-
-### User Impact
-
-First-time users may receive broken or confusing guidance.
-
-### Recommendation
-
-Add stable `data-tour` attributes or matching class names to the actual active count, route selector, stop card, and location button. Prefer `data-tour="route-selector"` over styling class names.
-
-### Why
-
-Tours are only helpful if their anchors are stable across visual refactors.
-
-### Priority
-
-Medium
-
-### Difficulty
-
-Easy
-
-### Learning Topic
-
-Guided onboarding and stable UI selectors.
-
-### Related Files
-
-`shuttle-tracking-web/components/public/AppTour.tsx`, `shuttle-tracking-web/components/public/ShuttleTracker.tsx`, `shuttle-tracking-web/components/public/AvailabilityCard.tsx`
-
----
-
-### Recommendation 7: Replace browser alerts with inline, recoverable admin feedback
-
-### Problem
-
-CRUD failures use `alert`, while dashboard failures only log to console (`shuttle-tracking-web/app/admin/vehicles/page.tsx:27-30`, `shuttle-tracking-web/app/admin/routes/page.tsx:47-60`, `shuttle-tracking-web/app/admin/stops/page.tsx:43-56`, `shuttle-tracking-web/app/admin/dashboard/page.tsx:45-49`).
-
-### User Impact
-
-Admins get inconsistent feedback, and some failures are invisible.
-
-### Recommendation
-
-Use inline banners/toasts with specific messages and retry actions. On dashboard, show a non-blocking error banner when stats or map data cannot load.
-
-### Why
-
-Operational tools should keep admins oriented and allow recovery without interruptive browser dialogs.
-
-### Priority
-
-Medium
-
-### Difficulty
-
-Easy
-
-### Learning Topic
-
-Pessimistic UI feedback and recoverable errors.
-
-### Related Files
-
-`shuttle-tracking-web/app/admin/dashboard/page.tsx`, `shuttle-tracking-web/app/admin/vehicles/page.tsx`, `shuttle-tracking-web/app/admin/routes/page.tsx`, `shuttle-tracking-web/app/admin/stops/page.tsx`
-
----
-
-### Recommendation 8: Add route-stop management as an admin workflow
-
-### Problem
-
-Admins can create routes and stops separately, but cannot manage stop membership/order for a route. The schema has `RouteStop.stopOrder`, and the knowledge base confirms route-stop endpoints exist but no frontend caller was found (`shuttle-tracking-backend/prisma/schema.prisma:86-99`, `docs/project-knowledge-base.md:96-100`).
-
-### User Impact
-
-Admins cannot safely update actual service routes from the UI.
-
-### Recommendation
-
-Add a route detail view or "Manage Stops" action on each route. Let admins add/remove stops and reorder them. Show a preview of ordered stops before saving.
-
-### Why
-
-For a tracking product, route order is operational data, not just a database relationship.
-
-### Priority
-
-Critical
-
-### Difficulty
-
-Medium
-
-### Learning Topic
-
-Many-to-many relationship management and ordered-list UX.
-
-### Related Files
-
-`shuttle-tracking-web/app/admin/routes/page.tsx`, `shuttle-tracking-web/components/admin/RouteModal.tsx`, `shuttle-tracking-backend/prisma/schema.prisma`, `shuttle-tracking-backend/src/routes/routeStops.route.ts`
-
----
-
-### Recommendation 9: Add an admin live vehicle list beside the map
-
-### Problem
-
-The admin live map only shows markers after updates arrive and popups on click (`shuttle-tracking-web/components/admin/LiveMap.tsx:57-73`).
-
-### User Impact
-
-Admins cannot scan all vehicles, sort by problem state, or notice a silent vehicle without interacting with the map.
-
-### Recommendation
-
-Add a compact table/list next to or below the live map: vehicle, route, status, last seen, speed, station/next stop, and health label. Use the map for spatial context, not as the only monitoring surface.
-
-### Why
-
-Maps are good for location, but lists are better for scanning exceptions.
-
-### Priority
-
-High
-
-### Difficulty
-
-Medium
-
-### Learning Topic
-
-Progressive disclosure and map-plus-list monitoring patterns.
-
-### Related Files
-
-`shuttle-tracking-web/components/admin/LiveMap.tsx`, `shuttle-tracking-web/app/admin/dashboard/page.tsx`
+Admin dashboard and vehicle/route/stop pages.
 
 ## 12. UX Learning Topics
 
-### Information hierarchy
+1. Data freshness and estimate confidence — needed now because a realtime map is only trustworthy when age is visible.
+2. Exception-first dashboard hierarchy — before daily operations; start with a few actionable conditions rather than a large analytics dashboard.
+3. Empty/error state design — needed now for recoverable admin work.
+4. Information scent and onboarding — a route code needs a destination hint; test tours against rendered controls.
+5. Keyboard semantics for interactive UI — improve buttons and dialogs incrementally; formal accessibility testing follows a browser review.
 
-What it is: deciding which information gets the most visual weight based on the user's immediate goal.
+## Roadmap Impact
 
-What problem it solves: prevents dashboards from highlighting easy-to-count data while hiding action-critical data.
+No new product or architecture decision is created. D-001 determines whether daily-operations UX is required now. The canonical freshness contract and D-002 remain prerequisites for any source comparison or playback UI. The Roadmap should treat public freshness and truthful admin status as before-daily-operations UX work, while tour and error feedback fixes are low-risk improvements.
 
-Does this project need it now: yes. The admin dashboard currently highlights totals, while operational exceptions are missing.
+## Assumptions and Unknowns
 
-Simpler alternative: keep the existing cards but add one `Attention Needed` band above the map.
+- Static source was used; visual rendering, keyboard behavior, mobile layout, and user comprehension were not observed in a browser.
+- No user research establishes route-label preference, ETA tolerance, or operator workflow priorities.
+- Backend read contracts for freshness, source health, trips, and feedback review remain incomplete.
+- D-001 remains pending.
 
-Suggested learning order: dashboard goals -> user actions -> exception states -> layout priority.
+## Confidence
 
-### Empty-state design
+**High** for rendered-source and absence/presence claims; **Medium** for effective usability because no browser or user session was observed; **Low** for user-preference claims without research.
 
-What it is: designing useful UI for "nothing here yet" or "nothing available now."
+## Required Decisions
 
-What problem it solves: helps users understand whether zero data is normal, broken, or actionable.
+- **D-001 — operational MVP release scope:** determines whether exception-first operational UX is required before release.
+- **D-002 — telemetry retention and canonical-history fidelity:** remains required before playback or source-comparison UI.
 
-Does this project need it now: yes. Public `0 คัน`, no route stops, and no live map vehicles need explanation.
-
-Simpler alternative: one sentence plus a retry/status indicator.
-
-Suggested learning order: empty reason -> user next action -> recovery path.
-
-### Confidence framing for ETA
-
-What it is: presenting estimates with uncertainty, freshness, or ranges instead of over-precise numbers.
-
-What problem it solves: preserves trust when live data is noisy or incomplete.
-
-Does this project need it now: yes. ETA depends on route geometry, speed history, and live GPS state.
-
-Simpler alternative: use `ประมาณ` or `~`, plus `updated X sec ago`.
-
-Suggested learning order: estimate inputs -> confidence levels -> copy patterns.
-
-### Status and traffic-light patterns
-
-What it is: using consistent labels and visual treatments for states like healthy, warning, critical, offline, and unknown.
-
-What problem it solves: lets admins scan operational health quickly.
-
-Does this project need it now: yes, especially for vehicle and socket freshness.
-
-Simpler alternative: start with three states: Live, Stale, Offline/Unknown.
-
-Suggested learning order: state definitions -> thresholds -> UI labels -> color plus text.
-
-### Progressive disclosure
-
-What it is: showing summary information first, with details available when needed.
-
-What problem it solves: keeps a dashboard scannable without hiding important diagnostic detail.
-
-Does this project need it now: yes. The admin map needs summary exceptions plus drill-down details.
-
-Simpler alternative: vehicle list rows with expandable details.
-
-Suggested learning order: summary fields -> detail fields -> actions.
+No new decision is needed to repair tour selectors, improve route labels, or standardize error feedback.
 
 ## 13. Audit Limitations
 
-- This audit used repository evidence and source inspection. No live browser walkthrough or user testing session was performed.
-- User research evidence was Not Found. Route-label recommendations are based on UX principles and repository evidence that route controls expose only IDs, not on observed rider behavior.
-- Backend currently lacks device health and last-seen fields, so some recommendations require small data-model/API support before the UI can fully implement them.
-- This audit intentionally avoids frontend architecture review except where source evidence affects user experience. Code-structure risks are covered by `docs/audits/frontend-audit.md`.
-- This audit intentionally avoids product-scope prioritization except where gaps directly affect daily operations. Product completeness is covered by `docs/audits/product-audit.md`.
+No browser, screen reader, touch-device, real network interruption, live GPS feed, administrator, or rider was observed. This is not a formal accessibility audit, usability study, or frontend architecture review.
 
 ## 14. Handoff
 
-Recommended next UX-focused implementation order:
-
-1. Add visible live/freshness state to public and admin maps.
-2. Add public no-vehicle/no-data messages and route-load error UI.
-3. Fix `AppTour` selectors with stable tour anchors.
-4. Rework admin dashboard to show `Attention Needed` operational states.
-5. Add route-stop management UI.
-6. Add admin live vehicle list with last-seen and stale labels.
-7. Later, add trip history, feedback inbox, reports, and deeper device health once backend support is available.
-
-Primary files for handoff:
-
-- `shuttle-tracking-web/components/public/ShuttleTracker.tsx`
-- `shuttle-tracking-web/components/public/AvailabilityCard.tsx`
-- `shuttle-tracking-web/components/public/StopInfoCard.tsx`
-- `shuttle-tracking-web/components/public/AppTour.tsx`
-- `shuttle-tracking-web/app/admin/dashboard/page.tsx`
-- `shuttle-tracking-web/components/admin/LiveMap.tsx`
-- `shuttle-tracking-web/app/admin/routes/page.tsx`
-- `shuttle-tracking-backend/prisma/schema.prisma`
+This report supersedes the previous Dashboard & UX Audit. Security/DevOps should assess the public-origin, logging, and runtime-observability side of truthful status indicators. Production Readiness should synthesize accepted Product, Architecture, Backend, Database, Infrastructure, and UX evidence once Security/DevOps refreshes.

@@ -5,7 +5,7 @@
 ## D-001 — Operational MVP release scope
 
 Related reports: `docs/audits/product-audit.md`, `docs/audits/backend-audit.md`,
-`docs/audits/database-audit.md`
+`docs/audits/database-audit.md`, `docs/audits/dashboard-ux-audit.md`
 
 Current approach: the repository provides public tracking, basic admin CRUD, authenticated sender
 contracts, simulators, and public feedback submission. It does not provide route-stop management,
@@ -34,7 +34,7 @@ Roadmap effect: Wait for decision
 
 Related reports: `docs/audits/architecture-audit.md`, `docs/audits/product-audit.md`,
 `docs/audits/backend-audit.md`, `docs/audits/database-audit.md`,
-`docs/audits/infrastructure-device-audit.md`
+`docs/audits/infrastructure-device-audit.md`, `docs/audits/dashboard-ux-audit.md`
 
 Current approach: Redis keeps only the latest observation per source. PostgreSQL stores sampled
 canonical GPS history, rather than each source observation or an ordered event stream.
