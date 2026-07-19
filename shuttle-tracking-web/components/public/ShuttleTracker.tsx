@@ -15,8 +15,15 @@ import AppTour from "@/components/public/AppTour";
 import { shouldMove, animateMove, getNearestPointIndex, getDirectionalPointIndex } from "@/utils/MapHelpers";
 import { Stop, LocationUpdateData } from "@/types";
 
-import { Plus, Minus, Locate, MessageSquarePlus } from "lucide-react";
+import { Plus, Minus, Locate, MessageSquarePlus, ChevronDown } from "lucide-react";
 import FeedbackModal from "./FeedbackModal";
+
+interface RouteData {
+  id: string;
+  name: string;
+  color: string;
+  status: string;
+}
 
 // === Constants & Icons ===
 const AVERAGE_BUS_SPEED_KMH = 15;
@@ -45,6 +52,10 @@ export default function ShuttleTracker() {
     process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api\/?$/, "");
 
   // === 1. State ===
+  const [routes, setRoutes] = useState<RouteData[]>([]);
+  const [isRouteMenuOpen, setIsRouteMenuOpen] = useState<boolean>(false);
+  const routeMenuRef = useRef<HTMLDivElement>(null);
+  
   const [selectedRoute, setSelectedRoute] = useState<string>("R01");
   const [availableCount, setAvailableCount] = useState<number>(0);
   const [userLoc, setUserLoc] = useState<[number, number] | null>(null);
@@ -61,6 +72,9 @@ export default function ShuttleTracker() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
   const [feedbackVehicleId, setFeedbackVehicleId] = useState<string | null>(null);
   const [vehicleNames, setVehicleNames] = useState<Record<string, string>>({});
+  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   // === Preloader States & Refs ===
   const [showPreloader, setShowPreloader] = useState<boolean>(true);
@@ -69,9 +83,9 @@ export default function ShuttleTracker() {
   const [loadingStatusText, setLoadingStatusText] = useState<string>("กำลังเตรียมแผนที่...");
 
   const namesLoadedRef = useRef<boolean>(false);
-  const route1LoadedRef = useRef<boolean>(false);
-  const route2LoadedRef = useRef<boolean>(false);
+  const loadedRoutesRef = useRef<Set<string>>(new Set());
   const mapReadyRef = useRef<boolean>(false);
+  const checkLoadingCompleteRef = useRef<() => void>(() => {});
 
   const checkLoadingComplete = useCallback(() => {
     let progress = 10;
@@ -79,15 +93,17 @@ export default function ShuttleTracker() {
     
     if (mapReadyRef.current) progress += 30;
     if (namesLoadedRef.current) progress += 20;
-    if (route1LoadedRef.current) progress += 20;
-    if (route2LoadedRef.current) progress += 20;
+
+    const totalRoutes = routes.length > 0 ? routes.length : 1;
+    const routesProgress = (loadedRoutesRef.current.size / totalRoutes) * 40;
+    progress += routesProgress;
 
     const finalProgress = Math.min(progress, 100);
     setLoadingProgress(finalProgress);
 
     if (!mapReadyRef.current) {
       status = "กำลังจัดเตรียมแผนที่มหาลัย...";
-    } else if (!route1LoadedRef.current || !route2LoadedRef.current) {
+    } else if (loadedRoutesRef.current.size < totalRoutes) {
       status = "กำลังดาวน์โหลดพิกัดเส้นทางและจุดจอด...";
     } else if (!namesLoadedRef.current) {
       status = "กำลังเชื่อมโยงข้อมูลรถบัส...";
@@ -96,7 +112,7 @@ export default function ShuttleTracker() {
     }
     setLoadingStatusText(status);
 
-    if (mapReadyRef.current && route1LoadedRef.current && route2LoadedRef.current && namesLoadedRef.current) {
+    if (mapReadyRef.current && loadedRoutesRef.current.size === totalRoutes && totalRoutes > 0 && namesLoadedRef.current) {
       setTimeout(() => {
         setIsIntroFinished(true);
         setTimeout(() => {
@@ -104,7 +120,11 @@ export default function ShuttleTracker() {
         }, 800);
       }, 500);
     }
-  }, []);
+  }, [routes.length]);
+  
+  useEffect(() => {
+    checkLoadingCompleteRef.current = checkLoadingComplete;
+  }, [checkLoadingComplete]);
 
   useEffect(() => {
     const safetyTimer = setTimeout(() => {
@@ -116,6 +136,46 @@ export default function ShuttleTracker() {
 
     return () => clearTimeout(safetyTimer);
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (routeMenuRef.current && !routeMenuRef.current.contains(event.target as Node)) {
+        setIsRouteMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // PWA Registration & Install Interceptor
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").then(
+        (reg) => console.log("SW Registered:", reg.scope),
+        (err) => console.error("SW Registration Failed:", err)
+      );
+    }
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log("Install prompt outcome:", outcome);
+    if (outcome === "accepted") {
+      setDeferredPrompt(null);
+    }
+  };
 
   const handleOpenFeedback = (vehicleId?: string | null) => {
     setFeedbackVehicleId(vehicleId || null);
@@ -584,8 +644,10 @@ export default function ShuttleTracker() {
       try {
         const apiOrigins = (() => {
           const origins: string[] = [];
+          const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
+          if (isHttps && typeof window !== "undefined") origins.push(window.location.origin);
           if (configuredBackendOrigin) origins.push(configuredBackendOrigin.replace(/\/$/, ""));
-          if (typeof window !== "undefined") origins.push(window.location.origin);
+          if (!isHttps && typeof window !== "undefined") origins.push(window.location.origin);
           origins.push("http://localhost:3001");
           return [...new Set(origins)];
         })();
@@ -621,13 +683,15 @@ export default function ShuttleTracker() {
   useEffect(() => {
     const apiOrigins = (() => {
       const origins: string[] = [];
+      const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
+      if (isHttps && typeof window !== "undefined") origins.push(window.location.origin);
       if (configuredBackendOrigin) origins.push(configuredBackendOrigin.replace(/\/$/, ""));
-      if (typeof window !== "undefined") origins.push(window.location.origin);
+      if (!isHttps && typeof window !== "undefined") origins.push(window.location.origin);
       origins.push("http://localhost:3001");
       return [...new Set(origins)];
     })();
 
-    const loadRouteData = async (routeId: string) => {
+    const loadRouteData = async (routeId: string, routeColor: string) => {
       try {
         let stops: Stop[] | null = null;
         let lastError: unknown = null;
@@ -679,6 +743,9 @@ export default function ShuttleTracker() {
           });
         });
 
+        if (stopLayersRef.current[routeId] && mapRef.current) {
+          mapRef.current.removeLayer(stopLayersRef.current[routeId]);
+        }
         stopLayersRef.current[routeId] = stopLayer;
         if (routeId === selectedRouteRef.current && mapRef.current) stopLayer.addTo(mapRef.current);
 
@@ -741,7 +808,10 @@ export default function ShuttleTracker() {
           });
 
           const routeLayer = L.layerGroup();
-          L.polyline(finalCoords, { color: routeId === "R01" ? "#FF8169" : "#3B82F6", weight: 5, smoothFactor: 1.5, className: 'neon-path' }).addTo(routeLayer);
+          L.polyline(finalCoords, { color: routeColor || "#3B82F6", weight: 5, smoothFactor: 1.5, className: 'neon-path' }).addTo(routeLayer);
+          if (routeLayersRef.current[routeId] && mapRef.current) {
+            mapRef.current.removeLayer(routeLayersRef.current[routeId]);
+          }
           routeLayersRef.current[routeId] = routeLayer;
           
           if (routeId === selectedRouteRef.current && mapRef.current) routeLayer.addTo(mapRef.current);
@@ -749,70 +819,118 @@ export default function ShuttleTracker() {
       } catch (err) {
         console.error(`Failed to load route ${routeId}`, err);
       } finally {
-        if (routeId === "R01") route1LoadedRef.current = true;
-        if (routeId === "R02") route2LoadedRef.current = true;
-        checkLoadingComplete();
+        loadedRoutesRef.current.add(routeId);
+        checkLoadingCompleteRef.current();
       }
     };
 
-    function waitForMap() {
-      if (mapRef.current && LRef.current) {
-        clearInterval(interval);
-        mapRef.current.flyTo(RSU_CENTER, 16.7, { animate: true, duration: 1.2 });
-        mapReadyRef.current = true;
-        checkLoadingComplete();
+    const initRoutes = async () => {
+      let activeRoutes: RouteData[] = [];
+      try {
+        for (const origin of apiOrigins) {
+          try {
+            const res = await fetch(`${origin}/api/public/active-routes`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.success && data.data) {
+                activeRoutes = data.data;
+                break;
+              } else if (Array.isArray(data)) {
+                activeRoutes = data;
+                break;
+              }
+            }
+          } catch (e) {
+            // next origin
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch active routes", err);
+      }
+      
+      if (activeRoutes.length === 0) {
+         activeRoutes = [
+           { id: "R01", name: "สาย 1 (ศาลาดนตรี)", color: "#FF8169", status: "active" },
+           { id: "R02", name: "สาย 2 (ตึก 11)", color: "#3B82F6", status: "active" }
+         ];
+      }
+      
+      setRoutes(activeRoutes);
+      if (activeRoutes.length > 0) {
+        setSelectedRoute(activeRoutes[0].id);
+        selectedRouteRef.current = activeRoutes[0].id;
+      }
+      
+      return activeRoutes;
+    };
 
-        mapRef.current.on('zoomstart', (e: L.LeafletEvent & { originalEvent?: unknown }) => { 
-          isZoomingRef.current = true; 
-          setIsAppLocked(true); 
-          // หากผู้ใช้ย่อขยายแผนที่ด้วยตนเอง ให้ปิดการติดตามอัตโนมัติ
-          if (e.originalEvent) {
+    let interval: NodeJS.Timeout;
+    
+    initRoutes().then((activeRoutes) => {
+      function waitForMap() {
+        if (mapRef.current && LRef.current) {
+          clearInterval(interval);
+          mapRef.current.flyTo(RSU_CENTER, 16.7, { animate: true, duration: 1.2 });
+          mapReadyRef.current = true;
+          checkLoadingCompleteRef.current();
+
+          mapRef.current.on('zoomstart', (e: L.LeafletEvent & { originalEvent?: unknown }) => { 
+            isZoomingRef.current = true; 
+            setIsAppLocked(true); 
+            if (e.originalEvent) {
+              setIsTracking(false);
+              isTrackingRef.current = false;
+            }
+          });
+          mapRef.current.on('zoomend', () => { 
+            isZoomingRef.current = false; 
+            setIsAppLocked(false);
+            Object.values(pendingUpdatesRef.current).forEach(data => processLocationUpdateRef.current(data));
+            pendingUpdatesRef.current = {};
+          });
+          mapRef.current.on('dragstart', () => {
             setIsTracking(false);
             isTrackingRef.current = false;
-          }
-        });
-        mapRef.current.on('zoomend', () => { 
-          isZoomingRef.current = false; 
-          setIsAppLocked(false);
-          Object.values(pendingUpdatesRef.current).forEach(data => processLocationUpdateRef.current(data));
-          pendingUpdatesRef.current = {};
-        });
-        mapRef.current.on('dragstart', () => {
-          // หากผู้ใช้ลากแผนที่ด้วยตนเอง ให้ปิดการติดตามอัตโนมัติ
-          setIsTracking(false);
-          isTrackingRef.current = false;
-        });
-        
-        mapRef.current.on("click", () => {
-          if (isZoomingRef.current) return;
+          });
           
-          // กดที่ว่างๆ ปิด Card ทั้งหมด
-          if (targetStopRef.current || activeStopMarkerRef.current || selectedVehicleIdRef.current) {
-            
-            // ล้างป้าย
-            setTargetStop(null); targetStopRef.current = null;
-            if (activeStopMarkerRef.current) { activeStopMarkerRef.current.setIcon(DEFAULT_STOP_ICON); activeStopMarkerRef.current = null; }
-            
-            // ล้างรถ
-            setSelectedVehicleId(null); selectedVehicleIdRef.current = null;
-            setIsTracking(false); isTrackingRef.current = false;
-
-            mapRef.current?.flyTo(RSU_CENTER, 16.7, { animate: true, duration: 0.8 });
-          }
-        });
-        
-        loadRouteData("R01");
-        loadRouteData("R02");
+          mapRef.current.on("click", () => {
+            if (isZoomingRef.current) return;
+            if (targetStopRef.current || activeStopMarkerRef.current || selectedVehicleIdRef.current) {
+              setTargetStop(null); targetStopRef.current = null;
+              if (activeStopMarkerRef.current) { activeStopMarkerRef.current.setIcon(DEFAULT_STOP_ICON); activeStopMarkerRef.current = null; }
+              setSelectedVehicleId(null); selectedVehicleIdRef.current = null;
+              setIsTracking(false); isTrackingRef.current = false;
+              mapRef.current?.flyTo(RSU_CENTER, 16.7, { animate: true, duration: 0.8 });
+            }
+          });
+          
+          activeRoutes.forEach(r => loadRouteData(r.id, r.color));
+        }
       }
-    }
 
-    const interval = setInterval(waitForMap, 200);
-    return () => clearInterval(interval);
-  }, [LRef, mapRef, configuredBackendOrigin, checkLoadingComplete]);
+      interval = setInterval(waitForMap, 200);
+    });
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [LRef, mapRef, configuredBackendOrigin]);
 
   useEffect(() => {
     const handleZoomCenter = () => {
       if (mapRef.current) {
+        // เคลียร์การเลือกต่างๆ
+        setSelectedVehicleId(null);
+        selectedVehicleIdRef.current = null;
+        setTargetStop(null);
+        targetStopRef.current = null;
+        if (activeStopMarkerRef.current) {
+          activeStopMarkerRef.current.setIcon(DEFAULT_STOP_ICON);
+          activeStopMarkerRef.current = null;
+        }
+        setIsTracking(false);
+        isTrackingRef.current = false;
+        
         // พากล้องร่อนกลับมาจุดศูนย์กลางมหาลัย
         mapRef.current.flyTo(RSU_CENTER, 16.7, {
           animate: true,
@@ -847,9 +965,10 @@ export default function ShuttleTracker() {
   }, [mapRef]);
 
   useEffect(() => {
-    const socketOrigin =
-      configuredBackendOrigin ||
-      (typeof window !== "undefined" ? window.location.origin : "http://localhost:3001");
+    const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
+    const socketOrigin = isHttps
+      ? (typeof window !== "undefined" ? window.location.origin : "")
+      : (configuredBackendOrigin || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3001"));
     const socket: Socket = io(socketOrigin);
 
     socket.on("location-update", (data: LocationUpdateData) => {
@@ -905,29 +1024,58 @@ export default function ShuttleTracker() {
         {/* Top Right: Status & Toggles */}
         <div className="absolute top-4 right-4 md:top-10 md:right-10 z-10 flex flex-col items-stretch gap-3 w-[160px] md:w-[180px]">
           <AvailabilityCard count={availableCount} />
-          <div className="flex gap-3 w-full">
-            {["R01", "R02"].map(route => (
+          <div className="flex gap-3 w-full relative" ref={routeMenuRef}>
+            <div className="route-selector-menu w-full relative">
               <button 
-                key={route} 
-                className={`flex-1 glass-panel backdrop-blur-sm rounded-full py-2 md:py-2.5 font-headline-md text-[15px] md:text-[16px] transition-all duration-300 cursor-pointer flex items-center justify-center ${
-                  selectedRoute === route 
-                    ? "bg-status-alert/25! border-status-alert/50! border text-status-alert shadow-[inset_0_1px_2px_rgba(255,255,255,0.55),0_6px_16px_-4px_rgba(239,68,68,0.22)]" 
-                    : "hover:bg-white/40! hover:scale-[1.03] text-on-surface shadow-[inset_0_1px_1px_rgba(255,255,255,0.3)]"
-                }`}
-                onClick={() => handleRouteChange(route)}
+                className="w-full glass-panel backdrop-blur-sm rounded-full py-2 px-4 md:py-2.5 font-headline-md text-[14px] md:text-[15px] transition-all duration-300 cursor-pointer flex items-center justify-between text-on-surface shadow-[inset_0_1px_1px_rgba(255,255,255,0.3)] hover:bg-white/40!"
+                onClick={() => setIsRouteMenuOpen(!isRouteMenuOpen)}
               >
-                {route}
+                <div className="flex items-center gap-2">
+                  <span 
+                    className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.3)]" 
+                    style={{ backgroundColor: routes.find(r => r.id === selectedRoute)?.color || "#3B82F6" }}
+                  />
+                  <span className="truncate max-w-[100px] md:max-w-[120px]">{routes.find(r => r.id === selectedRoute)?.name || selectedRoute}</span>
+                </div>
+                <ChevronDown size={18} className={`transition-transform duration-300 ${isRouteMenuOpen ? 'rotate-180' : ''}`} />
               </button>
-            ))}
+              
+              {isRouteMenuOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 glass-panel backdrop-blur-sm rounded-[16px] py-2 flex flex-col gap-1 shadow-lg border border-outline-variant/30 overflow-hidden z-50">
+                  {routes.map(route => (
+                    <button 
+                      key={route.id} 
+                      className={`w-full px-4 py-2 text-left text-[14px] transition-all duration-200 flex items-center gap-2 ${
+                        selectedRoute === route.id 
+                          ? "bg-black/5! font-medium" 
+                          : "hover:bg-white/40!"
+                      }`}
+                      onClick={() => {
+                        handleRouteChange(route.id);
+                        setIsRouteMenuOpen(false);
+                      }}
+                    >
+                      <span 
+                        className="w-2.5 h-2.5 rounded-full" 
+                        style={{ backgroundColor: route.color }}
+                      />
+                      <span className="truncate">{route.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <button 
-            className="w-full glass-panel backdrop-blur-sm rounded-full py-2 text-[13px] md:text-[14px] text-on-surface hover:bg-white/40! hover:scale-[1.02] transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 font-medium border border-outline-variant/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]"
+            className="rsu-feedback-btn w-full glass-panel backdrop-blur-sm rounded-full py-2 text-[13px] md:text-[14px] text-on-surface hover:bg-white/40! hover:scale-[1.02] transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 font-medium border border-outline-variant/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]"
             onClick={() => handleOpenFeedback(selectedVehicleId)}
           >
             <MessageSquarePlus size={16} className="text-on-surface-variant" />
             <span>ส่งข้อเสนอแนะ</span>
           </button>
+
+
         </div>
 
         {/* Bottom Left: Floating Dock */}
@@ -983,7 +1131,10 @@ export default function ShuttleTracker() {
           </button>
         </div>
       </div>
-      <AppTour />
+      <AppTour 
+        onInstallClick={handleInstallClick}
+        isPwaAvailable={!!deferredPrompt}
+      />
 
       {isFeedbackOpen && (
         <FeedbackModal

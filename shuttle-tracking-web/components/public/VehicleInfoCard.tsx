@@ -90,7 +90,7 @@ export default function VehicleInfoCard({
       </div>
 
       {/* Row 2: Next Station (takes 100% width so text doesn't wrap awkwardly next to the button) */}
-      <div className="font-body-lg text-[14px] sm:text-body-lg text-on-surface-variant leading-normal">
+      <div className="rsu-vehicle-next-stop font-body-lg text-[14px] sm:text-body-lg text-on-surface-variant leading-normal">
         Next Station: {nextStop}
       </div>
 

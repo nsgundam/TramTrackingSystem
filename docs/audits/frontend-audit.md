@@ -14,7 +14,7 @@ Main frontend risks:
 - Public tracker concentrates fetching, geometry caching, socket processing, marker lifecycle, snapping, ETA, geolocation, and user interaction in one large component, which is hard to maintain safely (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:40-815`).
 - Public route geometry cache invalidation uses only stop IDs, so reordered stops or changed stop coordinates can leave stale local geometry (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:552-590`).
 - Admin route protection checks only cookie presence in `proxy.ts`; token expiry is handled later in client context, creating a brief protected-page render path for expired cookies (`shuttle-tracking-web/proxy.ts:4-16`, `shuttle-tracking-web/contexts/AuthContext.tsx:46-66`).
-- Product-critical frontend capabilities remain missing: route-stop management UI, trip history UI, feedback UI, reports, alerts, and device health visibility. Search found no frontend route/page for these features, and the sidebar exposes only Dashboard, Vehicles, Routes, and Stops (`shuttle-tracking-web/components/admin/Sidebar.tsx:15-36`; product gaps in `docs/audits/product-audit.md:180-198`, `docs/audits/product-audit.md:240-340`, `docs/audits/product-audit.md:405-430`).
+- Product-critical frontend capabilities remain missing or partial: route-stop management UI, trip history UI, feedback review UI, reports, alerts, and device health visibility. Public feedback submission is implemented via the `FeedbackModal` component on the map page, but admin feedback review is missing. Search found no frontend route/page for these features, and the sidebar exposes only Dashboard, Vehicles, Routes, and Stops (`shuttle-tracking-web/components/admin/Sidebar.tsx:15-36`; product gaps in `docs/audits/product-audit.md:180-198`, `docs/audits/product-audit.md:240-340`, `docs/audits/product-audit.md:405-430`).
 
 ## 2. Current Frontend Overview
 
@@ -125,8 +125,8 @@ Trace:
 Findings:
 
 - Implemented: login, token storage, client expiry check, route protection by cookie, dashboard stats, live admin map, vehicle/route/stop CRUD.
-- Partial: route protection and session expiry are split between proxy and client context.
-- Not Implemented: route-stop management, trip history, reports, feedback review, device health, alerts, admin user management.
+- Partial: route protection and session expiry are split between proxy and client context; feedback is partially implemented (public submission exists, admin review is missing).
+- Not Implemented: route-stop management, trip history, reports, feedback review (admin side), device health, alerts, admin user management.
 
 ## 7. Real-Time Client Review
 
@@ -231,7 +231,7 @@ Strictly from frontend evidence:
 
 - Route-stop management UI: **Not Implemented**. Sidebar has no route-stop page, routes page only manages route id/name/color/status, and no `route-stops` caller was found (`shuttle-tracking-web/components/admin/Sidebar.tsx:15-36`, `shuttle-tracking-web/components/admin/RouteModal.tsx:20-25`, `rg route-stops shuttle-tracking-web` returned no caller). Product audit marks this Phase 1 Critical (`docs/audits/product-audit.md:180-198`).
 - Trip history UI: **Not Implemented**. No frontend page or API usage for trips/history was found; product audit marks trip history as missing/critical (`docs/audits/product-audit.md:240-266`).
-- Feedback UI: **Not Implemented**. No public feedback submission or admin feedback review UI was found; product audit notes Feedback is data-only/planned (`docs/audits/product-audit.md:147-153`).
+- Feedback UI: **Partially Implemented**. Public feedback submission is implemented via the `FeedbackModal` component (`shuttle-tracking-web/components/public/FeedbackModal.tsx`) and the "ส่งข้อเสนอแนะ" button on the map (`shuttle-tracking-web/components/public/ShuttleTracker.tsx:924-930`). However, the **Admin Feedback Review UI** is **Not Implemented** (no feedback review screen or endpoint integrations exist for admins).
 - Device status UI: **Not Implemented**. No device health or last-seen admin UI was found; architecture/backend audits identify no device/source abstraction yet (`docs/audits/architecture-audit.md:7-17`, `docs/audits/backend-audit.md:188-206`).
 - Reports UI: **Not Implemented**. No reports page or report API usage was found; product audit lists reporting as missing (`docs/audits/product-audit.md:405-430`).
 - Alerts/notifications UI: **Not Implemented**. No alert/notification workflow was found; dashboard status is static (`shuttle-tracking-web/app/admin/dashboard/page.tsx:64-67`).
