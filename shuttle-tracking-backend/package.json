@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npm run build && node test_auth_boundary.js",
+    "test": "npm run build && node test_auth_boundary.js && node test_t2_boundaries.js",
     "test:socket": "node test_socket_boundary.js",
     "dev": "nodemon",
     "build": "tsc",

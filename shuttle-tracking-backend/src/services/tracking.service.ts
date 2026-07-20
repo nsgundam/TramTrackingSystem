@@ -1,6 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { redisClient } from '../config/redis.js';
 import type { SenderContext } from '../middleware/auth.js';
+import { BoundaryError, logBoundaryFailure } from '../middleware/boundary-errors.js';
 
 const THROTTLE_SECONDS = 60;
 export const SOURCE_FRESHNESS_WINDOW_MS = 30_000;
@@ -63,7 +64,7 @@ export const processObservation = async (data: ObservationData) => {
   const { sourceId, lat, lng, speed, bearing, accuracy, station } = data;
 
   if (!sourceId || lat === undefined || lng === undefined) {
-    throw new Error('Missing required fields: sourceId, lat, or lng');
+    throw new BoundaryError(400, 'INVALID_REQUEST', 'Location payload is invalid');
   }
 
   // 1. Basic Coordinate Validation
@@ -77,7 +78,7 @@ export const processObservation = async (data: ObservationData) => {
     numLng < LNG_MIN ||
     numLng > LNG_MAX
   ) {
-    throw new Error(`Coordinates out of bounds: lat ${lat}, lng ${lng}`);
+    throw new BoundaryError(400, 'INVALID_REQUEST', 'Coordinates are invalid');
   }
 
   // 2. Fetch Device from Registry
@@ -87,17 +88,17 @@ export const processObservation = async (data: ObservationData) => {
   });
 
   if (!source || source.status !== 'active') {
-    throw new Error(`Active tracking source with ID "${sourceId}" not found`);
+    throw new BoundaryError(404, 'SOURCE_NOT_FOUND', 'Active tracking source was not found');
   }
 
   if (data.expectedSourceType && source.type !== data.expectedSourceType) {
-    throw new Error(`Tracking source "${sourceId}" is not a ${data.expectedSourceType} source`);
+    throw new BoundaryError(422, 'SOURCE_TYPE_MISMATCH', 'Tracking source type is invalid');
   }
 
   // 3. Authenticate the source and bind it to the credential claims.
   if (sourceRequiresCredential(source.type)) {
     if (!data.sender) {
-      throw new Error('Verified sender credential is required');
+      throw new BoundaryError(401, 'SENDER_AUTH_REQUIRED', 'Sender authentication required');
     }
 
     if (
@@ -105,7 +106,7 @@ export const processObservation = async (data: ObservationData) => {
       data.sender.vehicleId !== source.vehicleId ||
       data.sender.credentialVersion !== source.credentialVersion
     ) {
-      throw new Error('Sender credential does not match the tracking source');
+      throw new BoundaryError(403, 'SENDER_OWNERSHIP_MISMATCH', 'Sender cannot submit for this source');
     }
   }
 
@@ -116,7 +117,7 @@ export const processObservation = async (data: ObservationData) => {
     });
 
     if (!trip || trip.vehicleId !== source.vehicleId || trip.status !== 'in_progress') {
-      throw new Error('Trip is invalid or does not belong to the sender vehicle');
+      throw new BoundaryError(403, 'TRIP_OWNERSHIP_MISMATCH', 'Trip is invalid or does not belong to the sender vehicle');
     }
   }
 
@@ -124,9 +125,9 @@ export const processObservation = async (data: ObservationData) => {
   const observation = {
     lat: numLat,
     lng: numLng,
-    speed: speed !== undefined && speed !== null ? parseFloat(speed as any) : null,
-    bearing: bearing !== undefined && bearing !== null ? parseFloat(bearing as any) : null,
-    accuracy: accuracy !== undefined && accuracy !== null ? parseFloat(accuracy as any) : null,
+    speed: speed !== undefined && speed !== null ? speed : null,
+    bearing: bearing !== undefined && bearing !== null ? bearing : null,
+    accuracy: accuracy !== undefined && accuracy !== null ? accuracy : null,
     station: station || null,
     timestamp: Date.now(),
     sourceType: source.type
@@ -143,7 +144,7 @@ export const processObservation = async (data: ObservationData) => {
     await prisma.trackingSource.update({
       where: { id: sourceId },
       data: { lastSeenAt: now }
-    }).catch(err => console.error(`Failed to update lastSeenAt in DB for source ${sourceId}:`, err));
+    }).catch(err => logBoundaryFailure('Tracking source last-seen update', err));
   }
 
   // 5. Evaluate Canonical Location if device is assigned to a Vehicle
@@ -188,7 +189,7 @@ export const evaluateCanonicalLocation = async (vehicleId: string) => {
   }
 
   if (!selectedObservation) {
-    console.warn(`[Pipeline] All location sources for vehicle ${vehicleId} are stale or offline.`);
+    console.warn('[Pipeline] All location sources for a vehicle are stale or offline.');
     return null;
   }
 
@@ -273,7 +274,7 @@ const persistSampledHistory = async (vehicleId: string, canonicalLocation: any) 
           data: { status: 'active' }
         });
 
-        console.log(`[Auto-Trip] Created daily virtual trip ${activeTrip.id} for vehicle ${vehicleId}`);
+        console.log('[Auto-Trip] Created daily virtual trip.');
       }
     }
 
@@ -292,7 +293,7 @@ const persistSampledHistory = async (vehicleId: string, canonicalLocation: any) 
         VALUES (
           ${tripId}::uuid, 
           ${vehicleId}, 
-          ST_SetSRID(ST_MakePoint(${parseFloat(canonicalLocation.lng)}, ${parseFloat(canonicalLocation.lat)}), 4326)::geography, 
+          ST_SetSRID(ST_MakePoint(${canonicalLocation.lng}, ${canonicalLocation.lat}), 4326)::geography,
           ${canonicalLocation.speed ?? null}, 
           ${canonicalLocation.heading ?? null}, 
           ${canonicalLocation.station ?? null}, 
@@ -300,10 +301,10 @@ const persistSampledHistory = async (vehicleId: string, canonicalLocation: any) 
           ${canonicalLocation.recordedAt}
         )
       `;
-      console.log(`[DB SAVE] Canonical location saved for trip ${tripId} (source: ${canonicalLocation.sourceType})`);
+      console.log('[DB SAVE] Canonical location saved.');
     }
 
   } catch (error) {
-    console.error(`[DB SAVE] Error persisting history for vehicle ${vehicleId}:`, error);
+    logBoundaryFailure('GPS history persistence', error);
   }
 };

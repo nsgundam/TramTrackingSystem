@@ -6,6 +6,15 @@ import {
   toDeviceMutationResponse,
   toDeviceResponse,
 } from '../types/device.js';
+import {
+  BoundaryError,
+  conflict,
+  logBoundaryFailure,
+  notFound,
+  sendBoundaryError,
+  unprocessableRequest,
+} from '../middleware/boundary-errors.js';
+import type { DeviceCreateInput, DeviceUpdateInput } from '../middleware/validation.js';
 
 // Get all devices
 export const getDevices = async (req: Request, res: Response) => {
@@ -16,8 +25,8 @@ export const getDevices = async (req: Request, res: Response) => {
     });
     res.json(devices.map(toDeviceResponse));
   } catch (error) {
-    console.error('Error fetching devices:', error);
-    res.status(500).json({ error: 'Failed to fetch devices' });
+    logBoundaryFailure('Device list', error);
+    sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to fetch devices'));
   }
 };
 
@@ -30,30 +39,32 @@ export const getDeviceById = async (req: Request, res: Response) => {
       include: { vehicle: true }
     });
     if (!device) {
-       res.status(404).json({ error: 'Device not found' });
-       return;
+       throw notFound('Device not found');
     }
     res.json(toDeviceResponse(device));
   } catch (error) {
-    console.error('Error fetching device:', error);
-    res.status(500).json({ error: 'Failed to fetch device' });
+    logBoundaryFailure('Device read', error);
+    sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to fetch device'));
   }
 };
 
 // Create new device
 export const createDevice = async (req: Request, res: Response) => {
   try {
-    const { id, name, type, vehicleId, priority, status, secret } = req.body;
+    const { id, name, type, vehicleId, priority, status, secret } = req.body as DeviceCreateInput;
 
-    if (!id || !name || !type) {
-       res.status(400).json({ error: 'Missing required fields: id, name, type' });
-       return;
+    if (vehicleId) {
+      const vehicle = await prisma.vehicle.findUnique({ where: { id: vehicleId }, select: { id: true } });
+      if (!vehicle) throw notFound('Vehicle not found');
+    }
+
+    if (status === 'active' && type !== 'lorawan' && (!vehicleId || !secret)) {
+      throw unprocessableRequest('Active sender sources require a vehicle and credential');
     }
 
     const existing = await prisma.trackingSource.findUnique({ where: { id } });
     if (existing) {
-       res.status(409).json({ error: 'Device ID already exists' });
-       return;
+       throw conflict('Device ID already exists');
     }
 
     let secretHash = null;
@@ -67,9 +78,9 @@ export const createDevice = async (req: Request, res: Response) => {
         name,
         type,
         vehicleId: vehicleId || null,
-        priority: priority !== undefined ? parseInt(priority as any) : 1,
-        status: status || 'active',
-        secretHash
+        priority,
+        status,
+        secretHash,
       },
       include: { vehicle: true },
     });
@@ -78,8 +89,8 @@ export const createDevice = async (req: Request, res: Response) => {
       toDeviceMutationResponse(device, secret ? 'provisioned' : 'unchanged'),
     );
   } catch (error) {
-    console.error('Error creating device:', error);
-    res.status(500).json({ error: 'Failed to create device' });
+    logBoundaryFailure('Device create', error);
+    sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to create device'));
   }
 };
 
@@ -87,19 +98,32 @@ export const createDevice = async (req: Request, res: Response) => {
 export const updateDevice = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const { name, type, vehicleId, priority, status, secret } = req.body;
+    const { name, type, vehicleId, priority, status, secret } = req.body as DeviceUpdateInput;
 
     const existing = await prisma.trackingSource.findUnique({ where: { id } });
     if (!existing) {
-       res.status(404).json({ error: 'Device not found' });
-       return;
+       throw notFound('Device not found');
     }
 
-    const data: any = {};
+    const effectiveType = type ?? existing.type;
+    const effectiveVehicleId = vehicleId === undefined ? existing.vehicleId : vehicleId;
+    const effectiveStatus = status ?? existing.status;
+    const effectiveHasCredential = secret !== undefined || Boolean(existing.secretHash);
+
+    if (effectiveVehicleId) {
+      const vehicle = await prisma.vehicle.findUnique({ where: { id: effectiveVehicleId }, select: { id: true } });
+      if (!vehicle) throw notFound('Vehicle not found');
+    }
+
+    if (effectiveStatus === 'active' && effectiveType !== 'lorawan' && (!effectiveVehicleId || !effectiveHasCredential)) {
+      throw unprocessableRequest('Active sender sources require a vehicle and credential');
+    }
+
+    const data: Record<string, unknown> = {};
     if (name !== undefined) data.name = name;
     if (type !== undefined) data.type = type;
-    if (vehicleId !== undefined) data.vehicleId = vehicleId || null;
-    if (priority !== undefined) data.priority = parseInt(priority as any);
+    if (vehicleId !== undefined) data.vehicleId = vehicleId;
+    if (priority !== undefined) data.priority = priority;
     if (status !== undefined) data.status = status;
     
     if (secret) {
@@ -119,8 +143,8 @@ export const updateDevice = async (req: Request, res: Response) => {
 
     res.json(toDeviceMutationResponse(updated, secret ? 'rotated' : 'unchanged'));
   } catch (error) {
-    console.error('Error updating device:', error);
-    res.status(500).json({ error: 'Failed to update device' });
+    logBoundaryFailure('Device update', error);
+    sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to update device'));
   }
 };
 
@@ -129,20 +153,19 @@ export const deleteDevice = async (req: Request, res: Response) => {
   try {
     const id = typeof req.params.id === 'string' ? req.params.id : undefined;
     if (!id) {
-      res.status(400).json({ error: 'Invalid or missing device ID' });
+      res.status(400).json({ code: 'INVALID_REQUEST', error: 'Invalid or missing device ID' });
       return;
     }
     const existing = await prisma.trackingSource.findUnique({ where: { id } });
     if (!existing) {
-       res.status(404).json({ error: 'Device not found' });
-       return;
+       throw notFound('Device not found');
     }
 
     await prisma.trackingSource.delete({ where: { id } });
     res.json({ message: 'Device deleted successfully' });
   } catch (error) {
-    console.error('Error deleting device:', error);
-    res.status(500).json({ error: 'Failed to delete device' });
+    logBoundaryFailure('Device delete', error);
+    sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to delete device'));
   }
 };
 
@@ -165,7 +188,7 @@ export const getDeviceAnalytics = async (req: Request, res: Response) => {
 
     res.json(analytics);
   } catch (error) {
-    console.error('Error fetching device analytics:', error);
-    res.status(500).json({ error: 'Failed to fetch device analytics' });
+    logBoundaryFailure('Device analytics', error);
+    sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to fetch device analytics'));
   }
 };

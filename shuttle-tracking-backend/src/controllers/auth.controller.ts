@@ -3,6 +3,12 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import type { SignOptions } from 'jsonwebtoken';
 import { prisma } from '../config/prisma.js';
+import {
+  BoundaryError,
+  logBoundaryFailure,
+  sendBoundaryError,
+} from '../middleware/boundary-errors.js';
+import type { AdminLoginInput, SenderLoginInput } from '../middleware/validation.js';
 
 const SENDER_JWT_EXPIRES_IN = (
   process.env.SENDER_JWT_EXPIRES_IN || '15m'
@@ -10,21 +16,19 @@ const SENDER_JWT_EXPIRES_IN = (
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { username, password } = req.body;
+    const { username, password } = req.body as AdminLoginInput;
 
     const user = await prisma.user.findUnique({
       where: { username },
     });
 
     if (!user) {
-      res.status(401).json({ error: 'User not found' });
-      return;
+      throw new BoundaryError(401, 'AUTHENTICATION_FAILED', 'Invalid credentials');
     }
 
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
-      res.status(401).json({ error: 'Invalid password' });
-      return;
+      throw new BoundaryError(401, 'AUTHENTICATION_FAILED', 'Invalid credentials');
     }
 
     if (!process.env.JWT_SECRET) {
@@ -41,8 +45,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Login failed' });
+    logBoundaryFailure('Admin login', error);
+    sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Login failed'));
   }
 };
 
@@ -65,21 +69,14 @@ export const getme = async (req: Request, res: Response): Promise<void> => {
 
     res.json({ user });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch user data' });
+    logBoundaryFailure('Auth me', error);
+    sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to fetch user data'));
   }
 }
 
 export const loginVehicle = async (req: Request, res: Response) => {
   try {
-    const { sourceId, secret, vehicleId } = req.body;
-
-    if (!sourceId || !secret) {
-      return res.status(400).json({
-        success: false,
-        message: 'sourceId and secret are required',
-      });
-    }
+    const { sourceId, secret, vehicleId } = req.body as SenderLoginInput;
 
     const source = await prisma.trackingSource.findUnique({
       where: { id: sourceId },
@@ -87,15 +84,15 @@ export const loginVehicle = async (req: Request, res: Response) => {
     });
 
     if (!source || source.status !== 'active' || source.type === 'lorawan' || !source.vehicle) {
-      return res.status(401).json({ success: false, message: 'Invalid sender credentials' });
+      throw new BoundaryError(401, 'AUTHENTICATION_FAILED', 'Invalid sender credentials');
     }
 
     if (!source.secretHash || !(await bcrypt.compare(secret, source.secretHash))) {
-      return res.status(401).json({ success: false, message: 'Invalid sender credentials' });
+      throw new BoundaryError(401, 'AUTHENTICATION_FAILED', 'Invalid sender credentials');
     }
 
     if (vehicleId && vehicleId !== source.vehicle.id) {
-      return res.status(403).json({ success: false, message: 'Sender is not assigned to this vehicle' });
+      throw new BoundaryError(403, 'SENDER_OWNERSHIP_MISMATCH', 'Sender is not assigned to this vehicle');
     }
 
     if (!process.env.JWT_SECRET) {
@@ -127,7 +124,7 @@ export const loginVehicle = async (req: Request, res: Response) => {
     });
 
   } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    logBoundaryFailure('Sender login', error);
+    sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Authentication failed'));
   }
 };

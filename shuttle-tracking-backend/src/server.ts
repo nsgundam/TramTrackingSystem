@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type NextFunction, type Request, type Response } from "express";
 import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -24,11 +24,41 @@ import {
 import type { SenderContext } from "./middleware/auth.js";
 
 import { processObservation } from "./services/tracking.service.js";
+import {
+  BoundaryError,
+  logBoundaryFailure,
+  mapBoundaryError,
+} from "./middleware/boundary-errors.js";
+import { consumeRateLimit, RATE_LIMITS } from "./middleware/rate-limit.js";
+import { parseObservation } from "./middleware/validation.js";
 
 import { connectRedis, redisClient } from "./config/redis.js";
 import { prisma } from "./config/prisma.js";
 
 const app = express();
+
+const configuredBodyLimit = (() => {
+  const match = /^(\d+)(b|kb|mb)$/i.exec(process.env.REQUEST_BODY_LIMIT || '');
+  if (!match) return '64kb';
+
+  const amount = Number(match[1]!);
+  const unit = match[2]!.toLowerCase();
+  const multiplier = unit === 'mb'
+    ? 1024 * 1024
+    : unit === 'kb'
+      ? 1024
+      : 1;
+  const bytes = amount * multiplier;
+  return Number.isSafeInteger(bytes) && bytes > 0 && bytes <= 1024 * 1024
+    ? `${bytes}b`
+    : '64kb';
+})();
+const configuredSocketBuffer = (() => {
+  const parsed = Number(process.env.SOCKET_MAX_BUFFER_BYTES);
+  return Number.isSafeInteger(parsed) && parsed > 0 && parsed <= 1024 * 1024
+    ? parsed
+    : 64 * 1024;
+})();
 
 // HTTP server and Socket.IO setup
 const httpServer = createServer(app);
@@ -54,7 +84,7 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: configuredBodyLimit }));
 
 // Routes
 app.use("/api/auth", authRouter);
@@ -86,16 +116,17 @@ app.get("/ready", async (req, res) => {
       redis: "connected"
     });
   } catch (error: any) {
-    console.error("[Ready Check] Failed:", error.message);
+    logBoundaryFailure('Ready check', error);
     res.status(503).json({
       status: "NOT_READY",
-      error: error.message
+      error: 'Dependencies are unavailable'
     });
   }
 });
 
 const io = new Server(httpServer, {
   cors: corsOptions,
+  maxHttpBufferSize: configuredSocketBuffer,
 });
 
 app.set('socketio', io); // Share Socket.IO instance to REST controllers
@@ -141,6 +172,17 @@ io.on("connection", (socket) => {
     }
 
     try {
+      let observation;
+      try {
+        observation = parseObservation(rawData);
+      } catch (error) {
+        const invalid = mapBoundaryError(error, new BoundaryError(400, 'INVALID_REQUEST', 'Location payload is invalid'));
+        const response = { ok: false, code: invalid.code, error: invalid.message };
+        respond(response);
+        socket.emit('error-response', response);
+        return;
+      }
+
       // Handshake authentication is not enough for a long-lived sender socket.
       // Revalidate expiry, source status, vehicle binding, and credential version
       // for every write so rotation/revocation takes effect immediately.
@@ -172,16 +214,31 @@ io.on("connection", (socket) => {
 
       socket.data.sender = sender;
 
-      if (!rawData || typeof rawData !== 'object' || !rawData.sourceId) {
-        const error = { ok: false, code: 'SOURCE_ID_REQUIRED', error: 'sourceId is required' };
-        respond(error);
-        socket.emit('error-response', error);
+      let quota;
+      try {
+        quota = await consumeRateLimit({
+          scope: 'sender:observation',
+          ...RATE_LIMITS.sender,
+          key: sender.sourceId,
+        });
+      } catch {
+        throw new BoundaryError(503, 'DEPENDENCY_UNAVAILABLE', 'Rate limiting is temporarily unavailable');
+      }
+      if (!quota.allowed) {
+        const response = {
+          ok: false,
+          code: 'RATE_LIMITED',
+          error: 'Too many requests',
+          retryAfter: quota.retryAfterSeconds,
+        };
+        respond(response);
+        socket.emit('error-response', response);
         return;
       }
 
       if (
-        rawData.sourceId !== sender.sourceId ||
-        (rawData.vehicleId && rawData.vehicleId !== sender.vehicleId)
+        observation.sourceId !== sender.sourceId ||
+        (observation.vehicleId && observation.vehicleId !== sender.vehicleId)
       ) {
         const error = { ok: false, code: 'SENDER_OWNERSHIP_MISMATCH', error: 'Sender cannot submit for this source or vehicle' };
         respond(error);
@@ -190,15 +247,15 @@ io.on("connection", (socket) => {
       }
 
       const canonicalLocation = await processObservation({
-        sourceId: rawData.sourceId,
+        sourceId: observation.sourceId,
         sender,
-        tripId: rawData.tripId,
-        lat: rawData.lat,
-        lng: rawData.lng,
-        speed: rawData.speed,
-        bearing: rawData.bearing ?? rawData.heading,
-        accuracy: rawData.accuracy,
-        station: rawData.station
+        tripId: observation.tripId,
+        lat: observation.lat,
+        lng: observation.lng,
+        speed: observation.speed,
+        bearing: observation.bearing,
+        accuracy: observation.accuracy,
+        station: observation.station,
       });
 
       if (canonicalLocation) {
@@ -206,15 +263,13 @@ io.on("connection", (socket) => {
       }
 
       respond({ ok: true, canonicalLocation });
-    } catch (error: any) {
-      const message = error instanceof Error ? error.message : '';
-      const response = message.includes('Trip')
-        ? { ok: false, code: 'TRIP_OWNERSHIP_MISMATCH', error: 'Trip is invalid or does not belong to the sender vehicle' }
-        : message.includes('bounds')
-          ? { ok: false, code: 'INVALID_COORDINATES', error: 'Coordinates are invalid' }
-          : message.includes('sender') || message.includes('credential')
-            ? { ok: false, code: 'SENDER_CREDENTIAL_INVALID', error: 'Sender credential is invalid or no longer active' }
-            : { ok: false, code: 'LOCATION_REJECTED', error: 'Location observation was rejected' };
+    } catch (error) {
+      logBoundaryFailure('Socket location', error);
+      const mapped = mapBoundaryError(
+        error,
+        new BoundaryError(500, 'INTERNAL_ERROR', 'Location observation was rejected'),
+      );
+      const response = { ok: false, code: mapped.code, error: mapped.message };
       respond(response);
       socket.emit("error-response", response);
     }
@@ -223,6 +278,27 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
   });
+});
+
+app.use((error: unknown, _req: Request, res: Response, next: NextFunction) => {
+  if (res.headersSent) {
+    next(error);
+    return;
+  }
+
+  if (error && typeof error === 'object' && 'type' in error && error.type === 'entity.too.large') {
+    res.status(413).json({ code: 'REQUEST_TOO_LARGE', error: 'Request body is too large' });
+    return;
+  }
+
+  if (error instanceof SyntaxError) {
+    res.status(400).json({ code: 'INVALID_REQUEST', error: 'Malformed JSON request' });
+    return;
+  }
+
+  logBoundaryFailure('HTTP boundary', error);
+  const mapped = mapBoundaryError(error);
+  res.status(mapped.status).json({ code: mapped.code, error: mapped.message });
 });
 
 const PORT = process.env.PORT;
@@ -245,7 +321,7 @@ const startServer = async () => {
       console.log(`Server running on ${PORT}`);
     });
   } catch (error) {
-    console.error("[Server] Failed to start:", error);
+    logBoundaryFailure('Server startup', error);
     process.exit(1);
   }
 };

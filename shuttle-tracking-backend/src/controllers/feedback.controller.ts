@@ -1,25 +1,11 @@
 import { Request, Response } from 'express';
 import { createFeedback } from '../services/feedback.service.js';
+import { BoundaryError, logBoundaryFailure, sendBoundaryError } from '../middleware/boundary-errors.js';
+import type { FeedbackInput } from '../middleware/validation.js';
 
 export const submitFeedback = async (req: Request, res: Response) => {
   try {
-    const { type, vehicleId, message } = req.body;
-
-    // ---- Validation ----
-    if (!type || typeof type !== 'string' || type.trim() === '') {
-      res.status(400).json({ error: 'Field "type" is required and must be a non-empty string.' });
-      return;
-    }
-
-    if (!vehicleId || typeof vehicleId !== 'string' || vehicleId.trim() === '') {
-      res.status(400).json({ error: 'Field "vehicleId" is required and must be a non-empty string.' });
-      return;
-    }
-
-    if (!message || typeof message !== 'string' || message.trim() === '') {
-      res.status(400).json({ error: 'Field "message" is required and must be a non-empty string.' });
-      return;
-    }
+    const { type, vehicleId, message } = req.body as FeedbackInput;
 
     // ดึง IP ของ client
     const ipAddress = req.ip || undefined;
@@ -34,13 +20,11 @@ export const submitFeedback = async (req: Request, res: Response) => {
       data: feedback
     });
   } catch (error: unknown) {
-    // vehicleId ไม่พบในระบบ
-    if (error instanceof Error && error.message.includes('not found')) {
-      res.status(404).json({ error: error.message });
-      return;
-    }
-
-    console.error('[Feedback] Error submitting feedback:', error);
-    res.status(500).json({ error: 'An error occurred while submitting feedback.' });
+    logBoundaryFailure('Feedback', error);
+    sendBoundaryError(
+      res,
+      error,
+      new BoundaryError(500, 'INTERNAL_ERROR', 'An error occurred while submitting feedback'),
+    );
   }
 };

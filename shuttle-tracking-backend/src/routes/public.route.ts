@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { getActiveRoutes, getActiveVehicles, getPublicStops, getRouteStops } from "../controllers/public.controller.js"
 import { submitFeedback } from "../controllers/feedback.controller.js";
+import { RATE_LIMITS, clientAddress, rateLimit } from "../middleware/rate-limit.js";
+import { parseFeedback, validateBody } from "../middleware/validation.js";
 
 const router = Router();
 
@@ -17,6 +19,11 @@ router.get('/routes/:id/stops', getRouteStops);
 router.get('/stops', getPublicStops);
 
 // POST api/public/feedback
-router.post('/feedback', submitFeedback);
+router.post(
+  '/feedback',
+  validateBody(parseFeedback),
+  rateLimit({ scope: 'public:feedback', ...RATE_LIMITS.public, key: clientAddress }),
+  submitFeedback,
+);
 
 export default router;

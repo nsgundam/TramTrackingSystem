@@ -175,6 +175,14 @@ Server middleware, auth/public/ingest/trip/device/route-stop controllers, tracki
 
 Malformed writes receive stable 4xx/429 responses and never reach Prisma/broadcast; source-aware limits work; authenticated sender behavior remains valid. Run backend tests and configured integration smoke tests.
 
+### Status
+
+Partially Complete — shared validation, safe error mapping, size limits, and source-aware quotas are implemented and locally verified; configured Postgres/Redis integration smoke remains unverified because the required sender/TTN secrets and Docker services are unavailable in this environment.
+
+### Evidence
+
+`shuttle-tracking-backend`: `npm test`, `node test_devices_boundary.js`, `node test_redis_logging.js`, `npx prisma validate`, and `git diff --check` passed on 2026-07-20; `node test_pipeline.js` stopped before execution because `TRACKING_SOURCE_SECRET_ESP32`, `TRACKING_SOURCE_SECRET_MOBILE`, and `TTN_WEBHOOK_SECRET` were not configured, and Docker Compose could not connect to the local Docker daemon.
+
 ### T3 — Align device fixtures and document pipeline smoke tests
 
 ### Source Audit(s)

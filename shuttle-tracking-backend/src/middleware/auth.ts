@@ -111,17 +111,17 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    res.status(401).json({ error: 'Access denied (No token)' });
+    res.status(401).json({ code: 'AUTHENTICATION_FAILED', error: 'Authentication required' });
     return;
   }
   if (!process.env.JWT_SECRET) {
-    res.status(500).json({ error: 'Server misconfiguration: JWT_SECRET missing' });
+    res.status(503).json({ code: 'DEPENDENCY_UNAVAILABLE', error: 'Authentication is temporarily unavailable' });
     return;
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err || !isAdminClaims(user)) {
-      res.status(403).json({ error: 'Invalid token' });
+      res.status(401).json({ code: 'AUTHENTICATION_FAILED', error: 'Invalid authentication' });
       return;
     }
 
@@ -138,7 +138,7 @@ export const authenticateSenderToken = async (
   const token = extractBearerToken(req.headers.authorization);
 
   if (!token) {
-    res.status(401).json({ error: 'Sender authentication required' });
+    res.status(401).json({ code: 'SENDER_AUTH_REQUIRED', error: 'Sender authentication required' });
     return;
   }
 
@@ -147,10 +147,10 @@ export const authenticateSenderToken = async (
     next();
   } catch (error) {
     if (error instanceof SenderAuthDependencyError) {
-      res.status(503).json({ error: 'Sender authentication temporarily unavailable' });
+      res.status(503).json({ code: 'DEPENDENCY_UNAVAILABLE', error: 'Sender authentication temporarily unavailable' });
       return;
     }
 
-    res.status(401).json({ error: 'Invalid or inactive sender credential' });
+    res.status(401).json({ code: 'SENDER_CREDENTIAL_INVALID', error: 'Invalid or inactive sender credential' });
   }
 };
