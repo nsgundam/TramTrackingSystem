@@ -177,11 +177,11 @@ Malformed writes receive stable 4xx/429 responses and never reach Prisma/broadca
 
 ### Status
 
-Partially Complete — shared validation, safe error mapping, size limits, and source-aware quotas are implemented and locally verified; configured Postgres/Redis integration smoke remains unverified because the required sender/TTN secrets and Docker services are unavailable in this environment.
+Complete.
 
 ### Evidence
 
-`shuttle-tracking-backend`: `npm test`, `node test_devices_boundary.js`, `node test_redis_logging.js`, `npx prisma validate`, and `git diff --check` passed on 2026-07-20; `node test_pipeline.js` stopped before execution because `TRACKING_SOURCE_SECRET_ESP32`, `TRACKING_SOURCE_SECRET_MOBILE`, and `TTN_WEBHOOK_SECRET` were not configured, and Docker Compose could not connect to the local Docker daemon.
+`shuttle-tracking-backend`: `npm test`, `node test_devices_boundary.js`, `node test_redis_logging.js`, `npx prisma validate`, `node test_pipeline.js`, `node test_socket_boundary.js`, and `git diff --check` passed on 2026-07-20. Docker Compose `db` and `redis` were healthy; the smoke used the built `dist/server.js` because the local `npm run dev` command references `tsx`, which is not installed in the backend package.
 
 ### T3 — Align device fixtures and document pipeline smoke tests
 
@@ -199,7 +199,7 @@ T1, T2.
 
 ### Dependency Note
 
-T1 completed on 2026-07-20; safe device responses and static Redis logging are available for pipeline smoke evidence.
+T1 completed on 2026-07-20, and T2 completed with configured Postgres/Redis integration and Socket.IO smoke evidence on 2026-07-20.
 
 ### Blocks
 
