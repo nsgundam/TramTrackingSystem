@@ -2,6 +2,10 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js';
 import { redisClient } from '../config/redis.js';
 import bcrypt from 'bcrypt';
+import {
+  toDeviceMutationResponse,
+  toDeviceResponse,
+} from '../types/device.js';
 
 // Get all devices
 export const getDevices = async (req: Request, res: Response) => {
@@ -10,7 +14,7 @@ export const getDevices = async (req: Request, res: Response) => {
       include: { vehicle: true },
       orderBy: { id: 'asc' }
     });
-    res.json(devices);
+    res.json(devices.map(toDeviceResponse));
   } catch (error) {
     console.error('Error fetching devices:', error);
     res.status(500).json({ error: 'Failed to fetch devices' });
@@ -29,7 +33,7 @@ export const getDeviceById = async (req: Request, res: Response) => {
        res.status(404).json({ error: 'Device not found' });
        return;
     }
-    res.json(device);
+    res.json(toDeviceResponse(device));
   } catch (error) {
     console.error('Error fetching device:', error);
     res.status(500).json({ error: 'Failed to fetch device' });
@@ -66,10 +70,13 @@ export const createDevice = async (req: Request, res: Response) => {
         priority: priority !== undefined ? parseInt(priority as any) : 1,
         status: status || 'active',
         secretHash
-      }
+      },
+      include: { vehicle: true },
     });
 
-    res.status(201).json(device);
+    res.status(201).json(
+      toDeviceMutationResponse(device, secret ? 'provisioned' : 'unchanged'),
+    );
   } catch (error) {
     console.error('Error creating device:', error);
     res.status(500).json({ error: 'Failed to create device' });
@@ -106,10 +113,11 @@ export const updateDevice = async (req: Request, res: Response) => {
 
     const updated = await prisma.trackingSource.update({
       where: { id },
-      data
+      data,
+      include: { vehicle: true },
     });
 
-    res.json(updated);
+    res.json(toDeviceMutationResponse(updated, secret ? 'rotated' : 'unchanged'));
   } catch (error) {
     console.error('Error updating device:', error);
     res.status(500).json({ error: 'Failed to update device' });

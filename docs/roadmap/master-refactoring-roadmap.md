@@ -121,6 +121,14 @@ Device controller/routes/types, Redis configuration, backend route tests.
 
 No secretHash appears in device responses and no credential-bearing URL appears in logs. Device CRUD/rotation remains functional. Add absence tests; run backend test/build and a repository search for unsafe output.
 
+### Status
+
+Complete.
+
+### Evidence
+
+`shuttle-tracking-backend`: `npm run build`, `npm test`, `node test_devices_boundary.js`, `node test_redis_logging.js`, and unsafe-output search passed on 2026-07-20.
+
 ### T2 — Add validated, bounded public and sender write boundaries
 
 ### Source Audit(s)
@@ -181,6 +189,10 @@ Production Readiness 3.6; Infrastructure & Device 4, 6–9, 12.
 
 T1, T2.
 
+### Dependency Note
+
+T1 completed on 2026-07-20; safe device responses and static Redis logging are available for pipeline smoke evidence.
+
 ### Blocks
 
 T7 and all device-pipeline validation claims.
@@ -226,6 +238,10 @@ Production Readiness 3.8; Security 9–16; Infrastructure 5, 12; Backend 11.
 ### Depends On
 
 T1 and existing commands.
+
+### Dependency Note
+
+T1 completed on 2026-07-20; CI and operational-signal work can use the established no-secret output checks.
 
 ### Blocks
 
