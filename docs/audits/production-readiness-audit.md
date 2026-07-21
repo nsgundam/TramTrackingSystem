@@ -1,14 +1,14 @@
 # Production Readiness Re-audit: Tram Tracking System
 
-Re-audited: 2026-07-19
+Re-audited: 2026-07-21
 
 ## 1. Executive Summary
 
 **Determination: Not Ready** for production use with real vehicles, real drivers, and public riders.
 
-The repository demonstrates a credible controlled MVP. It has a public map, basic admin CRUD, authenticated source-bound sender sessions, canonical source selection, sampled PostGIS history, and production-mode Compose artifacts. These are meaningful foundations, but they do not yet form a service that can be responsibly relied upon for public transport decisions.
+The repository demonstrates a stronger controlled MVP after Refactor T2. It has a public map, basic admin CRUD, authenticated source-bound sender sessions, canonical source selection, bounded validation/error handling on the main sender/device boundaries, sampled PostGIS history, and production-mode Compose artifacts. These are meaningful foundations, but they do not yet form a service that can be responsibly relied upon for public transport decisions.
 
-The blockers are systemic rather than cosmetic. The system cannot consistently prove that a displayed vehicle is current, correctly routed, and associated with one operational trip; operators cannot run the required route, driver, history, and exception workflows; sensitive data can escape through device APIs/logs; public write paths lack basic abuse controls; and no deployed topology, recovery process, CI gate, or monitoring path is evidenced. A supervised demonstration is a valid learning milestone. It is not the same release standard as real vehicles, drivers, and public users who may act on incorrect information.
+The blockers are systemic rather than cosmetic. The system cannot consistently prove that a displayed vehicle is current, correctly routed, and associated with one operational trip; operators cannot run the required route, driver, history, and exception workflows; production data-service isolation is not evidenced; legacy public/admin write paths still lack complete abuse controls; and no deployed topology, recovery process, CI gate, or monitoring path is evidenced. T2 removes the prior direct secret-hash and Redis-URL leakage findings, but it does not close the operating boundary. A supervised demonstration is a valid learning milestone. It is not the same release standard as real vehicles, drivers, and public users who may act on incorrect information.
 
 The smallest responsible next release target is a **controlled demonstration or pilot**, not daily service or public launch, unless the owner explicitly selects and funds the broader D-001 scope.
 
@@ -26,7 +26,8 @@ All required inputs are available and marked Complete in the Audit Register. No 
 | Database Audit | 2026-07-19 | Complete | Partial active-trip index exists; lifecycle transition and history semantics remain incomplete. |
 | Infrastructure & Device Audit | 2026-07-19 | Complete | Production Compose is structurally credible; deployment, device, and provider runtime are unverified. |
 | Dashboard & UX Audit | 2026-07-19 | Complete | Feedback UX improved; operational visibility and truthful status remain open. |
-| Security, DevOps & Observability Audit | 2026-07-19 | Complete | Sender authentication improved; leakage, abuse controls, CI, and monitoring remain High risks. |
+| Security, DevOps & Observability Audit | 2026-07-20 | Complete | T2 sender/security boundaries improved; production network isolation, legacy write controls, CI, and monitoring remain High risks. |
+| Audit Register (`docs/audits/README.md`) | 2026-07-20 | Current register | Confirms all domain reports are Complete and validated; Production Readiness itself is being re-audited in this report. |
 
 Coverage is high for a repository-based release decision. Confidence is deliberately lower for live deployment, mobile/device behavior, load, recovery, and public usability because none was observed.
 
@@ -110,15 +111,15 @@ Yes.
 
 Operations/Trip controller/service, trip migration/index, gps_tracks, and future admin history read paths cited by the source audits.
 
-### 4. Device secrets and configuration credentials can leak, and public write paths lack abuse controls
+### 4. Production network isolation and legacy write controls remain incomplete
 
 ### Problem
 
-Device APIs serialize secretHash, Redis connection logging can expose a credential-bearing URL, and login, feedback, sender-login, and ingestion endpoints have no evidenced rate or request-size limits. Shared validation and safe error mapping are also incomplete.
+T2 resolves the prior direct `secretHash` response and Redis URL logging findings, and adds bounded request handling and rate limits to the main sender/device/feedback boundaries. Remaining High risks are that production Compose publishes PostgreSQL and Redis ports without an evidenced isolation boundary or Redis auth/ACL/TLS policy, while vehicle/route/stop writes remain unvalidated, unthrottled, and on legacy error handling. Admin JWT lifetime/cookie handling also remains weaker than the documented policy.
 
 ### Source Audit
 
-Security, DevOps & Observability Audit, sections 4, 6, 7, 13, and 16; Backend Audit, sections 5 and 6.
+Security, DevOps & Observability Audit, sections 1, 4, 6, 7, 13, and 16; Backend Audit, sections 5 and 6.
 
 ### Cross-Cutting
 
@@ -134,7 +135,7 @@ Yes.
 
 ### Related Files
 
-Device controller response paths, Redis configuration logging, server/auth/ingest/feedback routes, as identified in Security and Backend reports.
+Production Compose data-service ports, Redis configuration, legacy vehicle/route/stop controllers, and the rate-limit/validation boundaries identified in Security and Backend reports.
 
 ### 5. The deployment artifact is not an operated production service
 
@@ -162,11 +163,11 @@ Yes.
 
 docker-compose.prod.yml, Dockerfiles, entrypoint, environment templates, frontend build configuration, and D-003 references cited by source audits.
 
-### 6. There is no reliable evidence for real-device operation or repeatable integration exercise
+### 6. Real-device operation remains unverified and checked-in simulators are misaligned
 
 ### Problem
 
-The mobile and TTN simulator defaults conflict with seeded tracking-source fixtures. No mobile application, ESP32 firmware, TTN provider/application, physical device, provisioning procedure, or live delivery/reconnect evidence exists.
+The checked-in mobile and TTN simulator defaults conflict with seeded tracking-source fixtures. A configured pipeline/Socket.IO smoke exercise is recorded as passing, but no mobile application, ESP32 firmware, TTN provider/application, physical device, provisioning procedure, or live delivery/reconnect evidence exists.
 
 ### Source Audit
 
@@ -218,7 +219,7 @@ Public tracker/cache paths and route-stop mutation/cache paths cited by Frontend
 
 ### Problem
 
-Local build/lint/test commands and readiness endpoints exist, but no automated CI gate, structured/redacted logs, metrics, source-staleness alert, error tracker, deployed monitor, or recovery drill is evidenced.
+Local build/lint/test commands, T2 boundary tests, redacted Redis logging, and readiness endpoints exist, but no automated CI gate, application metrics, source-staleness alert, error tracker, deployed monitor, or recovery drill is evidenced. Health/readiness alone cannot tell an operator that a vehicle source has gone silent or history persistence is failing.
 
 ### Source Audit
 
@@ -246,7 +247,7 @@ Package scripts, Docker entrypoint, server readiness/tracking paths, and Compose
 
 2. **Incomplete operational ownership.** Split trip writers, missing history reads, absent driver workflow, no route-stop manager, and no exception dashboard mean a developer remains part of the operating model. A system is not operationally ready merely because its APIs exist.
 
-3. **Security and operability blind spot.** Secret-hash exposure, credential-bearing log output, unbounded public writes, no CI, and no monitoring combine into a preventable incident pattern: the team may neither prevent a problem nor discover it promptly.
+3. **Security and operability blind spot.** T2 resolved direct secret-hash and credential-bearing Redis-log exposure and added controls to the named boundaries. Unbounded legacy writes, exposed data-service ports, no CI, and no monitoring still combine into a preventable incident pattern: the team may neither prevent a problem nor discover it promptly.
 
 4. **Unverified edge-to-core pipeline.** Server-side source boundaries and canonical selection are good foundations, but simulator mismatch and absent physical/mobile/TTN evidence mean the true input path is not validated. This compounds the observation-order and freshness gaps.
 
@@ -256,9 +257,9 @@ Package scripts, Docker entrypoint, server readiness/tracking paths, and Compose
 
 | Topic | Findings | Resolution |
 |---|---|---|
-| Active-trip database guard | Backend Audit says no database invariant is present; Database Audit identifies migration unique_active_trip_per_vehicle. | The Database Audit is more specific and migration-based: the partial unique index exists. The production risk remains High because it does not make trip/vehicle/history transitions atomic or idempotent. |
+| Active-trip database guard | Earlier backend wording treated the lifecycle as unprotected; current Backend and Database audits identify the partial unique index. | Treat the partial unique index as present. The production risk remains High because it does not make trip/vehicle/history transitions atomic or idempotent. |
 | Production readiness of Compose | Infrastructure Audit calls production-mode Compose a credible structural base; Security and Infrastructure both say no deployed topology/monitoring/recovery evidence exists. | Not a conflict: the repository can build a reasonable base while still lacking proof that it is safely operated in production. |
-| Sender authentication | The stale prior Production Readiness report featured weak/unauthenticated sender writes; refreshed Backend and Security reports mark sender JWT binding/revalidation and TTN secret boundary resolved. | This re-audit treats sender authentication as resolved for the controlled MVP. It does not remove the separate blockers for device hash exposure, rate limits, real-device evidence, and monitoring. |
+| Sender authentication | The stale prior Production Readiness report featured weak/unauthenticated sender writes; refreshed Backend and Security reports mark sender JWT binding/revalidation and TTN secret boundary resolved. | This re-audit treats sender authentication as resolved for the controlled MVP. It does not remove the separate blockers for legacy write controls, real-device evidence, and monitoring. |
 | Public availability/no-service state | Dashboard & UX calls selected-stop no-vehicle wording partially improved; Frontend still marks operational freshness/no-service unavailable. | Not a material conflict: a local empty message is not a global canonical freshness or disconnection model. The broader readiness finding remains open. |
 
 No unresolved contradiction requires a new user decision. The active-trip migration should be preserved and covered by the future integration test.
@@ -274,8 +275,8 @@ No unresolved contradiction requires a new user decision. The active-trip migrat
 | Data Layer Readiness | Partially Ready | PostGIS, constraints, and sampled history are sound for MVP; transaction boundary, event semantics, retention, and history read needs remain unresolved. |
 | Infrastructure & Device Readiness | Not Ready | Production-mode containers exist, but no operated deployment, real sender/device evidence, or repeatable aligned simulator path is available. |
 | User Experience Readiness | Not Ready | Feedback is usable, but ETA/live map/dashboard cannot truthfully communicate freshness, failures, or operational exceptions. |
-| Security Readiness | Not Ready | Direct secret-hash/Redis-URL exposure and absent rate limits/validation are unacceptable for public production. |
-| Operability | Not Ready | No CI deployment gates, structured redacted logs, monitoring, alerts, runbook, or recovery evidence is available. |
+| Security Readiness | Partially Ready | T2 resolves direct secret-hash/Redis-URL exposure and authenticates sender writes; production data-service isolation, legacy write validation/rate limits, CI gates, and operational security controls remain High risks. |
+| Operability | Not Ready | Redacted boundary logs and readiness endpoints exist, but no CI deployment gates, structured application telemetry, monitoring, alerts, runbook, or recovery evidence is available. |
 
 The scorecard intentionally distinguishes “partial” technical foundations from a production “ready” decision. A component can be sound enough for supervised MVP learning while the service as a whole remains unsuitable for people who depend on it.
 
@@ -283,7 +284,7 @@ The scorecard intentionally distinguishes “partial” technical foundations fr
 
 Before the system should be trusted with real vehicles, real drivers, and public users, all of the following must be evidenced as complete:
 
-1. **Remove direct confidentiality and abuse blockers:** never return secretHash, redact Redis/config logging, implement route-specific rate/request-size limits, and apply shared input/error validation.
+1. **Close remaining confidentiality and abuse blockers:** remove or privately isolate production PostgreSQL/Redis host ports, define Redis auth/ACL/TLS policy for the chosen topology, extend route-specific rate/request-size limits and shared input/error validation to vehicle/route/stop writes, and align admin JWT lifetime/cookie policy. T2's secret-hash DTO projection and Redis-log redaction are already resolved and must remain covered by tests.
 2. **Establish one accountable operations model:** transactional/idempotent single-active-trip lifecycle, explicit virtual-trip policy, protected trip-history read, and a supported driver/sender workflow or audited external dependency.
 3. **Publish and consume canonical operational truth:** versioned route-aware vehicle state with timestamp, freshness/no-service reason, selection source, and event ordering rule; public/admin UI must show it and degrade ETA/markers when stale.
 4. **Enable operator-managed service:** route-stop add/remove/reorder, accurate cache invalidation, and a minimal admin exception view for stale/silent vehicles and service health. If public feedback remains available, include a staff triage owner/workflow.
@@ -313,7 +314,7 @@ The determination can change to **Ready** only after the Minimum Viable Producti
 
 ## 10. Audit Limitations
 
-This is a synthesis of validated repository audits; it does not perform a new source review. No deployed environment, TLS configuration, backup restoration, load test, browser session, physical device, mobile app, TTN console, live public traffic, penetration test, dependency advisory scan, or production logs/metrics were observed. Frontend lint passed with six warnings; its production build was inconclusive because a retained .next lock prevented confirmation.
+This is a synthesis of validated repository audits; it does not perform a new source review. T2's implementation checks and configured smoke evidence are inherited from the Security and Roadmap audits, not independently rerun in this synthesis. No deployed environment, TLS configuration, backup restoration, load test, browser session, physical device, mobile app, TTN console, live public traffic, penetration test, dependency advisory scan, or production logs/metrics were observed. Frontend lint passed with six warnings; its production build was inconclusive because a retained `.next` lock prevented confirmation.
 
 ## 11. Handoff
 
@@ -321,18 +322,18 @@ The next audit/plan owner is the Master Refactoring Roadmap Agent. It should seq
 
 ## Roadmap Impact
 
-Production Readiness confirms that the roadmap must place security leakage/abuse fixes, Operations/Trip ownership, canonical freshness, route-stop management/cache correctness, deployment topology, CI/observability, and real sender validation ahead of any public/daily launch. It does not modify the roadmap or create a new owner decision.
+Production Readiness confirms that T2 closed the named sender/validation leakage boundaries, so the roadmap should now place remaining network isolation and legacy-write controls, Operations/Trip ownership, canonical freshness, route-stop management/cache correctness, deployment topology, CI/observability, and real sender validation ahead of any public/daily launch. It does not modify the roadmap or create a new owner decision.
 
 ## Assumptions and Unknowns
 
 - D-001 operating scope, D-002 telemetry retention/fidelity, and D-003 configuration sequencing remain pending.
 - Controlled demonstration is not treated as public production.
-- No runtime evidence confirms a real provider, device, browser, or recovery process.
+- T2 runtime evidence is limited to the configured local smoke recorded by the Security/Roadmap audits; it does not confirm a real provider, device, browser, or recovery process.
 - The partial active-trip unique index is assumed applied only after migration deployment is verified in the target environment.
 
 ## Confidence
 
-**High** for the No-Go determination because independent refreshed audits converge on multiple High/Critical blockers. **Medium** for the exact effort/order to resolve them because deployed topology, owner scope, and real-device behavior are unknown.
+**High** for the No-Go determination because independent refreshed audits converge on multiple High/Critical blockers even after T2. **Medium** for the exact effort/order to resolve them because deployed topology, owner scope, and real-device behavior are unknown.
 
 ## Pending Decisions
 
@@ -340,4 +341,4 @@ Production Readiness confirms that the roadmap must place security leakage/abuse
 - **D-002 — Telemetry retention and canonical-history fidelity:** required before promising playback, source comparison, or higher-fidelity investigation.
 - **D-003 — T6/T16 production configuration dependency order:** required before finalizing the origin/topology implementation sequence.
 
-No new decision is needed to remove leakage, add abuse controls, make lifecycle transitions atomic, publish freshness truthfully, or establish basic CI/monitoring.
+No new decision is needed to close legacy write controls, isolate production data services, make lifecycle transitions atomic, publish freshness truthfully, or establish basic CI/monitoring. D-001/D-002/D-003 still govern release scope, telemetry fidelity, and topology sequencing.

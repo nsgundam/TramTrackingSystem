@@ -1,6 +1,6 @@
 # Backend Audit: Tram Tracking System
 
-Re-audited: 2026-07-19
+Re-audited: 2026-07-21
 Scope: current Express/TypeScript backend, Prisma schema and migrations, Redis/Socket.IO pipeline,
 backend tests, and backend-facing configuration. This is a source review, not a live-service or
 penetration test.
@@ -12,10 +12,11 @@ source- and vehicle-bound, revalidated on every Socket.IO write, and used by HTT
 trip routes. The tracking-source registry, deterministic source selection, canonical-location
 pipeline, and readiness endpoint are credible foundations for a controlled MVP.
 
-It is not yet an operations-grade backend. Trip lifecycle has competing writers and no database
-guarantee of one active trip per vehicle. Validation and error normalization remain inconsistent,
-device APIs disclose `secretHash`, and observations lack event-time, sequence, idempotency, and
-rejection semantics. The next implementation priority is one transactional Operations/Trip owner.
+It is not yet an operations-grade backend. Trip lifecycle still has competing non-transactional
+writers, although the migration now includes a database guarantee of one active trip per vehicle.
+Validation and error normalization remain inconsistent across legacy admin CRUD, and observations
+still lack event-time, sequence, idempotency, and rejection semantics. The next implementation
+priority is one transactional Operations/Trip owner.
 
 ## 2. Scope, Evidence, and Re-audit Status
 
@@ -25,22 +26,24 @@ Evidence reviewed:
   schema, and migration `20260716170000_operationalize_tracking_sources`.
 - `docs/project-knowledge-base.md`, current Product and Architecture reports, and the prior
   Backend Audit.
-- `npm test` passed on 2026-07-19: TypeScript build plus sender-JWT boundary test. Socket.IO and
-  pipeline scripts require a configured running stack and were not run.
+- `npm test` passed on 2026-07-21: TypeScript build, sender-JWT boundary test, and T2 validation/error-boundary test.
+- `node test_devices_boundary.js`, `node test_redis_logging.js`, and `npx prisma validate` passed on 2026-07-21.
+- Pipeline and Socket.IO smoke scripts were attempted but could not connect to a running backend in this environment; no live-service result is claimed.
 
 | Prior finding | Re-audit status | Current evidence |
 |---|---|---|
 | Trip and Socket.IO sender identity was weak | **Resolved** | Sender JWT is source/vehicle/version bound; HTTP/trip routes require it; Socket.IO revalidates it per write. |
 | Tracking-source/device abstraction was incomplete | **Resolved** | Source lifecycle fields, migration constraints, priority, and source-aware canonical selection are present. |
-| Trip lifecycle was only partially protected | **Still Present** | Start and auto-trip paths can both create `in_progress` trips; neither uses one transaction or a DB uniqueness invariant. |
+| Trip lifecycle was only partially protected | **Partially Resolved** | Partial unique index now prevents duplicate active rows and boundary mapping returns conflicts, but start/auto-trip writers are still non-transactional and not idempotent. |
 | REST/GPS validation and safe errors were inconsistent | **Partially Resolved** | GPS ownership/coordinate checks improved, but resource endpoints still admit untyped input and map many failures to 500. |
 | Tracking-source ingestion needed authentication/rotation | **Resolved** | Active non-LoRaWAN sources require secrets; credential rotation invalidates old sender tokens. |
 | Route-stop cache invalidation was missing | **Still Present** | Route-stop mutations do not invalidate `public:route_stops:*`. |
 | Realtime broadcast could report an invalid result | **Resolved** | Transports broadcast only a returned canonical location and acknowledge/reject the sender. |
 | Admin trip history/GPS playback reads were missing | **Still Present** | No protected trip-history or GPS-track read route is mounted. |
-| Automated backend tests were missing | **Partially Resolved** | Build/JWT boundary test exist; no repeatable service/controller integration suite is evidenced. |
-| Device responses expose credential hashes | **New Finding** | Device list/get/create/update directly serialize `TrackingSource`, including `secretHash`. |
+| Automated backend tests were missing | **Partially Resolved** | Build, JWT, validation/error, device-response, and Redis-log boundary tests pass; no repeatable service/controller integration suite is evidenced. |
+| Device responses expose credential hashes | **Resolved** | `toDeviceResponse`/`toDeviceMutationResponse` omit `secretHash`; device boundary tests verify the omission. |
 | Observation ordering and retention semantics were undefined | **New Finding** | Receipt time and sampled canonical points are stored; no event time, sequence, idempotency, or disposition contract exists. |
+| TTN source identity compatibility | **New Finding** | `parseTtnSourceId` now requires `end_device_ids.device_id`; the previous adapter also accepted `dev_eui`, so payloads without `device_id` need an explicit contract decision or fallback. |
 
 ## 3. Current Backend Overview
 
@@ -61,19 +64,23 @@ binding, chooses the highest-priority fresh source, stores canonical state in Re
 - The tracking-source migration constrains active non-LoRaWAN sources to have a vehicle and secret.
 - Source selection is deterministic by priority then ID, with a 30-second freshness window.
 - `/ready` checks PostgreSQL and Redis; a Redis Socket.IO adapter supports multi-process fan-out.
-- Sender acknowledgements/error codes are explicit; `npm test` passes.
+- Sender acknowledgements/error codes are explicit; device response projection, Redis log redaction,
+  validation boundaries, and `npm test` pass.
 
 ## 5. Critical Issues
 
 ### High — Trip lifecycle has competing, non-transactional writers
 
-`POST /api/trips/start` always creates an `in_progress` trip. The tracking service also creates a
-virtual active trip after a canonical observation when no active trip is found. Neither path checks
-and creates atomically; the schema has indexes but no partial unique constraint for one active trip
-per vehicle. Ending one trip also sets the vehicle inactive even if another active trip exists.
+`POST /api/trips/start` still attempts to create an `in_progress` trip on every request, while the
+tracking service can create a virtual active trip after a canonical observation. A partial unique
+index in `20260714155233_add_tracking_sources` prevents duplicate active rows, and the boundary
+mapper turns the resulting conflict into 409, but neither writer checks and updates state in one
+transaction. Ending one trip also sets the vehicle inactive without a transaction with the trip
+update.
 
-Impact: duplicate active trips, ambiguous sample ownership, and incorrect vehicle state under
-retries or concurrent sender/location traffic.
+Impact: duplicate rows are blocked when the migration is applied, but concurrent starts can still
+produce conflict responses and ambiguous virtual-vs-explicit ownership. Concurrent end requests can
+both pass the initial status read because the final update is not conditional or transactional.
 
 Recommendation: create one Operations/Trip service with explicit idempotency, a transaction for
 trip/vehicle/history changes, and a database invariant. Decide whether virtual trips are a supported
@@ -81,18 +88,11 @@ product behavior or are removed from the pipeline.
 
 Priority: High. Difficulty: Medium.
 
-### High — Device APIs disclose credential hashes
+### Resolved — Device response credential exposure
 
-Device list, get, create, and update handlers serialize Prisma `TrackingSource` records without a
-response mapper; authenticated admin clients therefore receive `secretHash`.
-
-Impact: copied admin API output exposes an offline-verifiable credential hash beyond the server
-boundary.
-
-Recommendation: define a device response DTO that never serializes `secretHash`, return an explicit
-rotation/provisioning acknowledgement, and test this absence.
-
-Priority: High. Difficulty: Easy.
+`toDeviceResponse` and `toDeviceMutationResponse` explicitly project device fields and omit
+`secretHash`. `test_devices_boundary.js` verifies that list/read/mutation-shaped responses do not
+contain the hash or the original secret.
 
 ### High — Observation contract cannot reason about ordering or replay
 
@@ -110,22 +110,25 @@ Priority: High before playback, source comparison, or daily operations. Difficul
 ## 6. API Review
 
 Sender ownership and coordinate validation improved substantially. HTTP ingestion returns structured
-rejection codes, while trip end rejects foreign/non-active trips. Resource controllers generally
-accept `any` request bodies, rely on Prisma/database failures, and return generic 500 responses for
-duplicates, foreign keys, invalid enum/status values, malformed priority, and constraints. TTN's
-generic 500 branch exposes error details and a stack.
+rejection codes, while trip end rejects foreign/non-active trips. T2 now validates admin login,
+sender login, device writes, route-stop writes, feedback, trips, ingest payloads, and TTN envelopes.
+Legacy vehicle/route/stop controllers still accept untyped request bodies and rely on Prisma/database
+failures, so duplicate, foreign-key, invalid enum/status, and constraint responses remain uneven.
 
-There is no shared request/response DTO layer, OpenAPI contract, or centralized error mapper. Add
-schema validation and normalized 400/404/409/422 responses for device, route-stop, trip, feedback,
-sender-login, and observation requests. Rate limiting is not evidenced for login, feedback, sender
-login, or ingest endpoints; Security/DevOps should validate the broader abuse controls.
+The new boundary layer provides shared parsers and error mapping for covered routes, but there is
+still no OpenAPI contract and legacy admin CRUD is outside that boundary. Rate limiting now covers
+admin login, sender login, feedback, sender trip/observation writes, device/route-stop writes, and
+TTN IP/source quotas; broader abuse controls and proxy-aware client identity still need operational
+validation. The TTN parser currently requires `end_device_ids.device_id`; support for `dev_eui` is
+not evidenced in the current validation path.
 
 ## 7. Trip Lifecycle Review
 
 Start is sender-vehicle-bound and end checks ownership/status, but repeated starts are not
-idempotent and do not coordinate with the virtual-trip creator. `gps_tracks` writes only when Redis
-grants a 60-second key; failures are logged and swallowed. There is no admin history/read API or
-explicit lifecycle model for cancellation, pause, or stale service.
+idempotent and do not coordinate with the virtual-trip creator. End has a time-of-check/time-of-use
+window: two requests can both observe `in_progress` before either update completes. `gps_tracks`
+writes only when Redis grants a 60-second key; failures are logged and swallowed. There is no admin
+history/read API or explicit lifecycle model for cancellation, pause, or stale service.
 
 ## 8. WebSocket and GPS Review
 
@@ -161,15 +164,16 @@ not by a need for another pipeline.
 
 Readiness and startup failure handling give a useful dependency boundary. History persistence errors
 are only logged, so a successful sender acknowledgement can coexist with lost history. No retry,
-dead-letter, timeout, correlation ID, metrics, or alerting behavior is evidenced. Tests prove token
-parsing but not configured Redis/Postgres, controller behavior, cache invalidation, trip races,
-credential rotation, or stale failover in repeatable CI.
+dead-letter, timeout, correlation ID, metrics, or alerting behavior is evidenced. Boundary tests now
+cover token parsing, validation, safe errors, response projection, and Redis log redaction, but do
+not cover configured Redis/Postgres, controller behavior, cache invalidation, trip races, or stale
+failover in repeatable CI.
 
 ## 12. Missing Backend Capabilities
 
 - Transactional/idempotent single active-trip ownership.
 - Canonical state with freshness/no-service reason and version.
-- Safe device response projection and shared validation/error DTOs.
+- Shared validation/error DTOs for legacy admin resources and a documented API contract.
 - Admin trip/history/GPS-track read API.
 - D-002-aligned observation ordering and retention policy.
 - Route-stop cache invalidation and repeatable Postgres/Redis integration tests.
@@ -177,11 +181,10 @@ credential rotation, or stale failover in repeatable CI.
 ## 13. Recommended Improvements
 
 1. **Create the Operations/Trip service** with a database invariant and explicit virtual-trip policy. **High; Medium.**
-2. **Remove `secretHash` from all responses** using explicit device DTOs and route tests. **High; Easy.**
-3. **Publish a versioned observation/canonical-state contract**; decide retention through D-002. **High; Medium.**
-4. **Add shared validation and error mapping** for device, route-stop, sender, trip, feedback, and ingest requests. **Medium-High; Medium.**
-5. **Repair route-stop cache and operational reads** for stale/no-service and trip history. **Medium; Medium.**
-6. **Add an ephemeral-stack integration suite** for lifecycle, cache, and ingestion behavior. **Medium; Medium.**
+2. **Publish a versioned observation/canonical-state contract**; decide retention through D-002. **High; Medium.**
+3. **Extend shared validation and error mapping** to legacy vehicle, route, and stop writes. **Medium-High; Medium.**
+4. **Repair route-stop cache and operational reads** for stale/no-service and trip history. **Medium; Medium.**
+5. **Add an ephemeral-stack integration suite** for lifecycle, cache, and ingestion behavior. **Medium; Medium.**
 
 ## 14. Backend Learning Topics
 
@@ -193,8 +196,8 @@ credential rotation, or stale failover in repeatable CI.
 
 ## 15. Roadmap Impact
 
-- Before daily operations: resolve the Operations/Trip owner, credential-hash exposure, canonical
-  freshness/ordering semantics, and route-stop cache invalidation.
+- Before daily operations: resolve the Operations/Trip owner, canonical freshness/ordering semantics,
+  and route-stop cache invalidation.
 - D-002 gates raw telemetry, source comparison, and high-fidelity playback claims.
 - Admin history, source-health read models, feedback operations, rate limits, and observability are
   downstream work; no microservice split is justified.
@@ -208,7 +211,7 @@ credential rotation, or stale failover in repeatable CI.
 ## 17. Confidence
 
 **High** for source-visible sender boundaries, lifecycle/observation behavior, device response shape,
-and the passing JWT boundary test. **Medium** for runtime reliability and race outcomes because no
+and the passing boundary tests. **Medium** for runtime reliability and race outcomes because no
 configured service or production data was used.
 
 ## 18. Required Decisions
@@ -218,8 +221,8 @@ configured service or production data was used.
 - **D-002 — Telemetry retention and canonical-history fidelity:** determines canonical-only versus
   bounded raw diagnostics before playback or source comparison.
 
-No new owner decision is needed to remove hash exposure, add DTOs, invalidate route-stop cache, or
-make the active-trip invariant transactional.
+No new owner decision is needed to extend legacy validation, invalidate route-stop cache, or make the
+active-trip invariant transactional. Hash exposure is resolved by the current DTO projection.
 
 ## 19. Audit Limitations
 
