@@ -138,6 +138,7 @@ export const authenticateSenderToken = async (
   const token = extractBearerToken(req.headers.authorization);
 
   if (!token) {
+    res.locals.ingestionReasonCode = 'SENDER_AUTH_REQUIRED';
     res.status(401).json({ code: 'SENDER_AUTH_REQUIRED', error: 'Sender authentication required' });
     return;
   }
@@ -147,10 +148,12 @@ export const authenticateSenderToken = async (
     next();
   } catch (error) {
     if (error instanceof SenderAuthDependencyError) {
+      res.locals.ingestionReasonCode = 'DEPENDENCY_UNAVAILABLE';
       res.status(503).json({ code: 'DEPENDENCY_UNAVAILABLE', error: 'Sender authentication temporarily unavailable' });
       return;
     }
 
+    res.locals.ingestionReasonCode = 'SENDER_CREDENTIAL_INVALID';
     res.status(401).json({ code: 'SENDER_CREDENTIAL_INVALID', error: 'Invalid or inactive sender credential' });
   }
 };

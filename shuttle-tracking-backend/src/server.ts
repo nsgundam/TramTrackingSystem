@@ -23,7 +23,10 @@ import {
 } from "./middleware/auth.js";
 import type { SenderContext } from "./middleware/auth.js";
 
-import { processObservation } from "./services/tracking.service.js";
+import {
+  processObservation,
+  startSourceHealthSweep,
+} from "./services/tracking.service.js";
 import {
   BoundaryError,
   logBoundaryFailure,
@@ -34,8 +37,19 @@ import { parseObservation } from "./middleware/validation.js";
 
 import { connectRedis, redisClient } from "./config/redis.js";
 import { prisma } from "./config/prisma.js";
+import {
+  emitOperationalSignal,
+  getRequestId,
+} from "./services/operational-signals.js";
 
 const app = express();
+
+app.use((req, res, next) => {
+  const requestId = getRequestId();
+  req.requestId = requestId;
+  res.setHeader('X-Request-ID', requestId);
+  next();
+});
 
 const configuredBodyLimit = (() => {
   const match = /^(\d+)(b|kb|mb)$/i.exec(process.env.REQUEST_BODY_LIMIT || '');
@@ -75,7 +89,7 @@ const corsOptions = {
     if (!origin || FRONTEND_URLS.includes(origin)) {
       callback(null, true);
     } else {
-      console.warn(`CORS blocked origin: ${origin}`);
+      console.warn('CORS blocked origin');
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -107,9 +121,21 @@ app.get("/health", (req, res) => {
 });
 
 app.get("/ready", async (req, res) => {
+  const startedAt = Date.now();
   try {
     await prisma.$queryRaw`SELECT 1`;
     await redisClient.ping();
+    emitOperationalSignal({
+      event: 'readiness.outcome',
+      level: 'info',
+      outcome: 'ready',
+      route: '/ready',
+      transport: 'system',
+      correlationId: req.requestId,
+      reasonCode: 'READY',
+      responseStatus: 200,
+      durationMs: Date.now() - startedAt,
+    });
     res.status(200).json({
       status: "READY",
       database: "connected",
@@ -117,6 +143,17 @@ app.get("/ready", async (req, res) => {
     });
   } catch (error: any) {
     logBoundaryFailure('Ready check', error);
+    emitOperationalSignal({
+      event: 'readiness.outcome',
+      level: 'error',
+      outcome: 'not_ready',
+      route: '/ready',
+      transport: 'system',
+      correlationId: req.requestId,
+      reasonCode: 'DEPENDENCY_UNAVAILABLE',
+      responseStatus: 503,
+      durationMs: Date.now() - startedAt,
+    });
     res.status(503).json({
       status: "NOT_READY",
       error: 'Dependencies are unavailable'
@@ -139,6 +176,7 @@ io.use(async (socket, next) => {
     : extractBearerToken(socket.handshake.headers.authorization);
 
   if (!authToken) {
+    socket.data.correlationId = getRequestId();
     next();
     return;
   }
@@ -146,6 +184,7 @@ io.use(async (socket, next) => {
   try {
     socket.data.sender = await getSenderFromToken(authToken);
     socket.data.senderToken = authToken;
+    socket.data.correlationId = getRequestId();
     next();
   } catch (error) {
     next(new Error(
@@ -158,7 +197,21 @@ io.use(async (socket, next) => {
 
 // Logic for handling Socket.IO connections
 io.on("connection", (socket) => {
-  console.log("A client connected:", socket.id);
+  const emitSocketOutcome = (signal: {
+    level: 'info' | 'warn' | 'error';
+    outcome: 'accepted' | 'rejected' | 'ignored';
+    reasonCode: string;
+    sourceId?: string;
+    vehicleId?: string;
+    sourceType?: 'mobile' | 'lorawan' | 'esp32' | 'simulator';
+    canonicalEmitted?: boolean;
+  }) => emitOperationalSignal({
+    event: 'ingestion.outcome',
+    transport: 'socket',
+    route: 'socket:send-location',
+    correlationId: socket.data.correlationId,
+    ...signal,
+  });
 
   socket.on("send-location", async (rawData, acknowledge) => {
     const respond = typeof acknowledge === 'function' ? acknowledge : () => {};
@@ -166,6 +219,7 @@ io.on("connection", (socket) => {
 
     if (typeof senderToken !== 'string') {
       const error = { ok: false, code: 'SENDER_AUTH_REQUIRED', error: 'Sender authentication required' };
+      emitSocketOutcome({ level: 'warn', outcome: 'rejected', reasonCode: 'SENDER_AUTH_REQUIRED' });
       respond(error);
       socket.emit('error-response', error);
       return;
@@ -178,6 +232,7 @@ io.on("connection", (socket) => {
       } catch (error) {
         const invalid = mapBoundaryError(error, new BoundaryError(400, 'INVALID_REQUEST', 'Location payload is invalid'));
         const response = { ok: false, code: invalid.code, error: invalid.message };
+        emitSocketOutcome({ level: 'warn', outcome: 'rejected', reasonCode: invalid.code });
         respond(response);
         socket.emit('error-response', response);
         return;
@@ -196,6 +251,11 @@ io.on("connection", (socket) => {
             code: 'SENDER_AUTH_UNAVAILABLE',
             error: 'Sender authentication temporarily unavailable',
           };
+          emitSocketOutcome({
+            level: 'error',
+            outcome: 'rejected',
+            reasonCode: 'SENDER_AUTH_UNAVAILABLE',
+          });
           respond(response);
           socket.emit("error-response", response);
           return;
@@ -206,6 +266,11 @@ io.on("connection", (socket) => {
           code: 'SENDER_CREDENTIAL_INVALID',
           error: 'Sender credential is invalid or no longer active',
         };
+        emitSocketOutcome({
+          level: 'warn',
+          outcome: 'rejected',
+          reasonCode: 'SENDER_CREDENTIAL_INVALID',
+        });
         respond(response);
         socket.emit("error-response", response);
         socket.disconnect(true);
@@ -231,6 +296,13 @@ io.on("connection", (socket) => {
           error: 'Too many requests',
           retryAfter: quota.retryAfterSeconds,
         };
+        emitSocketOutcome({
+          level: 'warn',
+          outcome: 'rejected',
+          reasonCode: 'RATE_LIMITED',
+          sourceId: sender.sourceId,
+          vehicleId: sender.vehicleId,
+        });
         respond(response);
         socket.emit('error-response', response);
         return;
@@ -241,6 +313,13 @@ io.on("connection", (socket) => {
         (observation.vehicleId && observation.vehicleId !== sender.vehicleId)
       ) {
         const error = { ok: false, code: 'SENDER_OWNERSHIP_MISMATCH', error: 'Sender cannot submit for this source or vehicle' };
+        emitSocketOutcome({
+          level: 'warn',
+          outcome: 'rejected',
+          reasonCode: 'SENDER_OWNERSHIP_MISMATCH',
+          sourceId: sender.sourceId,
+          vehicleId: sender.vehicleId,
+        });
         respond(error);
         socket.emit('error-response', error);
         return;
@@ -262,6 +341,16 @@ io.on("connection", (socket) => {
         io.emit("location-update", canonicalLocation);
       }
 
+      emitSocketOutcome({
+        level: 'info',
+        outcome: 'accepted',
+        reasonCode: 'PROCESSED',
+        sourceId: sender.sourceId,
+        vehicleId: sender.vehicleId,
+        sourceType: canonicalLocation?.sourceType,
+        canonicalEmitted: Boolean(canonicalLocation),
+      });
+
       respond({ ok: true, canonicalLocation });
     } catch (error) {
       logBoundaryFailure('Socket location', error);
@@ -269,35 +358,48 @@ io.on("connection", (socket) => {
         error,
         new BoundaryError(500, 'INTERNAL_ERROR', 'Location observation was rejected'),
       );
+      emitSocketOutcome({
+        level: mapped.status >= 500 ? 'error' : 'warn',
+        outcome: 'rejected',
+        reasonCode: mapped.code,
+        sourceId: socket.data.sender?.sourceId,
+        vehicleId: socket.data.sender?.vehicleId,
+      });
       const response = { ok: false, code: mapped.code, error: mapped.message };
       respond(response);
       socket.emit("error-response", response);
     }
   });
 
-  socket.on("disconnect", () => {
-    console.log("Client disconnected:", socket.id);
-  });
 });
 
-app.use((error: unknown, _req: Request, res: Response, next: NextFunction) => {
+app.use((error: unknown, req: Request, res: Response, next: NextFunction) => {
   if (res.headersSent) {
     next(error);
     return;
   }
 
   if (error && typeof error === 'object' && 'type' in error && error.type === 'entity.too.large') {
+    if (req.path === '/api/ingest/http' || req.path === '/api/ingest/ttn') {
+      res.locals.ingestionReasonCode = 'REQUEST_TOO_LARGE';
+    }
     res.status(413).json({ code: 'REQUEST_TOO_LARGE', error: 'Request body is too large' });
     return;
   }
 
   if (error instanceof SyntaxError) {
+    if (req.path === '/api/ingest/http' || req.path === '/api/ingest/ttn') {
+      res.locals.ingestionReasonCode = 'INVALID_REQUEST';
+    }
     res.status(400).json({ code: 'INVALID_REQUEST', error: 'Malformed JSON request' });
     return;
   }
 
   logBoundaryFailure('HTTP boundary', error);
   const mapped = mapBoundaryError(error);
+  if (req.path === '/api/ingest/http' || req.path === '/api/ingest/ttn') {
+    res.locals.ingestionReasonCode = mapped.code;
+  }
   res.status(mapped.status).json({ code: mapped.code, error: mapped.message });
 });
 
@@ -318,12 +420,37 @@ const startServer = async () => {
     console.log("[Socket.IO] Redis adapter attached");
 
     httpServer.listen(PORT, () => {
-      console.log(`Server running on ${PORT}`);
+      emitOperationalSignal({
+        event: 'startup.outcome',
+        level: 'info',
+        outcome: 'started',
+        transport: 'system',
+        reasonCode: 'STARTUP_COMPLETE',
+      });
+      void startSourceHealthSweep();
     });
   } catch (error) {
     logBoundaryFailure('Server startup', error);
+    emitOperationalSignal({
+      event: 'startup.outcome',
+      level: 'error',
+      outcome: 'failed',
+      transport: 'system',
+      reasonCode: 'STARTUP_FAILED',
+    });
     process.exit(1);
   }
 };
+
+httpServer.on('error', () => {
+  emitOperationalSignal({
+    event: 'startup.outcome',
+    level: 'error',
+    outcome: 'failed',
+    transport: 'system',
+    reasonCode: 'LISTEN_FAILED',
+  });
+  process.exit(1);
+});
 
 startServer();

@@ -1,4 +1,5 @@
 import { redisClient } from '../config/redis.js';
+import { logBoundaryFailure } from '../middleware/boundary-errors.js';
 
 /**
  * Invalidate all cached public-facing API data.
@@ -23,6 +24,6 @@ export const invalidatePublicCache = async (): Promise<void> => {
         console.log('[Cache] Public cache invalidated');
     } catch (error) {
         // Cache invalidation is best-effort – never break the admin mutation
-        console.error('[Cache] Error invalidating public cache:', error);
+        logBoundaryFailure('Public cache invalidation', error);
     }
 };

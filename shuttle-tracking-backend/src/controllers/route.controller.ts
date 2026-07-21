@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js';
 import { invalidatePublicCache } from '../services/cache.service.js';
+import { logBoundaryFailure } from '../middleware/boundary-errors.js';
 
 // Get All Routes
 export const getRoutes = async (req: Request, res: Response) => {
@@ -10,7 +11,7 @@ export const getRoutes = async (req: Request, res: Response) => {
         });
         res.json(routes);
     }catch (error) {
-        console.error('Error fetching routes:', error);
+        logBoundaryFailure('Route list', error);
         res.status(500).json({ error: 'An error occurred while fetching routes' });
     }
 };
@@ -28,7 +29,7 @@ export const getRouteById = async (req: Request, res: Response) => {
         }
         res.json(route);
     }catch (error) {
-        console.error('Error fetching route:', error);
+        logBoundaryFailure('Route read', error);
         res.status(500).json({ error: 'An error occurred while fetching the route' });
     }
 };
@@ -49,7 +50,7 @@ export const createRoute = async (req: Request, res: Response) => {
         res.status(201).json(newRoute);
         
     } catch (error) {
-        console.error('Error creating route:', error);
+        logBoundaryFailure('Route create', error);
         res.status(500).json({ error: 'An error occurred while creating the route' });
     }
 };
@@ -66,7 +67,7 @@ export const updateRoute = async (req: Request, res: Response) => {
         await invalidatePublicCache();
         res.json(updatedRoute);
     }catch (error) {
-        console.error('Error updating route:', error);
+        logBoundaryFailure('Route update', error);
         res.status(500).json({ error: 'An error occurred while updating the route' });
     }
 };
@@ -81,7 +82,7 @@ export const deleteRoute = async (req: Request, res: Response) => {
         await invalidatePublicCache();
         res.json({ message: 'Route deleted successfully' });
     }catch (error) {
-        console.error('Error deleting route:', error);
+        logBoundaryFailure('Route delete', error);
         res.status(500).json({ error: 'An error occurred while deleting the route' });
     }
 };
@@ -99,7 +100,7 @@ export const getVehiclesByRouteId = async (req: Request, res: Response) => {
         }
         res.json(vehicles);
     }catch (error) {
-        console.error('Error fetching vehicles for route:', error);
+        logBoundaryFailure('Route vehicle list', error);
         res.status(500).json({ error: 'An error occurred while fetching vehicles for the route' });
     }
 };

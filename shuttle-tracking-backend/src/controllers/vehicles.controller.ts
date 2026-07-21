@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js';
 import { invalidatePublicCache } from '../services/cache.service.js';
+import { logBoundaryFailure } from '../middleware/boundary-errors.js';
 
 // Get All Vehicles
 export const getVehicles = async (req: Request, res: Response) => {
@@ -11,7 +12,7 @@ export const getVehicles = async (req: Request, res: Response) => {
         });
         res.json(vehicles);
     }catch (error) {
-        console.error('Error fetching vehicles:', error);
+        logBoundaryFailure('Vehicle list', error);
         res.status(500).json({ error: 'An error occurred while fetching vehicles' });
     }
 };
@@ -30,7 +31,7 @@ export const getVehicleById = async (req: Request, res: Response) => {
         }
         res.json(vehicle);
     }catch (error) {
-        console.error('Error fetching vehicle:', error);
+        logBoundaryFailure('Vehicle read', error);
         res.status(500).json({ error: 'An error occurred while fetching the vehicle' });
     }
 };
@@ -52,7 +53,7 @@ export const createVehicle = async (req: Request, res: Response) => {
         await invalidatePublicCache();
         res.status(201).json(newVehicle);
     }catch (error) {
-        console.error('Error creating vehicle:', error);
+        logBoundaryFailure('Vehicle create', error);
         res.status(500).json({ error: 'An error occurred while creating the vehicle' });
     }
 };
@@ -69,7 +70,7 @@ export const updateVehicle = async (req: Request, res: Response) => {
         await invalidatePublicCache();
         res.json(updatedVehicle);
     }catch (error) {
-        console.error('Error updating vehicle:', error);
+        logBoundaryFailure('Vehicle update', error);
         res.status(500).json({ error: 'An error occurred while updating the vehicle' });
     }
 };
@@ -85,7 +86,7 @@ export const deleteVehicle = async (req: Request, res: Response) => {
         res.json({ message: 'Vehicle deleted successfully' });
 
     }catch (error) {
-        console.error('Error deleting vehicle:', error);
+        logBoundaryFailure('Vehicle delete', error);
         res.status(500).json({ error: 'An error occurred while deleting the vehicle' });
     }
 };

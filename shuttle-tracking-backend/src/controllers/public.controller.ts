@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js';
 import { redisClient } from '../config/redis.js';
+import { logBoundaryFailure } from '../middleware/boundary-errors.js';
 
 /** Cache TTL in seconds (5 minutes) */
 const CACHE_TTL = 300;
@@ -25,7 +26,7 @@ export const getActiveRoutes = async (req: Request, res: Response) => {
 
         res.json(routes);
     } catch (error) {
-        console.error('Error fetching active routes:', error);
+        logBoundaryFailure('Public active routes', error);
         res.status(500).json({ error: 'Failed to fetch active routes' });
     }
 };
@@ -65,7 +66,7 @@ export const getActiveVehicles = async (req: Request, res: Response) => {
 
         res.json(vehiclesWithLocation);
     } catch (error) {
-        console.error('Error fetching active vehicles:', error);
+        logBoundaryFailure('Public active vehicles', error);
         res.status(500).json({ error: 'Failed to fetch active vehicles' });
     }
 };
@@ -98,7 +99,7 @@ export const getPublicStops = async (req: Request, res: Response) => {
 
         res.json(stops);
     } catch (error) {
-        console.error('Error fetching public stops:', error);
+        logBoundaryFailure('Public stops', error);
         res.status(500).json({ error: 'Failed to fetch stops' });
     }
 };
@@ -137,7 +138,7 @@ export const getRouteStops = async (req: Request, res: Response) => {
 
         res.json(routeStops);
     } catch (error) {
-        console.error('Error fetching stops for route:', error);
+        logBoundaryFailure('Public route stops', error);
         res.status(500).json({ error: 'Failed to fetch stops for route' });
     }
 };

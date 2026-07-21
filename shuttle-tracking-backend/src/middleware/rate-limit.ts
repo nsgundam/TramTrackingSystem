@@ -97,11 +97,12 @@ export const consumeRateLimit = async (
 
 export const rateLimit = (config: RateLimitConfig): RequestHandler => async (
   req: Request,
-  _res: Response,
+  res: Response,
   next: NextFunction,
 ): Promise<void> => {
   const key = config.key(req);
   if (!key) {
+    res.locals.ingestionReasonCode = 'DEPENDENCY_UNAVAILABLE';
     next(new BoundaryError(503, 'DEPENDENCY_UNAVAILABLE', 'Rate limiting is temporarily unavailable'));
     return;
   }
@@ -115,12 +116,14 @@ export const rateLimit = (config: RateLimitConfig): RequestHandler => async (
     });
 
     if (!result.allowed) {
+      res.locals.ingestionReasonCode = 'RATE_LIMITED';
       next(new BoundaryError(429, 'RATE_LIMITED', 'Too many requests', result.retryAfterSeconds));
       return;
     }
 
     next();
   } catch {
+    res.locals.ingestionReasonCode = 'DEPENDENCY_UNAVAILABLE';
     next(new BoundaryError(503, 'DEPENDENCY_UNAVAILABLE', 'Rate limiting is temporarily unavailable'));
   }
 };

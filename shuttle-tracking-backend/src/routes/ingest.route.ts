@@ -5,6 +5,7 @@ import { authenticateSenderToken } from '../middleware/auth.js';
 import {
   BoundaryError,
   logBoundaryFailure,
+  mapBoundaryError,
   sendBoundaryError,
 } from '../middleware/boundary-errors.js';
 import {
@@ -23,6 +24,13 @@ import {
   senderKey,
 } from '../middleware/rate-limit.js';
 import type { ObservationInput } from '../middleware/validation.js';
+import {
+  emitOperationalSignal,
+  getRequestId,
+  type OperationalRoute,
+  type OperationalSourceType,
+  type OperationalTransport,
+} from '../services/operational-signals.js';
 
 const router = Router();
 
@@ -44,12 +52,52 @@ const hasCoordinateField = (value: Record<string, unknown> | undefined): boolean
 
 const sourceLimit = rateLimit({ scope: 'sender:observation', ...RATE_LIMITS.sender, key: senderKey });
 
+const ingestionSignal = (
+  transport: OperationalTransport,
+  route: OperationalRoute,
+) => (req: Request, res: Response, next: () => void): void => {
+  const body = req.body as Record<string, unknown> | undefined;
+  const sourceId = typeof body?.sourceId === 'string' ? body.sourceId : undefined;
+
+  res.locals.ingestionSourceId = sourceId;
+  res.locals.ingestionTransport = transport;
+  res.locals.ingestionRoute = route;
+  res.locals.ingestionCorrelationId = req.requestId ?? getRequestId();
+
+  res.once('finish', () => {
+    const statusCode = res.statusCode;
+    const outcome = res.locals.ingestionOutcome
+      ?? (statusCode >= 400 ? 'rejected' : 'accepted') as 'accepted' | 'rejected' | 'ignored';
+    const reasonCode = res.locals.ingestionReasonCode
+      ?? (outcome === 'ignored' ? 'NO_COORDINATES' : statusCode >= 400 ? 'HTTP_REJECTED' : 'PROCESSED');
+
+    emitOperationalSignal({
+      event: 'ingestion.outcome',
+      level: outcome === 'accepted' || outcome === 'ignored' ? 'info' : statusCode >= 500 ? 'error' : 'warn',
+      outcome,
+      transport,
+      route,
+      correlationId: res.locals.ingestionCorrelationId,
+      sourceId: res.locals.ingestionSourceId,
+      vehicleId: res.locals.ingestionVehicleId,
+      tripId: res.locals.ingestionTripId,
+      sourceType: res.locals.ingestionSourceType as OperationalSourceType | undefined,
+      reasonCode,
+      responseStatus: statusCode,
+      canonicalEmitted: res.locals.canonicalEmitted,
+    });
+  });
+
+  next();
+};
+
 /**
  * Ingest location from ESP32 or Mobile fallback via HTTP POST.
  * Path: POST /api/ingest/http
  */
 router.post(
   '/http',
+  ingestionSignal('http', '/api/ingest/http'),
   validateBody(parseObservation),
   authenticateSenderToken,
   sourceLimit,
@@ -57,6 +105,9 @@ router.post(
     try {
       const observation = req.body as ObservationInput;
       const sender = req.sender;
+
+      res.locals.ingestionVehicleId = sender?.vehicleId;
+      res.locals.ingestionTripId = observation.tripId;
 
       if (!sender || sender.sourceId !== observation.sourceId) {
         throw new BoundaryError(403, 'SENDER_OWNERSHIP_MISMATCH', 'Sender cannot submit for this source');
@@ -72,12 +123,20 @@ router.post(
         if (io) io.emit('location-update', canonicalLocation);
       }
 
+      res.locals.canonicalEmitted = Boolean(canonicalLocation);
+      res.locals.ingestionSourceType = canonicalLocation?.sourceType;
+
       res.status(200).json({
         success: true,
         message: 'Location observation processed successfully',
         canonicalLocation,
       });
     } catch (error) {
+      const mapped = mapBoundaryError(
+        error,
+        new BoundaryError(500, 'INTERNAL_ERROR', 'Internal server error during HTTP ingestion'),
+      );
+      res.locals.ingestionReasonCode = mapped.code;
       logBoundaryFailure('Ingest HTTP', error);
       sendBoundaryError(
         res,
@@ -94,6 +153,7 @@ router.post(
  */
 router.post(
   '/ttn',
+  ingestionSignal('ttn', '/api/ingest/ttn'),
   validateBody(parseTtnPayload),
   rateLimit({ scope: 'ingest:ttn:ip', ...RATE_LIMITS.ttn, key: clientAddress }),
   async (req: Request, res: Response) => {
@@ -116,6 +176,7 @@ router.post(
 
       const payload = req.body as Record<string, unknown>;
       const sourceId = parseTtnSourceId(payload);
+      res.locals.ingestionSourceId = sourceId;
       let sourceQuota;
       try {
         sourceQuota = await consumeRateLimit({
@@ -167,6 +228,8 @@ router.post(
       const lat = coordinateValue(location, ['latitude', 'lat']);
       const lng = coordinateValue(location, ['longitude', 'lng']);
       if (lat === undefined && lng === undefined) {
+        res.locals.ingestionOutcome = 'ignored';
+        res.locals.ingestionReasonCode = 'NO_COORDINATES';
         return res.status(200).json({
           message: 'Tracker status update received. No GPS coordinates present.',
           warnings: ['Missing latitude/longitude in payload'],
@@ -197,12 +260,21 @@ router.post(
         if (io) io.emit('location-update', canonicalLocation);
       }
 
+      res.locals.canonicalEmitted = Boolean(canonicalLocation);
+      res.locals.ingestionVehicleId = canonicalLocation?.vehicleId;
+      res.locals.ingestionSourceType = canonicalLocation?.sourceType ?? 'lorawan';
+
       res.status(200).json({
         success: true,
         message: 'TTN Webhook processed successfully',
         canonicalLocation,
       });
     } catch (error) {
+      const mapped = mapBoundaryError(
+        error,
+        new BoundaryError(500, 'INTERNAL_ERROR', 'Internal server error during TTN ingestion'),
+      );
+      res.locals.ingestionReasonCode = mapped.code;
       logBoundaryFailure('Ingest TTN', error);
       sendBoundaryError(
         res,

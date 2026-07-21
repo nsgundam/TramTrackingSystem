@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js';
 import { invalidatePublicCache } from '../services/cache.service.js';
+import { logBoundaryFailure } from '../middleware/boundary-errors.js';
 
 // Get All Stops
 export const getStops = async (req: Request, res: Response) => {
@@ -18,7 +19,7 @@ export const getStops = async (req: Request, res: Response) => {
         `;
         res.json(stops);
     } catch (error) {
-        console.error('Error fetching stops:', error);
+        logBoundaryFailure('Stop list', error);
         res.status(500).json({ error: 'Failed to fetch stops' });
     }
 };
@@ -44,7 +45,7 @@ export const getStopById = async (req: Request, res: Response) => {
         }
         res.json(stops[0]);
     }catch (error) {
-        console.error('Error fetching stop:', error);
+        logBoundaryFailure('Stop read', error);
         res.status(500).json({ error: 'An error occurred while fetching the stop' });
     }
 };
@@ -81,7 +82,7 @@ export const createStop = async (req: Request, res: Response) => {
         await invalidatePublicCache();
         res.json(newStops[0]);
     }catch (error) {
-        console.error('Error creating stop:', error);
+        logBoundaryFailure('Stop create', error);
         res.status(500).json({ error: 'An error occurred while creating the stop' });
     }
 };
@@ -116,7 +117,7 @@ export const updateStop = async (req: Request, res: Response) => {
         await invalidatePublicCache();
         res.json({ message: 'Stop updated successfully', id });
     } catch (error) {
-        console.error('Error updating stop:', error);
+        logBoundaryFailure('Stop update', error);
         res.status(500).json({ error: 'Failed to update stop' });
     }
 };
@@ -131,7 +132,7 @@ export const deleteStop = async (req: Request, res: Response) => {
         await invalidatePublicCache();
         res.json({ message: 'Stop deleted successfully' });
     }catch (error) {
-        console.error('Error deleting stop:', error);
+        logBoundaryFailure('Stop delete', error);
         res.status(500).json({ error: 'An error occurred while deleting the stop' });
     }
 };

@@ -2,6 +2,7 @@ import { prisma } from '../config/prisma.js';
 import { redisClient } from '../config/redis.js';
 import type { SenderContext } from '../middleware/auth.js';
 import { BoundaryError, logBoundaryFailure } from '../middleware/boundary-errors.js';
+import { emitOperationalSignal } from './operational-signals.js';
 
 const THROTTLE_SECONDS = 60;
 export const SOURCE_FRESHNESS_WINDOW_MS = 30_000;
@@ -34,6 +35,97 @@ export const getSourceHealth = (
 };
 
 export const sourceRequiresCredential = (sourceType: string): boolean => sourceType !== 'lorawan';
+
+const sourceHealthStates = new Map<string, SourceHealth>();
+const vehicleStaleStates = new Map<string, boolean>();
+const SOURCE_HEALTH_SWEEP_INTERVAL_MS = 10_000;
+
+type SourceHealthRecord = SourceHealthInput & {
+  id: string;
+  vehicleId: string | null;
+};
+
+export const sweepSourceHealth = async (): Promise<void> => {
+  try {
+    const sources = await prisma.trackingSource.findMany({
+      select: { id: true, vehicleId: true, status: true, lastSeenAt: true },
+    }) as SourceHealthRecord[];
+
+    const activeByVehicle = new Map<string, SourceHealthRecord[]>();
+    for (const source of sources) {
+      const health = getSourceHealth(source);
+      const previous = sourceHealthStates.get(source.id);
+      sourceHealthStates.set(source.id, health);
+
+      if (health === 'stale' || health === 'never_seen') {
+        if (previous !== health) {
+          emitOperationalSignal({
+            event: 'tracking.source_stale',
+            level: 'warn',
+            outcome: 'stale',
+            transport: 'system',
+            sourceId: source.id,
+            reasonCode: health === 'never_seen' ? 'SOURCE_NEVER_SEEN' : 'SOURCE_STALE',
+          });
+        }
+      } else if (previous && previous !== 'online' && health === 'online') {
+        emitOperationalSignal({
+          event: 'tracking.source_stale',
+          level: 'info',
+          outcome: 'recovered',
+          transport: 'system',
+          sourceId: source.id,
+          reasonCode: 'SOURCE_RECOVERED',
+        });
+      }
+
+      if (source.status === 'active' && source.vehicleId) {
+        const vehicleSources = activeByVehicle.get(source.vehicleId) ?? [];
+        vehicleSources.push(source);
+        activeByVehicle.set(source.vehicleId, vehicleSources);
+      }
+    }
+
+    for (const [vehicleId, vehicleSources] of activeByVehicle) {
+      const allStale = vehicleSources.every((source) => sourceHealthStates.get(source.id) !== 'online');
+      const previous = vehicleStaleStates.get(vehicleId);
+      vehicleStaleStates.set(vehicleId, allStale);
+
+      if (allStale && previous !== true) {
+        emitOperationalSignal({
+          event: 'tracking.source_stale',
+          level: 'warn',
+          outcome: 'stale',
+          transport: 'system',
+          vehicleId,
+          reasonCode: 'ALL_SOURCES_STALE',
+          activeSourceCount: vehicleSources.length,
+          staleSourceCount: vehicleSources.length,
+        });
+      } else if (!allStale && previous === true) {
+        emitOperationalSignal({
+          event: 'tracking.source_stale',
+          level: 'info',
+          outcome: 'recovered',
+          transport: 'system',
+          vehicleId,
+          reasonCode: 'SOURCE_RECOVERED',
+          activeSourceCount: vehicleSources.length,
+        });
+      }
+    }
+  } catch (error) {
+    logBoundaryFailure('Source health sweep', error);
+  }
+};
+
+export const startSourceHealthSweep = (): void => {
+  const timer = setInterval(() => {
+    void sweepSourceHealth();
+  }, SOURCE_HEALTH_SWEEP_INTERVAL_MS);
+  timer.unref();
+  void sweepSourceHealth();
+};
 
 // GPS coordinates are global. Do not constrain observations to Thailand here:
 // a source may be tested elsewhere, and the transport layer must validate the
@@ -168,7 +260,17 @@ export const evaluateCanonicalLocation = async (vehicleId: string) => {
     ] // Priority 1 is highest; ID makes equal priorities deterministic.
   });
 
-  if (sources.length === 0) return null;
+  if (sources.length === 0) {
+    emitOperationalSignal({
+      event: 'tracking.source_stale',
+      level: 'warn',
+      outcome: 'stale',
+      transport: 'system',
+      vehicleId,
+      reasonCode: 'NO_ACTIVE_SOURCE',
+    });
+    return null;
+  }
 
   let selectedObservation: any = null;
   let selectedSourceId: string | null = null;
@@ -188,8 +290,17 @@ export const evaluateCanonicalLocation = async (vehicleId: string) => {
     }
   }
 
-  if (!selectedObservation) {
-    console.warn('[Pipeline] All location sources for a vehicle are stale or offline.');
+  if (!selectedObservation || !selectedSourceId) {
+    emitOperationalSignal({
+      event: 'tracking.source_stale',
+      level: 'warn',
+      outcome: 'stale',
+      transport: 'system',
+      vehicleId,
+      reasonCode: 'ALL_SOURCES_STALE',
+      activeSourceCount: sources.length,
+      staleSourceCount: sources.length,
+    });
     return null;
   }
 
@@ -218,6 +329,16 @@ export const evaluateCanonicalLocation = async (vehicleId: string) => {
   // Log Developer Analytics (Device selection count)
   await redisClient.hIncrBy(`analytics:vehicle:${vehicleId}:source_selection`, selectedObservation.sourceType, 1);
   await redisClient.hIncrBy(`analytics:source:${selectedSourceId}:source_selection`, 'selected', 1);
+
+  emitOperationalSignal({
+    event: 'tracking.canonical_selected',
+    level: 'info',
+    outcome: 'selected',
+    transport: 'system',
+    sourceId: selectedSourceId,
+    vehicleId,
+    sourceType: selectedObservation.sourceType,
+  });
 
   // Trigger DB persistence
   await persistSampledHistory(vehicleId, canonicalLocation);
@@ -301,10 +422,30 @@ const persistSampledHistory = async (vehicleId: string, canonicalLocation: any) 
           ${canonicalLocation.recordedAt}
         )
       `;
-      console.log('[DB SAVE] Canonical location saved.');
-    }
+        emitOperationalSignal({
+          event: 'history.persisted',
+          level: 'info',
+          outcome: 'persisted',
+          transport: 'system',
+          vehicleId,
+          tripId,
+          dependency: 'postgres',
+          operation: 'history_insert',
+          reasonCode: 'HISTORY_INSERTED',
+        });
+      }
 
   } catch (error) {
     logBoundaryFailure('GPS history persistence', error);
+    emitOperationalSignal({
+      event: 'history.persistence_failed',
+      level: 'error',
+      outcome: 'failed',
+      transport: 'system',
+      vehicleId,
+      dependency: 'postgres',
+      operation: 'history_insert',
+      reasonCode: 'HISTORY_PERSISTENCE_FAILED',
+    });
   }
 };

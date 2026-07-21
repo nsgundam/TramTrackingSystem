@@ -291,6 +291,14 @@ Package scripts, CI workflow, server/tracking logging paths, Compose, documentat
 
 CI runs all listed checks and blocks failures; logs/metrics contain no secrets and distinguish operational outcomes. Run every local equivalent and inspect sample output.
 
+### Status
+
+Complete.
+
+### Evidence
+
+`bash scripts/ci-checks.sh` passed on 2026-07-21: backend build/boundary-redaction tests, Prisma validation, frontend lint/build, development/production Compose config, and unsafe dynamic-logging check. Signal contract/sample: `docs/testing/ci-checks.md` and `test_operational_signals.js`.
+
 ## 6. Phase 2 — Structural Foundations and Approved Research
 
 **Entry criteria:** Phase 1 exit criteria pass.
@@ -694,6 +702,10 @@ Production Readiness 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16.
 ### Depends On
 
 T4, T5, T6, T9.
+
+### Dependency Note
+
+T4 completed on 2026-07-21; repeatable CI/local gates and the redacted operational-signal contract are available. T13 still requires T5, T6, and T9 before the production drill.
 
 ### Blocks
 
