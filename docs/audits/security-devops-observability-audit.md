@@ -1,257 +1,725 @@
 # Security, DevOps & Observability Audit: Tram Tracking System
 
-Re-audited: 2026-07-19
+Re-audited: 2026-07-20
+
+Trigger: Refactor T2 is marked complete in `docs/roadmap/master-refactoring-roadmap.md`.
 
 ## 1. Executive Summary
 
-Security boundaries are materially improved: non-LoRaWAN senders use short-lived source/vehicle/version-bound JWTs, Socket.IO revalidates each write, TTN fails closed without a secret, production startup rejects weak/default core secrets, and admin routes reject sender claims. Build/lint/test commands and production Docker targets are present.
+Refactor T2 materially improves the application boundary. Admin login, sender login, feedback,
+device, route-stop, trip, HTTP ingestion, TTN ingestion, and Socket.IO observation inputs now have
+shared parsing or bounded handling. Stable boundary error codes, a global JSON-size limit, Socket.IO
+buffer limits, Redis-backed rate limits, sender revalidation, and redacted Redis logging are
+evidenced. The T1 secret-hash and Redis-URL leakage findings are resolved in the current source.
 
-The remaining high-risk issues are direct disclosure of TrackingSource secret hashes through authenticated device APIs, Redis URL logging that can disclose a credential-bearing connection string, absence of rate limits, inconsistent validation/error handling, and no CI or operational telemetry/error tracking. This is suitable only for a controlled MVP, not a public or daily operational release.
+No Critical security issue was identified from static repository evidence. The system is still not
+ready for an unqualified public or daily operational release. The most important remaining risks
+are:
+
+- **High:** production Compose publishes PostgreSQL and Redis ports on the host, while Redis has no
+  password/ACL/TLS configuration in the checked-in production definition. The actual host firewall
+  and network boundary are unknown, so exposure beyond the host is not proven.
+- **High:** validation, safe error mapping, and write rate limits are not applied to the existing
+  admin vehicle, route, and stop write routes. T2 therefore resolves the named boundary set but not
+  every write surface.
+- **High:** there is still no CI/CD gate, deployment rollback/runbook evidence, metrics, alerting,
+  or aggregated error tracking. Health/readiness endpoints alone do not tell an operator that a
+  vehicle source has gone silent or that history persistence is failing.
+- **Medium:** the documented admin JWT lifetime is not used by the admin issuer, the browser stores
+  the JWT in a JavaScript-readable cookie, and the admin token has no refresh or revocation flow.
+
+Current suitability: controlled MVP/demo with known operators and configured senders. A public or
+daily-service readiness decision must wait for the High findings or an explicit risk acceptance.
 
 ## Scope, Evidence, and Re-audit Status
 
-Reviewed current Product, Architecture, Backend, Database, Infrastructure & Device, and Dashboard reports; previous Security report; auth/middleware/controllers; Compose/Docker/env files; backend/frontend packages and scripts; logging/config source. Backend test and frontend lint results from this audit round were reviewed. No live vulnerability database, production secret, deployment, log sink, metrics system, or penetration test was accessed.
+This is a static Security, DevOps, and Observability re-audit. It does not repeat Product,
+Architecture, Backend, Database, or Infrastructure findings except where their evidence is needed
+to classify a security or operational boundary.
 
-| Prior finding | Re-audit status | Current evidence |
+Required context was read in order:
+
+1. `docs/project-knowledge-base.md`
+2. `docs/audits/product-audit.md`
+3. `docs/audits/architecture-audit.md`
+4. `docs/audits/backend-audit.md`
+5. `docs/audits/database-audit.md`
+6. `docs/audits/infrastructure-device-audit.md`
+7. the previous version of this report
+8. backend authentication, middleware, controllers, routes, and tracking service
+9. Compose files, Dockerfiles, entrypoint, `.dockerignore`, and environment templates
+10. CI/CD candidates
+11. backend/frontend `package.json` and lockfiles
+
+Additional evidence inspected:
+
+- T2 implementation commits `8fcfe1f` and `b6193ae`.
+- `src/middleware/validation.ts`, `boundary-errors.ts`, and `rate-limit.ts`.
+- T2 boundary, JWT, device-response, Redis-logging, Socket.IO, and pipeline test scripts.
+- frontend `AuthContext`, proxy, API clients, and Socket.IO consumers.
+- current git-tracked-file and ignored-environment checks.
+
+Verification performed during this re-audit:
+
+- `shuttle-tracking-backend/npm test` — passed: TypeScript build, JWT boundary tests, and T2
+  validation/safe-error tests.
+- `npx prisma validate` — passed.
+- `shuttle-tracking-web/npm run lint` — passed with 6 warnings and 0 errors.
+- development and production `docker compose config --quiet` — passed.
+- unsafe-output search — no production device response or Redis connection log was found to emit
+  the tested credential material.
+- local Docker inspection — PostgreSQL and Redis were healthy; no backend container was running
+  during this re-audit. The roadmap records that configured Postgres/Redis pipeline and Socket.IO
+  smoke checks passed on 2026-07-20, but that runtime result was not independently rerun here.
+- no deployed system, production secret, external device, or live public endpoint was accessed.
+
+### Re-audit status against the previous Security/DevOps/Observability report
+
+| Previous finding | Status | Current evidence |
 |---|---|---|
-| Sender/trip/Socket.IO writes were weakly authenticated | **Resolved** | Sender JWT claims are bound and revalidated; protected HTTP/trip/socket boundaries reject unauthenticated writes. |
-| TTN/webhook credential boundary was optional | **Resolved** | Missing TTN secret returns service unavailable; invalid bearer is rejected. |
-| Device source lifecycle/rotation was incomplete | **Resolved** | Source credential version, active status, and rotation invalidation exist. |
-| Production secret validation/bootstrap was unsafe | **Partially Resolved** | Entrypoint rejects defaults/weak core secrets and seed is development-only; actual deployment secret management is unverified. |
-| Device API secret-hash exposure | **Still Present** | Device list/get/create/update serialize TrackingSource directly, including secretHash. |
-| No rate limiting/abuse controls | **Still Present** | No rate-limit middleware/package/configuration is evidenced for login, feedback, or ingest. |
-| Validation/error mapping was inconsistent | **Still Present** | Backend report confirms untyped resource inputs and generic 500 mapping remain. |
-| CI/CD and deployment gates were missing | **Still Present** | No workflow files are present; local build/lint/test are not enforced by automation. |
-| Health/readiness/production runtime were missing | **Partially Resolved** | Health/ready endpoints, production targets, migrations, and secret checks exist; no deployed monitor, runbook, or recovery evidence. |
-| Logs/metrics/error tracking were insufficient | **Still Present** | Console logging only; no structured redaction, metrics, alerting, or frontend/backend error tracker. |
-| Credential-bearing Redis URL is logged | **New Finding** | Redis connect handler logs REDIS_URL verbatim. |
+| Sender, trip, and Socket.IO writes were weakly authenticated | **Resolved** | `auth.ts` verifies source/vehicle/version-bound sender claims; HTTP/trip routes authenticate; Socket.IO revalidates on every write; JWT boundary tests pass. |
+| TTN/webhook credential boundary was optional | **Resolved** | `/api/ingest/ttn` fails closed without `TTN_WEBHOOK_SECRET` and compares the bearer value with `timingSafeEqual`. |
+| Device source lifecycle and rotation were incomplete | **Resolved** | Active source checks, credential versioning, rotation, and sender-token revalidation are present. |
+| Production secret validation/bootstrap was unsafe | **Partially Resolved** | Production entrypoint rejects missing/known-default/short JWT and TTN secrets and disables normal production seed; actual secret store, rotation, and deployment controls remain unknown. |
+| Device API responses exposed `secretHash` | **Resolved** | Device list/get/mutation responses use `toDeviceResponse`/`toDeviceMutationResponse`; boundary tests assert that `secretHash` and its value are absent. |
+| No rate limiting or abuse controls existed | **Partially Resolved** | Auth, feedback, sender trips/ingestion, TTN, device writes, and route-stop writes now use Redis limits; vehicle/route/stop writes remain unbounded, and rate-limit settings are not documented in env templates. |
+| Validation and error mapping were inconsistent | **Partially Resolved** | T2 covers the named auth/feedback/device/route-stop/trip/observation boundaries and global JSON errors; vehicle/route/stop controllers still accept untyped bodies and expose legacy generic error handling. |
+| CI/CD and deployment gates were missing | **Still Present** | No `.github/workflows`, CI provider config, migration gate, rollback workflow, or deployment approval evidence exists. |
+| Health/readiness and production runtime were missing | **Partially Resolved** | `/health`, `/ready`, production image targets, migrations-before-start, restart policies, and secret checks exist; deployment topology, probes for all services, rollback, and recovery evidence remain absent. |
+| Logs, metrics, and error tracking were insufficient | **Still Present** | Redis URL leakage is fixed, but application logs remain mostly console/free-text; there is no metrics endpoint, alert rule, request correlation, log sink, or frontend/backend error tracker. |
+| Credential-bearing Redis URL was logged | **Resolved** | Redis connect/error handlers emit static redacted messages and `test_redis_logging.js` confirms the URL, password, and token are absent. |
+
+T2 itself is **Partially Resolved from this re-audit's evidence perspective**: the implementation and
+local static checks pass, and the roadmap records a successful configured smoke run, but the complete
+runtime smoke was not independently rerun because only database and Redis containers were available.
+The remaining findings below are outside T2's completed boundary set or are operational follow-up
+work that T2 was intended to unlock.
 
 ## 2. Security Overview
 
-Admin authentication uses bcrypt and JWT; admin middleware requires a userId claim and rejects sender-kind tokens. Sender login verifies source secret hash and emits a 15-minute token with source, vehicle, and credential version. Public viewers may connect to Socket.IO but cannot submit location without the sender token. TTN uses a separate bearer-secret webhook boundary.
+The backend has three trust boundaries:
+
+1. Admin users authenticate with bcrypt-checked credentials and a JWT.
+2. Mobile, ESP32, simulator, and other non-LoRaWAN senders exchange a source secret for a short-lived
+   source/vehicle/version-bound JWT. HTTP, trip, and Socket.IO writes require that identity.
+3. TTN/LoRaWAN traffic enters through a separate bearer-secret webhook and is required to resolve to
+   an active LoRaWAN source.
+
+Prisma queries and tagged raw SQL are parameterized in the inspected paths. No file upload path or
+   string-concatenated SQL injection path was found. The main security gap is now boundary coverage
+   and production isolation rather than the basic sender authentication design.
 
 ## 3. Security Strengths
 
-- Sender token expiry, binding, rotation/revocation revalidation, and ownership checks are present.
-- Admin and sender token types are separated in middleware.
-- TTN uses timing-safe comparison and fails closed when unconfigured.
-- Production entrypoint rejects known/default/weak JWT and TTN secrets and prevents their reuse.
-- Development seed does not create a built-in admin password; production seed is explicit one-time provisioning.
-- Parameterized Prisma/raw tagged SQL is used for data access; no string-concatenated SQL injection path was found in reviewed queries.
+- bcrypt is used for admin and tracking-source secrets; source/device hashing uses cost 12.
+- Sender tokens expire by default after 15 minutes and are checked against source status,
+  assignment, type, and credential version during use.
+- Sender tokens cannot be used as admin tokens, and public Socket.IO viewers cannot emit location
+  writes without a sender token.
+- TTN authentication fails closed and uses a timing-safe comparison.
+- Device API DTOs no longer disclose `secretHash` or credential material.
+- JSON request bodies default to 64 KiB, are capped at 1 MiB through configuration parsing, and
+  Socket.IO messages have a bounded buffer.
+- T2 provides stable 4xx/429 boundary responses and redacted category-only boundary logs for the
+  covered routes.
+- Production startup rejects known placeholder/weak JWT and TTN secrets, requires the two secrets to
+  differ, runs migrations before application start, and skips normal production seed.
+- `.env` files are ignored and the tracked env examples contain placeholders; no real secret value
+  was found in tracked files during the repository check.
+- Prisma migrations and `npm ci` lockfile installs support a repeatable baseline, and Compose config
+  validation passes for both development and production-mode files.
 
 ## 4. Critical Security Issues
 
-### High — Device API responses expose secret hashes
+**No Critical-severity issue was identified from the available static evidence.** In particular, the
+two prior direct leakage findings—`secretHash` in device responses and `REDIS_URL` in Redis logs—are
+resolved.
 
-Authenticated device endpoints return raw TrackingSource records and include secretHash.
+The following High issue is the principal security blocker and must not be confused with a proven
+internet exposure because the host firewall and deployment boundary are not in the repository.
 
-Impact: copied admin responses expose offline-verifiable credential hashes beyond the server boundary.
+### High — Production Compose exposes internal data services without an evidenced isolation boundary
 
-Recommendation: use an explicit safe response DTO for all device reads/mutations; never serialize secretHash; add a route test.
+`docker-compose.prod.yml` publishes PostgreSQL on `5432:5432` and Redis on `6379:6379`. Redis is
+configured as `redis://redis:6379` without a password, ACL, or TLS setting. The file contains no
+private-only network declaration, host firewall, reverse proxy, or provider security-group evidence.
 
-Priority: High. Difficulty: Easy.
+If those host ports are reachable beyond the trusted host, an attacker could target the database or
+read/write cache and Socket.IO adapter state directly. Even host-local exposure increases blast
+radius after a container or host compromise.
 
-### High — Redis URL is written to logs
+Remove the host port mappings from the production data services unless an explicitly controlled
+private-network use case requires them. Put public traffic through the selected TLS/reverse-proxy
+boundary, add Redis authentication/ACL/TLS where the chosen topology requires it, and document the
+database/cache network and firewall policy before deployment.
 
-The Redis connect handler logs the entire REDIS_URL. Managed Redis URLs commonly include usernames/passwords.
-
-Impact: credential-bearing configuration can enter container logs, log aggregation, or support exports.
-
-Recommendation: log only a redacted host/port or a static connection event; audit all configuration logging for secret-bearing values.
-
-Priority: High. Difficulty: Easy.
-
-### High — Public write boundaries lack abuse controls
-
-Login, sender login, feedback, and ingestion have no evidenced rate/size limits. Feedback accepts public input and telemetry is high-frequency by design.
-
-Impact: brute-force, spam, resource exhaustion, and noisy operational data can affect a controlled service before more advanced security controls exist.
-
-Recommendation: add small route-specific request-size and rate limits, with stricter limits for auth/feedback and source-aware quotas for ingest; make rejected traffic observable.
-
-Priority: High before public/daily use. Difficulty: Medium.
+Priority: **High**. Difficulty: **Medium**. This is a configuration-level risk; final severity
+depends on the undiscovered deployment network boundary.
 
 ## 5. Authentication & Authorization Review
 
-Admin and sender flows are now separate and structurally sound for MVP. There is no role/permission model: every valid admin token receives all admin access. Frontend stores the admin token in a cookie readable by client JavaScript; Security should treat XSS/session-storage posture as a future hardening item, while a server-managed HttpOnly session requires an intentional architecture change. No refresh-token, logout revocation, or admin credential lifecycle is evidenced.
+### Admin flow
+
+`POST /api/auth/login` validates the body, looks up the username, compares the bcrypt hash, and
+returns a JWT containing `userId` and `username`. Admin middleware rejects sender-kind tokens and
+protects all `/api/admin/*` mounts. `/api/auth/me` only returns the selected user fields.
+
+The current authorization model is all-or-nothing: the schema has no role, permission, account-status,
+or admin-action audit model. A valid admin token can manage every protected resource. That is
+acceptable for a controlled single-operator MVP, but it is not least privilege for multiple
+operators.
+
+The backend hardcodes the admin JWT lifetime to `1d`, even though `JWT_EXPIRES_IN=8h` is documented in
+the root and backend env examples. The browser stores the token in the JavaScript-readable
+`admin_token` cookie and has no refresh, server-side revocation, or logout invalidation. The frontend
+does check the JWT `exp` claim and redirects on 401/403, but the proxy only checks cookie presence,
+not token validity.
+
+### Sender flow
+
+`POST /api/auth/vehicle-login` requires an active non-LoRaWAN source with a bcrypt secret and an
+assigned vehicle. The issued sender JWT includes source ID, vehicle ID, and credential version.
+HTTP ingestion and trip routes authenticate it; Socket.IO authenticates at handshake and revalidates
+expiry, status, assignment, type, and credential version for every write. Rotation or reassignment
+therefore invalidates old sender credentials without a token blacklist.
+
+The HTTP boundary rejects a payload source ID that differs from the token source. The optional HTTP
+`vehicleId` field is parsed but is not compared in `ingest.route.ts`; the canonical vehicle is still
+derived from the server-side source assignment, so this is a contract-consistency gap rather than a
+cross-vehicle write demonstrated by current evidence. Socket.IO does perform the optional vehicle
+comparison.
+
+### TTN flow
+
+The TTN route requires the configured bearer secret before parsing a source into the tracking
+pipeline. It accepts the supported payload shapes and requires the resolved source type to be
+`lorawan`. Invalid or missing credentials receive safe errors.
 
 ## 6. Input Handling & Data Protection Review
 
-GPS coordinates and sender/trip ownership are validated, but CRUD and feedback/resource inputs lack shared schemas and safe error taxonomy. Raw tagged SQL is parameterized; no file upload is found. Feedback stores message, optional vehicle, type, and IP address; retention/access policy is Not Found. Device secretHash exposure is the highest data-protection defect. TTN generic errors expose stack/details and should be normalized.
+T2's validation layer now covers admin login, sender login, public feedback, device create/update,
+route-stop create/delete IDs, trip start/end IDs, HTTP observations, Socket.IO observations, and TTN
+payload/source extraction. It bounds strings, coordinates, numeric telemetry, IDs, enums, stop order,
+feedback length, request bodies, and Socket.IO message size. The global error middleware handles
+oversized and malformed JSON requests without exposing parser details.
+
+Boundary errors map common Prisma failures to safe `404`, `409`, or `422` responses and log only a
+stable category. T2 tests confirm malformed inputs throw before the service path and that generic
+errors do not escape their original message.
+
+Residual gaps:
+
+- `vehicles.route.ts`, `route.route.ts`, and `stops.route.ts` still pass create/update/delete bodies
+  directly to legacy controllers. Those controllers use `req.body`/`any`, have no shared schemas,
+  no route-specific rate limits, and log raw errors.
+- T2 validation is permissive about unknown keys rather than rejecting an explicit allowlist. This
+  is acceptable for the current contract but should be made intentional before external clients are
+  versioned.
+- Feedback stores `req.ip` with the message and vehicle. Its retention, access, deletion, and privacy
+  policy are not found. The API response does not include the stored IP.
+- No file upload path was found.
+- Raw SQL uses Prisma tagged templates with interpolated parameters; no string concatenation was
+  found in the inspected SQL paths.
+
+### CORS and transport
+
+The backend permits the configured `FRONTEND_URL` plus localhost development origins and enables
+credentials. However, `corsOptions.methods` contains only `GET` and `POST`, while the admin frontend
+uses `PUT` and `DELETE`. Cross-origin browser preflight for those admin writes may therefore fail.
+Production also has no TLS/reverse-proxy configuration in the repository. The actual HTTPS boundary
+is **Needs Confirmation**.
 
 ## 7. Secrets & Configuration Review
 
-Templates use placeholders, while production Compose requires core secret values and entrypoint validates them. Configuration remains split across Compose, backend env, frontend build values, and runtime origins. Actual provider secret store, HTTPS termination, secret rotation operations, and whether committed local env files contain real values were not evaluated. Do not log connection URLs or tokens.
+The tracked `env.example` files use placeholder values. Local `.env` files are ignored and were not
+treated as production evidence; no `.env` file is tracked by git. The backend entrypoint rejects
+missing, known-default, or short JWT/TTN secrets in non-development environments and rejects using
+the same value for both.
+
+The remaining configuration risks are:
+
+- Production Compose requires database/JWT/TTN values but defaults `API_URL`, `FRONTEND_URL`, and
+  the frontend API build argument to localhost. A deployment can therefore start with an origin
+  that is syntactically valid but operationally wrong.
+- `REQUEST_BODY_LIMIT`, `SOCKET_MAX_BUFFER_BYTES`, and all `*_RATE_LIMIT_*` variables are read by
+  source but are absent from the env templates and Compose documentation.
+- `JWT_EXPIRES_IN` is documented but ignored by the admin issuer, creating session-policy drift.
+- The root README still documents `admin`/`transport` with `admin123`, while current seed behavior
+  requires an explicit `SEED_ADMIN_PASSWORD` and has no built-in admin password. This is a dangerous
+  operator instruction even though it is not a committed runtime secret.
+- `NEXT_PUBLIC_BACKEND_URL` and `NEXT_PUBLIC_SOCKET_URL` are read by frontend components but are not
+  documented in the frontend env example. This increases origin/configuration drift.
 
 ## 8. Dependency Hygiene Review
 
-Lockfiles and npm ci support repeatable installs; package dependencies mostly use semver ranges. No automated vulnerability scan, dependency update policy, SBOM, or CI gate is present. Live advisory scanning is outside this audit and should occur before public release.
+Both applications have lockfiles and Dockerfiles use `npm ci`; the backend test/build and frontend
+lint commands are reproducible from the checked-in scripts. Dependency declarations mostly use
+semver ranges (`^`), while Docker base images use floating tags such as `node:22-alpine` and
+`redis:alpine`. Lockfiles improve npm install repeatability, but the Docker image contents can still
+change without a repository commit.
+
+No dependency advisory database scan, update policy, SBOM, license gate, or CI vulnerability check is
+present. Live vulnerability status was intentionally not assessed by this audit.
 
 ## 9. DevOps Overview
 
-Backend builds with TypeScript and has a JWT boundary test; frontend lint passes with six warnings and no errors. Dockerfiles have production targets and entrypoint runs migrations. No CI workflow, deployment pipeline, rollback procedure, or enforced migration/smoke-test gate is found.
+The repository has a conventional two-application build:
+
+- Backend: `npm run build` compiles TypeScript to `dist`; `npm test` runs the build and boundary tests.
+- Frontend: `npm run build`, `npm start`, and `npm run lint` are defined; lint currently has 6
+  warnings and no errors.
+- Production Docker targets install production dependencies, run the compiled backend and `next
+  start`, and do not use development source mounts.
+- Entrypoint startup runs `prisma migrate deploy`, skips development seed outside development, and
+  emits migration/application startup events.
+
+There is no CI workflow or deployment pipeline. No rollback strategy, migration rollback procedure,
+backup/restore drill, release approval gate, or production smoke artifact is checked in. The local
+backend `npm run dev` command references `tsx` through `nodemon.json`, but `tsx` is not declared in
+the backend package; the roadmap records that the T2 runtime smoke used compiled `dist/server.js`
+for this reason.
 
 ## 10. Build & Deployment Review
 
-Local commands are usable but not policy-enforced. Production build/start, migration, secret validation, and readiness are good foundations. A deployment should not depend on development Compose defaults. Before production, automate build, backend test, frontend lint, migration validation, and a readiness smoke check; retain human approval for migrations until the topology/runbook is established.
+The production image structure is an improvement over the earlier development-only setup. Compose
+configuration parses, Postgres/Redis health checks exist, and the backend has `/health` and `/ready`.
+The production file still lacks a backend/frontend healthcheck, a public reverse-proxy/TLS layer,
+explicit origin requirements, internal data-service isolation, and a documented migration/rollback
+runbook.
+
+The checked-in pipeline smoke script is not self-contained evidence: it requires configured secrets
+and a running backend/database, and its hard-coded test assumptions have previously diverged from seed
+fixtures. The Infrastructure audit and roadmap identify simulator fixture alignment as T3, which is
+not complete in this re-audit.
 
 ## 11. Environment Management Review
 
-Development and production configuration are distinguishable, but origin and provider values remain undocumented and can drift. Production Compose defaults some public URLs to localhost. D-003 remains the existing decision gate for origin/configuration order. No new provider decision is created.
+Development and production Compose targets are clearly separated, and `.dockerignore` excludes
+local env files and dependencies. Production still relies on implicit defaults for origins and
+publishes internal services. The environment contract is split across root Compose variables,
+backend variables, frontend build-time values, and simulator variables.
+
+The minimum environment matrix is not documented as one artifact. It should state, per environment:
+frontend origin, REST origin, Socket.IO origin, database URL, Redis URL/authentication, TTN webhook
+URL, secret owner/store, migration mode, seed mode, and public/private network boundary.
 
 ## 12. Observability Overview
 
-Health and readiness are available, Redis and pipeline events are logged, and source last-seen/freshness facts exist. There is no metrics endpoint, structured event schema, request/trace ID, alert rule, dashboard, error tracker, or deployed uptime monitor. Dashboard UX correctly identifies that no truthful user-facing connection/freshness state exists.
+The system has useful starting signals: `/health`, `/ready`, Redis connection events, migration
+events, source `lastSeenAt`, a 30-second freshness helper, and source-selection counters in Redis.
+These are not yet an operational observability system.
+
+For a 10+ vehicle service, an operator needs at least:
+
+- uptime/readiness monitoring for the API and dependency failures;
+- accepted/rejected ingestion counts by source and reason;
+- source freshness and silent-vehicle thresholds;
+- current active-trip and canonical-selection state;
+- Redis/Postgres latency or failure signals;
+- GPS-history persistence failure counts;
+- authentication/rate-limit rejection trends; and
+- frontend/API error aggregation.
+
+None of these signals is currently exposed as a metrics endpoint, alert rule, dashboard, or
+operator notification. A stale source currently produces a generic server warning and a null
+canonical result rather than an actionable health event.
 
 ## 13. Logging Review
 
-Current logs are console calls with varied free-text formats. Some use event-like fields, but no consistent severity, correlation, redaction, retention, or destination exists. Do not log REDIS_URL, bearer tokens, passwords, request bodies, or secret-derived error details. Replace the URL log first.
+T1 removed the direct Redis URL disclosure, and T2's boundary logger avoids emitting exception
+messages that may contain request/configuration values. The entrypoint also emits useful
+`level=... event=...` startup messages.
+
+Application logging remains mixed and mostly console-based. Legacy vehicle/route/stop/public/cache
+controllers log raw error objects or free-text messages; Socket.IO logs connection IDs; tracking logs
+pipeline events without a request ID, source ID, vehicle ID, outcome code, or consistent severity.
+There is no documented redaction policy, retention policy, log destination, or central collection.
+
+No passwords, bearer tokens, or request bodies were found in the reviewed production log statements,
+but the raw legacy error paths should not be treated as safe for arbitrary database/configuration
+errors.
 
 ## 14. Monitoring & Alerting Review
 
-Ready endpoint can support a basic monitor; it checks database and Redis. No evidence shows alerts for readiness failure, socket outage, source stale threshold, failed migrations, ingestion rejection volume, or sampled-history failure. A minimal operational set is readiness uptime, error count, source freshness, ingestion rejection rate, and migration/startup outcome.
+`/ready` can support an external uptime check and correctly checks PostgreSQL and Redis. It does not
+check application-level ingestion health, Socket.IO fan-out, migration age, source freshness, or
+history persistence. No alert configuration or uptime monitor is present.
+
+There is no current mechanism to tell an operator that:
+
+- a vehicle's source has stopped sending while its last location remains in Redis;
+- all sources for a vehicle are stale;
+- Redis rate limiting or cache operations are unavailable;
+- canonical history writes are being swallowed after logging; or
+- frontend users are receiving API/socket failures.
 
 ## 15. Error Tracking Review
 
-Backend errors go to console. Frontend catches several errors but reports them only inline, alert, or console. No aggregation or alerting exists. Add structured, redacted server errors and one frontend/backend error-reporting capability after production topology is selected; vendor choice is not required now.
+Backend failures terminate in stdout/stderr. The new boundary logger makes several server errors
+safer, but it does not aggregate, group, notify, or retain them. Frontend code catches errors and
+shows inline messages or writes to the browser console; no frontend error reporting or session
+diagnostics are present.
 
 ## 16. Recommended Improvements
 
-### Recommendation 1: Remove sensitive configuration and hash exposure
+### Recommendation 1: Isolate production data services and define the public network boundary
 
 ### Problem
 
-Device responses include secretHash and Redis logging includes the full connection URL.
+Production Compose publishes PostgreSQL and Redis host ports and configures Redis without an
+authentication or encryption policy. Public origin, TLS, firewall, and reverse-proxy ownership are
+also not documented.
 
 ### Impact
 
-Credentials or reusable credential material can reach clients and logs.
+If the host is reachable from an untrusted network, attackers may directly target the data plane,
+read/write Redis state, or attempt database access. Incorrect public origins can also cause unsafe
+or broken browser behavior.
 
 ### Recommendation
 
-Add safe device response DTOs and redact config logging; test both conditions.
+Remove production host port mappings for PostgreSQL/Redis unless explicitly required by a private
+operator network. Define an internal network, Redis authentication/ACL/TLS policy, database access
+policy, TLS terminator, firewall/security-group rules, and required non-local `FRONTEND_URL`, API,
+Socket.IO, and frontend build values in one deployment matrix. Add a short runbook and verify it in a
+disposable environment.
 
 ### Why
 
-These are direct, low-effort confidentiality fixes.
+The repository currently proves container startup, not isolation. A small explicit network contract
+prevents a deployment from inheriting development exposure by accident.
 
 ### Priority
 
-High — needed now.
+High
 
 ### Difficulty
 
-Easy.
+Medium
 
 ### Learning Topic
 
-Data minimization and secrets-safe logging.
+Private service networks, TLS termination, Redis ACLs, and defense in depth.
 
 ### Related Files
 
-devices controller and Redis config.
+`docker-compose.prod.yml`, `docker-compose.yml`, `shuttle-tracking-backend/docker-entrypoint.sh`,
+and the missing deployment/origin runbook.
 
-### Recommendation 2: Add bounded abuse controls and shared validation
+### Recommendation 2: Complete validation, error, rate-limit, and CORS coverage for admin writes
 
 ### Problem
 
-Public/auth/ingest endpoints lack rate limits and resource schemas.
+T2 covers its named boundary routes, but vehicle, route, and stop mutations still accept untyped
+request bodies, use legacy generic errors, and have no write rate limit. CORS advertises only `GET`
+and `POST` although the frontend uses `PUT` and `DELETE`.
 
 ### Impact
 
-Spam, brute-force, malformed data, and resource exhaustion are easier than necessary.
+Malformed or abusive master-data writes can reach Prisma, produce inconsistent 500 responses, and
+may fail in a browser preflight or behave differently from the T2-protected APIs.
 
 ### Recommendation
 
-Set route-specific request-size/rate limits and validate auth, feedback, device, trip, route-stop, and observation payloads with a shared schema/error mapper.
+Add shared schemas, parameter validation, safe error mapping, and admin write limits to vehicle,
+route, and stop routes. Make the CORS method/origin contract match actual frontend requests, including
+preflight behavior. Add route-level tests proving malformed writes do not reach Prisma and that
+duplicate/missing-resource cases return stable codes. Document every limit variable and default.
 
 ### Why
 
-A small boundary layer protects the MVP without introducing a complex security platform.
+T2's main value is a consistent boundary contract; leaving the existing admin CRUD paths on legacy
+behavior creates an avoidable security and operability split.
 
 ### Priority
 
-High before public/daily use.
+High
 
 ### Difficulty
 
-Medium.
+Medium
 
 ### Learning Topic
 
-Defense in depth, input schemas, and rate limiting.
+Allowlist validation, HTTP error taxonomies, CORS preflight, and bounded admin APIs.
 
 ### Related Files
 
-server, auth, ingest, feedback, and CRUD routes.
+`shuttle-tracking-backend/src/routes/vehicles.route.ts`, `route.route.ts`, `stops.route.ts`,
+their controllers, `src/middleware/validation.ts`, `src/middleware/boundary-errors.ts`, and
+`src/server.ts`.
 
-### Recommendation 3: Establish minimal production observability and CI gates
+### Recommendation 3: Make JWT session policy and admin trust boundaries explicit
 
 ### Problem
 
-Console logs and manual commands do not provide reliable incident detection or deployment assurance.
+The admin issuer hardcodes a one-day expiry despite `JWT_EXPIRES_IN` documentation, the browser
+stores the token in a JavaScript-readable cookie, and all admin accounts have the same permissions.
 
 ### Impact
 
-Failures may be discovered by riders/operators, and regressions can be deployed unchecked.
+Session policy can drift between environments; an XSS issue could read the bearer token; and a
+compromised ordinary admin has the same mutation authority as every other admin.
 
 ### Recommendation
 
-Automate build, backend test, frontend lint, and configuration/migration validation. Emit redacted structured logs, monitor ready endpoint, and alert on startup/readiness, ingestion rejections, and stale source threshold.
+Use the configured admin expiry or remove the misleading variable. Before multi-operator use, choose
+an intentional server-managed HttpOnly/Secure/SameSite session or BFF boundary, define refresh and
+revocation behavior, and add role/permission checks plus action attribution. Keep the current
+source-bound sender token design for devices. Remove the `admin123` instructions from README and
+replace them with explicit local provisioning steps.
 
 ### Why
 
-This is the minimum useful operating signal; it does not require selecting a full observability suite.
+This preserves the current MVP simplicity while making the session and least-privilege decision
+explicit before the number of administrators grows.
 
 ### Priority
 
-High before production.
+Medium now; High before multi-operator or public administration
 
 ### Difficulty
 
-Medium.
+Medium for expiry/documentation; Hard for session and RBAC redesign
 
 ### Learning Topic
 
-CI gates, health checks, structured logging, and service-level signals.
+JWT expiry, HttpOnly cookies, refresh/revocation, RBAC, and audit trails.
 
 ### Related Files
 
-package scripts, Docker entrypoint, server, tracking service, and Compose.
+`shuttle-tracking-backend/src/controllers/auth.controller.ts`, `src/middleware/auth.ts`,
+`shuttle-tracking-web/contexts/AuthContext.tsx`, `services/api.ts`, `proxy.ts`, `README.md`, and
+the seed/env documentation.
+
+### Recommendation 4: Add CI gates and a repeatable release/rollback check
+
+### Problem
+
+Build, lint, boundary tests, Prisma validation, Compose parsing, and integration smoke tests are
+manual. No CI workflow, migration gate, rollback procedure, or deployment approval evidence exists.
+The local dev script also references undeclared `tsx`.
+
+### Impact
+
+Validation and security regressions can reach a release without detection, and a migration or origin
+failure may only be discovered after deployment.
+
+### Recommendation
+
+Add CI jobs for backend build/tests, Prisma validation, frontend lint/build, Compose config, unsafe
+output search, and a disposable Postgres/Redis integration smoke. Add migration/release approval and
+rollback instructions. Either add `tsx` to the backend dev dependencies or change `nodemon.json` to a
+declared tool. Keep live dependency advisory scanning as a separate pre-release job.
+
+### Why
+
+The project already has useful local checks; CI turns them into a repeatable deployment gate without
+requiring a heavyweight platform.
+
+### Priority
+
+High before production or public release
+
+### Difficulty
+
+Medium
+
+### Learning Topic
+
+CI gates, disposable integration environments, migration safety, and rollback design.
+
+### Related Files
+
+`shuttle-tracking-backend/package.json`, `shuttle-tracking-backend/nodemon.json`, both package
+lockfiles, Dockerfiles, Compose files, and the missing CI workflow/runbook.
+
+### Recommendation 5: Establish minimal structured operational signals and alerts
+
+### Problem
+
+The application has health/readiness and console logs but no request correlation, metrics, error
+aggregation, source-silence alert, ingestion rejection signal, or frontend error reporting.
+
+### Impact
+
+Operators may learn about a silent vehicle, Redis failure, or lost GPS history only from riders or
+after an incident, making diagnosis and response unreliable.
+
+### Recommendation
+
+Keep the current simple stack and add redacted structured events with a request/correlation ID,
+source/vehicle/outcome fields, and consistent severity. Expose or export counters for readiness,
+ingestion accepted/rejected, rate limits, source freshness, canonical selection, Redis/Postgres
+failures, and GPS-history persistence. Monitor `/ready`, alert on source silence and dependency
+failure, and add one aggregated backend/frontend error-reporting path after the deployment topology
+is selected.
+
+### Why
+
+These signals map directly to the operational failure modes already represented in the code and do
+not require selecting a vendor or building a full SIEM.
+
+### Priority
+
+High before daily operations; Medium for a controlled demo
+
+### Difficulty
+
+Medium
+
+### Learning Topic
+
+Structured logging, metrics, health checks, alert thresholds, and error grouping.
+
+### Related Files
+
+`shuttle-tracking-backend/src/server.ts`, `src/services/tracking.service.ts`, `src/config/redis.ts`,
+`src/middleware/boundary-errors.ts`, frontend API/socket consumers, and the deployment runbook.
+
+### Recommendation 6: Align fixtures and make the device pipeline smoke reproducible
+
+### Problem
+
+T2's pipeline evidence depends on configured infrastructure and secrets, while simulator/test
+assumptions have not been fully aligned with current seed IDs and credential instructions. T3 is
+still pending.
+
+### Impact
+
+Device authentication and source-priority claims can fail before they exercise the actual canonical
+pipeline, reducing confidence in future security or operational changes.
+
+### Recommendation
+
+Drive source IDs, vehicle IDs, admin provisioning, and secrets from one documented test environment;
+remove fallback credentials from simulators; align TTN simulator IDs with seed fixtures; and provide
+one disposable command that starts dependencies, runs the compiled backend, runs REST/Socket.IO smoke
+checks, and cleans up without using production credentials.
+
+### Why
+
+Reproducible evidence is the simplest way to preserve T2's trust-boundary guarantees as T3/T4/T5/T6
+change the pipeline.
+
+### Priority
+
+High for device-pipeline validation; Medium for a demo-only release
+
+### Difficulty
+
+Easy to Medium
+
+### Learning Topic
+
+Configuration-as-contract, test fixtures, smoke tests, and secret-safe integration environments.
+
+### Related Files
+
+`shuttle-tracking-backend/test_pipeline.js`, `shuttle-tracking-backend/prisma/seed.js`,
+`shuttle-tracking-web/simulate.js`, `simulate-manual.js`, `shuttle-tracking-backend/simulate-ttn.js`,
+and the env templates.
 
 ## 17. Security/DevOps/Observability Learning Topics
 
-1. Trust boundaries and short-lived service tokens — implemented, review tests next.
-2. Data minimization and redacted logging — needed now.
-3. Schema validation plus rate limits — before public traffic.
-4. CI gates and migration safety — before production.
-5. Health, error, and freshness signals — before daily operations.
-
-## Roadmap Impact
-
-No new owner decision is created. D-003 remains the production configuration gate; D-001 governs whether daily-operation observability is required now. Remove hash/URL leakage now; rate limits, validation, CI, and basic monitoring are before public/daily release. Production Readiness must treat these High findings as blockers for a “ready” result.
-
-## Assumptions and Unknowns
-
-- Static repository evidence only; no live penetration test, dependency advisory scan, secrets, provider log sink, or deployed monitor was accessed.
-- HTTPS/TLS, provider security groups, backup encryption, secret rotation operations, and actual CI policy are unknown.
-- No formal role model or public release scope has been approved.
-
-## Confidence
-
-**High** for code/config-visible boundaries, exposure, and absence claims. **Medium** for production posture without deployed evidence. **Low** for vulnerability status without a live advisory scan.
-
-## Required Decisions
-
-- **D-001** determines the operating scope and therefore which observability work is mandatory before release.
-- **D-003** remains the configuration/origin sequencing gate.
-
-No new decision is required to redact logs, remove secret hashes, add validation/rate limits, or automate current checks.
+1. **Boundary validation and safe errors.** Validation is a parser at the trust boundary; it stops
+   malformed data before database/broadcast code. It is needed now because T2 introduced the pattern
+   but legacy admin CRUD still bypasses it. A small local parser plus one error mapper is enough; a
+   large validation framework is not required. Learn request shape, allowlists, status/code taxonomy,
+   and route tests first.
+2. **Rate limits and quotas.** A rate limit bounds attempts per key/window; a source quota prevents
+   one sender from flooding ingestion. They are needed for auth, feedback, and telemetry. Redis is a
+   suitable current implementation; a gateway is unnecessary at MVP scale. Learn key design, proxy
+   identity, fail-open versus fail-closed behavior, and alerting next.
+3. **Secret-safe responses and transport.** Data minimization removes credential material from API
+   responses/logs; TLS and private networks protect it in transit and at the service boundary. T1
+   resolved the first two leaks, while production data-service isolation remains. Learn response DTOs,
+   redaction, internal networks, TLS termination, and Redis ACLs in that order.
+4. **CI/CD and migration safety.** CI runs the same checks on every change; migration safety makes
+   schema changes reversible or forward-recoverable. This project needs CI before claiming a reliable
+   production release, while a simple workflow and runbook are enough. Learn build/test gates,
+   disposable dependencies, migration approval, rollback, and smoke checks.
+5. **Operational observability.** Logs explain an event, metrics count a condition, health checks
+   prove dependency reachability, and alerts turn thresholds into operator action. This project needs
+   source freshness and dependency signals before daily operations; a full vendor suite is not needed
+   now. Learn structured events, correlation IDs, counters, readiness monitoring, stale thresholds,
+   and error grouping.
+6. **JWT sessions and least privilege.** JWT expiry limits exposure time; refresh/revocation handles
+   longer sessions; RBAC limits what each operator can change. The current single-admin MVP can defer
+   RBAC, but it should not silently rely on a one-day hardcoded session. Learn expiry/config alignment,
+   HttpOnly cookies, revocation, roles, and action audit trails.
 
 ## 18. Audit Limitations
 
-No live attack, penetration test, runtime log inspection, hosted deployment, production secret, traffic/load test, dependency advisory database, or CI provider was accessed.
+- No live production deployment, host firewall, TLS terminator, provider security group, secret
+  manager, log sink, uptime monitor, or backup system was inspected.
+- No penetration test, exploit attempt, or live dependency advisory database lookup was performed.
+- No mobile application, ESP32 firmware, TTN console configuration, or physical device was available.
+- The local database and Redis containers were observed healthy, but the backend was not running during
+  this re-audit; the recorded roadmap smoke result was not independently repeated.
+- Browser behavior, including the CORS preflight consequence for PUT/DELETE, was inferred from the
+  source configuration and frontend requests rather than observed interactively.
+- The severity of direct PostgreSQL/Redis exposure depends on deployment firewall/network facts that
+  are not in the repository.
 
 ## 19. Handoff
 
-This report supersedes the prior Security, DevOps & Observability Audit. Production Readiness must synthesize these High findings with the accepted domain reports and cannot mark a public/daily release ready until the leakage, abuse-control, and minimum operational-signal gaps are resolved or explicitly risk-accepted.
+Recommended next agent: **Production Readiness Audit Agent**.
+
+Production Readiness depends on this report because the remaining security and operational gaps are
+release gates, not optional polish. It should not mark a public/daily release ready while production
+data services lack a confirmed private boundary, admin master-data writes remain outside the T2
+validation/rate-limit contract, CI/release evidence is manual, or operators cannot detect source
+silence and dependency failure. It should distinguish the controlled-MVP decision from a public or
+daily-service decision and record any explicit risk acceptance.
+
+## Roadmap Impact
+
+- T1 is **Resolved** and T2 is implemented with passing local static checks. The T1/T2 conventions
+  can now be used by T3, T5, T6, and T10.
+- T2 does not close the whole previous security finding set: admin vehicle/route/stop boundary
+  coverage, production network isolation, session-policy alignment, and CORS still need work.
+- T3 remains the immediate device-pipeline evidence task because simulator/seed assumptions are not a
+  stable checked-in contract.
+- T4 remains required for CI gates and redacted operational signals; it is the main dependency for a
+  credible Production Readiness reassessment.
+- T5/T6 remain downstream of the security boundary but are not security sign-offs. Their runtime
+  changes must preserve source-bound tokens, bounded payloads, safe errors, and source-aware quotas.
+- D-001 still determines whether daily-operation observability is a release blocker now. D-003 still
+  governs production origin/topology sequencing. D-002 remains relevant to telemetry retention but is
+  not required to resolve the direct configuration/leakage findings in this report.
+
+## Assumptions and Unknowns
+
+- `docker-compose.prod.yml` is treated as a production-mode configuration template, not proof of the
+  deployed topology.
+- Production secrets are assumed to be supplied outside git; their strength, rotation, ownership,
+  and storage system are unknown beyond entrypoint checks.
+- Actual TLS, firewall, reverse-proxy, Redis persistence/eviction, database backup, and log-retention
+  decisions are unknown.
+- One all-powerful admin token is assumed to match the current controlled-MVP scope; role/permission
+  requirements are not approved.
+- No external sender client contract is assumed beyond the repository's API and simulators.
+
+## Confidence
+
+**High** for code-visible authentication, validation, response projection, rate-limit placement,
+logging statements, package scripts, Compose definitions, and absence of CI files.
+
+**Medium** for local runtime readiness because Postgres/Redis were healthy and the roadmap records a
+configured smoke run, but the backend smoke was not rerun in this turn.
+
+**Low** for production exposure, dependency vulnerability status, TLS, device behavior, and alerting
+because the required external systems and live scans were unavailable.
+
+## Required Decisions
+
+- **D-001 — Operational MVP release scope:** decide whether this remains a controlled demo or moves to
+  daily/public operations; this sets the urgency of source-silence alerts, admin session hardening,
+  and error tracking.
+- **D-003 — Production topology and origin sequencing:** confirm private database/Redis networking,
+  TLS/reverse proxy, public origins, secret ownership, and release runbook before production Compose
+  is treated as deployable.
+- No new product decision is required to remove production data-service port mappings, document the
+  env contract, align CORS with actual methods, complete legacy admin boundary coverage, or add CI
+  checks.
