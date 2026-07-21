@@ -5,10 +5,21 @@ import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 dotenv.config();
 
-const BASE_URL = 'http://localhost:3001/api';
+const rawApiUrl = process.env.API_URL || 'http://localhost:3001';
+const BASE_URL = rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl}/api`;
+const ADMIN_USERNAME = 'admin';
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD;
 const ESP32_SECRET = process.env.TRACKING_SOURCE_SECRET_ESP32;
 const MOBILE_SECRET = process.env.TRACKING_SOURCE_SECRET_MOBILE;
 const TTN_WEBHOOK_SECRET = process.env.TTN_WEBHOOK_SECRET;
+const ESP_SOURCE_ID = process.env.TRACKING_SOURCE_ID_ESP32 || 'TS_ESP_01';
+const ESP_VEHICLE_ID = process.env.TRACKING_VEHICLE_ID_ESP32 || 'VH001';
+const MOBILE_SOURCE_ID = process.env.TRACKING_SOURCE_ID_MOBILE || 'TS_MOB_01';
+const MOBILE_VEHICLE_ID = process.env.TRACKING_VEHICLE_ID_MOBILE || 'VH001';
+const FOREIGN_MOBILE_SOURCE_ID = process.env.TRACKING_SOURCE_ID_MOBILE_2 || 'TS_MOB_02';
+const FOREIGN_MOBILE_VEHICLE_ID = process.env.TRACKING_VEHICLE_ID_MOBILE_2 || 'VH002';
+const TTN_DEVICE_ID = process.env.TTN_DEVICE_ID || 'sensor-c4';
+const TTN_VEHICLE_ID = process.env.TTN_VEHICLE_ID || (TTN_DEVICE_ID === 'sensor-f2' ? 'VN002' : 'VH003');
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -18,11 +29,36 @@ async function testPipeline() {
   console.log('🏁 Starting pipeline integration tests...\n');
 
   try {
-    if (!ESP32_SECRET || !MOBILE_SECRET || !TTN_WEBHOOK_SECRET) {
+    if (!ADMIN_PASSWORD || !ESP32_SECRET || !MOBILE_SECRET || !TTN_WEBHOOK_SECRET || !process.env.JWT_SECRET) {
       throw new Error(
-        'Set TRACKING_SOURCE_SECRET_ESP32, TRACKING_SOURCE_SECRET_MOBILE, and TTN_WEBHOOK_SECRET before running the pipeline test',
+        'Set SEED_ADMIN_PASSWORD, JWT_SECRET, TRACKING_SOURCE_SECRET_ESP32, TRACKING_SOURCE_SECRET_MOBILE, and TTN_WEBHOOK_SECRET before running the pipeline test',
       );
     }
+
+    async function assertSeedFixture(sourceId, vehicleId, type) {
+      const source = await prisma.trackingSource.findUnique({
+        where: { id: sourceId },
+        select: { id: true, type: true, vehicleId: true, status: true },
+      });
+      if (!source || source.type !== type || source.vehicleId !== vehicleId || source.status !== 'active') {
+        throw new Error(`Seed fixture mismatch for ${sourceId}; expected active ${type} source bound to ${vehicleId}`);
+      }
+    }
+
+    await assertSeedFixture(ESP_SOURCE_ID, ESP_VEHICLE_ID, 'esp32');
+    await assertSeedFixture(MOBILE_SOURCE_ID, MOBILE_VEHICLE_ID, 'mobile');
+    await assertSeedFixture(FOREIGN_MOBILE_SOURCE_ID, FOREIGN_MOBILE_VEHICLE_ID, 'mobile');
+    await assertSeedFixture(TTN_DEVICE_ID, TTN_VEHICLE_ID, 'lorawan');
+
+    const assertSafeAcknowledgement = (label, body) => {
+      const serialized = JSON.stringify(body);
+      if (/secretHash|password|token|secret/i.test(serialized)) {
+        throw new Error(`FAIL: ${label} acknowledgement contains credential material`);
+      }
+      if (!body?.canonicalLocation) {
+        throw new Error(`FAIL: ${label} acknowledgement did not include canonicalLocation`);
+      }
+    };
 
     // ============================================
     // 0. Trust boundary checks
@@ -31,7 +67,7 @@ async function testPipeline() {
     const unauthenticatedIngest = await fetch(`${BASE_URL}/ingest/http`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sourceId: 'TS_ESP_01', lat: 13.964139, lng: 100.587520 }),
+      body: JSON.stringify({ sourceId: ESP_SOURCE_ID, lat: 13.964139, lng: 100.587520 }),
     });
     if (unauthenticatedIngest.status !== 401) {
       throw new Error(`FAIL: unauthenticated HTTP ingestion returned ${unauthenticatedIngest.status}`);
@@ -40,7 +76,7 @@ async function testPipeline() {
     const unauthenticatedTrip = await fetch(`${BASE_URL}/trips/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ vehicleId: 'VH001' }),
+      body: JSON.stringify({ vehicleId: MOBILE_VEHICLE_ID }),
     });
     if (unauthenticatedTrip.status !== 401) {
       throw new Error(`FAIL: unauthenticated trip start returned ${unauthenticatedTrip.status}`);
@@ -54,7 +90,7 @@ async function testPipeline() {
     const loginRes = await fetch(`${BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'admin', password: 'admin123' })
+      body: JSON.stringify({ username: ADMIN_USERNAME, password: ADMIN_PASSWORD })
     });
     
     if (!loginRes.ok) {
@@ -72,13 +108,13 @@ async function testPipeline() {
       });
       const senderData = await senderRes.json();
       if (!senderRes.ok || !senderData.token) {
-        throw new Error(`Sender login failed: ${JSON.stringify(senderData)}`);
+        throw new Error(`Sender login failed with status ${senderRes.status}`);
       }
       return senderData.token;
     }
 
-    const espSenderToken = await loginSender('TS_ESP_01', ESP32_SECRET, 'VH001');
-    const mobileSenderToken = await loginSender('TS_MOB_01', MOBILE_SECRET, 'VH001');
+    const espSenderToken = await loginSender(ESP_SOURCE_ID, ESP32_SECRET, ESP_VEHICLE_ID);
+    const mobileSenderToken = await loginSender(MOBILE_SOURCE_ID, MOBILE_SECRET, MOBILE_VEHICLE_ID);
     console.log('   🟢 Sender credentials issued.\n');
 
     // ============================================
@@ -91,14 +127,14 @@ async function testPipeline() {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer not-a-valid-sender-token',
       },
-      body: JSON.stringify({ sourceId: 'TS_ESP_01', lat: 13.964139, lng: 100.587520 }),
+      body: JSON.stringify({ sourceId: ESP_SOURCE_ID, lat: 13.964139, lng: 100.587520 }),
     });
     if (invalidTokenRes.status !== 401) {
       throw new Error(`FAIL: invalid sender token returned ${invalidTokenRes.status}`);
     }
 
     const expiredToken = jwt.sign(
-      { kind: 'sender', sourceId: 'TS_ESP_01', vehicleId: 'VH001', credentialVersion: 1 },
+      { kind: 'sender', sourceId: ESP_SOURCE_ID, vehicleId: ESP_VEHICLE_ID, credentialVersion: 1 },
       process.env.JWT_SECRET,
       { expiresIn: -1 },
     );
@@ -108,7 +144,7 @@ async function testPipeline() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${expiredToken}`,
       },
-      body: JSON.stringify({ vehicleId: 'VH001' }),
+      body: JSON.stringify({ vehicleId: ESP_VEHICLE_ID }),
     });
     if (expiredTokenRes.status !== 401) {
       throw new Error(`FAIL: expired sender token returned ${expiredTokenRes.status}`);
@@ -120,7 +156,7 @@ async function testPipeline() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${espSenderToken}`,
       },
-      body: JSON.stringify({ sourceId: 'TS_MOB_01', lat: 13.964139, lng: 100.587520 }),
+      body: JSON.stringify({ sourceId: MOBILE_SOURCE_ID, lat: 13.964139, lng: 100.587520 }),
     });
     if (mismatchedSourceRes.status !== 403) {
       throw new Error(`FAIL: source ownership mismatch returned ${mismatchedSourceRes.status}`);
@@ -132,15 +168,15 @@ async function testPipeline() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${espSenderToken}`,
       },
-      body: JSON.stringify({ vehicleId: 'VH002' }),
+      body: JSON.stringify({ vehicleId: FOREIGN_MOBILE_VEHICLE_ID }),
     });
     if (mismatchedVehicleRes.status !== 403) {
       throw new Error(`FAIL: vehicle ownership mismatch returned ${mismatchedVehicleRes.status}`);
     }
 
-    const foreignSenderToken = await loginSender('TS_MOB_02', MOBILE_SECRET, 'VH002');
+    const foreignSenderToken = await loginSender(FOREIGN_MOBILE_SOURCE_ID, MOBILE_SECRET, FOREIGN_MOBILE_VEHICLE_ID);
     let foreignTrip = await prisma.trip.findFirst({
-      where: { vehicleId: 'VH002', status: 'in_progress' },
+      where: { vehicleId: FOREIGN_MOBILE_VEHICLE_ID, status: 'in_progress' },
       select: { id: true },
     });
     let createdForeignTrip = false;
@@ -151,11 +187,11 @@ async function testPipeline() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${foreignSenderToken}`,
         },
-        body: JSON.stringify({ vehicleId: 'VH002' }),
+        body: JSON.stringify({ vehicleId: FOREIGN_MOBILE_VEHICLE_ID }),
       });
       const foreignStartData = await foreignStartRes.json();
       if (!foreignStartRes.ok || !foreignStartData.trip?.id) {
-        throw new Error(`FAIL: could not create foreign trip fixture: ${JSON.stringify(foreignStartData)}`);
+        throw new Error(`FAIL: could not create foreign trip fixture (HTTP ${foreignStartRes.status})`);
       }
       foreignTrip = { id: foreignStartData.trip.id };
       createdForeignTrip = true;
@@ -203,7 +239,7 @@ async function testPipeline() {
         'Authorization': `Bearer ${espSenderToken}`,
       },
       body: JSON.stringify({
-        sourceId: 'TS_ESP_01',
+        sourceId: ESP_SOURCE_ID,
         lat: 13.964139,
         lng: 100.587520,
         speed: 5.5,
@@ -214,7 +250,11 @@ async function testPipeline() {
 
     const espData = await espRes.json();
     if (!espRes.ok) {
-      throw new Error(`ESP32 Ingestion failed: ${JSON.stringify(espData)}`);
+      throw new Error(`ESP32 Ingestion failed with status ${espRes.status}`);
+    }
+    assertSafeAcknowledgement('ESP32', espData);
+    if (espData.canonicalLocation.sourceType !== 'esp32') {
+      throw new Error(`FAIL: ESP32 acknowledgement selected ${espData.canonicalLocation.sourceType}`);
     }
     console.log('   🟢 ESP32 Ingestion status:', espRes.status);
     console.log('   🟢 Canonical Location selected:', espData.canonicalLocation.lat, espData.canonicalLocation.lng);
@@ -235,7 +275,7 @@ async function testPipeline() {
       },
       body: JSON.stringify({
         end_device_ids: {
-          device_id: 'TS_LORA_01',
+          device_id: TTN_DEVICE_ID,
           application_ids: {
             application_id: 'rsu-shuttle-app'
           }
@@ -255,7 +295,14 @@ async function testPipeline() {
 
     const ttnData = await ttnRes.json();
     if (!ttnRes.ok) {
-      throw new Error(`TTN Webhook failed: ${JSON.stringify(ttnData)}`);
+      throw new Error(`TTN Webhook failed with status ${ttnRes.status}`);
+    }
+    assertSafeAcknowledgement('TTN', ttnData);
+    if (
+      ttnData.canonicalLocation.sourceId !== TTN_DEVICE_ID ||
+      ttnData.canonicalLocation.sourceType !== 'lorawan'
+    ) {
+      throw new Error(`FAIL: TTN acknowledgement did not select ${TTN_DEVICE_ID} as lorawan source`);
     }
     console.log('   🟢 TTN Webhook status:', ttnRes.status);
     console.log('   🟢 Canonical Location selected:', ttnData.canonicalLocation.lat, ttnData.canonicalLocation.lng);
@@ -272,7 +319,7 @@ async function testPipeline() {
         'Authorization': `Bearer ${mobileSenderToken}`,
       },
       body: JSON.stringify({
-        sourceId: 'TS_MOB_01',
+        sourceId: MOBILE_SOURCE_ID,
         lat: 13.963993,
         lng: 100.587064,
         speed: 1.0,
@@ -283,7 +330,11 @@ async function testPipeline() {
 
     const mobData = await mobRes.json();
     if (!mobRes.ok) {
-      throw new Error(`Mobile Ingestion failed: ${JSON.stringify(mobData)}`);
+      throw new Error(`Mobile Ingestion failed with status ${mobRes.status}`);
+    }
+    assertSafeAcknowledgement('Mobile', mobData);
+    if (mobData.canonicalLocation.sourceId !== MOBILE_SOURCE_ID || mobData.canonicalLocation.sourceType !== 'mobile') {
+      throw new Error(`FAIL: Mobile acknowledgement did not select ${MOBILE_SOURCE_ID} as mobile source`);
     }
     console.log('   🟢 Mobile Ingestion status:', mobRes.status);
     console.log('   🟢 Selected Device Type:', mobData.canonicalLocation.sourceType);
@@ -293,11 +344,14 @@ async function testPipeline() {
     console.log('🔍 [Public API] Fetching active vehicles...');
     const vehRes = await fetch(`${BASE_URL}/public/active-vehicles`);
     const vehicles = await vehRes.json();
-    const vh001 = vehicles.find((v) => v.id === 'VH001');
-    console.log(`   🟢 VH001 Position in Public API: lat=${vh001.location?.lat}, lng=${vh001.location?.lng}`);
-    console.log(`   🟢 Sourced from: ${vh001.location?.sourceType} (Priority Winner)`);
-    if (vh001.location?.sourceType !== 'mobile') {
-      throw new Error('FAIL: Mobile should be the priority winner for VH001!');
+    const targetVehicle = vehicles.find((v) => v.id === MOBILE_VEHICLE_ID);
+    if (!targetVehicle) {
+      throw new Error(`FAIL: ${MOBILE_VEHICLE_ID} was not returned by the public API`);
+    }
+    console.log(`   🟢 ${MOBILE_VEHICLE_ID} Position in Public API: lat=${targetVehicle.location?.lat}, lng=${targetVehicle.location?.lng}`);
+    console.log(`   🟢 Sourced from: ${targetVehicle.location?.sourceType} (Priority Winner)`);
+    if (targetVehicle.location?.sourceType !== 'mobile') {
+      throw new Error(`FAIL: Mobile should be the priority winner for ${MOBILE_VEHICLE_ID}!`);
     }
     console.log('   ✅ Priority routing works correctly.\n');
 
@@ -312,8 +366,8 @@ async function testPipeline() {
     console.log('   🟢 Received Analytics Metrics:');
     console.log(JSON.stringify(analytics, null, 2));
     
-    const vh001Analytics = analytics.find(a => a.vehicleId === 'VH001');
-    if (!vh001Analytics || Object.keys(vh001Analytics.selectionCounts).length === 0) {
+    const targetVehicleAnalytics = analytics.find(a => a.vehicleId === MOBILE_VEHICLE_ID);
+    if (!targetVehicleAnalytics || Object.keys(targetVehicleAnalytics.selectionCounts).length === 0) {
       throw new Error('FAIL: Selection counters are empty!');
     }
     console.log('   ✅ Analytics logging successfully verified.\n');
@@ -323,11 +377,11 @@ async function testPipeline() {
     // ============================================
     console.log('🗄️ [Database] Verifying auto-created virtual trip...');
     const tripRes = await prisma.trip.findMany({
-      where: { vehicleId: 'VH001' },
+      where: { vehicleId: MOBILE_VEHICLE_ID },
       include: { gpsTracks: true }
     });
     
-    console.log(`   🟢 Database query returned ${tripRes.length} trips for VH001.`);
+    console.log(`   🟢 Database query returned ${tripRes.length} trips for ${MOBILE_VEHICLE_ID}.`);
     for (const trip of tripRes) {
       console.log(`   🟢 Trip ${trip.id}: startTime=${trip.startTime}, status=${trip.status}, tracksCount=${trip.gpsTracks.length}`);
     }

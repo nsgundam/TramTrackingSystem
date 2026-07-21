@@ -31,7 +31,7 @@ The fastest way to get everything running. One command sets up the entire stack 
 
 2. **Create your `.env` file** from the template:
    ```bash
-   cp .env.example .env
+   cp env.example .env
    ```
    Then edit `.env` and set your desired values:
    ```env

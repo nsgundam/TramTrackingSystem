@@ -1,17 +1,18 @@
-import dotenv from 'dotenv';
 import { io } from 'socket.io-client';
 import { jwtDecode } from 'jwt-decode';
 import fs from 'fs';
 import path from 'path';
-dotenv.config();
+import { fileURLToPath } from 'url';
 
-const API_URL = 'http://localhost:3001/api';
-const SOCKET_URL = 'http://localhost:3001';
-const VEHICLE_ID = 'VH001';
-const SOURCE_ID = 'TS_MOB_01';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// 🟢 ดึงค่าจาก ENV หรือใช้ค่า Seed Default ในกรณีที่ไม่ได้ตั้งค่าไว้
-const SOURCE_SECRET = process.env.TRACKING_SOURCE_SECRET_MOBILE || process.env.TRACKING_SOURCE_SECRET || 'mobile_secret_key';
+const rawBackendUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+const API_URL = rawBackendUrl.endsWith('/api') ? rawBackendUrl : `${rawBackendUrl}/api`;
+const SOCKET_URL = process.env.SOCKET_URL || API_URL.replace(/\/api\/?$/, '');
+const VEHICLE_ID = process.env.TRACKING_VEHICLE_ID_MOBILE || 'VH001';
+const SOURCE_ID = process.env.TRACKING_SOURCE_ID_MOBILE || 'TS_MOB_01';
+const SOURCE_SECRET = process.env.TRACKING_SOURCE_SECRET_MOBILE;
+const RUN_ONCE = process.argv.includes('--once');
 
 const STATIONS = [
   { id: 'ST001', lng: 100.587563, lat: 13.964772 },
@@ -86,7 +87,7 @@ function generateFineRoute(rawCoords, stepSizeMeters) {
 }
 
 // โหลดพิกัดเส้นทางจริงของสาย 1 (R01)
-const routePath = path.resolve('./public/data/route-R01.json');
+const routePath = path.resolve(__dirname, 'public/data/route-R01.json');
 const rawRouteCoords = JSON.parse(fs.readFileSync(routePath, 'utf8'));
 
 // สร้างเส้นทางที่มีพิกัดถี่ขึ้น (ห่างกันประมาณ 6 เมตรต่อก้าว)
@@ -125,7 +126,7 @@ function getBearing(startLat, startLng, destLat, destLng) {
 // ล็อกอินตรงๆ ด้วยสิทธิ์ Mobile Device เท่านั้น ไม่หลบไปใช้สิทธิ์อื่น
 async function loginSender() {
   if (!SOURCE_SECRET) {
-    throw new Error('TRACKING_SOURCE_SECRET_MOBILE is not defined in .env file');
+    throw new Error('TRACKING_SOURCE_SECRET_MOBILE is not set');
   }
 
   console.log(`🔐 Requesting Token for Mobile Sender (${SOURCE_ID})...`);
@@ -141,7 +142,7 @@ async function loginSender() {
 
   const data = await res.json();
   if (!res.ok || !data.token) {
-    throw new Error(`REST Login Rejected: ${JSON.stringify(data)}`);
+    throw new Error(`REST Login Rejected (HTTP ${res.status}): ${data.code || data.error || 'unknown error'}`);
   }
   console.log('✅ Mobile Token acquired successfully.');
   console.log('Token Claims:', jwtDecode(data.token));
@@ -204,12 +205,28 @@ async function runSimulation() {
     if (!tripId) tripId = null;
   } catch (err) {
     console.error('❌ Initialization Flow Broke:', err.message);
+    process.exitCode = 1;
     return;
   }
 
   console.log('🚀 Mobile Simulator Online! Streaming data via WebSocket...');
   
   let i = 0;
+  if (RUN_ONCE) {
+    const current = fineRouteCoords[0];
+    const next = fineRouteCoords[1 % fineRouteCoords.length];
+    const succeeded = await sendLocation(
+      current.lat,
+      current.lng,
+      22.0,
+      getBearing(current.lat, current.lng, next.lat, next.lng),
+      'En Route',
+    );
+    socket.disconnect();
+    if (!succeeded) process.exitCode = 1;
+    return;
+  }
+
   while (true) {
     const current = fineRouteCoords[i];
     const nextIdx = (i + 1) % fineRouteCoords.length;
@@ -239,7 +256,6 @@ async function sendLocation(lat, lng, speed, bearing, station) {
     }
 
     const payload = {
-      tripId,
       sourceId: SOURCE_ID,
       vehicleId: VEHICLE_ID,
       lat,
@@ -249,6 +265,7 @@ async function sendLocation(lat, lng, speed, bearing, station) {
       accuracy: 100,
       station
     };
+    if (tripId) payload.tripId = tripId;
 
     const response = await new Promise((resolve) => {
       socket.timeout(5000).emit('send-location', payload, (timeoutError, acknowledgement) => {
@@ -260,18 +277,37 @@ async function sendLocation(lat, lng, speed, bearing, station) {
       });
     });
 
-    if (!response || response.ok !== true) {
-      console.error('❌ Signal rejected by WS Node:', response);
+    if (!response || response.ok !== true || !response.canonicalLocation) {
+      const safeError = {
+        ok: response?.ok === true,
+        code: response?.code,
+        error: response?.error,
+        canonicalLocation: response?.canonicalLocation
+          ? {
+              vehicleId: response.canonicalLocation.vehicleId,
+              sourceId: response.canonicalLocation.sourceId,
+              sourceType: response.canonicalLocation.sourceType,
+            }
+          : undefined,
+      };
+      console.error('❌ Signal rejected by WS Node:', JSON.stringify(safeError));
       if (response?.code === 'SENDER_CREDENTIAL_INVALID' || response?.status === 401) {
         console.warn('⚠️ Token Session Expired. Re-authenticating...');
         await establishSocketConnection();
       }
-      return;
+      return false;
     }
 
+    console.log(
+      `✅ [Socket ACK] ok=true | vehicle=${response.canonicalLocation?.vehicleId || VEHICLE_ID}` +
+      ` | source=${response.canonicalLocation?.sourceId || SOURCE_ID}` +
+      ` | type=${response.canonicalLocation?.sourceType || 'unknown'}`,
+    );
     console.log(`📡 [WS Emit] Lat: ${lat.toFixed(6)} | Lng: ${lng.toFixed(6)} | Status: ${station}`);
+    return true;
   } catch (e) {
     console.error('❌ Emission Failure:', e.message);
+    return false;
   }
 }
 

@@ -233,6 +233,14 @@ Frontend simulator scripts, backend TTN simulator/pipeline test, seed data, envi
 
 Checked-in defaults match seed fixtures; documented mobile and TTN smoke commands pass on a disposable configured stack; failures reveal no secrets. Run Compose configuration validation and the smoke commands.
 
+### Status
+
+Complete.
+
+### Evidence
+
+Aligned environment-driven mobile/TTN simulators and pipeline fixtures; `docker compose --env-file env.example config --quiet` (development and production), backend build/tests, one-shot mobile Socket.IO smoke, one-shot TTN `sensor-c4`/`sensor-f2` smoke, full `test_pipeline.js`, and `git diff --check` passed on 2026-07-21. Smoke documentation: `docs/testing/pipeline-smoke-tests.md`.
+
 ### T4 — Automate current checks and emit minimum redacted signals
 
 ### Source Audit(s)
@@ -394,6 +402,10 @@ Production Readiness 3.3, 3.6; Database 4, 8–9, 12; Architecture 5, 9; Infrast
 ### Depends On
 
 T3, T6, and documented retention/deletion parameters.
+
+### Dependency Note
+
+T3 completed on 2026-07-21; seed-aligned mobile/ESP32/LoRaWAN fixture IDs and repeatable mobile/TTN pipeline smoke commands are documented. No schema or migration change was introduced.
 
 ### Blocks
 

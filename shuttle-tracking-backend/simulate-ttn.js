@@ -12,12 +12,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BACKEND_PORT = process.env.PORT || 3001;
 const rawApiUrl = process.env.API_URL || `http://localhost:${BACKEND_PORT}`;
 const BASE_URL = rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl}/api`;
-const TTN_WEBHOOK_SECRET = process.env.TTN_WEBHOOK_SECRET || 'LoRawanSecret';
+const TTN_WEBHOOK_SECRET = process.env.TTN_WEBHOOK_SECRET;
 
 // Presets for devices and routes
 const DEVICE_PRESETS = {
-  TS_LORA_N2: {
-    id: 'TS_LORA_N2',
+  'sensor-f2': {
+    id: 'sensor-f2',
     vehicleId: 'VN002',
     routeName: 'R02 (สถานีรถไฟ-มหาลัย)',
     routeFile: '../shuttle-tracking-web/public/data/route-R02.json',
@@ -113,9 +113,9 @@ const DEVICE_PRESETS = {
       [13.964994, 100.588582]
     ]
   },
-  TS_LORA_01: {
-    id: 'TS_LORA_01',
-    vehicleId: 'VH002',
+  'sensor-c4': {
+    id: 'sensor-c4',
+    vehicleId: 'VH003',
     routeName: 'R01 (วนภายในมหาลัย)',
     routeFile: '../shuttle-tracking-web/public/data/route-R01.json',
     defaultSpeed: 10,
@@ -159,13 +159,19 @@ async function runSimulator() {
 
   // Parse command line arguments
   const args = process.argv.slice(2);
-  const targetDeviceKey = args[0] || 'TS_LORA_01';
-  const intervalMs = parseInt(args[1] || '3000', 10);
+  const targetDeviceKey = args.find((arg) => !arg.startsWith('--')) || process.env.TTN_DEVICE_ID || 'sensor-c4';
+  const intervalArg = args.find((arg) => /^\d+$/.test(arg));
+  const intervalMs = parseInt(intervalArg || '3000', 10);
+  const runOnce = args.includes('--once');
+
+  if (!TTN_WEBHOOK_SECRET) {
+    throw new Error('TTN_WEBHOOK_SECRET is not set');
+  }
 
   const config = DEVICE_PRESETS[targetDeviceKey];
 
   if (!config) {
-    console.error(`❌ Unknown device "${targetDeviceKey}". Choose from: TS_LORA_N2, TS_LORA_01`);
+    console.error(`❌ Unknown device "${targetDeviceKey}". Choose from: sensor-c4, sensor-f2`);
     process.exit(1);
   }
 
@@ -250,13 +256,43 @@ async function runSimulator() {
         resJson = { raw: resText };
       }
 
+      const safeResponse = {
+        message: typeof resJson.message === 'string' ? resJson.message : undefined,
+        code: typeof resJson.code === 'string' ? resJson.code : undefined,
+        canonicalLocation: resJson.canonicalLocation
+          ? {
+              vehicleId: resJson.canonicalLocation.vehicleId,
+              sourceId: resJson.canonicalLocation.sourceId,
+              sourceType: resJson.canonicalLocation.sourceType,
+            }
+          : undefined,
+      };
+
       if (response.ok) {
-        console.log(`   🟢 Success (HTTP ${response.status}):`, resJson.message || 'Processed');
+        if (
+          runOnce &&
+          (safeResponse.canonicalLocation?.sourceId !== config.id ||
+            safeResponse.canonicalLocation?.sourceType !== 'lorawan')
+        ) {
+          console.error(`   🔴 Failed: canonical response did not select ${config.id} as lorawan source`);
+          process.exitCode = 1;
+          break;
+        }
+        console.log(`   🟢 Success (HTTP ${response.status}):`, JSON.stringify(safeResponse));
       } else {
-        console.error(`   🔴 Failed (HTTP ${response.status}):`, resJson);
+        console.error(`   🔴 Failed (HTTP ${response.status}):`, JSON.stringify(safeResponse));
+      }
+
+      if (runOnce) {
+        if (!response.ok) process.exitCode = 1;
+        break;
       }
     } catch (err) {
       console.error(`   ❌ Connection Error:`, err.message);
+      if (runOnce) {
+        process.exitCode = 1;
+        break;
+      }
     }
 
     console.log(`----------------------------------------`);
