@@ -4,9 +4,9 @@ Last updated: 2026-07-22
 
 | Phase | Status | Report / evidence | Legacy report commit | Last reviewed | Notes |
 |---|---|---|---|---|---|
-| Discovery | Needs Re-audit | `docs/project-knowledge-base.md` | `f651da5` | 2026-07-18 | Predates T5 and lacks the new evidence-baseline metadata. Refresh first. |
-| Product | Needs Re-audit | `docs/audits/product-audit.md` | `59a996f` | 2026-07-19 | Legacy report lacks baseline/predecessor metadata; revalidate after Discovery. |
-| Architecture | Needs Re-audit | `docs/audits/architecture-audit.md` | `f0bd2e7` | 2026-07-19 | T5 changed lifecycle behavior and this report uses superseded roadmap numbering. |
+| Discovery | Complete | `docs/project-knowledge-base.md` | `f651da5` | 2026-07-22 | Validated at baseline `847a18cce9bc27c82b2622dbc176b3a89bc4d037`; Product is next eligible. |
+| Product | Complete | `docs/audits/product-audit.md` | `59a996f` | 2026-07-22 | Validated at baseline `847a18cce9bc27c82b2622dbc176b3a89bc4d037` with Discovery predecessor; Architecture is next eligible. |
+| Architecture | Needs Re-audit | `docs/audits/architecture-audit.md` | `f0bd2e7` | 2026-07-19 | Revalidate after Product; T5 changed lifecycle behavior and this report uses superseded roadmap numbering. |
 | Backend | Needs Re-audit | `docs/audits/backend-audit.md` | `565c58c` | 2026-07-22 | Re-audited after T4 but before the completed T5 lifecycle boundary. |
 | Frontend | Needs Re-audit | `docs/audits/frontend-audit.md` | `e566cca` | 2026-07-19 | Legacy report lacks baseline/predecessor metadata; revalidate after Architecture. |
 | Database | Needs Re-audit | `docs/audits/database-audit.md` | `85fe892` | 2026-07-19 | T5 added transactional lifecycle behavior and integrity checks after this review. |

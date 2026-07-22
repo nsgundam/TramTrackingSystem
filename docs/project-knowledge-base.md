@@ -1,14 +1,20 @@
 # Tram Tracking System Project Knowledge Base
 
-Evidence status: **Needs Refresh**. This legacy discovery snapshot predates the completed T5
-lifecycle boundary and does not yet contain the evidence-baseline metadata required by the current
-audit contract. Use `docs/audits/README.md` as the coordination authority.
+Audit metadata:
+- Evidence baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
+- Evidence scope: `README.md`, `AGENTS.md`, `env.example`, `docker-compose.yml`, `docker-compose.prod.yml`, `docker/`, `scripts/`, `shuttle-tracking-backend/`, `shuttle-tracking-web/`, `docs/testing/`, `docs/research/`, and `docs/audits/README.md`
+- Reviewed at: `2026-07-22T16:13:25+07:00`
+- Validation state: `Validated`
+- Predecessor baselines: `None` (Discovery has no required predecessor)
 
-Discovery refresh: 2026-07-18
+Evidence status: **Validated**. This discovery refresh re-baselines the repository after T5 and
+records the current evidence contract. Use `docs/audits/README.md` as the coordination authority.
+
+Discovery refresh: 2026-07-22
 
 This document describes the current repository state from source code, configuration, schema,
-migrations, seed data, and repository documentation. It is a discovery artifact, not an audit or
-recommendation report.
+migrations, seed data, tests, and repository documentation. It is the Level 1 Discovery profile
+output and does not make owner-controlled product, retention, deployment, or hardware decisions.
 
 ## Executive Summary
 
@@ -27,12 +33,17 @@ The current implementation contains:
 - REST ingestion for authenticated mobile/ESP32-style senders and an authenticated TTN webhook.
 - Socket.IO sender ingestion with short-lived sender JWTs and per-write revalidation.
 - Canonical vehicle location selection by active source priority and a 30-second freshness window.
+- A transactional Operations/Trip service for explicit start, virtual-trip creation, active-trip
+  validation, idempotent end, and sampled canonical-history writes; the database also validates trip
+  status/time relationships.
 - Docker Compose development and production-mode container configurations.
 
 The repository directly evidences these user groups:
 
 - Public users who view routes, stops, vehicles, ETA, location, and submit feedback.
-- Admin users who manage vehicles, routes, stops, and tracking sources.
+- Admin users who manage vehicles, routes, stops, and tracking-source registrations through the
+  authenticated backend; the current frontend exposes vehicle, route, and stop pages but not a
+  device/source page.
 - External senders such as mobile applications, ESP32 devices, and simulators that authenticate and
   submit location observations.
 - TTN/LoRaWAN webhook senders that submit location payloads through the server-side webhook route.
@@ -41,6 +52,31 @@ The declared project stage is MVP. The Level 1 contract in
 `agents/level-1-audit/AGENT.md` targets evidence-based progression toward a
 production-ready system. A complete mobile application, ESP32 firmware, and deployed TTN provider
 configuration are not present in this repository.
+
+## Freshness and Validation Summary
+
+The legacy baseline was `f651da5`. Changed evidence was compared through `HEAD`; the refresh
+covered the T5 transaction/migration, sender and ingestion boundaries, simulator/seed fixtures,
+frontend map and origin handling, Compose/startup configuration, tests, and research/testing
+documentation. These changes could affect lifecycle, source identity, data flow, deployment, and
+research claims, so the full Discovery inventory was revalidated rather than selectively copied.
+
+Static validation completed for this refresh: agent-workflow validation, backend build and boundary
+tests, Prisma schema validation, frontend lint, development/production Compose parsing, and
+`git diff --check`. No database/Redis migration or live device/provider/browser session was run in
+this refresh; the T5 integration test remains evidence that requires an explicitly configured
+disposable Postgres/Redis target.
+
+### Prior-finding revalidation
+
+| Prior material finding | State | Current evidence |
+|---|---|---|
+| Discovery metadata and baseline were incomplete | **Resolved** | This report now records the full baseline, scope, reviewed time, validation state, and predecessor baseline. |
+| Trip lifecycle had competing non-transactional writers | **Resolved** | `shuttle-tracking-backend/src/services/operations.service.ts`, the T5 migration, and `test_t5_operations.js` define one transactional/idempotent boundary; live integration was not rerun here. |
+| Simulator and seed source fixtures diverged | **Resolved** | `env.example`, `prisma/seed.js`, `shuttle-tracking-web/simulate.js`, `shuttle-tracking-backend/simulate-ttn.js`, and `docs/testing/pipeline-smoke-tests.md` use aligned source/vehicle mappings. |
+| Raw observations, event-time ordering, and high-fidelity history are absent | **Still Present** | Redis retains one latest snapshot per source and Postgres stores sampled canonical `gps_tracks`; no event-time/sequence/raw-observation model is present. |
+| Public/admin stale or offline truth is not exposed as a user-facing contract | **Still Present** | Backend source-health sweep emits operational signals, but no public/admin health endpoint or freshness UI is evidenced. |
+| Physical sender, firmware, TTN deployment, and production topology are unavailable | **Still Present** | Only backend contracts, simulators, Compose files, and documentation are in the repository. |
 
 ## Project Overview
 
@@ -82,7 +118,8 @@ broadcasts that canonical result, and periodically persists canonical history to
 
 - Public tracking page at `/`.
 - Leaflet map centered on the university area.
-- Route selection for `R01` and `R02` in the current public tracker.
+- Route selection from active routes returned by the public API; the development seed exposes
+  `R01` and `R02` while `R03` is inactive.
 - Route stop loading from `GET /api/public/routes/:id/stops`.
 - Local route geometry files for `R01` and `R02`.
 - OSRM route geometry fallback when local route data or local cache is unavailable.
@@ -342,8 +379,8 @@ indexes.
 1. A source authenticates through `/api/auth/vehicle-login` when the source is mobile, ESP32, or a
    simulator.
 2. The source starts a trip through `/api/trips/start`, or a later accepted observation can cause
-   the tracking service to create a virtual daily trip for a routed vehicle when no active trip is
-   found.
+   the transactional Operations/Trip service to create a virtual trip for a routed vehicle when no
+   active trip is found.
 3. The source sends an observation through `/api/ingest/http` or Socket.IO `send-location`.
 4. The backend validates source ownership, coordinates, and optional trip ownership.
 5. The pipeline records the latest source snapshot in Redis and evaluates other active sources for
@@ -352,8 +389,8 @@ indexes.
 7. The backend stores that canonical location in Redis and may sample it into `gps_tracks`.
 8. The ingestion boundary emits `location-update` to all connected Socket.IO clients.
 9. The public tracker and admin live map update the corresponding vehicle marker.
-10. A sender can end the trip through `/api/trips/:id/end`, which marks the trip completed, marks the
-    vehicle inactive, and clears the trip throttle key.
+10. A sender can end the trip through `/api/trips/:id/end`; the Operations/Trip transaction marks
+    the trip completed and vehicle inactive, while the controller clears the Redis sampling keys.
 
 ### TTN / LoRaWAN Flow
 
@@ -373,8 +410,8 @@ indexes.
 4. Admin pages call protected CRUD APIs for vehicles, routes, and stops.
 5. Admin device APIs maintain `TrackingSource` registration, source assignment, priority, status,
    and secret rotation.
-6. Route, stop, and vehicle mutations call public cache invalidation; device mutations are handled
-   through the device controller.
+6. Route, stop, and vehicle mutations call public cache invalidation; route-stop mutations do not
+   call that invalidation helper; device mutations are handled through the device controller.
 
 ### Feedback Flow
 
@@ -427,7 +464,8 @@ stop order pair. Seed data maps the campus stops to `R01` and `R02`.
 ### Trip
 
 Operational trip for a vehicle and route with start time, optional end time, status, and related
-GPS tracks. Current code uses `in_progress` and `completed` statuses in the sender lifecycle.
+GPS tracks. Current code uses `in_progress` and `completed` statuses; SQL checks enforce the
+status/end-time relationship and the Operations/Trip service serializes lifecycle writes per vehicle.
 
 ### GPSTrack
 
@@ -484,8 +522,8 @@ All paths below are relative to the backend host, with REST routes under `/api` 
 - `GET /api/public/active-routes`: active routes, cached in Redis.
 - `GET /api/public/active-vehicles`: active vehicles with route and current canonical location
   snapshot from Redis.
-- `GET /api/public/routes/:id/stops`: active stops for a route with coordinates and stop order,
-  cached per route.
+- `GET /api/public/routes/:id/stops`: active stops for the requested route with coordinates and stop
+  order, cached per route; the handler does not independently verify that the route itself is active.
 - `GET /api/public/stops`: active stops with coordinates, cached in Redis.
 - `POST /api/public/feedback`: validates and creates public feedback for a vehicle.
 
@@ -540,7 +578,8 @@ selection counters grouped by vehicle. The current endpoint does not expose an a
 - `POST /api/trips/start`: sender-authenticated start for the sender-bound vehicle; requires an
   assigned route and sets vehicle status to active.
 - `PUT /api/trips/:id/end`: sender-authenticated completion for a trip belonging to the sender's
-  vehicle; sets the vehicle inactive and clears the GPS throttle key.
+  vehicle; the transaction sets the trip completed and vehicle inactive, then the controller clears
+  the Redis sampling keys.
 
 ### Sender HTTP Ingestion
 
@@ -680,8 +719,12 @@ These are repository-state descriptions, not quality or security findings.
 - The current canonical observation timestamp is generated when the backend receives/processes the
   observation; no incoming event-time or sequence field is handled by the current observation
   interface.
-- Source freshness is represented by a 30-second helper/classifier and selection check. A source
-  health helper exists, but no dedicated health REST response or device-health dashboard was found.
+- Source freshness is represented by a 30-second helper/classifier and selection check. The backend
+  source-health sweep emits redacted stale/recovery signals, but no dedicated health REST response,
+  public/admin freshness UI, or device-health dashboard was found.
+- Route-stop writes are available through authenticated APIs but do not invalidate the cached public
+  route-stop responses, so a route-stop mutation can remain stale until the five-minute cache TTL
+  expires or another invalidation clears it.
 - No trip-history, playback, reporting, notification, or alert route/page was found.
 - No OpenAPI/Swagger contract was found.
 - Test artifacts exist for sender claims, Socket.IO boundary, and an integration pipeline, but the
@@ -690,9 +733,8 @@ These are repository-state descriptions, not quality or security findings.
 - The root README still documents `admin`/`transport` with `admin123`, while the current seed code
   requires `SEED_ADMIN_PASSWORD` and has no built-in password. The intended credential setup needs
   confirmation.
-- The TTN simulator presets use IDs such as `TS_LORA_01` and `TS_LORA_N2`, while the current seed
-  data creates LoRaWAN sources named `sensor-c4` and `sensor-f2`. The intended mapping between these
-  fixtures needs confirmation.
+- The current checked-in TTN simulator and smoke documentation use the seeded LoRaWAN IDs
+  `sensor-c4` and `sensor-f2`; any deployed TTN registry still requires external verification.
 
 ## Missing Information
 
@@ -718,8 +760,40 @@ fully compare intended behavior with implementation:
 - Intended trip history, playback, reports, notifications, alerts, and announcements scope.
 - Formal REST and WebSocket request/response contract, including error semantics and versioning.
 - Confirmation of the credential setup documented in the root README versus the current seed flow.
-- Confirmation of whether current TTN simulator IDs should be changed to the current seeded source
-  IDs or whether a separate fixture set is expected.
+- Confirmation that deployed TTN device identifiers match the checked-in `sensor-c4` and `sensor-f2`
+  mappings.
+
+## Actionable Recommendations
+
+- Run the Product profile next. It can now consume this validated Discovery baseline and should test
+  rider, operator, sender, developer/researcher, and external-provider journeys against truthful
+  loading, empty, stale, failure, recovery, and permission states.
+- Revalidate Architecture, Backend, and Database against the T5 Operations/Trip boundary before
+  treating lifecycle integrity as a release capability; this Discovery report does not replace their
+  domain findings or live integration evidence.
+- Keep the three research boundaries separate in all later work: Mobile/Socket.IO, ESP32+GPS/Wi-Fi/
+  HTTP, and independent LoRaWAN/Gateway/TTN/Webhook. Simulators remain test tools, not physical
+  evidence.
+- Keep raw-observation retention, public stale-state behavior, feedback workflow, deployment
+  topology, and hardware/provider choices in the owner decision queue rather than inferring them
+  from source code.
+
+## Roadmap Impact
+
+- Discovery is validated and unblocks the Product profile; no later profile may consume the prior
+  legacy Discovery snapshot.
+- T5 lifecycle facts are now part of the current baseline. Downstream audits must revalidate the
+  transaction, partial active-trip index, status/time constraints, idempotent start/end behavior,
+  and virtual-trip policy before confirming or closing related findings.
+- Existing approved decisions D-001 through D-004 remain applicable. The refresh adds no new owner
+  decision and does not authorize implementation of a roadmap task.
+
+## Proposed Owner Decisions
+
+No new owner decision is proposed by Discovery. Existing decisions on controlled MVP scope, bounded
+raw diagnostics, topology/origin order, and three-device research scope should be carried forward;
+the unresolved parameters in “Missing Information” remain pending where they are not covered by an
+approved decision.
 
 ## Assumptions
 
@@ -737,7 +811,8 @@ No unsupported business or deployment assumptions are used as facts.
 
 ## Audit Readiness
 
-Ready for Product Audit Agent.
+Validated and ready for Product Audit Agent. Product is the next eligible profile in the canonical
+predecessor order.
 
 The current repository behavior, multi-source tracking boundary, data model, APIs, frontend
 features, deployment files, simulators, tests, and open information gaps are documented from
@@ -842,4 +917,4 @@ See “Known Limitations From Available Evidence” and “Missing Information�
 
 ## Handoff Recommendation
 
-Next recommended agent: Product Audit Agent.
+Next recommended profile: Product Audit.
