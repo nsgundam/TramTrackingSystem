@@ -1,314 +1,170 @@
 # Infrastructure & Device Audit: Tram Tracking System
 
-Validation status: **Needs Re-audit**. This legacy report lacks the complete predecessor-baseline
-metadata required by the current audit contract.
+Audit metadata:
 
-Re-audited: 2026-07-22
+- Evidence baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
+- Evidence scope: `docs/project-knowledge-base.md`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, `docs/testing/pipeline-smoke-tests.md`, `docs/testing/ci-checks.md`, `docs/roadmap/master-refactoring-roadmap.md`, `README.md`, `env.example`, `docker-compose.yml`, `docker-compose.prod.yml`, `docker/init-postgis.sh`, `shuttle-tracking-backend/Dockerfile`, `shuttle-tracking-backend/docker-entrypoint.sh`, `shuttle-tracking-backend/prisma/seed.js`, `shuttle-tracking-backend/simulate-ttn.js`, `shuttle-tracking-backend/test_pipeline.js`, `shuttle-tracking-web/Dockerfile`, `shuttle-tracking-web/simulate.js`, `shuttle-tracking-web/simulate-manual.js`, `shuttle-tracking-web/next.config.ts`, `shuttle-tracking-backend/src/server.ts`, and `shuttle-tracking-backend/src/routes/ingest.route.ts`.
+- Reviewed at: `2026-07-22T21:35:07+07:00`
+- Validation state: **Validated**
+- Predecessor baselines: Backend, Frontend, and Database, each `@ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`; Discovery, Product, and Architecture are also current at this baseline.
+- Legacy report commit: `565c58c`
 
 ## 1. Executive Summary
 
-The repository now has a credible production-mode self-hosted Compose configuration: multi-stage production images, compiled backend/frontend commands, production secret checks, migration-before-start, named volumes, restart policies, and backend health/readiness endpoints. T3 also repaired the checked-in mobile/TTN fixture contract and added repeatable pipeline smoke documentation.
+The repository provides a credible self-hosted Compose foundation for the approved controlled demonstration. Development Compose runs PostGIS, Redis, backend, and frontend with dependency health checks; production targets build compiled backend/Next images, run migrations before startup, disable seed in non-development mode, require production JWT/TTN secrets, and use named data volumes. T3 also aligns simulator/seed fixtures and documents repeatable mobile, ESP32-style HTTP, TTN webhook, and full pipeline smoke commands.
 
-It is not proof of a deployed production service. The repository contains no actual host, domain, TLS/reverse proxy, provider topology, backup/restore owner, log destination, TTN console/device registry, mobile application, or ESP32 firmware/hardware contract. T4 operational signals are allowlisted best-effort process logs, not durable metrics or alerts.
+This is not evidence of a deployed production service or physical device integration. No host, domain, TLS/reverse proxy, managed database/cache, backup/restore process, monitoring destination, TTN application/device registration, mobile application, or ESP32 firmware/hardware contract is present. Production Compose still exposes PostgreSQL and Redis host ports, has no backend/frontend healthchecks, uses localhost origin defaults, and has no documented recovery/operations owner. Those are release-blocking infrastructure facts for daily/public operation, not reasons to redesign the controlled MVP.
 
-Device boundaries are stronger: source-bound mobile/ESP32-style HTTP and Socket.IO ingestion, plus an authenticated TTN webhook, all use the canonical pipeline. T3 now makes simulator defaults environment-driven and seed-aligned, and the smoke suite exercises authentication, canonical selection, TTN handling, source priority, and safe acknowledgements. Physical device/provider integration remains unverified.
+The fixed research boundaries remain: Mobile phone GPS through authenticated Socket.IO; a separate ESP32 plus GPS module through Wi-Fi/authenticated HTTP; and a separate LoRaWAN device through gateway, TTN, and authenticated webhook. Simulators validate server boundaries only and cannot prove device, radio, provider, clock, battery, coverage, or field performance.
 
-## Scope, Evidence, and Re-audit Status
+## 2. Scope, Freshness, and Predecessor Gate
 
-Reviewed the Knowledge Base; current Product, Architecture, Backend, and Database reports; prior Infrastructure & Device report; Compose files; Dockerfiles; entrypoint; PostGIS init; env templates; roadmap T3 evidence; documentation; simulators; tests; and current server/ingest boundaries. The roadmap records passing development/production Compose validation, backend checks, frontend lint/build, mobile/TTN smoke, full pipeline evidence, and `git diff --check` on 2026-07-21. In this re-audit, the backend/Prisma/boundary checks passed and frontend lint had six warnings with no errors; the frontend production build could not fetch Google Fonts because this environment could not reach `fonts.googleapis.com`. These claims are repository-recorded or local-check evidence; no live deployment was available in this re-audit.
+This review covers Compose topology, image targets, startup/migration/seed behavior, environment and origin configuration, container health/dependency ordering, local smoke evidence, and the three distinct device/provider boundaries. It excludes security hardening severity, detailed observability design, hardware selection, provider account configuration, and runtime field performance except where their absence is an infrastructure readiness finding.
 
-No running deployment, provider account, DNS/TLS configuration, managed database/cache, TTN application, hardware, mobile app, or firmware was available. Those matters are marked unavailable rather than inferred.
+Backend, Frontend, and Database are Complete and Validated at the same evidence baseline, so the Infrastructure & Device predecessor gate passes. Since the legacy report, current evidence includes T5 lifecycle integration, the T3 fixture/smoke contract, T4 CI checks and operational signals, the approved D-002/D-004 research scope, and current production Compose/Docker behavior. Current uncommitted changes are audit documentation only.
 
-| Prior finding | Re-audit status | Current evidence |
+The repository records Compose parsing and CI/build evidence. No running stack, production deployment, physical source, provider console, or network-failure experiment was observed in this re-audit, so those findings remain `Unable to Verify` rather than being inferred from configuration.
+
+## 3. Prior-Finding Revalidation
+
+| Prior finding | State | Current evidence and implication |
 |---|---|---|
-| Docker images were development-only | **Resolved** | Production targets run compiled backend code and next start; production Compose selects them. |
-| Health/readiness was missing | **Resolved** | Backend exposes health and dependency-checking ready endpoints. |
-| Production startup/configuration was incomplete | **Partially Resolved** | Compose requires core secrets, uses restart policies, production targets, and migration-before-start; host/TLS/backups/log operations remain undocumented. |
-| Vercel/Render/Neon deployment was missing | **Unable to Verify** | No current provider target/config is documented; historical report claims are not current repository evidence. |
-| Source registry/ingestion boundary was incomplete | **Resolved** | Source lifecycle, sender token binding, HTTP ingestion, TTN secret boundary, rate limits, and canonical selection exist. |
-| Server-side TTN adapter was missing | **Resolved** | The TTN endpoint accepts documented payload shapes and uses the canonical pipeline. |
-| ESP32 needed a normalized contract | **Partially Resolved** | Authenticated HTTP ingestion is usable, but no firmware, transport choice, or provisioning evidence exists. |
-| Real mobile/device workflow was absent | **Still Present** | Only Node simulators are in the repository. |
-| Simulator fixtures align with registry | **Resolved** | T3 makes mobile/TTN IDs and secrets environment-driven, aligns defaults/documentation with seed fixtures, and adds repeatable smoke commands. |
-| Repeatable device-pipeline evidence was missing | **Resolved** | T3 smoke documentation and `test_pipeline.js` cover mobile, ESP32-style HTTP, TTN, priority selection, history, and safe acknowledgements. |
-| Operational signals and CI gates were missing | **Partially Resolved** | T4 adds CI checks, request IDs, allowlisted signals, redaction, suppression, and source-health sweep; signals remain process-local/best-effort and not alerting. |
+| Docker images were development-only | **Resolved** | Backend and frontend Dockerfiles have development and production targets; production runs compiled backend code and `next start` without development source mounts. |
+| Health/readiness was missing | **Resolved** | Backend exposes `/health` and dependency-checking `/ready`; development DB/Redis have Compose healthchecks and backend waits for both. |
+| Production startup/configuration was incomplete | **Partially Resolved** | Production secrets, migration-before-start, seed-disabled behavior, restart policies, and production targets exist; origins, TLS, backup/restore, Redis policy, logs, alerts, and operations ownership remain undocumented. |
+| Vercel/Render/Neon deployment was missing | **Unable to Verify** | No current provider target or deployed topology is documented; no provider claim is accepted from historical text. |
+| Source registry/ingestion boundary was incomplete | **Resolved** | Source lifecycle, sender token binding, HTTP ingestion, TTN webhook secret boundary, rate limits, and canonical selection exist in the current backend. |
+| Server-side TTN adapter was missing | **Resolved** | `/api/ingest/ttn` decodes supported payload shapes, checks the webhook secret, requires a registered LoRaWAN source, and enters the shared canonical pipeline. |
+| ESP32 needed a normalized contract | **Partially Resolved** | Authenticated HTTP and observation schema provide a usable server adapter; no firmware, GPS module, provisioning, retry, offline, power, or network evidence exists. |
+| Real mobile/device workflow was absent | **Still Present** | Repository clients are Node simulators; no supported mobile app, background-location permissions, OS-throttling behavior, or physical device contract is present. |
+| Simulator fixtures aligned with registry | **Resolved** | `env.example`, `prisma/seed.js`, `simulate.js`, `simulate-ttn.js`, and `test_pipeline.js` use environment-driven, seed-aligned source/device mappings and local-only secrets. |
+| Repeatable device-pipeline evidence was missing | **Resolved** | Smoke documentation and `test_pipeline.js` cover authenticated negative paths, ESP32-style HTTP, TTN webhook, mobile sender flow, priority selection, history/analytics, and safe acknowledgements on a configured disposable stack. |
+| Operational signals and CI gates were missing | **Partially Resolved** | CI runs backend/frontend/Prisma/Compose/log-safety checks; request IDs and allowlisted signals cover startup/readiness/ingestion/staleness/history failures. Signals are best-effort process logs, not durable metrics or alerts. |
+| Production service boundaries were not health-gated | **New Finding** | Production Compose has DB/Redis healthchecks but no backend/frontend healthchecks; frontend depends only on backend container start, not `/ready`. DB and Redis are also host-published in the production file. |
 
-## 2. Current Infrastructure Overview
+## 4. Current Topology Review
 
-Development Compose runs PostGIS, Redis, backend, and frontend with source mounts. DB/Redis have health checks and backend waits for both; the runtime is nodemon plus Next development server.
-
-Production Compose uses the same self-hosted four-service topology with production Docker targets. The backend validates production secrets, runs Prisma migrations, disables development seed, then starts compiled code. Frontend receives its API base URL at build time and runs next start. Postgres and Redis remain host-exposed containers backed by named volumes.
-
-## 3. Infrastructure Strengths
-
-- Compose validation passes for development and production-mode files.
-- DB/Redis health checks, dependency ordering, backend readiness, and restart policies are present.
-- Dockerfiles use npm ci and separate development/production targets without source mounts in production.
-- PostGIS initialization and migrations are automated; production seed is disabled.
-- Production entrypoint validates JWT/TTN secret presence/defaults and rejects identical secrets.
-- Redis adapter supports Socket.IO fan-out across backend processes.
-
-## 4. Critical Infrastructure Issues
-
-### High — Production Compose is not a complete operating environment
-
-The file describes one self-hosted container topology but not its public host, domain, TLS/reverse proxy, public origins, backup/restore, Redis persistence/eviction policy, log shipping, alerts, or operations ownership. Public values default to localhost when not supplied.
-
-Impact: production-mode images may still fail to connect publicly or be difficult to recover and operate after deployment.
-
-Recommendation: before a public/daily release, document one topology with frontend/backend origins, TLS terminator, service ownership, backups/restores, Redis policy, health probes, migration runbook, and incident log location. D-003 already governs configuration/origin sequence.
-
-Priority: High before production. Difficulty: Medium.
-
-### High — T3 evidence is local/pilot evidence, not provider evidence
-
-T3 now proves the configured local pipeline, but the evidence is based on simulators and a disposable stack. The repository still has no live TTN application/device registration, webhook registration, mobile application, ESP32 firmware, or deployed provider endpoint.
-
-Impact: sender authentication and canonical selection can be repeatably tested in development, but real uplink delivery, reconnect behavior, device clocks, network failures, and provider payload variations remain unverified.
-
-Recommendation: retain the current smoke contract, then run the same checks against a disposable deployed environment and a real TTN test device before claiming physical integration.
-
-Priority: Medium now; High before physical pilot. Difficulty: Medium.
-
-### Medium — Runtime device and provider evidence is unavailable
-
-No TTN application/device registry, decoder ownership, public webhook registration, ESP32 firmware, hardware/network choice, provisioning procedure, or real mobile app is present.
-
-Impact: server code proves boundaries, not real device connectivity or delivery behavior.
-
-Recommendation: retain the current server adapters and collect a minimal physical-sender contract before hardware rollout. Do not choose MQTT, direct browser delivery, or an ESP32 stack by guesswork.
-
-Priority: Medium now; High before physical pilot. Difficulty: Medium.
-
-## 5. Local/Dev vs. Production Gap Analysis
-
-| Area | Current production-mode evidence | Gap |
+| Environment | Current topology | Assessment |
 |---|---|---|
-| Runtime | Compiled Node backend and Next start | Actual host and deployed runtime unobserved. |
-| Data/cache | Named volumes | Backup/restore and Redis persistence/eviction not documented. |
-| Startup | Required secrets, migrations, restart policies | No rollback/runbook or Compose health probe for backend/frontend. |
-| Networking | Configurable origins and ports | Domain, TLS, proxy, firewall, and true CORS/Socket values unknown. |
-| Operations | Container console logs | No aggregation, alerting, or ownership evidence. |
+| Development | PostGIS + Redis + backend + frontend; source mounts; nodemon/Next dev; named volumes; DB/Redis healthchecks; backend waits for healthy dependencies | Appropriate for local controlled testing. Defaults and seeded data must remain local-only. |
+| Production mode | Same four-service self-hosted topology; compiled backend/Next targets; named volumes; restart `always`; backend migration/secret entrypoint; no seed | Useful template, not a public deployment plan. Host exposure, proxy/TLS, backup, monitoring, and health-gated rollout are open. |
+| External sender | Mobile/ESP32 sender to backend origin; TTN device to gateway/provider then backend webhook | Server boundary is defined; external origin, routing, provider, and device facts are unavailable. |
 
-This configuration can be a controlled self-hosted base after these operations facts are supplied. It is not evidence for an unspecified managed/provider deployment.
+The Compose files use container names and host ports `5432`, `6379`, `3001`, and `3000`. Production DB and Redis are therefore reachable through host-published ports unless an external firewall/network policy restricts them. No internal-only network, resource limit, read-only filesystem, explicit Redis authentication, eviction policy, or provider-managed persistence contract is defined. Detailed secret and hardening decisions remain for Security/DevOps, but the topology must be corrected or explicitly protected before production.
 
-## 6. Current Device Ingestion Review (Mobile)
+## 5. Image, Startup, and Migration Review
 
-The Node simulator logs in as a sender, starts a trip, connects Socket.IO with its sender token, and sends source/vehicle/trip, coordinates, speed, bearing, accuracy, and station. Server-side writes revalidate source/vehicle/credential claims and acknowledge only the canonical outcome.
+Backend images use Node 22 Alpine, `npm ci`, Prisma client generation, a compiled `dist` production target, and `docker-entrypoint.sh`. The entrypoint validates non-development JWT/TTN secrets for known defaults and minimum length, rejects equal JWT/TTN secrets, runs `prisma migrate deploy`, disables seed outside development, then starts the compiled server. Development startup runs migrations and the seed on each container start.
 
-This is a valid external-sender contract, not a mobile application. T3 makes the simulator source/vehicle IDs environment-driven, requires `TRACKING_SOURCE_SECRET_MOBILE`, uses sender JWT handshake authentication, and waits for a safe Socket.IO acknowledgement (`shuttle-tracking-web/simulate.js:9-15`, `shuttle-tracking-web/simulate.js:126-197`, `shuttle-tracking-web/simulate.js:214-227`). Background location, permission, reconnect/backoff semantics for a real app, device timestamp, battery/network data, and driver experience are Not Implemented. The documented smoke command is repeatable only when the disposable fixture stack is configured.
+Frontend images use a development target and a production target with `next build` followed by `next start`. `NEXT_PUBLIC_API_BASE_URL` is injected at build time, so the public REST/Socket origin is a build/deployment configuration rather than a runtime secret. `next.config.ts` includes localhost rewrites for `/api` and `/socket.io`; production origin alignment therefore requires an explicit proxy/origin plan under D-003/current T9.
 
-## 7. LoRaWAN Integration Readiness
+PostGIS initialization creates `postgis` and `postgis_topology` idempotently. Database migrations are forward files and the current T5 checks are additive. No migration rollback runbook, backup/restore drill, or multi-replica migration coordination is present. `redis:alpine` and `node:22-alpine` are floating tags, which reduces production reproducibility and should be addressed in the topology/runbook phase.
 
-The implemented path is a server-side TTN webhook, not MQTT. It validates the TTN secret, rate-limits by IP/source, extracts the TTN device ID, accepts several location shapes, requires an active registered LoRaWAN source, and sends the normalized result through canonical selection (`shuttle-tracking-backend/src/routes/ingest.route.ts:150-260`). T3 provides seed-aligned `sensor-c4` and `sensor-f2` simulations and repeatable smoke commands.
+## 6. Environment and Operations Review
 
-No TTN application, payload formatter ownership, deployed device-source mapping, webhook registration, MQTT consumer, or direct browser delivery is found. These are Needs Confirmation; do not create a second pipeline. Keep TTN through the backend so source selection and D-002 telemetry policy remain shared.
+`env.example` contains local placeholder values, fixture IDs, and empty local sender secrets. Development Compose supplies safe local defaults for convenience; production Compose requires PostgreSQL password, JWT secret, and TTN webhook secret, but defaults `API_URL`, `FRONTEND_URL`, and frontend API base to localhost when not explicitly overridden. This is safe for local parsing but can silently produce an unusable non-local origin if an operator omits the deployment matrix.
 
-## 8. ESP32 Integration Readiness
+The repository has no documented:
 
-Authenticated HTTP ingestion is a practical existing adapter for an ESP32 or gateway. It uses the same bound sender token and observation shape as other non-LoRaWAN sources; T3's pipeline test exercises the ESP32-style source fixture. Socket.IO is also available, but repository evidence does not show it is the preferred embedded protocol.
+- domain/DNS and TLS terminator;
+- frontend/backend public origin and REST/Socket shared-origin matrix;
+- database backup schedule, restore owner, or migration rollback procedure;
+- Redis persistence, authentication, memory/eviction, or recovery policy;
+- log aggregation, alert routing, on-call/incident owner, or retention policy;
+- host firewall, container network, resource, or restart-failure policy.
 
-No firmware, GPS module, connectivity, payload cadence, offline queue, credential bootstrap, or power requirements are documented. Use HTTP for an initial physical pilot only after that contract is known; reconsider MQTT only if device/fleet evidence requires it.
+`/health` only reports process liveness and `/ready` checks PostgreSQL/Redis. Neither endpoint is wired as a backend Compose healthcheck in the production file, and frontend has no healthcheck. Readiness signals are allowlisted in logs but not connected to an alert destination.
 
-## 9. Multi-Device Architecture Readiness
+## 7. Fixed Device and Transport Boundaries
 
-Readiness is **partial and suitable for controlled source experiments**. Non-TTN senders are bound to a source; TTN is a trusted webhook boundary; every accepted input reaches priority/freshness canonical selection. The selected update carries source identity/type and Socket.IO can fan out with Redis.
+### Mobile: phone GPS → authenticated Socket.IO
 
-Open work is source-health visibility, ordering/retention under D-002, assignment history, and real source provisioning. Keep public views canonical; any source comparison belongs in an authenticated operational surface after requirements are defined.
+The repository simulator logs in through `/api/auth/vehicle-login`, starts a trip, connects Socket.IO with a sender token, sends source/vehicle/trip/coordinate/speed/bearing/accuracy/station, acknowledges canonical results, and attempts re-handshake after a lost connection. This is a useful external-sender contract and tests the server boundary.
 
-## 10. Secrets and Configuration Review (Structural)
+It is not a mobile app. There is no evidence for background-location permissions, OS suspension/throttling, network handoff, battery policy, device event timestamps, app version, local queue, or field retry behavior. A real pilot must record phone model/OS/app version, permission state, cadence, time source, mounting, power, and environmental conditions.
 
-Templates keep secret values out of source and production Compose requires database/JWT/TTN values. Production startup performs further checks. Development defaults are useful locally but must remain local-only. The missing configuration artifact is an origin and deployment matrix covering frontend, REST/Socket backend, database/Redis endpoints, TTN webhook URL, and where each secret is supplied.
+### ESP32: GPS module → Wi-Fi → authenticated HTTP
 
-Secret strength/rotation and cloud-secret controls are deferred to Security/DevOps.
+The server supports authenticated `/api/ingest/http` with the same source-bound observation contract. `test_pipeline.js` exercises the `TS_ESP_01` fixture and rejects unauthenticated/mismatched writes. This is a valid server adapter for an initial ESP32 pilot if the physical contract is approved.
 
-## 11. Missing Infrastructure Capabilities
+No ESP32 firmware, GPS module model, Wi-Fi provisioning, NTP/GNSS clock strategy, HTTP timeout/retry/backoff, offline queue, watchdog, flash-wear policy, credential bootstrap/rotation, antenna/mounting, or power arrangement is documented. Do not infer any of these from the HTTP endpoint.
 
-- Actual production topology, domain/TLS, origin matrix, migration rollback, and operations runbook.
-- Backup/restore owner, Redis persistence/eviction policy, log destination, monitoring, and alerts.
-- Repeatable configured integration environment beyond local/disposable Compose.
-- Durable metrics/alerts and complete malformed/oversized-ingestion signal coverage.
-- TTN registry/decoder/webhook setup evidence and ESP32 firmware/provisioning/network contract.
-- Source-health/device operations view for operators.
+### LoRaWAN: device → gateway → TTN → authenticated webhook
 
-## 12. Recommended Improvements
+The server-side `/api/ingest/ttn` path requires `TTN_WEBHOOK_SECRET`, rate-limits IP/source, extracts `end_device_ids.device_id`, decodes supported location shapes, requires an active registered `lorawan` source, and enters the shared canonical pipeline. `simulate-ttn.js` creates synthetic `location_solved` payloads for the seed-aligned `sensor-c4`/`sensor-f2` presets.
 
-### Recommendation 1: Run the T3 pipeline evidence in a disposable deployed environment
+No TTN application/device registry, payload formatter ownership, gateway coverage, region/frequency plan, data rate, duty-cycle/fair-use policy, confirmed/unconfirmed uplink choice, frame-counter/deduplication policy, RSSI/SNR capture, webhook registration, provider retry behavior, or deployed device-source mapping is present. There is no MQTT consumer and no evidence that one should be added; keep TTN server-side until provider facts justify a change.
 
-### Problem
+## 8. Simulator and Field-Evidence Boundaries
 
-The repository now has seed-aligned simulators and local smoke documentation, but no deployed-environment evidence.
+The simulator and pipeline artifacts are controlled-MVP evidence:
 
-### Impact
+- `simulate.js` exercises sender login, trip start, Socket.IO updates, acknowledgement, and reconnect/re-handshake behavior in a Node process.
+- `simulate-manual.js` provides an interactive sender flow with the same token/Socket.IO boundary.
+- `simulate-ttn.js` exercises synthetic TTN webhook payloads and source mapping.
+- `test_pipeline.js` checks seeded source identities, negative auth/ownership paths, ESP32-style HTTP, TTN, mobile HTTP, source priority, analytics, history, and credential-free acknowledgements.
+- `docs/testing/pipeline-smoke-tests.md` requires a disposable Compose stack and local-only secrets, and explicitly states that simulator output does not prove physical/provider deployment.
 
-Provider, origin, TLS, restart, and network behavior can still differ from the local Compose result.
+None of these artifacts proves hardware, radio, network coverage, battery, provider delivery, clock quality, cold/warm start, obstruction, power cycle, duplicate/reordered messages, or controlled failover. The field plan must use equivalent routes/mounting/cadence where feasible, include stationary surveyed checkpoints plus moving sessions, and distinguish bench, field, pilot, and simulator evidence.
 
-### Recommendation
+## 9. Infrastructure Risks and Recommendations
 
-Deploy the production-mode stack to a disposable environment after D-003 topology decisions, configure secrets/origins, run the documented mobile and TTN smoke commands plus the full pipeline test, and retain redacted results.
+### High — Production topology is not an operating environment
 
-### Why
+The production file describes containers but not public origins, TLS, firewall, backups, Redis policy, logs, alerts, ownership, or recovery. DB/Redis are host-published, and backend/frontend are not readiness health-gated.
 
-T3 already repaired the local fixture contract; the remaining infrastructure question is whether the same contract survives the selected runtime topology.
+Define one disposable-to-production topology contract with internal-only data services, frontend/backend origins, TLS termination, `/ready` rollout checks, migration ownership, backup/restore, Redis durability, log/alert destination, and incident ownership. Run it only against an explicitly disposable deployment target first.
 
-### Priority
+### High — Local pipeline evidence is not deployment/provider evidence
 
-High.
+Compose parsing and simulator smoke tests prove the checked-in path but not a deployed origin, TLS, restart, network transition, TTN provider, or physical source.
 
-### Difficulty
+Run the documented smoke suite in a disposable production-mode deployment, capture redacted results, restart services, verify readiness, and retain the environment/configuration identity. Do not claim provider or device support from local runs.
 
-Medium.
+### Medium — Device contracts are incomplete
 
-### Learning Topic
+The server adapters are available, but the mobile app, ESP32 firmware/hardware, and TTN provider/device configuration do not exist in repository evidence.
 
-Deployment smoke tests and configuration-as-contract.
+Before a physical pilot, record hardware/module/firmware, mount/power, cadence, clock, payload/schema version, provisioning/rotation, retry/offline behavior, gateway/provider facts, and route/checkpoint session design. Keep Mobile, ESP32, and LoRaWAN evidence separate.
 
-### Related Files
+### Medium — Configuration drift can create a valid-looking but unusable deployment
 
-docker-compose.prod.yml, docs/testing/pipeline-smoke-tests.md, simulate.js, simulate-ttn.js, prisma/seed.js, and test_pipeline.js.
+Production origin defaults remain localhost, frontend API configuration is build-time, Socket.IO and REST origin logic is duplicated, and image tags are not pinned to immutable versions.
 
-### Recommendation 2: Document one production topology and operating runbook
+Create a deployment matrix and verify a single configured REST/Socket origin from an external client before accepting a deployment. Pin runtime image versions or document the update process.
 
-### Problem
+### Medium — Runtime failure and recovery evidence is missing
 
-Production Compose lacks actual origin, TLS, backup, and operating ownership facts.
+There are no healthchecks for application services, no restart/recovery drill, no network-loss/Redis-loss test, and no backup/restore evidence.
 
-### Impact
+Add bounded disposable checks for startup, migration, readiness, backend restart, dependency loss/recovery, and data persistence. Connect signals to an operational destination only after the topology is chosen.
 
-The first deployment becomes the test of configuration and recovery assumptions.
+## 10. Actionable Handoffs
 
-### Recommendation
+| Capability | Measurable outcome | Owner | Acceptance signal | Privacy/operational boundary | Stage |
+|---|---|---|---|---|---|
+| Production topology contract | One documented public REST/Socket origin, TLS/proxy, internal data services, health-gated startup, backup/restore and ownership | Infrastructure + Security/DevOps | Disposable deployment smoke, readiness/restart, and origin checks pass | Secrets external; no public DB/Redis | Phase 2/4 / T9/T13 |
+| Reproducible runtime | Backend/frontend images use approved immutable versions and documented migration/recovery flow | Infrastructure + Backend | Clean build/start/restart/rollback evidence | No seed or fixture secrets in production | Phase 2/4 |
+| Mobile sender contract | Real app records permissions, cadence, clock, reconnect, OS/network/power behavior | Device/Mobile owner | Bench and field session logs, not simulator-only | Source-bound sender access | Phase 5 / T15 |
+| ESP32 sender contract | Hardware/firmware/GPS/Wi-Fi/HTTP timeout/retry/offline/power facts are recorded | Device owner + Backend | Bench/power-cycle/network-loss evidence | Credential rotation and bounded telemetry | Phase 5 / T15 |
+| LoRaWAN/TTN contract | Device/app/gateway/region/codec/webhook/dedup/RSSI-SNR facts are recorded | Device/provider owner + Backend | TTN test uplink and duplicate/outage evidence | Provider secret server-side; research fields allowlisted | Phase 5 / T15 |
+| Three-source research session | Identical route/mount/cadence/time window with checkpoints and explicit accuracy semantics | Research + Data owner | Session manifest, raw/aggregate retention/access, bounded export | Separate authenticated research surface | Phase 2/5 / T7/T15 |
 
-Before production, document chosen topology, public origins, TLS terminator, service ownership, backup/restore, migrations, health probes, Redis policy, and log location. Resolve D-003 before implementing origin/configuration changes.
+These are audit handoffs, not implementation authorization. Level 2 is appropriate for the unresolved hardware/provider/retention/clock questions before Level 3 binds a physical or research design.
 
-### Why
+## 11. Roadmap and Decision Impact
 
-A small runbook is a simpler durable step than premature provider automation.
+T3 simulator/fixture alignment and local pipeline evidence are complete. This audit revalidates infrastructure inputs for T7, T9, T13, and T15. D-003/current T9 must define topology/origin before configuration alignment; D-002 and D-004 gate research telemetry and three-device claims. T10–T12 remain deferred under D-001=A.
 
-### Priority
+No new owner decision is proposed. Existing D-001 through D-004 remain the source of truth. Physical hardware, provider, retention, and clock choices are unresolved evidence/owner inputs, not decisions to infer in this audit.
 
-High — before production.
+## 12. Assumptions, Unknowns, and Confidence
 
-### Difficulty
+- Production Compose is a self-hosted template, not a deployed-service proof.
+- No host/domain/TLS, provider account, TTN console, gateway, mobile app, ESP32 hardware/firmware, backup/restore target, or load/network-failure test was observed.
+- Simulator route coordinates and reported accuracy are synthetic; route distance is not ground-truth device accuracy.
+- Confidence is **high** for checked-in Compose, Docker, entrypoint, environment, simulator, and server-boundary facts; **medium** for production-mode operational behavior; **low** for physical/provider readiness.
 
-Medium.
+## 13. Audit Limitations and Handoff
 
-### Learning Topic
-
-Deployment topology, origin contracts, and recovery drills.
-
-### Related Files
-
-docker-compose.prod.yml, Dockerfiles, docker-entrypoint.sh, env templates, and D-003.
-
-### Recommendation 3: Define physical sender contracts before selecting protocols
-
-### Problem
-
-TTN/ESP32 physical and provider details are absent.
-
-### Impact
-
-Choosing MQTT, sockets, or hardware provisioning now would be speculative.
-
-### Recommendation
-
-For each physical sender record source mapping, payload fields, event/receipt time, cadence, connectivity/offline expectations, credential bootstrap/rotation, and canonical-source priority. Use existing HTTP/webhook adapters for the first pilot where they fit.
-
-### Why
-
-The backend already normalizes inputs, so no transport redesign is justified yet.
-
-### Priority
-
-Medium now; High before physical pilot.
-
-### Difficulty
-
-Medium.
-
-### Learning Topic
-
-Device provisioning, webhook adapters, and unreliable-network telemetry.
-
-### Related Files
-
-src/routes/ingest.route.ts, src/services/tracking.service.ts, and D-002.
-
-### Recommendation 4: Smoke-test production-mode operations in a disposable environment
-
-### Problem
-
-Compose parses but no build/start/restart/persistence/recovery evidence is checked in.
-
-### Impact
-
-Operational assumptions remain untested until deployment.
-
-### Recommendation
-
-After topology selection, build/start production Compose, check readiness, restart backend, confirm migration/seed behavior, and document backup/restore responsibility.
-
-### Why
-
-This produces useful operations evidence without adopting a new platform.
-
-### Priority
-
-Medium — before production.
-
-### Difficulty
-
-Medium.
-
-### Learning Topic
-
-Health checks, startup sequencing, and recovery drills.
-
-### Related Files
-
-docker-compose.prod.yml, docker-entrypoint.sh, src/server.ts, and Database Audit.
-
-## 13. Infrastructure & Device Learning Topics
-
-1. Compose development versus compiled production targets — needed now.
-2. Health/readiness and deployment orchestration — before production.
-3. Webhook adapters versus device sockets/MQTT — after sender facts are known.
-4. Origins, TLS, and CORS/Socket configuration — before public deployment.
-5. Backup/restore and Redis durability — before production.
-
-## Roadmap Impact
-
-This report validates production image/startup and sender/TTN foundations. D-003 already gates production origin/configuration sequencing; D-002 gates telemetry fidelity. T3 simulator alignment and pipeline evidence are complete. No new owner decision or roadmap change is created.
-
-## Assumptions and Unknowns
-
-- Production Compose is only a self-hosted configuration template, not deployed-service evidence.
-- Provider, domain/TLS, backup/log ownership, TTN configuration, and hardware behavior are unknown.
-- ESP32 transport, connectivity, payload, power, and provisioning are unknown.
-
-## Confidence
-
-**High** for checked-in Compose, image, entrypoint, simulator, and server-boundary facts. **Medium** for production readiness without a deployment. **Low** for physical-device and TTN provider readiness without external configuration or hardware.
-
-## Required Decisions
-
-- D-003 remains the gate for production configuration/origin ordering.
-- D-002 remains the gate for device comparison, raw observations, and playback fidelity.
-
-No new decision is needed to align simulators or document the current self-hosted template. Actual provider/hardware choices need owner input before implementation, but remain unavailable evidence rather than an audit blocker.
-
-## 14. Audit Limitations
-
-No running Docker stack, deployed host, provider account, DNS/TLS, managed database/cache, TTN console, mobile app, ESP32 device, hardware specification, load test, backup/restore drill, or network-failure test was observed. Security hardening and observability implementation are deferred.
-
-## 15. Open Questions for the User
-
-1. What topology, domains, TLS terminator, and operations owner will be used for non-local release?
-2. Which TTN application/device IDs and decoder map to registered source IDs?
-3. What ESP32 hardware, network, cadence, offline behavior, and credential bootstrap are intended?
-4. Is a real mobile sender in scope for the controlled pilot, or are simulators supported senders?
-
-## 16. Handoff
-
-This report supersedes the previous Infrastructure & Device Audit. Dashboard & UX should validate source-health/stale-state presentation; Security/DevOps should audit public origins, secret operations, runtime controls, logging, and observability; Production Readiness should synthesize accepted reports after those domains refresh.
+No infrastructure, device, provider, or deployment changes are authorized by this report. Infrastructure & Device is now Complete and Validated. Dashboard & UX is the next eligible profile; it must use current Product, Frontend, and Infrastructure evidence and keep research diagnostics separate from public/ordinary operations UI. Security/DevOps/Observability, Production Readiness, and Roadmap remain gated in the registered order.
