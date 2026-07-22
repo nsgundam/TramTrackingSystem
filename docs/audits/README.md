@@ -14,7 +14,7 @@ Last updated: 2026-07-22
 | Dashboard & UX | Complete | `docs/audits/dashboard-ux-audit.md` | `b3682fc` | 2026-07-22 | Validated at baseline `847a18cce9bc27c82b2622dbc176b3a89bc4d037` with Product, Frontend, and Infrastructure & Device predecessors; Security, DevOps & Observability is next eligible. |
 | Security, DevOps & Observability | Complete | `docs/audits/security-devops-observability-audit.md` | current baseline `847a18c` | 2026-07-22 | Validated at baseline `847a18cce9bc27c82b2622dbc176b3a89bc4d037` with Backend, Frontend, Database, Infrastructure & Device, and Dashboard & UX predecessors; Production Readiness is next eligible. |
 | Production Readiness | Complete | `docs/audits/production-readiness-audit.md` | current baseline `847a18c` | 2026-07-22 | Validated at baseline `847a18cce9bc27c82b2622dbc176b3a89bc4d037`; controlled demo is conditionally allowed under D-001=A, while internal/public production are No-Go. Roadmap is next eligible. |
-| Roadmap | Needs Revalidation | `docs/roadmap/master-refactoring-roadmap.md` | `e2c39db` | 2026-07-22 | Next eligible profile after current Production Readiness; revalidate task status and hand off the next approved task rather than historical T1. |
+| Roadmap | Complete | `docs/roadmap/master-refactoring-roadmap.md` | current baseline `847a18c` | 2026-07-22 | Validated at baseline `847a18cce9bc27c82b2622dbc176b3a89bc4d037` with all audits and approved decisions; T6 is the next implementation-planning target. |
 
 `Legacy report commit` records the last commit that changed the existing artifact; it is not a
 substitute for the full evidence-baseline metadata required on the next re-audit.

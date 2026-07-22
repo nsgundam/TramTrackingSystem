@@ -3,11 +3,9 @@
 Last updated: 2026-07-22
 
 Coordination status: **Discovery, Product, Architecture, Backend, Frontend, Database,
-Infrastructure & Device, Dashboard & UX, Security, DevOps & Observability, and Production
-Readiness validated; Roadmap next**.
-These profiles have current evidence-baseline metadata. All later reports remain `Needs Re-audit`
-until their predecessor and freshness gates pass; do not use their historical completion claims as
-current sign-off.
+Infrastructure & Device, Dashboard & UX, Security, DevOps & Observability, Production Readiness,
+and Roadmap validated**. The Level 1 audit cycle is complete at the current evidence baseline.
+T6 is the next implementation-planning target; it is not yet an implementation approval.
 
 ## 1. Executive Summary and Changes Detected
 
@@ -54,9 +52,9 @@ remain open. The report introduces no new owner decision and keeps D-003's topol
 alignment order.
 
 The prior Architecture, Backend, Database, Infrastructure & Device, Dashboard & UX, Frontend, and
-Production Readiness conclusions remain historical evidence only. The current Security/DevOps/
-Observability and Production Readiness reports are now validated; their controlled-MVP boundary,
-stage-specific gates, and open production risks are current evidence. Roadmap Revalidation is next.
+Production Readiness conclusions remain historical evidence only. The current Security/DevOps/Observability,
+Production Readiness, and Roadmap reports are now validated; their controlled-MVP boundary,
+stage-specific gates, task status, and open production risks are current evidence.
 
 ## 2. Audit Progress, Validated Findings, and Remaining Risks
 
@@ -83,7 +81,8 @@ stage-specific gates, and open production risks are current evidence. Roadmap Re
 - Production Readiness: **Complete / Validated** at the current baseline; controlled demonstration is
   conditionally allowed under D-001=A, while research field trial, internal operations, and public
   rider service remain No-Go.
-- Roadmap: **Needs Revalidation** after validated audits and approved decisions.
+- Roadmap: **Complete / Validated** at the current baseline; T6 is next for Level 2/Level 3 planning,
+  while T9 remains blocked on topology facts.
 
 Remaining product risk: the system may appear suitable for operation while key workflows still
 require manual/API-only/external-client work.
@@ -100,9 +99,9 @@ Approved decisions carried forward:
 All decision records have been moved from Pending to Approved in `docs/decision-queue.md`.
 
 Discovery, Product, Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard
-& UX, Security/DevOps/Observability, and Production Readiness introduced no new owner decision. The
-next action is Roadmap Revalidation/Synthesis, which must preserve the controlled-demo boundary unless
-the owner changes D-001.
+& UX, Security/DevOps/Observability, Production Readiness, and Roadmap introduced no new owner
+decision. The next action is to prepare the T6 specialist brief and exact-path implementation handoff;
+the controlled-demo boundary remains in force unless the owner changes D-001.
 
 ## 4. Confidence and Limitations
 

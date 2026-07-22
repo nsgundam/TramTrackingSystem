@@ -1,10 +1,17 @@
 # Master Refactoring Roadmap
 
+Audit metadata:
+- Evidence baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
+- Evidence scope: `docs/project-knowledge-base.md`, all current domain audits under `docs/audits/`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, and this roadmap.
+- Reviewed at: `2026-07-22T22:01:33+07:00`
+- Validation state: **Validated**
+- Predecessor baselines: all validated domain audits and `docs/project-knowledge-base.md` @ `847a18cce9bc27c82b2622dbc176b3a89bc4d037`; approved decisions D-001 through D-004.
+
 Last reviewed: 2026-07-22
 
-Validation state: **Needs Revalidation**. T1–T5 are complete, but the audit inputs predate the new
-evidence-baseline contract and several reports predate T5. Preserve this task plan as a historical
-working roadmap; do not start T6 until the Audit Register is validated again.
+Validation state: **Validated**. T1–T5 remain complete, all required audits now have current
+evidence-baseline metadata, and the approved decision queue is current. T6 is the next eligible
+roadmap task; implementation still requires the Level 2/Level 3 task handoff contract.
 
 ## 1. Executive Summary
 
@@ -22,14 +29,14 @@ The production determination remains No-Go. D-001 reduces the immediate product 
 
 | Input | Date | Status | Use |
 |---|---:|---|---|
-| Knowledge Base | 2026-07-18 | Needs Re-audit | Predates T5 and lacks evidence-baseline metadata. |
-| Product, Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps/Observability audits | 2026-07-19 to 2026-07-22 | Needs Re-audit | Legacy reports require baseline metadata and ordered revalidation. |
-| Production Readiness Audit | 2026-07-22 | Needs Re-audit | Predates T5 validation and refreshed predecessors. |
+| Knowledge Base | 2026-07-22 | Complete / Validated | Current Discovery evidence at the stated baseline; external deployment/device facts remain unknown. |
+| Product, Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps/Observability audits | 2026-07-22 | Complete / Validated | All required domain reports passed ordered predecessor and freshness gates at the stated baseline. |
+| Production Readiness Audit | 2026-07-22 | Complete / Validated | Controlled demo is conditionally allowed under D-001=A; research, internal, and public production remain No-Go. |
 | Decision Queue | 2026-07-22 | Approved | D-001=A, D-002=B, D-003=A, and D-004 research scope |
 
-No input file is missing, but audit evidence is currently stale/unvalidated under the new contract.
-Hosting, TLS, production recovery, browser/runtime behavior, physical devices, and TTN console state
-remain external unknowns.
+No required repository input is missing or stale under the current audit contract. Hosting, TLS,
+production recovery, browser/runtime behavior, physical devices, and TTN console state remain
+external unknowns and continue to gate the tasks that depend on them.
 
 ## 3. Consolidated Recommendation List
 
@@ -52,6 +59,26 @@ remain external unknowns.
 | T15 | Physical senders, research dashboard, playback/reports, scale extensions | Deferred | Product 11; Architecture 9–10, 12; Infrastructure 7–9; D-002 | Phase 5 |
 
 Every Critical/High finding is represented. T10–T12 are carried forward because the approved controlled-MVP scope does not include daily/public operating workflows.
+
+### Revalidated task state
+
+| Task | Current state | Gate or evidence |
+|---|---|---|
+| T1 | Complete | Secret-hash/config URL exposure controls validated. |
+| T2 | Complete | Shared validation, safe errors, and main boundary abuse controls validated; legacy admin writes remain outside scope. |
+| T3 | Complete | Simulator fixtures and repeatable pipeline evidence validated; no physical-device claim. |
+| T4 | Complete | CI checks and redacted process-local signals validated; no production alerting claim. |
+| T5 | Complete | Transactional/idempotent Operations/Trip owner and migration evidence validated. |
+| T6 | Next eligible / Ready to plan | All audit gates pass; requires Level 2 decision brief and exact-path Level 3 task spec before implementation. |
+| T7 | Pending | Blocked on accepted T6 contract plus retention, deletion, and research-access parameters. |
+| T8 | Pending | Blocked on accepted T6 canonical-state contract; route mutation portion also depends on T10. |
+| T9 | Blocked | D-003 ordering is approved, but hosting, domain, TLS, Redis/DB placement, and operations-owner facts are missing. |
+| T10 | Deferred | Requires T8 and D-001 upgrade from controlled demo to B/C. |
+| T11 | Deferred | Requires T5, T6, supported sender/operator choice, and D-001=B/C. |
+| T12 | Deferred | Requires D-001=C plus feedback ownership, privacy, and retention policy. |
+| T13 | Pending | Requires T4/T5 plus T6 and T9, then deployment/recovery/alert evidence. |
+| T14 | Pending | Requires T8 and browser/runtime evidence; no scale work without measurement. |
+| T15 | Deferred | Requires T7, physical sender/provider facts, and T13 for public-operation claims. |
 
 ## 4. Dependency Map
 
@@ -333,7 +360,7 @@ Complete.
 
 ## 6. Phase 2 — Structural Foundations and Approved Research
 
-**Entry criteria:** Phase 1 exit criteria pass.
+**Entry criteria:** Phase 1 exit criteria pass and the required audit profiles are validated.
 
 **Exit criteria:** one lifecycle owner and one versioned canonical contract exist; maps consume canonical truth; D-002 research diagnostics has a bounded policy; D-003 topology/origin contract is written. Daily/public workflows remain deferred by D-001=A.
 
@@ -393,7 +420,7 @@ Complete.
 
 ### Current Evidence
 
-`operations.service.ts` now owns explicit start, virtual-trip creation, active-trip validation, end, and sampled-history writes. Vehicle row locks serialize all lifecycle writers; duplicate start/end are deterministic and trip/vehicle/history database changes use transactions. The T5 migration adds trip status/time checks while preserving the existing partial unique index. `npx prisma migrate deploy`, `npm run check`, `npm run test:operations`, `git diff --check`, and the temporary-fixture cleanup verification passed on 2026-07-22. The cited Backend, Architecture, Database, and Production Readiness audit sections still contain the pre-T5 lifecycle finding and are flagged for re-audit against this implementation.
+`operations.service.ts` now owns explicit start, virtual-trip creation, active-trip validation, end, and sampled-history writes. Vehicle row locks serialize all lifecycle writers; duplicate start/end are deterministic and trip/vehicle/history database changes use transactions. The T5 migration adds trip status/time checks while preserving the existing partial unique index. `npx prisma migrate deploy`, `npm run check`, `npm run test:operations`, `git diff --check`, and the temporary-fixture cleanup verification passed on 2026-07-22. The current Backend, Architecture, Database, and Production Readiness audits revalidated this evidence; remaining gaps are protected history reads, richer ordering/raw evidence, and production operations.
 
 ### T6 — Publish a versioned, route-aware canonical vehicle-state contract
 
@@ -447,7 +474,8 @@ Late data cannot move a marker backward; all-stale emits explicit state; UI can 
 
 ### Status
 
-Pending — blocked on audit revalidation.
+Next eligible / Ready to plan. The audit gate is now validated; create the specialist brief and
+exact-path implementation task before starting work.
 
 ### Evidence
 
@@ -515,7 +543,7 @@ tested; secrets are absent from data/response paths.
 
 ### Status
 
-Pending — blocked on T6, audit revalidation, and retention/access parameters.
+Pending — blocked on T6 and retention/access parameters.
 
 ### Evidence
 
@@ -573,7 +601,7 @@ An R02 event remains R02 even while R01 is selected; stale/no-service is visible
 
 ### Status
 
-Pending — blocked on T6 and audit revalidation.
+Pending — blocked on T6.
 
 ### Evidence
 
@@ -631,7 +659,8 @@ No configuration cycle remains; REST and Socket.IO resolve the documented backen
 
 ### Status
 
-Blocked — hosting, domain, TLS, and operations-owner facts are missing.
+Blocked — hosting, domain, TLS, and operations-owner facts are missing. D-003 resolves sequencing,
+not the required deployment choices.
 
 ### Evidence
 
@@ -1062,15 +1091,20 @@ This review does not implement or runtime-test code. It does not choose provider
 
 ## 15. Handoff
 
-T1–T5 are complete. Refresh Discovery and the domain audits in canonical predecessor order, then
-revalidate this roadmap. If T6 remains supported by current evidence, create task-keyed specialist
-briefs and an exact-path task specification before implementation.
+T1–T5 are complete and the roadmap is validated against the current audit baseline. T6 is the next
+eligible task. Before implementation, create its immutable Level 2 specialist brief and
+`docs/tasks/<task-id>-<topic>.md` with exact repository-relative write paths, invariants,
+acceptance checks, rollout limits, and stop conditions. Do not start T7/T8 in parallel until the T6
+canonical-state contract is accepted. T9 remains blocked until the owner supplies topology facts.
 
 Validate each completed task against its originating audit finding before advancing. Re-run Production Readiness only after the production-bar tasks applicable to the desired release scope are complete.
 
 ## Roadmap Impact, Assumptions and Unknowns, Confidence, and Deferred Decisions
 
-**Roadmap impact:** D-001=A defers daily/public workflows to Phase 3; D-002=B creates T7 research diagnostics; D-003=A removes the configuration cycle by sequencing T9 before alignment.
+**Roadmap impact:** D-001=A defers daily/public workflows to Phase 3; D-002=B creates T7 research
+diagnostics; D-003=A removes the configuration cycle by sequencing T9 before alignment. The current
+validated readiness gate confirms that T6, not historical T1, is the next implementation-planning
+target.
 
 **Assumptions and unknowns:** the next release is supervised and does not claim daily/public service; diagnostics are bounded/protected; no topology/provider/device fact is assumed.
 
