@@ -1,6 +1,6 @@
 # Backend Audit: Tram Tracking System
 
-Re-audited: 2026-07-21
+Re-audited: 2026-07-22
 Scope: current Express/TypeScript backend, Prisma schema and migrations, Redis/Socket.IO pipeline,
 backend tests, and backend-facing configuration. This is a source review, not a live-service or
 penetration test.
@@ -10,13 +10,15 @@ penetration test.
 The backend is materially stronger than the prior audit. Sender credentials are short-lived,
 source- and vehicle-bound, revalidated on every Socket.IO write, and used by HTTP ingestion and
 trip routes. The tracking-source registry, deterministic source selection, canonical-location
-pipeline, and readiness endpoint are credible foundations for a controlled MVP.
+pipeline, readiness endpoint, CI gates, and redacted operational-signal contract are credible
+foundations for a controlled MVP.
 
 It is not yet an operations-grade backend. Trip lifecycle still has competing non-transactional
 writers, although the migration now includes a database guarantee of one active trip per vehicle.
 Validation and error normalization remain inconsistent across legacy admin CRUD, and observations
-still lack event-time, sequence, idempotency, and rejection semantics. The next implementation
-priority is one transactional Operations/Trip owner.
+still lack event-time, sequence, idempotency, and rejection semantics. T4 signals are best-effort
+process logs rather than durable metrics or alerting. The next implementation priority is one
+transactional Operations/Trip owner.
 
 ## 2. Scope, Evidence, and Re-audit Status
 
@@ -28,7 +30,8 @@ Evidence reviewed:
   Backend Audit.
 - `npm test` passed on 2026-07-21: TypeScript build, sender-JWT boundary test, and T2 validation/error-boundary test.
 - `node test_devices_boundary.js`, `node test_redis_logging.js`, and `npx prisma validate` passed on 2026-07-21.
-- Pipeline and Socket.IO smoke scripts were attempted but could not connect to a running backend in this environment; no live-service result is claimed.
+- `bash scripts/ci-checks.sh` passed on 2026-07-22: backend checks, Prisma validation, frontend lint/build, both Compose configs, and unsafe dynamic-logging scan. Frontend lint reported six warnings and no errors.
+- Pipeline and Socket.IO smoke scripts were attempted previously but could not connect to a running backend in this environment; no live-service result is claimed.
 
 | Prior finding | Re-audit status | Current evidence |
 |---|---|---|
@@ -44,6 +47,7 @@ Evidence reviewed:
 | Device responses expose credential hashes | **Resolved** | `toDeviceResponse`/`toDeviceMutationResponse` omit `secretHash`; device boundary tests verify the omission. |
 | Observation ordering and retention semantics were undefined | **New Finding** | Receipt time and sampled canonical points are stored; no event time, sequence, idempotency, or disposition contract exists. |
 | TTN source identity compatibility | **New Finding** | `parseTtnSourceId` now requires `end_device_ids.device_id`; the previous adapter also accepted `dev_eui`, so payloads without `device_id` need an explicit contract decision or fallback. |
+| Operational signals and CI gates were missing | **Partially Resolved** | T4 adds CI/local checks, request IDs, allowlisted JSON signals, suppression, health sweep, and redaction tests; signals are process-local/best-effort and malformed or oversized bodies can bypass the ingestion signal middleware. |
 
 ## 3. Current Backend Overview
 
@@ -66,6 +70,8 @@ binding, chooses the highest-priority fresh source, stores canonical state in Re
 - `/ready` checks PostgreSQL and Redis; a Redis Socket.IO adapter supports multi-process fan-out.
 - Sender acknowledgements/error codes are explicit; device response projection, Redis log redaction,
   validation boundaries, and `npm test` pass.
+- T4 provides one local/CI gate for backend, frontend, Prisma, Compose, and unsafe-log checks, plus
+  allowlisted operational JSON signals with request correlation IDs and cooldown suppression.
 
 ## 5. Critical Issues
 
@@ -162,12 +168,14 @@ not by a need for another pipeline.
 
 ## 11. Reliability Review
 
-Readiness and startup failure handling give a useful dependency boundary. History persistence errors
-are only logged, so a successful sender acknowledgement can coexist with lost history. No retry,
-dead-letter, timeout, correlation ID, metrics, or alerting behavior is evidenced. Boundary tests now
-cover token parsing, validation, safe errors, response projection, and Redis log redaction, but do
-not cover configured Redis/Postgres, controller behavior, cache invalidation, trip races, or stale
-failover in repeatable CI.
+Readiness and startup failure handling give a useful dependency boundary. Request IDs and signals now
+cover startup, readiness, accepted/rejected ingestion, canonical selection, source staleness, Redis
+dependency events, and history persistence outcomes. Signals are emitted in process memory with
+best-effort console output; they are not durable metrics, alert routing, or recovery automation.
+History persistence errors are still only logged, so a successful sender acknowledgement can coexist
+with lost history. Boundary tests cover token parsing, validation, safe errors, response projection,
+Redis log redaction, and signal redaction, but do not cover configured Redis/Postgres, controller
+behavior, cache invalidation, trip races, or stale failover in repeatable CI.
 
 ## 12. Missing Backend Capabilities
 
@@ -177,6 +185,7 @@ failover in repeatable CI.
 - Admin trip/history/GPS-track read API.
 - D-002-aligned observation ordering and retention policy.
 - Route-stop cache invalidation and repeatable Postgres/Redis integration tests.
+- Complete ingestion signal coverage for malformed/oversized HTTP payloads.
 
 ## 13. Recommended Improvements
 
@@ -185,6 +194,8 @@ failover in repeatable CI.
 3. **Extend shared validation and error mapping** to legacy vehicle, route, and stop writes. **Medium-High; Medium.**
 4. **Repair route-stop cache and operational reads** for stale/no-service and trip history. **Medium; Medium.**
 5. **Add an ephemeral-stack integration suite** for lifecycle, cache, and ingestion behavior. **Medium; Medium.**
+6. **Attach ingestion outcome instrumentation before body parsing** so malformed and oversized requests
+   produce the same redacted outcome signal as route-level failures. **Medium; Easy.**
 
 ## 14. Backend Learning Topics
 
@@ -192,6 +203,7 @@ failover in repeatable CI.
 - Idempotent/out-of-order telemetry processing.
 - DTO validation, safe response projections, and error-taxonomy design.
 - Redis freshness/cache invalidation and durable-versus-ephemeral state.
+- Best-effort structured logging, correlation IDs, suppression, and signal-vs-metrics boundaries.
 - Disposable PostgreSQL/Redis integration testing.
 
 ## 15. Roadmap Impact
@@ -199,8 +211,8 @@ failover in repeatable CI.
 - Before daily operations: resolve the Operations/Trip owner, canonical freshness/ordering semantics,
   and route-stop cache invalidation.
 - D-002 gates raw telemetry, source comparison, and high-fidelity playback claims.
-- Admin history, source-health read models, feedback operations, rate limits, and observability are
-  downstream work; no microservice split is justified.
+- Admin history, source-health read models, feedback operations, durable metrics/alerts, and full
+  integration evidence are downstream work; no microservice split is justified.
 
 ## 16. Assumptions and Unknowns
 
@@ -227,8 +239,8 @@ active-trip invariant transactional. Hash exposure is resolved by the current DT
 ## 19. Audit Limitations
 
 No live database, Redis, Socket.IO server, sender hardware, TTN provider, browser client, load test,
-or penetration test was used. Socket.IO and pipeline scripts were inspected but not run because they
-need configured live services and credentials.
+or penetration test was used. Socket.IO and pipeline scripts were attempted but could not connect to
+a running backend in this environment; they need configured live services and credentials.
 
 ## 20. Handoff
 

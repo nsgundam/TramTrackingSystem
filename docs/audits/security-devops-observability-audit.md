@@ -1,16 +1,18 @@
 # Security, DevOps & Observability Audit: Tram Tracking System
 
-Re-audited: 2026-07-20
+Re-audited: 2026-07-22
 
-Trigger: Refactor T2 is marked complete in `docs/roadmap/master-refactoring-roadmap.md`.
+Trigger: Refactor T4 is marked complete in `docs/roadmap/master-refactoring-roadmap.md`.
 
 ## 1. Executive Summary
 
-Refactor T2 materially improves the application boundary. Admin login, sender login, feedback,
-device, route-stop, trip, HTTP ingestion, TTN ingestion, and Socket.IO observation inputs now have
-shared parsing or bounded handling. Stable boundary error codes, a global JSON-size limit, Socket.IO
-buffer limits, Redis-backed rate limits, sender revalidation, and redacted Redis logging are
-evidenced. The T1 secret-hash and Redis-URL leakage findings are resolved in the current source.
+Refactors T2 and T4 materially improve the application and release boundaries. Admin login, sender
+login, feedback, device, route-stop, trip, HTTP ingestion, TTN ingestion, and Socket.IO observation
+inputs now have shared parsing or bounded handling. Stable boundary error codes, request correlation
+IDs, Redis-backed rate limits, sender revalidation, redacted Redis logging, a GitHub Actions CI gate,
+and a local check script are evidenced. T4 also adds an allowlisted JSON operational-signal contract
+for startup/readiness, ingestion outcomes, source staleness, canonical selection, and history
+persistence failures.
 
 No Critical security issue was identified from static repository evidence. The system is still not
 ready for an unqualified public or daily operational release. The most important remaining risks
@@ -22,9 +24,9 @@ are:
 - **High:** validation, safe error mapping, and write rate limits are not applied to the existing
   admin vehicle, route, and stop write routes. T2 therefore resolves the named boundary set but not
   every write surface.
-- **High:** there is still no CI/CD gate, deployment rollback/runbook evidence, metrics, alerting,
-  or aggregated error tracking. Health/readiness endpoints alone do not tell an operator that a
-  vehicle source has gone silent or that history persistence is failing.
+- **High:** CI checks now exist, but there is still no deployment pipeline, migration/rollback gate,
+  release approval evidence, metrics backend, alert routing, or aggregated error tracking. The new
+  signals are useful JSON lines, not a complete monitoring system.
 - **Medium:** the documented admin JWT lifetime is not used by the admin issuer, the browser stores
   the JWT in a JavaScript-readable cookie, and the admin token has no refresh or revocation flow.
 
@@ -53,7 +55,9 @@ Required context was read in order:
 
 Additional evidence inspected:
 
-- T2 implementation commits `8fcfe1f` and `b6193ae`.
+- T2 implementation commits `8fcfe1f` and `b6193ae`, plus T4 commit `bd8b36d`.
+- `.github/workflows/ci.yml`, `scripts/ci-checks.sh`, `docs/testing/ci-checks.md`, and
+  `test_operational_signals.js`.
 - `src/middleware/validation.ts`, `boundary-errors.ts`, and `rate-limit.ts`.
 - T2 boundary, JWT, device-response, Redis-logging, Socket.IO, and pipeline test scripts.
 - frontend `AuthContext`, proxy, API clients, and Socket.IO consumers.
@@ -65,7 +69,11 @@ Verification performed during this re-audit:
   validation/safe-error tests.
 - `npx prisma validate` — passed.
 - `shuttle-tracking-web/npm run lint` — passed with 6 warnings and 0 errors.
-- development and production `docker compose config --quiet` — passed.
+- `bash scripts/ci-checks.sh` — backend build, boundary/redaction tests, and Prisma validation
+  passed; frontend lint passed, but the production build could not fetch Google Fonts in this
+  restricted environment, so the Compose checks were not reached in this invocation.
+- The roadmap records the full T4 local equivalent, including frontend build and both Compose
+  configurations, as passed on 2026-07-21.
 - unsafe-output search — no production device response or Redis connection log was found to emit
   the tested credential material.
 - local Docker inspection — PostgreSQL and Redis were healthy; no backend container was running
@@ -84,16 +92,16 @@ Verification performed during this re-audit:
 | Device API responses exposed `secretHash` | **Resolved** | Device list/get/mutation responses use `toDeviceResponse`/`toDeviceMutationResponse`; boundary tests assert that `secretHash` and its value are absent. |
 | No rate limiting or abuse controls existed | **Partially Resolved** | Auth, feedback, sender trips/ingestion, TTN, device writes, and route-stop writes now use Redis limits; vehicle/route/stop writes remain unbounded, and rate-limit settings are not documented in env templates. |
 | Validation and error mapping were inconsistent | **Partially Resolved** | T2 covers the named auth/feedback/device/route-stop/trip/observation boundaries and global JSON errors; vehicle/route/stop controllers still accept untyped bodies and expose legacy generic error handling. |
-| CI/CD and deployment gates were missing | **Still Present** | No `.github/workflows`, CI provider config, migration gate, rollback workflow, or deployment approval evidence exists. |
-| Health/readiness and production runtime were missing | **Partially Resolved** | `/health`, `/ready`, production image targets, migrations-before-start, restart policies, and secret checks exist; deployment topology, probes for all services, rollback, and recovery evidence remain absent. |
-| Logs, metrics, and error tracking were insufficient | **Still Present** | Redis URL leakage is fixed, but application logs remain mostly console/free-text; there is no metrics endpoint, alert rule, request correlation, log sink, or frontend/backend error tracker. |
+| CI/CD and deployment gates were missing | **Partially Resolved** | `.github/workflows/ci.yml` and `scripts/ci-checks.sh` now gate backend/frontend checks and Compose parsing; migration approval, deployment automation, rollback workflow, and release approval evidence remain absent. |
+| Health/readiness and production runtime were missing | **Partially Resolved** | `/health`, `/ready`, production image targets, migrations-before-start, restart policies, secret checks, correlation IDs, and readiness/startup signals exist; deployment topology, service probes, alerting, rollback, and recovery evidence remain absent. |
+| Logs, metrics, and error tracking were insufficient | **Partially Resolved** | T4 adds allowlisted redacted operational JSON lines and source-stale/history-failure signals; there is still no metrics endpoint/backend, alert rule or sink, durable aggregation, or frontend/backend error tracker. |
 | Credential-bearing Redis URL was logged | **Resolved** | Redis connect/error handlers emit static redacted messages and `test_redis_logging.js` confirms the URL, password, and token are absent. |
 
-T2 itself is **Partially Resolved from this re-audit's evidence perspective**: the implementation and
-local static checks pass, and the roadmap records a successful configured smoke run, but the complete
-runtime smoke was not independently rerun because only database and Redis containers were available.
-The remaining findings below are outside T2's completed boundary set or are operational follow-up
-work that T2 was intended to unlock.
+T2 is **Partially Resolved from this re-audit's evidence perspective** and T4 is **Resolved for its
+checked-in CI and signal contract**. The T4 local script reached and passed backend checks, while the
+frontend production build was blocked by unavailable Google Fonts; the roadmap records a complete
+T4 run on 2026-07-21. T4 does not itself provide a deployment pipeline, metrics backend, alert
+routing, or error tracking.
 
 ## 2. Security Overview
 
@@ -273,11 +281,11 @@ The repository has a conventional two-application build:
 - Entrypoint startup runs `prisma migrate deploy`, skips development seed outside development, and
   emits migration/application startup events.
 
-There is no CI workflow or deployment pipeline. No rollback strategy, migration rollback procedure,
-backup/restore drill, release approval gate, or production smoke artifact is checked in. The local
-backend `npm run dev` command references `tsx` through `nodemon.json`, but `tsx` is not declared in
-the backend package; the roadmap records that the T2 runtime smoke used compiled `dist/server.js`
-for this reason.
+`.github/workflows/ci.yml` now provides a CI workflow, but there is still no deployment pipeline.
+No rollback strategy, migration rollback procedure, backup/restore drill, release approval gate, or
+production smoke artifact is checked in. The local backend `npm run dev` command references `tsx`
+through `nodemon.json`, but `tsx` is not declared in the backend package; the roadmap records that
+the T2 runtime smoke used compiled `dist/server.js` for this reason.
 
 ## 10. Build & Deployment Review
 
@@ -307,7 +315,11 @@ URL, secret owner/store, migration mode, seed mode, and public/private network b
 
 The system has useful starting signals: `/health`, `/ready`, Redis connection events, migration
 events, source `lastSeenAt`, a 30-second freshness helper, and source-selection counters in Redis.
-These are not yet an operational observability system.
+T4 adds a bounded, allowlisted JSON-line signal contract with `schemaVersion`, event, outcome,
+correlation ID, safe identifiers, reason codes, status, duration, and bounded freshness/count fields.
+Signals cover startup/readiness, ingestion outcomes, canonical selection, source staleness/recovery,
+Redis dependency state, and history persistence success/failure. Emission is best-effort and cannot
+change application behavior.
 
 For a 10+ vehicle service, an operator needs at least:
 
@@ -320,9 +332,9 @@ For a 10+ vehicle service, an operator needs at least:
 - authentication/rate-limit rejection trends; and
 - frontend/API error aggregation.
 
-None of these signals is currently exposed as a metrics endpoint, alert rule, dashboard, or
-operator notification. A stale source currently produces a generic server warning and a null
-canonical result rather than an actionable health event.
+The signals are currently stdout JSON lines only. None is exposed through a metrics endpoint, alert
+rule, dashboard, or operator notification. A stale source now produces a structured
+`tracking.source_stale` event, but no checked-in consumer turns it into an alert or operator view.
 
 ## 13. Logging Review
 
@@ -330,10 +342,10 @@ T1 removed the direct Redis URL disclosure, and T2's boundary logger avoids emit
 messages that may contain request/configuration values. The entrypoint also emits useful
 `level=... event=...` startup messages.
 
-Application logging remains mixed and mostly console-based. Legacy vehicle/route/stop/public/cache
-controllers log raw error objects or free-text messages; Socket.IO logs connection IDs; tracking logs
-pipeline events without a request ID, source ID, vehicle ID, outcome code, or consistent severity.
-There is no documented redaction policy, retention policy, log destination, or central collection.
+Application logging remains mixed and mostly console-based. The new operational logger is allowlisted
+and redacted, and HTTP requests receive an `X-Request-ID`; however, legacy vehicle/route/stop/public/
+cache paths still use category-only or free-text console logs, and not every event carries a request
+ID. There is no documented retention policy, log destination, or central collection.
 
 No passwords, bearer tokens, or request bodies were found in the reviewed production log statements,
 but the raw legacy error paths should not be treated as safe for arbitrary database/configuration
@@ -345,7 +357,7 @@ errors.
 check application-level ingestion health, Socket.IO fan-out, migration age, source freshness, or
 history persistence. No alert configuration or uptime monitor is present.
 
-There is no current mechanism to tell an operator that:
+There is still no current mechanism to alert an operator that:
 
 - a vehicle's source has stopped sending while its last location remains in Redis;
 - all sources for a vehicle are stale;
@@ -353,12 +365,15 @@ There is no current mechanism to tell an operator that:
 - canonical history writes are being swallowed after logging; or
 - frontend users are receiving API/socket failures.
 
+The backend now emits structured evidence for stale sources, dependency failures, and history
+persistence failures, which improves diagnosis but does not provide monitoring or alert delivery.
+
 ## 15. Error Tracking Review
 
-Backend failures terminate in stdout/stderr. The new boundary logger makes several server errors
-safer, but it does not aggregate, group, notify, or retain them. Frontend code catches errors and
-shows inline messages or writes to the browser console; no frontend error reporting or session
-diagnostics are present.
+Backend failures terminate in stdout/stderr. The new boundary logger and operational signals make
+several server errors safer and more searchable, but they do not aggregate, group, notify, or retain
+them. Frontend code catches errors and shows inline messages or writes to the browser console; no
+frontend error reporting or session diagnostics are present.
 
 ## 16. Recommended Improvements
 
@@ -496,9 +511,9 @@ the seed/env documentation.
 
 ### Problem
 
-Build, lint, boundary tests, Prisma validation, Compose parsing, and integration smoke tests are
-manual. No CI workflow, migration gate, rollback procedure, or deployment approval evidence exists.
-The local dev script also references undeclared `tsx`.
+Build, lint, boundary tests, Prisma validation, and Compose parsing now have a CI workflow and local
+script. Migration gates, rollback procedures, deployment approval evidence, and integration smoke
+execution in CI are still absent. The local dev script also references undeclared `tsx`.
 
 ### Impact
 
@@ -507,10 +522,10 @@ failure may only be discovered after deployment.
 
 ### Recommendation
 
-Add CI jobs for backend build/tests, Prisma validation, frontend lint/build, Compose config, unsafe
-output search, and a disposable Postgres/Redis integration smoke. Add migration/release approval and
-rollback instructions. Either add `tsx` to the backend dev dependencies or change `nodemon.json` to a
-declared tool. Keep live dependency advisory scanning as a separate pre-release job.
+Extend the existing CI job with a disposable Postgres/Redis integration smoke, migration/release
+approval and rollback instructions. Either add `tsx` to the backend dev dependencies or change
+`nodemon.json` to a declared tool. Keep live dependency advisory scanning as a separate pre-release
+job.
 
 ### Why
 
@@ -538,8 +553,9 @@ lockfiles, Dockerfiles, Compose files, and the missing CI workflow/runbook.
 
 ### Problem
 
-The application has health/readiness and console logs but no request correlation, metrics, error
-aggregation, source-silence alert, ingestion rejection signal, or frontend error reporting.
+The application now has request correlation and redacted JSON signals for readiness, ingestion
+outcomes, source staleness, dependency state, and history persistence, but no metrics export, error
+aggregation, source-silence alert, or frontend error reporting.
 
 ### Impact
 
@@ -548,12 +564,9 @@ after an incident, making diagnosis and response unreliable.
 
 ### Recommendation
 
-Keep the current simple stack and add redacted structured events with a request/correlation ID,
-source/vehicle/outcome fields, and consistent severity. Expose or export counters for readiness,
-ingestion accepted/rejected, rate limits, source freshness, canonical selection, Redis/Postgres
-failures, and GPS-history persistence. Monitor `/ready`, alert on source silence and dependency
-failure, and add one aggregated backend/frontend error-reporting path after the deployment topology
-is selected.
+Keep the current signal contract and export its counters to a metrics or log sink. Monitor `/ready`,
+alert on source silence and dependency failure, and add one aggregated backend/frontend error-reporting
+path after the deployment topology is selected.
 
 ### Why
 
@@ -581,9 +594,9 @@ Structured logging, metrics, health checks, alert thresholds, and error grouping
 
 ### Problem
 
-T2's pipeline evidence depends on configured infrastructure and secrets, while simulator/test
-assumptions have not been fully aligned with current seed IDs and credential instructions. T3 is
-still pending.
+The pipeline evidence depends on configured infrastructure and secrets. T3 aligns simulator/test
+fixtures and documents the smoke path, but no physical sender or provider runtime is available in
+this repository.
 
 ### Impact
 
@@ -669,20 +682,20 @@ Recommended next agent: **Production Readiness Audit Agent**.
 Production Readiness depends on this report because the remaining security and operational gaps are
 release gates, not optional polish. It should not mark a public/daily release ready while production
 data services lack a confirmed private boundary, admin master-data writes remain outside the T2
-validation/rate-limit contract, CI/release evidence is manual, or operators cannot detect source
+validation/rate-limit contract, deployment/release evidence is incomplete, or operators cannot detect source
 silence and dependency failure. It should distinguish the controlled-MVP decision from a public or
 daily-service decision and record any explicit risk acceptance.
 
 ## Roadmap Impact
 
-- T1 is **Resolved** and T2 is implemented with passing local static checks. The T1/T2 conventions
-  can now be used by T3, T5, T6, and T10.
+- T1, T2, T3, and T4 are marked **Complete** in the roadmap. T4's CI and redacted operational-signal
+  contract are now available for the remaining refactors and Production Readiness evidence.
 - T2 does not close the whole previous security finding set: admin vehicle/route/stop boundary
   coverage, production network isolation, session-policy alignment, and CORS still need work.
-- T3 remains the immediate device-pipeline evidence task because simulator/seed assumptions are not a
-  stable checked-in contract.
-- T4 remains required for CI gates and redacted operational signals; it is the main dependency for a
-  credible Production Readiness reassessment.
+- T3's simulator/seed alignment and pipeline smoke documentation improve device evidence, but no
+  physical sender or provider deployment was verified in this audit.
+- T4 is **Resolved for its stated Phase 1 scope**. It remains insufficient by itself for deployment
+  approval because migration/rollback, alert delivery, and error tracking are outside its scope.
 - T5/T6 remain downstream of the security boundary but are not security sign-offs. Their runtime
   changes must preserve source-bound tokens, bounded payloads, safe errors, and source-aware quotas.
 - D-001 still determines whether daily-operation observability is a release blocker now. D-003 still
@@ -704,7 +717,7 @@ daily-service decision and record any explicit risk acceptance.
 ## Confidence
 
 **High** for code-visible authentication, validation, response projection, rate-limit placement,
-logging statements, package scripts, Compose definitions, and absence of CI files.
+logging statements, package scripts, CI workflow, Compose definitions, and signal redaction.
 
 **Medium** for local runtime readiness because Postgres/Redis were healthy and the roadmap records a
 configured smoke run, but the backend smoke was not rerun in this turn.

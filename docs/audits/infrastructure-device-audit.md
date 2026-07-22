@@ -1,18 +1,18 @@
 # Infrastructure & Device Audit: Tram Tracking System
 
-Re-audited: 2026-07-19
+Re-audited: 2026-07-22
 
 ## 1. Executive Summary
 
-The repository now has a credible production-mode self-hosted Compose configuration: multi-stage production images, compiled backend/frontend commands, production secret checks, migration-before-start, named volumes, restart policies, and backend health/readiness endpoints. This resolves the prior development-only-container and missing-readiness findings.
+The repository now has a credible production-mode self-hosted Compose configuration: multi-stage production images, compiled backend/frontend commands, production secret checks, migration-before-start, named volumes, restart policies, and backend health/readiness endpoints. T3 also repaired the checked-in mobile/TTN fixture contract and added repeatable pipeline smoke documentation.
 
-It is not proof of a deployed production service. The repository contains no actual host, domain, TLS/reverse proxy, provider topology, backup/restore owner, log destination, TTN console/device registry, mobile application, or ESP32 firmware/hardware contract.
+It is not proof of a deployed production service. The repository contains no actual host, domain, TLS/reverse proxy, provider topology, backup/restore owner, log destination, TTN console/device registry, mobile application, or ESP32 firmware/hardware contract. T4 operational signals are allowlisted best-effort process logs, not durable metrics or alerts.
 
-Device boundaries are stronger: source-bound mobile/ESP32-style HTTP and Socket.IO ingestion, plus an authenticated TTN webhook, all use the canonical pipeline. However, current mobile and TTN simulator defaults do not match seeded source fixtures, so device test paths are not reliably runnable as checked in.
+Device boundaries are stronger: source-bound mobile/ESP32-style HTTP and Socket.IO ingestion, plus an authenticated TTN webhook, all use the canonical pipeline. T3 now makes simulator defaults environment-driven and seed-aligned, and the smoke suite exercises authentication, canonical selection, TTN handling, source priority, and safe acknowledgements. Physical device/provider integration remains unverified.
 
 ## Scope, Evidence, and Re-audit Status
 
-Reviewed the Knowledge Base; current Product, Architecture, Backend, and Database reports; prior Infrastructure & Device report; Compose files; Dockerfiles; entrypoint; PostGIS init; env templates; documentation; simulators; and current server/ingest boundaries. Both development and production Compose files pass docker compose config --quiet validation.
+Reviewed the Knowledge Base; current Product, Architecture, Backend, and Database reports; prior Infrastructure & Device report; Compose files; Dockerfiles; entrypoint; PostGIS init; env templates; roadmap T3 evidence; documentation; simulators; tests; and current server/ingest boundaries. The roadmap records passing development/production Compose validation, backend checks, frontend lint/build, mobile/TTN smoke, full pipeline evidence, and `git diff --check` on 2026-07-21. In this re-audit, the backend/Prisma/boundary checks passed and frontend lint had six warnings with no errors; the frontend production build could not fetch Google Fonts because this environment could not reach `fonts.googleapis.com`. These claims are repository-recorded or local-check evidence; no live deployment was available in this re-audit.
 
 No running deployment, provider account, DNS/TLS configuration, managed database/cache, TTN application, hardware, mobile app, or firmware was available. Those matters are marked unavailable rather than inferred.
 
@@ -22,11 +22,13 @@ No running deployment, provider account, DNS/TLS configuration, managed database
 | Health/readiness was missing | **Resolved** | Backend exposes health and dependency-checking ready endpoints. |
 | Production startup/configuration was incomplete | **Partially Resolved** | Compose requires core secrets, uses restart policies, production targets, and migration-before-start; host/TLS/backups/log operations remain undocumented. |
 | Vercel/Render/Neon deployment was missing | **Unable to Verify** | No current provider target/config is documented; historical report claims are not current repository evidence. |
-| Source registry/ingestion boundary was incomplete | **Resolved** | Source lifecycle, sender token binding, HTTP ingestion, TTN secret boundary, and canonical selection exist. |
+| Source registry/ingestion boundary was incomplete | **Resolved** | Source lifecycle, sender token binding, HTTP ingestion, TTN secret boundary, rate limits, and canonical selection exist. |
 | Server-side TTN adapter was missing | **Resolved** | The TTN endpoint accepts documented payload shapes and uses the canonical pipeline. |
 | ESP32 needed a normalized contract | **Partially Resolved** | Authenticated HTTP ingestion is usable, but no firmware, transport choice, or provisioning evidence exists. |
 | Real mobile/device workflow was absent | **Still Present** | Only Node simulators are in the repository. |
-| Simulator fixtures align with registry | **New Finding** | Mobile source/vehicle and TTN source IDs conflict with current seed fixtures. |
+| Simulator fixtures align with registry | **Resolved** | T3 makes mobile/TTN IDs and secrets environment-driven, aligns defaults/documentation with seed fixtures, and adds repeatable smoke commands. |
+| Repeatable device-pipeline evidence was missing | **Resolved** | T3 smoke documentation and `test_pipeline.js` cover mobile, ESP32-style HTTP, TTN, priority selection, history, and safe acknowledgements. |
+| Operational signals and CI gates were missing | **Partially Resolved** | T4 adds CI checks, request IDs, allowlisted signals, redaction, suppression, and source-health sweep; signals remain process-local/best-effort and not alerting. |
 
 ## 2. Current Infrastructure Overview
 
@@ -55,15 +57,15 @@ Recommendation: before a public/daily release, document one topology with fronte
 
 Priority: High before production. Difficulty: Medium.
 
-### High — Checked-in simulators are incompatible with source fixtures
+### High — T3 evidence is local/pilot evidence, not provider evidence
 
-The mobile simulator hard-codes TS_MOB_01 with VH002, while seed assigns that source to VH001. Its fallback secret is not a current seeded credential. The TTN simulator emits TS_LORA_01 or TS_LORA_N2, while seed creates sensor-c4 and sensor-f2.
+T3 now proves the configured local pipeline, but the evidence is based on simulators and a disposable stack. The repository still has no live TTN application/device registration, webhook registration, mobile application, ESP32 firmware, or deployed provider endpoint.
 
-Impact: sender login, ownership, or TTN source lookup can fail before canonical ingestion is tested.
+Impact: sender authentication and canonical selection can be repeatably tested in development, but real uplink delivery, reconnect behavior, device clocks, network failures, and provider payload variations remain unverified.
 
-Recommendation: use environment-driven identifiers shared with seed/test fixtures, remove invalid fallback secrets, and add a single documented mobile/TTN integration command.
+Recommendation: retain the current smoke contract, then run the same checks against a disposable deployed environment and a real TTN test device before claiming physical integration.
 
-Priority: High for device validation. Difficulty: Easy.
+Priority: Medium now; High before physical pilot. Difficulty: Medium.
 
 ### Medium — Runtime device and provider evidence is unavailable
 
@@ -91,17 +93,17 @@ This configuration can be a controlled self-hosted base after these operations f
 
 The Node simulator logs in as a sender, starts a trip, connects Socket.IO with its sender token, and sends source/vehicle/trip, coordinates, speed, bearing, accuracy, and station. Server-side writes revalidate source/vehicle/credential claims and acknowledge only the canonical outcome.
 
-This is a valid external-sender contract, not a mobile application. Background location, permission, reconnect/backoff, device timestamp, battery/network data, and driver experience are Not Implemented. The fixture mismatch must be repaired before the simulator serves as integration evidence.
+This is a valid external-sender contract, not a mobile application. T3 makes the simulator source/vehicle IDs environment-driven, requires `TRACKING_SOURCE_SECRET_MOBILE`, uses sender JWT handshake authentication, and waits for a safe Socket.IO acknowledgement (`shuttle-tracking-web/simulate.js:9-15`, `shuttle-tracking-web/simulate.js:126-197`, `shuttle-tracking-web/simulate.js:214-227`). Background location, permission, reconnect/backoff semantics for a real app, device timestamp, battery/network data, and driver experience are Not Implemented. The documented smoke command is repeatable only when the disposable fixture stack is configured.
 
 ## 7. LoRaWAN Integration Readiness
 
-The implemented path is a server-side TTN webhook, not MQTT. It validates the TTN secret, extracts the TTN device ID, accepts several location shapes, requires an active registered LoRaWAN source, and sends the normalized result through canonical selection.
+The implemented path is a server-side TTN webhook, not MQTT. It validates the TTN secret, rate-limits by IP/source, extracts the TTN device ID, accepts several location shapes, requires an active registered LoRaWAN source, and sends the normalized result through canonical selection (`shuttle-tracking-backend/src/routes/ingest.route.ts:150-260`). T3 provides seed-aligned `sensor-c4` and `sensor-f2` simulations and repeatable smoke commands.
 
-No TTN application, payload formatter, deployed device-source mapping, webhook registration, MQTT consumer, or direct browser delivery is found. These are Needs Confirmation; do not create a second pipeline. Keep TTN through the backend so source selection and D-002 telemetry policy remain shared.
+No TTN application, payload formatter ownership, deployed device-source mapping, webhook registration, MQTT consumer, or direct browser delivery is found. These are Needs Confirmation; do not create a second pipeline. Keep TTN through the backend so source selection and D-002 telemetry policy remain shared.
 
 ## 8. ESP32 Integration Readiness
 
-Authenticated HTTP ingestion is a practical existing adapter for an ESP32 or gateway. It uses the same bound sender token and observation shape as other non-LoRaWAN sources. Socket.IO is also available, but repository evidence does not show it is the preferred embedded protocol.
+Authenticated HTTP ingestion is a practical existing adapter for an ESP32 or gateway. It uses the same bound sender token and observation shape as other non-LoRaWAN sources; T3's pipeline test exercises the ESP32-style source fixture. Socket.IO is also available, but repository evidence does not show it is the preferred embedded protocol.
 
 No firmware, GPS module, connectivity, payload cadence, offline queue, credential bootstrap, or power requirements are documented. Use HTTP for an initial physical pilot only after that contract is known; reconsider MQTT only if device/fleet evidence requires it.
 
@@ -121,45 +123,46 @@ Secret strength/rotation and cloud-secret controls are deferred to Security/DevO
 
 - Actual production topology, domain/TLS, origin matrix, migration rollback, and operations runbook.
 - Backup/restore owner, Redis persistence/eviction policy, log destination, monitoring, and alerts.
-- Aligned simulator fixtures plus repeatable configured integration environment.
+- Repeatable configured integration environment beyond local/disposable Compose.
+- Durable metrics/alerts and complete malformed/oversized-ingestion signal coverage.
 - TTN registry/decoder/webhook setup evidence and ESP32 firmware/provisioning/network contract.
 - Source-health/device operations view for operators.
 
 ## 12. Recommended Improvements
 
-### Recommendation 1: Align simulators with repeatable source fixtures
+### Recommendation 1: Run the T3 pipeline evidence in a disposable deployed environment
 
 ### Problem
 
-Default simulator IDs and secret fallback conflict with development seed data.
+The repository now has seed-aligned simulators and local smoke documentation, but no deployed-environment evidence.
 
 ### Impact
 
-Local device exercises fail before validating the intended ingestion pipeline.
+Provider, origin, TLS, restart, and network behavior can still differ from the local Compose result.
 
 ### Recommendation
 
-Drive source/vehicle identifiers from environment shared with seed/test fixtures; remove invalid fallback secrets; document one configured mobile and TTN smoke command.
+Deploy the production-mode stack to a disposable environment after D-003 topology decisions, configure secrets/origins, run the documented mobile and TTN smoke commands plus the full pipeline test, and retain redacted results.
 
 ### Why
 
-It repairs current evidence without changing architecture.
+T3 already repaired the local fixture contract; the remaining infrastructure question is whether the same contract survives the selected runtime topology.
 
 ### Priority
 
-High — needed now.
+High.
 
 ### Difficulty
 
-Easy.
+Medium.
 
 ### Learning Topic
 
-Reproducible integration fixtures and configuration-as-contract.
+Deployment smoke tests and configuration-as-contract.
 
 ### Related Files
 
-simulate.js, simulate-ttn.js, prisma/seed.js, and test_pipeline.js.
+docker-compose.prod.yml, docs/testing/pipeline-smoke-tests.md, simulate.js, simulate-ttn.js, prisma/seed.js, and test_pipeline.js.
 
 ### Recommendation 2: Document one production topology and operating runbook
 
@@ -273,7 +276,7 @@ docker-compose.prod.yml, docker-entrypoint.sh, src/server.ts, and Database Audit
 
 ## Roadmap Impact
 
-This report validates production image/startup and sender/TTN foundations. D-003 already gates production origin/configuration sequencing; D-002 gates telemetry fidelity. Simulator alignment is a low-risk implementation prerequisite. No new owner decision or roadmap change is created.
+This report validates production image/startup and sender/TTN foundations. D-003 already gates production origin/configuration sequencing; D-002 gates telemetry fidelity. T3 simulator alignment and pipeline evidence are complete. No new owner decision or roadmap change is created.
 
 ## Assumptions and Unknowns
 
