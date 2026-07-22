@@ -2,10 +2,10 @@
 
 Last updated: 2026-07-22
 
-Coordination status: **Discovery and Product validated; Architecture next**. Both profiles have
-current evidence-baseline metadata. All later reports remain `Needs Re-audit` until their
-predecessor and freshness gates pass; do not use their historical completion claims as current
-sign-off.
+Coordination status: **Discovery, Product, and Architecture validated; Backend, Frontend, and
+Database next in parallel**. These profiles have current evidence-baseline metadata. All later
+reports remain `Needs Re-audit` until their predecessor and freshness gates pass; do not use their
+historical completion claims as current sign-off.
 
 ## 1. Executive Summary and Changes Detected
 
@@ -20,6 +20,12 @@ boundary: public tracking and feedback capture are present, but route-stop opera
 sender surface, trip history, feedback triage, source health, truthful stale/offline states, and the
 D-004 research dashboard are absent or incomplete.
 
+Architecture is now validated at the same baseline with both predecessors current. It confirms that
+T5 now centralizes transactional trip lifecycle/history ownership, while canonical current state is
+still Redis-only, raw/event-time research evidence is absent, public stale/offline semantics are
+incomplete, and the client still supplies route/ETA intelligence. T6 is the next architectural
+contract; it must precede map truthfulness and approved research implementation.
+
 The prior Architecture, Backend, Database, Infrastructure & Device, Dashboard & UX,
 Security/DevOps/Observability, Frontend, and Production Readiness conclusions remain historical
 evidence only. Their previous controlled-MVP/No-Go direction is not being erased, but each report
@@ -29,12 +35,15 @@ must be revalidated in canonical predecessor order before it can be used as a cu
 
 - Discovery: **Complete / Validated** at the current baseline.
 - Product: **Complete / Validated** at the current baseline; D-001=A remains the release boundary.
-- Architecture: **Needs Re-audit** and is next after Product; revalidate lifecycle, canonical state,
-  route/service/freshness ownership, and the separate research surface.
-- Backend: **Needs Re-audit** after Architecture; T5 changed the prior lifecycle finding.
-- Frontend: **Needs Re-audit** after Architecture.
-- Database: **Needs Re-audit** after Architecture; T5 added lifecycle integrity constraints and a
-  transactional service.
+- Architecture: **Complete / Validated** at the current baseline; T5 lifecycle ownership is resolved,
+  while canonical state, ordering, freshness, route authority, and research evidence remain gated by
+  T6/T7.
+- Backend: **Needs Re-audit**, now eligible after Architecture; revalidate T5 integration and the
+  canonical ingest contract.
+- Frontend: **Needs Re-audit**, now eligible after Architecture; revalidate stale/offline and route
+  authority behavior.
+- Database: **Needs Re-audit**, now eligible after Architecture; revalidate T5 constraints and the
+  current/history/raw data-product boundary.
 - Infrastructure & Device: **Needs Re-audit** after Backend, Frontend, and Database.
 - Dashboard & UX: **Needs Re-audit** after Product, Frontend, and Infrastructure & Device.
 - Security/DevOps/Observability: **Needs Re-audit** after all required domain predecessors.
@@ -49,16 +58,16 @@ require manual/API-only/external-client work.
 Approved decisions carried forward:
 - **D-001 (Approved A)**: Minimal controlled demonstration scope for MVP pilot testing.
 - **D-002 (Approved B)**: Bounded raw diagnostics retained to compare 3 senders (Mobile, LoRaWAN, ESP32) for latency and accuracy research.
-- **D-003 (Approved A)**: T6 production configuration precedes T16 Socket/REST origin alignment.
+- **D-003 (Approved A)**: define topology/origin facts before configuration alignment; the historical
+  T6/T16 cycle is closed and current roadmap T9 carries this order.
 - **D-004**: Three-device research boundaries and authenticated Dev Dashboard scope.
 
 All decision records have been moved from Pending to Approved in `docs/decision-queue.md`.
 
-Discovery and Product introduced no new owner decision. T5 lifecycle facts must be revalidated by
-the Backend and Database profiles, while product scope, retention, topology/origin, and three-device
-research constraints remain governed by D-001 through D-004. The next action is Architecture,
-followed by the canonical predecessor order; only after all required audits are current should
-Production Readiness and the Roadmap be revalidated.
+Discovery, Product, and Architecture introduced no new owner decision. The next action is the
+parallel Backend, Frontend, and Database re-audits. Infrastructure & Device must wait for those
+profiles; only after all required audits are current should Production Readiness and the Roadmap be
+revalidated.
 
 ## 4. Confidence and Limitations
 
