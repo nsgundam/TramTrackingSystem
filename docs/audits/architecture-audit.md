@@ -1,5 +1,8 @@
 # Architecture Audit: Tram Tracking System
 
+Validation status: **Needs Re-audit**. This legacy report predates T5 lifecycle completion and the
+current evidence-baseline contract; roadmap task references may use superseded numbering.
+
 Last re-audited: 2026-07-19
 
 ## 1. Executive Summary

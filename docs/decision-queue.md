@@ -59,9 +59,10 @@ the owner selects a scope that needs device comparison or incident diagnostics.
 
 Owner decision: Approved B — Bounded raw diagnostics (Retain raw observation facts to compare 3 senders—mobile, LoRaWAN, ESP32—measuring latency, accuracy, etc. for research analysis)
 
-Roadmap effect: Unblocks T14, T26, T29, and telemetry retention/diagnostics tasks.
+Roadmap effect: Unblocks current-roadmap T7 and the research portion of T15. References to T14,
+T26, and T29 belonged to superseded roadmap numbering.
 
-## D-003 — T6/T16 production-configuration dependency order
+## D-003 — Topology/origin dependency order (legacy T6/T16 numbering)
 
 Related reports: `docs/audits/architecture-audit.md`,
 `docs/audits/infrastructure-device-audit.md`,
@@ -70,8 +71,9 @@ Related reports: `docs/audits/architecture-audit.md`,
 `docs/audits/production-readiness-audit.md`,
 `docs/roadmap/master-refactoring-roadmap.md`
 
-Current approach: roadmap task T6 depends on T16, while T16 depends on T6. This forms a cycle that
-prevents either task from satisfying its dependency order.
+Historical context: the superseded roadmap made its former T6 and T16 depend on each other. The
+current roadmap carries the approved policy into current T9: establish topology and origin facts
+before client/server configuration alignment.
 
 Problem: deployable production configuration and unified REST/Socket origin behaviour are both
 required, but the roadmap must define their sequence without a circular prerequisite.
@@ -87,9 +89,30 @@ enforce REST/Socket alignment against that contract.
 
 Owner decision: Approved A — T6 first, T16 follows
 
-Roadmap effect: Dependency order updated; T6 precedes T16, unblocking roadmap execution sequence.
+Roadmap effect: The historical cycle is closed. Current T9 owns topology/origin definition and
+configuration alignment; there is no current T16.
+
+## D-004 — Three-device research and Dev Dashboard scope
+
+Related artifact: `docs/research/device-comparison-scope.md`
+
+Current approach: D-002 approves bounded raw diagnostics, but it did not define the physical source
+boundaries, dashboard audience, or accuracy vocabulary.
+
+Owner decision: Approved on 2026-07-22. Compare three separate sources: Mobile GPS through
+Socket.IO, ESP32 with a GPS module through Wi-Fi/HTTP, and a separate LoRaWAN device through
+Gateway/TTN/Webhook. Start with an authenticated Dev Dashboard containing live and historical
+comparison, health/freshness, latency, cadence, delivery quality, accuracy proxies/reference error,
+selection/failover, available signal/power metadata, filters, and bounded CSV/JSON export.
+
+Guardrail: distance from a point to the known route is route-conformance evidence and a
+device-reported accuracy value is reported uncertainty. Neither alone proves absolute accuracy.
+Add surveyed checkpoints or a higher-quality synchronized reference when an absolute accuracy claim
+is required.
+
+Roadmap effect: Refines the research handoff for T7 and T15 without bypassing audit revalidation,
+retention/access decisions, physical-device facts, or task specifications.
 
 ## Postponed
 
 ## Rejected
-

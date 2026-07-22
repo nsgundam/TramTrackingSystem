@@ -1,5 +1,8 @@
 # Database Audit: Tram Tracking System
 
+Validation status: **Needs Re-audit**. This legacy report predates T5 transactional lifecycle and
+integrity changes and lacks current evidence-baseline metadata.
+
 Re-audited: 2026-07-19
 
 ## 1. Executive Summary

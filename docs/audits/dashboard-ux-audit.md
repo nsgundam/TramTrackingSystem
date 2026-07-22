@@ -1,5 +1,8 @@
 # Dashboard & UX Audit: Tram Tracking System
 
+Validation status: **Needs Re-audit**. This legacy report lacks the evidence-baseline and
+predecessor metadata required by the current audit contract.
+
 Re-audited: 2026-07-19
 
 ## 1. Executive Summary

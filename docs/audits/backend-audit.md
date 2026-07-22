@@ -1,5 +1,8 @@
 # Backend Audit: Tram Tracking System
 
+Validation status: **Needs Re-audit**. This report was refreshed after T4 but predates validation
+of the completed T5 lifecycle boundary and lacks current evidence-baseline metadata.
+
 Re-audited: 2026-07-22
 Scope: current Express/TypeScript backend, Prisma schema and migrations, Redis/Socket.IO pipeline,
 backend tests, and backend-facing configuration. This is a source review, not a live-service or

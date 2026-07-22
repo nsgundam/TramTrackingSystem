@@ -1,5 +1,8 @@
 # Security, DevOps & Observability Audit: Tram Tracking System
 
+Validation status: **Needs Re-audit**. This legacy report lacks complete predecessor-baseline
+metadata required by the current audit contract.
+
 Re-audited: 2026-07-22
 
 Trigger: Refactor T4 is marked complete in `docs/roadmap/master-refactoring-roadmap.md`.

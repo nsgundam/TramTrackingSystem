@@ -1,6 +1,10 @@
 # Lead Audit Summary
 
-Last updated: 2026-07-20
+Last updated: 2026-07-22
+
+Coordination status: **Needs Refresh**. The findings below remain historical evidence, but the
+Audit Register now requires evidence-baseline metadata and T5 changed lifecycle behavior after
+several reviews. Do not use the historical “T1 next” recommendation for execution.
 
 ## 1. Executive Summary and Changes Detected
 
@@ -66,8 +70,10 @@ consolidates these into a No-Go: the current service is limited to a controlled 
 security, operational-truth, lifecycle, deployment, and observability blockers before daily/public
 use. The Master Refactoring Roadmap has been re-reviewed against the approved decision gates:
 D-001=A defers daily/public workflows, D-002=B creates bounded diagnostics research work, and
-D-003=A removes the topology/origin ordering cycle. The recommended next action is T1: remove
-secret-hash and credential-bearing configuration exposure before any further pilot expansion.
+D-003=A removes the topology/origin ordering cycle. T1–T5 are now complete. The next action is to
+refresh Discovery, re-run domain audits in canonical predecessor order, validate Production
+Readiness, and revalidate the roadmap. T6 is the next implementation candidate only after those
+evidence gates pass.
 
 ## 4. Confidence and Limitations
 

@@ -176,6 +176,38 @@ TramTrackingSystem/
 
 ---
 
+## AI Agent Workflow
+
+The project-specific agent router is [`AGENTS.md`](AGENTS.md). It maps Level 1 audits, Level 2
+specialists, Level 3 implementation, shared-state ownership, and safety gates. The complete active
+instruction surface is intentionally small:
+
+```text
+agents/                  # Three Level 1–3 role contracts
+.agents/skills/          # Three workflows with on-demand domain references
+docs/                    # Audit, decision, roadmap, and task state
+```
+
+Project skills live only in `.agents/skills/`; there is no mirrored root `skills/` directory.
+Level 1 loads one of nine audit playbooks and Level 2 loads one of ten specialist playbooks from the
+matching skill's `references/` directory, so domain depth does not expand the always-loaded agent
+surface.
+
+- [Level 1 audit contract](agents/level-1-audit/AGENT.md)
+- [Level 2 specialist contract](agents/level-2-specialist/AGENT.md)
+- [Level 3 refactoring contract](agents/level-3-refactor/AGENT.md)
+- [Three-device research scope](docs/research/device-comparison-scope.md)
+
+Validate the workflow contract locally with:
+
+```bash
+node scripts/validate-agent-workflow.js
+```
+
+Audit readiness and the next eligible phase are recorded in
+[`docs/audits/README.md`](docs/audits/README.md). Do not select a roadmap task from historical audit
+text without checking that register first.
+
 ## Contributing
 
 - [Frontend Documentation](./shuttle-tracking-web/README.md)

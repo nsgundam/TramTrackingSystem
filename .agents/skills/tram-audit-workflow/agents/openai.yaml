@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tram Audit Workflow"
+  short_description: "Run deep on-demand product and domain audits"
+  default_prompt: "Use $tram-audit-workflow to audit one Tram Tracking System profile with its mapped playbook."

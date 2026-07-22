@@ -1,5 +1,9 @@
 # Tram Tracking System Project Knowledge Base
 
+Evidence status: **Needs Refresh**. This legacy discovery snapshot predates the completed T5
+lifecycle boundary and does not yet contain the evidence-baseline metadata required by the current
+audit contract. Use `docs/audits/README.md` as the coordination authority.
+
 Discovery refresh: 2026-07-18
 
 This document describes the current repository state from source code, configuration, schema,
@@ -33,7 +37,8 @@ The repository directly evidences these user groups:
   submit location observations.
 - TTN/LoRaWAN webhook senders that submit location payloads through the server-side webhook route.
 
-The declared project stage is MVP. The long-term goal in `agents/discovery/AGENT.md` is a
+The declared project stage is MVP. The Level 1 contract in
+`agents/level-1-audit/AGENT.md` targets evidence-based progression toward a
 production-ready system. A complete mobile application, ESP32 firmware, and deployed TTN provider
 configuration are not present in this repository.
 
@@ -185,8 +190,9 @@ features are represented by backend contracts and simulators.
 ## Repository Structure
 
 - `README.md`: root project overview, local setup, Docker setup, and component descriptions.
-- `agents/discovery/AGENT.md`: discovery role, workflow, evidence rules, deliverable, and handoff.
-- `agents/`: instructions for the discovery and later audit agents.
+- `AGENTS.md`: repository-wide agent routing, ownership, and safety rules.
+- `agents/`: exactly three Level 1–3 role contracts.
+- `.agents/skills/`: the only repository-scoped project skills location.
 - `docs/project-knowledge-base.md`: this shared discovery context.
 - `docs/audits/`: audit documents from other project dimensions; these are separate from the
   discovery scope.

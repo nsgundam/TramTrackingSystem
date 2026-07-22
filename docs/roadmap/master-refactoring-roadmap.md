@@ -1,6 +1,10 @@
 # Master Refactoring Roadmap
 
-Last reviewed: 2026-07-20
+Last reviewed: 2026-07-22
+
+Validation state: **Needs Revalidation**. T1–T5 are complete, but the audit inputs predate the new
+evidence-baseline contract and several reports predate T5. Preserve this task plan as a historical
+working roadmap; do not start T6 until the Audit Register is validated again.
 
 ## 1. Executive Summary
 
@@ -9,6 +13,8 @@ This roadmap supersedes the earlier task list. It uses all completed re-audits a
 - D-001 = A: the next release is a supervised controlled demonstration/pilot, not daily operations or a public launch.
 - D-002 = B: retain bounded raw diagnostics to compare mobile, LoRaWAN, and ESP32 senders for research.
 - D-003 = A: define the deployment topology and origin contract first, then align REST and Socket configuration.
+- D-004: compare separate Mobile/Socket.IO, ESP32+GPS/Wi-Fi/HTTP, and
+  LoRaWAN/Gateway/TTN/Webhook sources in an authenticated Dev Dashboard.
 
 The production determination remains No-Go. D-001 reduces the immediate product scope but does not make public/daily risks acceptable. Phase 1 improves controlled-MVP safety and repeatability. Phase 2 creates the reusable technical contracts. Phase 3 stays deferred until D-001 is upgraded. Do not add playback, microservices, a second ingestion pipeline, or an operations suite early.
 
@@ -16,12 +22,14 @@ The production determination remains No-Go. D-001 reduces the immediate product 
 
 | Input | Date | Status | Use |
 |---|---:|---|---|
-| Knowledge Base | 2026-07-18 | Current | Repository baseline |
-| Product, Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps/Observability audits | 2026-07-19 | Complete | Findings and task traceability |
-| Production Readiness Audit | 2026-07-19 | Complete | No-Go and production bar |
-| Decision Queue | 2026-07-20 | Approved | D-001=A, D-002=B, D-003=A |
+| Knowledge Base | 2026-07-18 | Needs Re-audit | Predates T5 and lacks evidence-baseline metadata. |
+| Product, Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps/Observability audits | 2026-07-19 to 2026-07-22 | Needs Re-audit | Legacy reports require baseline metadata and ordered revalidation. |
+| Production Readiness Audit | 2026-07-22 | Needs Re-audit | Predates T5 validation and refreshed predecessors. |
+| Decision Queue | 2026-07-22 | Approved | D-001=A, D-002=B, D-003=A, and D-004 research scope |
 
-No required input is missing, stale, blocked, or unvalidated. Hosting, TLS, production recovery, browser/runtime behavior, physical devices, and TTN console state remain external unknowns.
+No input file is missing, but audit evidence is currently stale/unvalidated under the new contract.
+Hosting, TLS, production recovery, browser/runtime behavior, physical devices, and TTN console state
+remain external unknowns.
 
 ## 3. Consolidated Recommendation List
 
@@ -69,6 +77,14 @@ Cycle check: the previous topology/frontend configuration cycle is resolved by D
 
 Safe parallel work: T1 and the planning portion of T4. After Phase 1, T5 and the planning portion of T9 may run in parallel. Do not modify raw telemetry, canonical selection, and map consumers concurrently without accepting the T6 contract first.
 
+### 4.1 Task Contract
+
+Every task must expose Source Audits, Phase, Depends On, Blocks, Decision Gates, Priority,
+Difficulty, Suggested Agent, Execution Mode, Task Brief, Related Files, Acceptance Criteria and
+Verification, Status, and Evidence. `Related Files` are planning candidates only. Before worker
+execution, resolve them to exact repository-relative files in
+`docs/tasks/<task-id>-<topic>.md`; that task spec is the authoritative write allowlist.
+
 ## 5. Phase 1 — Controlled MVP Safety and Production Blockers
 
 **Entry criteria:** all audits complete; D-001=A, D-002=B, and D-003=A approved; no daily/public claim.
@@ -86,6 +102,10 @@ Production Readiness 3.4; Security 4, 13, 16; Backend 5.
 1.
 
 ### Depends On
+
+None.
+
+### Decision Gates
 
 None.
 
@@ -143,6 +163,10 @@ Production Readiness 3.4; Security 4, 6, 16; Backend 6, 13.
 
 T1 response/error conventions.
 
+### Decision Gates
+
+None; security/abuse details must remain within the approved controlled-MVP scope.
+
 ### Blocks
 
 T3, T5, T6, T10, public release.
@@ -196,6 +220,10 @@ Production Readiness 3.6; Infrastructure & Device 4, 6–9, 12.
 ### Depends On
 
 T1, T2.
+
+### Decision Gates
+
+None.
 
 ### Dependency Note
 
@@ -254,6 +282,10 @@ Production Readiness 3.8; Security 9–16; Infrastructure 5, 12; Backend 11.
 ### Depends On
 
 T1 and existing commands.
+
+### Decision Gates
+
+None; external monitoring providers remain out of scope.
 
 ### Dependency Note
 
@@ -319,6 +351,10 @@ Production Readiness 3.3; Architecture 5, 8; Backend 5, 7, 11, 13; Database 4, 1
 
 T2 and the existing partial active-trip index.
 
+### Decision Gates
+
+Duplicate start/end and virtual-trip policy recorded in this task brief.
+
 ### Blocks
 
 T6, T11, T13.
@@ -373,6 +409,10 @@ Production Readiness 3.2; Architecture 5, 7, 11; Backend 8–10; Frontend 4, 7, 
 
 T2 and T5 lifecycle vocabulary.
 
+### Decision Gates
+
+None beyond validated T5 behavior; cross-domain specialist decisions must be recorded before implementation.
+
 ### Blocks
 
 T7, T8, T11, T15.
@@ -405,6 +445,14 @@ Tracking service, Socket.IO events, public reads/types, simulator payload types,
 
 Late data cannot move a marker backward; all-stale emits explicit state; UI can ignore lower versions and never infer route from selected UI route. Test priority, stale fallback, duplicate, late, and reconnect cases.
 
+### Status
+
+Pending — blocked on audit revalidation.
+
+### Evidence
+
+None; task specification and specialist briefs have not been created.
+
 ### T7 — Implement D-002=B bounded raw diagnostics for research
 
 ### Source Audit(s)
@@ -418,6 +466,10 @@ Production Readiness 3.3, 3.6; Database 4, 8–9, 12; Architecture 5, 9; Infrast
 ### Depends On
 
 T3, T6, and documented retention/deletion parameters.
+
+### Decision Gates
+
+D-002=B is approved; retention duration, deletion owner, and research-access policy remain required.
 
 ### Dependency Note
 
@@ -445,7 +497,10 @@ Codex + Specialist.
 
 ### Task Brief
 
-Add append-only bounded raw observations separate from canonical current state. Retain source/vehicle/trip identity, event/receive times, sequence/transport facts, reported accuracy, validation outcome, and canonical-selection disposition to compare mobile, LoRaWAN, and ESP32 behavior.
+Add append-only bounded raw observations separate from canonical current state. Retain
+source/vehicle/trip/experiment identity, event/receive times, sequence/transport facts, reported
+accuracy, validation outcome, canonical-selection disposition, and allowlisted transport metadata
+to compare Mobile, ESP32, and LoRaWAN behavior under D-004 metric definitions.
 
 ### Related Files
 
@@ -453,7 +508,18 @@ Prisma schema/migrations, tracking service, protected research reads, retention 
 
 ### Acceptance Criteria and Verification
 
-Raw observations do not alter canonical state merely because they are retained; research reads compute latency, acceptance/rejection/duplicate/late rate, and fallback rate; retention and indexes are tested; secrets are absent from data/response paths.
+Raw observations do not alter canonical state merely because they are retained; research reads
+compute latency, cadence/jitter, availability, acceptance/rejection/duplicate/late rate, route
+conformance, pairwise/reference error where valid, selection and fallback; retention and indexes are
+tested; secrets are absent from data/response paths.
+
+### Status
+
+Pending — blocked on T6, audit revalidation, and retention/access parameters.
+
+### Evidence
+
+None.
 
 ### T8 — Make maps truthful and repair route/cache behavior
 
@@ -468,6 +534,10 @@ Production Readiness 3.2, 3.7; Frontend 4, 7, 9, 13; Dashboard 5, 10–11; Backe
 ### Depends On
 
 T6; T10 for final route mutation invalidation.
+
+### Decision Gates
+
+None for truthful-state UI; D-001=B/C is required before the T10-dependent route-management portion.
 
 ### Blocks
 
@@ -501,6 +571,14 @@ Public tracker/cards, admin LiveMap/dashboard, realtime/public API types, route 
 
 An R02 event remains R02 even while R01 is selected; stale/no-service is visible in both surfaces; ETA is not current when stale; cache updates after route revision. Run lint, production build, and browser/socket interruption checks.
 
+### Status
+
+Pending — blocked on T6 and audit revalidation.
+
+### Evidence
+
+None.
+
 ### T9 — Define topology/origin contract, then align configuration
 
 ### Source Audit(s)
@@ -514,6 +592,10 @@ Production Readiness 3.5; Infrastructure 4–5, 10–12; Security 7, 9–11; Fro
 ### Depends On
 
 D-003=A plus hosting/domain/TLS facts.
+
+### Decision Gates
+
+Hosting provider, domains, TLS terminator, database/Redis placement, and operations owners require confirmation.
 
 ### Blocks
 
@@ -547,6 +629,14 @@ Production Compose/Dockerfiles, environment templates, frontend configuration, b
 
 No configuration cycle remains; REST and Socket.IO resolve the documented backend origin; TLS, secret, backup/restore, migration/rollback, and log ownership are assigned. Run staging/production Compose readiness and origin smoke tests.
 
+### Status
+
+Blocked — hosting, domain, TLS, and operations-owner facts are missing.
+
+### Evidence
+
+D-003 resolves ordering only; deployment facts remain unconfirmed.
+
 ## 7. Phase 3 — Feature Completion
 
 **Entry criteria:** Phase 2 contracts are accepted and D-001 is upgraded to B or C.
@@ -566,6 +656,10 @@ Production Readiness 3.1, 3.7; Product 7; Frontend 4, 13; Backend 9, 12; Dashboa
 ### Depends On
 
 T2, T8, D-001=B/C.
+
+### Decision Gates
+
+D-001 must be upgraded from A to B or C.
 
 ### Blocks
 
@@ -599,6 +693,14 @@ Admin route/sidebar UI, route-stop controller/cache service, public route cache/
 
 Admins can publish ordered stops without manual/API work; invalid ordering fails; next public read uses revised geometry. Run backend cache tests, frontend lint/build, and browser route-change smoke test.
 
+### Status
+
+Deferred — blocked on T8 and D-001 upgrade to B/C.
+
+### Evidence
+
+None.
+
 ### T11 — Add sender operations, trip history, and exceptions
 
 ### Source Audit(s)
@@ -612,6 +714,10 @@ Production Readiness 3.1, 3.3; Product 7–9; Backend 7, 12; Dashboard 7, 10.
 ### Depends On
 
 T5, T6, D-001=B/C.
+
+### Decision Gates
+
+D-001 must be upgraded from A to B or C; the supported sender/operator workflow must be confirmed.
 
 ### Blocks
 
@@ -645,6 +751,14 @@ Trip/history APIs, admin navigation/pages, sender client/external contract, cano
 
 A non-developer operator can complete the approved flow; admins can find active/completed trips; exceptions use canonical state. Run authorization, lifecycle, frontend, and operator acceptance checks.
 
+### Status
+
+Deferred — blocked on T6 and D-001 upgrade to B/C.
+
+### Evidence
+
+T5 lifecycle boundary is complete; remaining dependencies are unresolved.
+
 ### T12 — Add feedback triage and source/device operations views
 
 ### Source Audit(s)
@@ -658,6 +772,10 @@ Product 7, 11; Frontend 12; Dashboard 10; Database 12; Production 3.1.
 ### Depends On
 
 D-001=C, T6, feedback owner/privacy policy.
+
+### Decision Gates
+
+D-001=C plus feedback ownership, privacy, and retention policy approval.
 
 ### Blocks
 
@@ -691,6 +809,14 @@ Feedback schema/API, safe device DTOs, admin pages/navigation, source-health rea
 
 Staff can manage feedback under the agreed policy; device/source views reveal safe facts only; unauthorized users are denied. Run migration, authorization, and UI workflow tests.
 
+### Status
+
+Deferred — blocked on D-001=C and feedback ownership/privacy policy.
+
+### Evidence
+
+None.
+
 ## 8. Phase 4 — Hardening & Scale
 
 **Entry criteria:** Phase 2 is complete; T9 is complete for deployment work.
@@ -710,6 +836,10 @@ Production Readiness 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16.
 ### Depends On
 
 T4, T5, T6, T9.
+
+### Decision Gates
+
+Approved disposable deployment target, recovery owners, and alert destinations are required.
 
 ### Dependency Note
 
@@ -747,6 +877,14 @@ Deployment definitions, entrypoint, server/tracking logs/metrics, runbook, CI ar
 
 Clean production build completes; simulated dependency/source failures change readiness/alerts; backup restore and migration recovery have owners and evidence. Run the documented drill.
 
+### Status
+
+Pending — blocked on T6 and T9.
+
+### Evidence
+
+T4 and T5 are complete; remaining dependencies and deployment facts are unresolved.
+
 ### T14 — Improve map maintainability and measured scale quality
 
 ### Source Audit(s)
@@ -760,6 +898,10 @@ Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10.
 ### Depends On
 
 T8 and browser/runtime evidence.
+
+### Decision Gates
+
+None; measured evidence is required before scale-specific work.
 
 ### Blocks
 
@@ -793,6 +935,14 @@ Public tracker/map/helpers/tour/cards, admin dashboard/CRUD feedback, frontend t
 
 One maintained public realtime map path remains; extracted units clean up correctly; tour/accessibility/error behavior is browser-verified; no scale work occurs without captured measurement. Run lint, production build, browser/mobile smoke test.
 
+### Status
+
+Pending — blocked on T8 and browser/runtime evidence.
+
+### Evidence
+
+None.
+
 ## 9. Phase 5 — Future Enhancements
 
 **Entry criteria:** Phase 2 is complete and physical provider/device facts are documented.
@@ -812,6 +962,12 @@ Production Readiness 3.6, 3.7; Product 11; Architecture 9–10, 12; Infrastructu
 ### Depends On
 
 T7, physical sender/provider facts, and T13 for public operation.
+
+### Decision Gates
+
+D-004 fixes the three transport boundaries and initial Dev Dashboard scope. TTN identifiers,
+physical hardware/firmware/provisioning, retention/access parameters, clock/reference protocol, and
+any playback/public-report scope still require confirmation.
 
 ### Blocks
 
@@ -835,7 +991,10 @@ Codex Only until facts exist; Codex + Specialist afterward.
 
 ### Task Brief
 
-Use existing server-side webhook/HTTP boundaries to test physical mobile, TTN, and ESP32 senders. Build protected research comparison from T7. Add playback, reports, analytics, rooms, or backend ETA only when a product question and telemetry/query evidence justify it.
+Use the existing Socket.IO, HTTP, and TTN webhook boundaries to test the three physical sources.
+Build the protected D-004 Dev Dashboard from T7 with live/historical comparison, health, delivery,
+accuracy definitions, selection/failover, filters, and bounded export. Add public reports, playback,
+rooms, or backend ETA only when a product question and telemetry/query evidence justify them.
 
 ### Related Files
 
@@ -844,6 +1003,14 @@ External device contracts/firmware, TTN configuration, ingest/tracking/research 
 ### Acceptance Criteria and Verification
 
 Each device has mapping, payload, cadence, offline, credential, and test metadata; research data never changes public canonical state; fidelity claims match retention. Document physical failure/reconnect and provider webhook tests.
+
+### Status
+
+Deferred — blocked on T7, physical sender/provider facts, and T13 for public operation.
+
+### Evidence
+
+Repository simulators exist; physical/provider evidence is unavailable.
 
 ## 10. Research Queue
 
@@ -876,12 +1043,16 @@ The Decision Queue is approved. Remaining implementation parameters are:
 |---|---|---|
 | Hosting/topology, domains, TLS terminator, and operations owner | T9, T13 | D-003 resolves order, not provider/domain/recovery choice. |
 | Raw-diagnostic retention duration, deletion owner, and research access policy | T7 | D-002=B chooses bounded diagnostics but not the bound. |
-| TTN application/device IDs; ESP32 hardware/network/provisioning; simulator-only or physical pilot | T15 | Repository evidence cannot establish physical behavior. |
+| TTN application/device IDs; physical device/module models; firmware/provisioning; clock/reference and field protocol | T15 | D-004 fixes transport roles and dashboard scope, but repository evidence cannot establish physical behavior or absolute accuracy. |
 | Feedback triage owner and privacy/retention policy | T12 | Needed only if scope becomes C. |
 
 ## 13. Recommended Level 2/3 Agent Usage
 
-- Direct Level 3 tasks: T1, T3, T8 after T6, T10 after D-001 upgrade, and T14 after T8. Before handing any Antigravity-ready task to an implementation agent, create the matching task handoff document under docs/tasks with allowed files, approved decisions, invariants, steps, checks, rollout limits, and stop conditions.
+Route every focused technical question through `agents/level-2-specialist/AGENT.md` with
+`tram-specialist-consultation`. Route every implementation through
+`agents/level-3-refactor/AGENT.md` with `tram-refactoring-workflow`.
+
+- Direct Level 3 tasks: T1, T3, T8 after T6, T10 after D-001 upgrade, and T14 after T8. Before handing any Antigravity-ready task to an implementation agent, create `docs/tasks/<task-id>-<topic>.md` from the task template with exact allowed file paths, approved decisions, invariants, checks, rollout limits, and stop conditions.
 - Specialist-led: T2 security/abuse; T4, T9, T13 observability/deployment; T5 database transactions; T6/T7 realtime and time-series; T11 operations/mobile; T15 device/LoRaWAN.
 - T12 requires product-owner/privacy input before implementation.
 
@@ -891,7 +1062,9 @@ This review does not implement or runtime-test code. It does not choose provider
 
 ## 15. Handoff
 
-Begin with T1. Then run T2 and T3 under their gates; do not reuse the earlier roadmap task ordering because the re-audits and approvals changed its dependencies.
+T1–T5 are complete. Refresh Discovery and the domain audits in canonical predecessor order, then
+revalidate this roadmap. If T6 remains supported by current evidence, create task-keyed specialist
+briefs and an exact-path task specification before implementation.
 
 Validate each completed task against its originating audit finding before advancing. Re-run Production Readiness only after the production-bar tasks applicable to the desired release scope are complete.
 

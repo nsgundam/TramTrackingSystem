@@ -1,5 +1,8 @@
 # Production Readiness Re-audit: Tram Tracking System
 
+Validation status: **Needs Re-audit**. This report predates validation of T5 and cannot be reused
+until every required predecessor is refreshed and validated under the current audit contract.
+
 Re-audited: 2026-07-22
 
 ## 1. Executive Summary
