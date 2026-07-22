@@ -3,8 +3,8 @@
 Last updated: 2026-07-22
 
 Coordination status: **Discovery, Product, Architecture, Backend, Frontend, Database,
-Infrastructure & Device, Dashboard & UX, and Security, DevOps & Observability validated;
-Production Readiness next**.
+Infrastructure & Device, Dashboard & UX, Security, DevOps & Observability, and Production
+Readiness validated; Roadmap next**.
 These profiles have current evidence-baseline metadata. All later reports remain `Needs Re-audit`
 until their predecessor and freshness gates pass; do not use their historical completion claims as
 current sign-off.
@@ -55,9 +55,8 @@ alignment order.
 
 The prior Architecture, Backend, Database, Infrastructure & Device, Dashboard & UX, Frontend, and
 Production Readiness conclusions remain historical evidence only. The current Security/DevOps/
-Observability report is now validated; its controlled-MVP boundary and open production risks are
-current evidence. Production Readiness must still be revalidated in canonical predecessor order
-before it can be used as a current release gate.
+Observability and Production Readiness reports are now validated; their controlled-MVP boundary,
+stage-specific gates, and open production risks are current evidence. Roadmap Revalidation is next.
 
 ## 2. Audit Progress, Validated Findings, and Remaining Risks
 
@@ -81,7 +80,9 @@ before it can be used as a current release gate.
 - Security/DevOps/Observability: **Complete / Validated** at the current baseline; sender/TTN
   boundaries and redacted local signals are current, while production isolation, session policy,
   legacy admin writes, durable monitoring, and external deployment/device evidence remain open.
-- Production Readiness: **Needs Re-audit** after every domain profile.
+- Production Readiness: **Complete / Validated** at the current baseline; controlled demonstration is
+  conditionally allowed under D-001=A, while research field trial, internal operations, and public
+  rider service remain No-Go.
 - Roadmap: **Needs Revalidation** after validated audits and approved decisions.
 
 Remaining product risk: the system may appear suitable for operation while key workflows still
@@ -99,9 +100,9 @@ Approved decisions carried forward:
 All decision records have been moved from Pending to Approved in `docs/decision-queue.md`.
 
 Discovery, Product, Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard
-& UX, and Security/DevOps/Observability introduced no new owner decision. The next action is
-Production Readiness, which must synthesize the validated reports and preserve the controlled-demo
-boundary unless the owner changes D-001.
+& UX, Security/DevOps/Observability, and Production Readiness introduced no new owner decision. The
+next action is Roadmap Revalidation/Synthesis, which must preserve the controlled-demo boundary unless
+the owner changes D-001.
 
 ## 4. Confidence and Limitations
 
