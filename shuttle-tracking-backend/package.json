@@ -6,6 +6,7 @@
   "scripts": {
     "test": "npm run build && npm run test:boundaries",
     "test:boundaries": "node test_auth_boundary.js && node test_t2_boundaries.js && node test_devices_boundary.js && node test_redis_logging.js && node test_operational_signals.js",
+    "test:operations": "npm run build && node test_t5_operations.js",
     "test:socket": "node test_socket_boundary.js",
     "prisma:validate": "npx prisma validate",
     "check": "npm run test && npm run prisma:validate",

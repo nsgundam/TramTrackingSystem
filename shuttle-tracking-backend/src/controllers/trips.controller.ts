@@ -1,14 +1,12 @@
 import { Request, Response } from 'express';
-import { prisma } from '../config/prisma.js'; 
 import { redisClient } from '../config/redis.js';
 import {
-    BoundaryError,
-    conflict,
-    logBoundaryFailure,
-    notFound,
-    sendBoundaryError,
+  BoundaryError,
+  logBoundaryFailure,
+  sendBoundaryError,
 } from '../middleware/boundary-errors.js';
 import type { TripStartInput } from '../middleware/validation.js';
+import { endOperationalTrip, startOperationalTrip } from '../services/operations.service.js';
 
 export const startTrip = async (req: Request, res: Response) => {
     try {
@@ -27,35 +25,12 @@ export const startTrip = async (req: Request, res: Response) => {
             throw new BoundaryError(403, 'SENDER_OWNERSHIP_MISMATCH', 'Sender cannot operate this vehicle');
         }
 
-        const vehicle = await prisma.vehicle.findUnique({
-            where: { id: vehicleId }
-        });
+        const result = await startOperationalTrip(vehicleId);
 
-        if (!vehicle) {
-            throw notFound('Vehicle not found');
-        }
-
-        if (!vehicle.assignedRouteId) {
-            throw conflict('Vehicle has no assigned route');
-        }
-
-        const newTrip = await prisma.trip.create({
-            data: {
-                vehicleId: vehicle.id,
-                routeId: vehicle.assignedRouteId, 
-                startTime: new Date(),
-                status: 'in_progress'
-            }
-        });
-
-        await prisma.vehicle.update({
-            where: { id: vehicleId },
-            data: { status: 'active' }
-        });
-
-        res.status(201).json({ 
-            message: 'Trip started successfully', 
-            trip: newTrip 
+        res.status(result.created ? 201 : 200).json({
+            message: result.created ? 'Trip started successfully' : 'Trip already started',
+            idempotent: !result.created,
+            trip: result.trip,
         });
 
     } catch (error) {
@@ -73,43 +48,17 @@ export const endTrip = async (req: Request, res: Response) => {
             throw new BoundaryError(401, 'SENDER_AUTH_REQUIRED', 'Sender authentication required');
         }
 
-        const existingTrip = await prisma.trip.findUnique({
-            where: { id },
-            select: { vehicleId: true, status: true },
-        });
+        const result = await endOperationalTrip(id, sender.vehicleId);
 
-        if (!existingTrip) {
-            throw notFound('Trip not found');
-        }
+        await Promise.allSettled([
+            redisClient.del(`trip:last_saved:${id}`),
+            redisClient.del(`trip:last_saved:vehicle:${sender.vehicleId}`),
+        ]);
 
-        if (existingTrip.vehicleId !== sender.vehicleId) {
-            throw new BoundaryError(403, 'TRIP_OWNERSHIP_MISMATCH', 'Sender cannot operate this trip');
-        }
-
-        if (existingTrip.status !== 'in_progress') {
-            throw conflict('Trip is not in progress');
-        }
-
-        const endedTrip = await prisma.trip.update({
-            where: { id },
-            data: {
-                endTime: new Date(),
-                status: 'completed'
-            }
-        });
-
-        await prisma.vehicle.update({
-            where: { id: endedTrip.vehicleId },
-            data: { 
-                status: 'inactive' 
-            }
-        });
-
-        await redisClient.del(`trip:last_saved:${id}`);
-
-        res.json({ 
-            message: 'Trip ended successfully', 
-            trip: endedTrip 
+        res.json({
+            message: result.idempotent ? 'Trip already ended' : 'Trip ended successfully',
+            idempotent: result.idempotent,
+            trip: result.trip,
         });
 
     } catch (error) {

@@ -341,7 +341,7 @@ Codex + Specialist.
 
 ### Task Brief
 
-Move start/end/virtual-trip policy into one Operations/Trip service. Preserve the partial unique active-trip index, make trip/vehicle/history changes atomic, define duplicate start/end behavior, then add status/time integrity checks.
+Move start/end/virtual-trip policy into one Operations/Trip service. Preserve the partial unique active-trip index, make trip/vehicle/history changes atomic, define duplicate start/end behavior, then add status/time integrity checks. The controlled-MVP policy keeps virtual trips: the first routed observation creates one active trip when none exists; explicit duplicate start returns that active trip, and duplicate end returns the completed trip without mutating a newer active trip.
 
 ### Related Files
 
@@ -350,6 +350,14 @@ Trip controller/routes, tracking service, Prisma schema/migrations, lifecycle in
 ### Acceptance Criteria and Verification
 
 Duplicate start/end behavior is documented and deterministic; foreign/non-active writes fail safely; vehicle and active-trip state remain consistent under retry/race tests. Run Prisma validation, backend tests, and disposable Postgres/Redis integration tests.
+
+### Status
+
+Complete.
+
+### Current Evidence
+
+`operations.service.ts` now owns explicit start, virtual-trip creation, active-trip validation, end, and sampled-history writes. Vehicle row locks serialize all lifecycle writers; duplicate start/end are deterministic and trip/vehicle/history database changes use transactions. The T5 migration adds trip status/time checks while preserving the existing partial unique index. `npx prisma migrate deploy`, `npm run check`, `npm run test:operations`, `git diff --check`, and the temporary-fixture cleanup verification passed on 2026-07-22. The cited Backend, Architecture, Database, and Production Readiness audit sections still contain the pre-T5 lifecycle finding and are flagged for re-audit against this implementation.
 
 ### T6 — Publish a versioned, route-aware canonical vehicle-state contract
 

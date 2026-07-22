@@ -3,6 +3,10 @@ import { redisClient } from '../config/redis.js';
 import type { SenderContext } from '../middleware/auth.js';
 import { BoundaryError, logBoundaryFailure } from '../middleware/boundary-errors.js';
 import { emitOperationalSignal } from './operational-signals.js';
+import {
+  recordCanonicalHistory,
+  validateActiveTripForVehicle,
+} from './operations.service.js';
 
 const THROTTLE_SECONDS = 60;
 export const SOURCE_FRESHNESS_WINDOW_MS = 30_000;
@@ -203,14 +207,7 @@ export const processObservation = async (data: ObservationData) => {
   }
 
   if (data.tripId) {
-    const trip = await prisma.trip.findUnique({
-      where: { id: data.tripId },
-      select: { vehicleId: true, status: true },
-    });
-
-    if (!trip || trip.vehicleId !== source.vehicleId || trip.status !== 'in_progress') {
-      throw new BoundaryError(403, 'TRIP_OWNERSHIP_MISMATCH', 'Trip is invalid or does not belong to the sender vehicle');
-    }
+    await validateActiveTripForVehicle(data.tripId, source.vehicleId ?? '');
   }
 
   // 4. Save Raw Observation to Redis Cache
@@ -241,7 +238,7 @@ export const processObservation = async (data: ObservationData) => {
 
   // 5. Evaluate Canonical Location if device is assigned to a Vehicle
   if (source.vehicleId) {
-    return await evaluateCanonicalLocation(source.vehicleId);
+    return await evaluateCanonicalLocation(source.vehicleId, data.tripId);
   }
 
   return null;
@@ -251,7 +248,7 @@ export const processObservation = async (data: ObservationData) => {
  * 2. Select Canonical Current Vehicle Location
  * Evaluates all device sources assigned to a vehicle, selecting the highest priority active one.
  */
-export const evaluateCanonicalLocation = async (vehicleId: string) => {
+export const evaluateCanonicalLocation = async (vehicleId: string, tripId?: string) => {
   const sources = await prisma.trackingSource.findMany({
     where: { vehicleId, status: 'active' },
     orderBy: [
@@ -341,7 +338,7 @@ export const evaluateCanonicalLocation = async (vehicleId: string) => {
   });
 
   // Trigger DB persistence
-  await persistSampledHistory(vehicleId, canonicalLocation);
+  await persistSampledHistory(vehicleId, canonicalLocation, tripId);
 
   return canonicalLocation;
 };
@@ -350,93 +347,61 @@ export const evaluateCanonicalLocation = async (vehicleId: string) => {
  * 3. Persist Sampled History (60s Write Throttling)
  * Ensures coordinates are written to PostGIS database at most once every 60s per trip session.
  */
-const persistSampledHistory = async (vehicleId: string, canonicalLocation: any) => {
+const persistSampledHistory = async (
+  vehicleId: string,
+  canonicalLocation: any,
+  tripId?: string,
+) => {
+  const cacheKey = `trip:last_saved:vehicle:${vehicleId}`;
+  let wasSet: string | null = null;
+
   try {
-    let activeTrip = await prisma.trip.findFirst({
-      where: { vehicleId, status: 'in_progress' }
-    });
-
-    // Auto-Trip Session Creator Logic (Virtual Trip)
-    if (!activeTrip) {
-      const vehicle = await prisma.vehicle.findUnique({
-        where: { id: vehicleId }
-      });
-
-      if (!vehicle || !vehicle.assignedRouteId) {
-        // Skip history logging if vehicle is not assigned to a route
-        return;
-      }
-
-      // Check if a virtual daily trip has been created for today
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      activeTrip = await prisma.trip.findFirst({
-        where: {
-          vehicleId,
-          status: 'in_progress',
-          startTime: { gte: today }
-        }
-      });
-
-      if (!activeTrip) {
-        activeTrip = await prisma.trip.create({
-          data: {
-            vehicleId,
-            routeId: vehicle.assignedRouteId,
-            startTime: new Date(),
-            status: 'in_progress'
-          }
-        });
-
-        // Update vehicle status to active
-        await prisma.vehicle.update({
-          where: { id: vehicleId },
-          data: { status: 'active' }
-        });
-
-        console.log('[Auto-Trip] Created daily virtual trip.');
-      }
-    }
-
-    const tripId = activeTrip.id;
-
-    // Apply DB write-throttling via Redis (60 seconds)
-    const cacheKey = `trip:last_saved:${tripId}`;
-    const wasSet = await redisClient.set(cacheKey, '1', {
+    // Apply Redis admission before the persistence transaction. A vehicle key
+    // is equivalent to a trip key while the partial index allows only one
+    // active trip per vehicle, and it also covers virtual trips whose ID is
+    // not known until the transaction runs. The transaction still reconciles
+    // active-trip state when this observation is not the sampled write.
+    wasSet = await redisClient.set(cacheKey, '1', {
       NX: true,
       EX: THROTTLE_SECONDS
     });
 
+    const persisted = await recordCanonicalHistory({
+      vehicleId,
+      ...(tripId === undefined ? {} : { tripId }),
+      lat: canonicalLocation.lat,
+      lng: canonicalLocation.lng,
+      speed: canonicalLocation.speed,
+      heading: canonicalLocation.heading,
+      station: canonicalLocation.station,
+      sourceId: canonicalLocation.sourceId,
+      recordedAt: canonicalLocation.recordedAt,
+    }, Boolean(wasSet));
+
+    if (!persisted) {
+      if (wasSet) await redisClient.del(cacheKey);
+      return;
+    }
+
     if (wasSet) {
-      await prisma.$executeRaw`
-        INSERT INTO gps_tracks (trip_id, vehicle_id, location, speed, heading, station, source_id, recorded_at)
-        VALUES (
-          ${tripId}::uuid, 
-          ${vehicleId}, 
-          ST_SetSRID(ST_MakePoint(${canonicalLocation.lng}, ${canonicalLocation.lat}), 4326)::geography,
-          ${canonicalLocation.speed ?? null}, 
-          ${canonicalLocation.heading ?? null}, 
-          ${canonicalLocation.station ?? null}, 
-          ${canonicalLocation.sourceId ?? null},
-          ${canonicalLocation.recordedAt}
-        )
-      `;
-        emitOperationalSignal({
-          event: 'history.persisted',
-          level: 'info',
-          outcome: 'persisted',
-          transport: 'system',
-          vehicleId,
-          tripId,
-          dependency: 'postgres',
-          operation: 'history_insert',
-          reasonCode: 'HISTORY_INSERTED',
-        });
-      }
+      emitOperationalSignal({
+        event: 'history.persisted',
+        level: 'info',
+        outcome: 'persisted',
+        transport: 'system',
+        vehicleId,
+        tripId: persisted.tripId,
+        dependency: 'postgres',
+        operation: 'history_insert',
+        reasonCode: 'HISTORY_INSERTED',
+      });
+    }
 
   } catch (error) {
     logBoundaryFailure('GPS history persistence', error);
+    // A failed transaction must not consume the sampling window. If the
+    // process dies before this cleanup, the bounded TTL still self-heals.
+    if (wasSet) await redisClient.del(cacheKey).catch(() => undefined);
     emitOperationalSignal({
       event: 'history.persistence_failed',
       level: 'error',

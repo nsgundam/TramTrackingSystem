@@ -110,6 +110,8 @@ model Trip {
   routeId   String    @map("route_id") @db.VarChar(50)
   startTime DateTime  @map("start_time") @db.Timestamp(6)
   endTime   DateTime? @map("end_time") @db.Timestamp(6)
+  // SQL migration constrains this lifecycle to in_progress/completed and
+  // requires endTime only for completed trips.
   status    String    @default("in_progress") @db.VarChar(50)
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
 
