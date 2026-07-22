@@ -2,10 +2,11 @@
 
 Last updated: 2026-07-22
 
-Coordination status: **Discovery, Product, Architecture, Backend, Frontend, Database, and
-Infrastructure & Device validated; Dashboard & UX next**. These profiles have current
-evidence-baseline metadata. All later reports remain `Needs Re-audit` until their predecessor and
-freshness gates pass; do not use their historical completion claims as current sign-off.
+Coordination status: **Discovery, Product, Architecture, Backend, Frontend, Database,
+Infrastructure & Device, and Dashboard & UX validated; Security, DevOps & Observability next**.
+These profiles have current evidence-baseline metadata. All later reports remain `Needs Re-audit`
+until their predecessor and freshness gates pass; do not use their historical completion claims as
+current sign-off.
 
 ## 1. Executive Summary and Changes Detected
 
@@ -39,6 +40,11 @@ deployed topology, TLS/origin contract, backup/recovery operation, TTN account, 
 firmware, or physical/provider behavior. Production Compose still needs explicit health-gated
 operations and protection of host-published data services before any broader release claim.
 
+Dashboard & UX is now validated at the same baseline. It confirms a useful controlled-demo rider
+tracker, basic admin master-data UI, improved current tour selectors, and feedback capture. It also
+confirms that live/stale/offline state, evidence-based admin health, source/trip/feedback operations,
+and the separate D-004 research dashboard are still absent or incomplete.
+
 The prior Architecture, Backend, Database, Infrastructure & Device, Dashboard & UX,
 Security/DevOps/Observability, Frontend, and Production Readiness conclusions remain historical
 evidence only. Their previous controlled-MVP/No-Go direction is not being erased, but each report
@@ -60,9 +66,11 @@ must be revalidated in canonical predecessor order before it can be used as a cu
 - Infrastructure & Device: **Complete / Validated** at the current baseline; Compose/startup and
   simulator boundaries are current, while deployment, recovery, and physical/provider evidence are
   unavailable.
-- Dashboard & UX: **Needs Re-audit**, now eligible after Product, Frontend, and Infrastructure &
-  Device; revalidate truthful rider/admin state and keep D-004 research separate.
-- Security/DevOps/Observability: **Needs Re-audit** after all required domain predecessors.
+- Dashboard & UX: **Complete / Validated** at the current baseline; controlled-demo journeys and
+  current gaps in freshness, exception-first operations, accessibility, and research separation are
+  current.
+- Security/DevOps/Observability: **Needs Re-audit**, now eligible after all required domain
+  predecessors; validate trust boundaries, origins, secrets, runtime controls, logs, and signals.
 - Production Readiness: **Needs Re-audit** after every domain profile.
 - Roadmap: **Needs Revalidation** after validated audits and approved decisions.
 
@@ -80,11 +88,10 @@ Approved decisions carried forward:
 
 All decision records have been moved from Pending to Approved in `docs/decision-queue.md`.
 
-Discovery, Product, Architecture, Backend, Frontend, Database, and Infrastructure & Device introduced
-no new owner decision. The next action is Dashboard & UX. It must use the current stale/offline,
-route-authority, feedback, operations, and three-device research boundaries without promoting
-simulator or provider assumptions to field evidence. Security/DevOps/Observability follows Dashboard
-& UX and the infrastructure predecessor; only after all required audits are current should
+Discovery, Product, Architecture, Backend, Frontend, Database, Infrastructure & Device, and Dashboard
+& UX introduced no new owner decision. The next action is Security, DevOps & Observability. It must
+validate public origins, secret operations, runtime controls, safe logs, readiness, and operational
+signals against the current infrastructure/device and UX findings. Only after that profile should
 Production Readiness and the Roadmap be revalidated.
 
 ## 4. Confidence and Limitations
