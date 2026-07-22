@@ -2,8 +2,8 @@
 
 Last updated: 2026-07-22
 
-Coordination status: **Discovery, Product, and Architecture validated; Backend, Frontend, and
-Database next in parallel**. These profiles have current evidence-baseline metadata. All later
+Coordination status: **Discovery, Product, Architecture, Backend, Frontend, and Database validated;
+Infrastructure & Device next**. These profiles have current evidence-baseline metadata. All later
 reports remain `Needs Re-audit` until their predecessor and freshness gates pass; do not use their
 historical completion claims as current sign-off.
 
@@ -26,6 +26,13 @@ still Redis-only, raw/event-time research evidence is absent, public stale/offli
 incomplete, and the client still supplies route/ETA intelligence. T6 is the next architectural
 contract; it must precede map truthfulness and approved research implementation.
 
+Backend, Frontend, and Database are now validated at the same baseline. Backend confirms T5
+integration, transport-specific authentication, and shared ingest convergence while ordering/raw
+diagnostics, operational reads, and route-stop cache invalidation remain open. Frontend confirms the
+route-geometry cache improvement but still finds no realtime freshness/reconnect model, authoritative
+route assignment, or research/operations surfaces. Database confirms T5 lifecycle constraints while
+sampled-only history, timestamp semantics, retention, and source-assignment history remain open.
+
 The prior Architecture, Backend, Database, Infrastructure & Device, Dashboard & UX,
 Security/DevOps/Observability, Frontend, and Production Readiness conclusions remain historical
 evidence only. Their previous controlled-MVP/No-Go direction is not being erased, but each report
@@ -38,13 +45,14 @@ must be revalidated in canonical predecessor order before it can be used as a cu
 - Architecture: **Complete / Validated** at the current baseline; T5 lifecycle ownership is resolved,
   while canonical state, ordering, freshness, route authority, and research evidence remain gated by
   T6/T7.
-- Backend: **Needs Re-audit**, now eligible after Architecture; revalidate T5 integration and the
-  canonical ingest contract.
-- Frontend: **Needs Re-audit**, now eligible after Architecture; revalidate stale/offline and route
-  authority behavior.
-- Database: **Needs Re-audit**, now eligible after Architecture; revalidate T5 constraints and the
-  current/history/raw data-product boundary.
-- Infrastructure & Device: **Needs Re-audit** after Backend, Frontend, and Database.
+- Backend: **Complete / Validated** at the current baseline; T5 and transport boundaries are current,
+  while T6 ordering/state and protected operational reads remain open.
+- Frontend: **Complete / Validated** at the current baseline; geometry-cache correctness improved,
+  while freshness/reconnect, route authority, and missing operations/research surfaces remain open.
+- Database: **Complete / Validated** at the current baseline; T5 integrity checks are current, while
+  sampled history, retention, timestamps, and raw research data remain open.
+- Infrastructure & Device: **Needs Re-audit**, now eligible after Backend, Frontend, and Database;
+  validate Compose/startup/origin and keep physical Mobile, ESP32, and LoRaWAN evidence distinct.
 - Dashboard & UX: **Needs Re-audit** after Product, Frontend, and Infrastructure & Device.
 - Security/DevOps/Observability: **Needs Re-audit** after all required domain predecessors.
 - Production Readiness: **Needs Re-audit** after every domain profile.
@@ -57,17 +65,18 @@ require manual/API-only/external-client work.
 
 Approved decisions carried forward:
 - **D-001 (Approved A)**: Minimal controlled demonstration scope for MVP pilot testing.
-- **D-002 (Approved B)**: Bounded raw diagnostics retained to compare 3 senders (Mobile, LoRaWAN, ESP32) for latency and accuracy research.
+- **D-002 (Approved B)**: Bounded raw diagnostics are approved for comparing 3 senders (Mobile, LoRaWAN, ESP32) for latency and accuracy research; parameters and implementation remain gated.
 - **D-003 (Approved A)**: define topology/origin facts before configuration alignment; the historical
   T6/T16 cycle is closed and current roadmap T9 carries this order.
 - **D-004**: Three-device research boundaries and authenticated Dev Dashboard scope.
 
 All decision records have been moved from Pending to Approved in `docs/decision-queue.md`.
 
-Discovery, Product, and Architecture introduced no new owner decision. The next action is the
-parallel Backend, Frontend, and Database re-audits. Infrastructure & Device must wait for those
-profiles; only after all required audits are current should Production Readiness and the Roadmap be
-revalidated.
+Discovery, Product, Architecture, Backend, Frontend, and Database introduced no new owner decision.
+The next action is Infrastructure & Device. It must preserve separate Mobile/Socket.IO,
+ESP32+GPS/Wi-Fi/HTTP, and LoRaWAN/Gateway/TTN/Webhook evidence. Dashboard & UX follows its required
+predecessors; only after all required audits are current should Production Readiness and the Roadmap
+be revalidated.
 
 ## 4. Confidence and Limitations
 
