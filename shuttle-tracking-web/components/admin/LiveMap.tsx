@@ -74,8 +74,8 @@ export default function LiveMap() {
   }, []);
 
   return (
-    <div className="w-full h-[500px] rounded-xl overflow-hidden border border-slate-200 shadow-sm z-0 relative">
-      <div className="absolute top-3 right-3 z-[1000] rounded-full bg-white/90 px-3 py-1 text-xs text-slate-600 shadow">
+    <div className="w-full h-125 rounded-xl overflow-hidden border border-slate-200 shadow-sm z-0 relative">
+      <div className="absolute top-3 right-3 z-1000 rounded-full bg-white/90 px-3 py-1 text-xs text-slate-600 shadow">
         {connectionState === "connected" && "Connected"}
         {connectionState === "reconnecting" && "Reconnecting"}
         {connectionState === "disconnected" && "Disconnected"}

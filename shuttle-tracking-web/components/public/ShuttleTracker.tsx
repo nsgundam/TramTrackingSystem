@@ -11,7 +11,6 @@ import AvailabilityCard from "@/components/public/AvailabilityCard";
 import StopInfoCard from "@/components/public/StopInfoCard";
 import VehicleInfoCard from "@/components/public/VehicleInfoCard";
 import AppTour from "@/components/public/AppTour";
-import * as turf from "@turf/turf";
 import { shouldMove, animateMove, getNearestPointIndex, getDirectionalPointIndex } from "@/utils/MapHelpers";
 import {
   Stop,
@@ -1172,7 +1171,7 @@ export default function ShuttleTracker() {
         </div>
 
         {/* Top Right: Status & Toggles */}
-        <div className="absolute top-4 right-4 md:top-10 md:right-10 z-10 flex flex-col items-stretch gap-3 w-[160px] md:w-[180px]">
+        <div className="absolute top-4 right-4 md:top-10 md:right-10 z-10 flex flex-col items-stretch gap-3 w-40 md:w-45">
           <AvailabilityCard count={availableCount} />
           <div className="glass-panel rounded-full px-3 py-1 text-center text-[11px] text-on-surface-variant">
             {realtimeConnection === "connected" && "เชื่อมต่อข้อมูลสด"}
@@ -1197,13 +1196,13 @@ export default function ShuttleTracker() {
                     className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.3)]" 
                     style={{ backgroundColor: routes.find(r => r.id === selectedRoute)?.color || "#3B82F6" }}
                   />
-                  <span className="truncate max-w-[100px] md:max-w-[120px]">{routes.find(r => r.id === selectedRoute)?.name || selectedRoute}</span>
+                  <span className="truncate max-w-25 md:max-w-30">{routes.find(r => r.id === selectedRoute)?.name || selectedRoute}</span>
                 </div>
                 <ChevronDown size={18} className={`transition-transform duration-300 ${isRouteMenuOpen ? 'rotate-180' : ''}`} />
               </button>
               
               {isRouteMenuOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 glass-panel backdrop-blur-sm rounded-[16px] py-2 flex flex-col gap-1 shadow-lg border border-outline-variant/30 overflow-hidden z-50">
+                <div className="absolute top-full left-0 right-0 mt-2 glass-panel backdrop-blur-sm rounded-2xl py-2 flex flex-col gap-1 shadow-lg border border-outline-variant/30 overflow-hidden z-50">
                   {routes.map(route => (
                     <button 
                       key={route.id} 
@@ -1241,7 +1240,7 @@ export default function ShuttleTracker() {
         </div>
 
         {/* Bottom Left: Floating Dock */}
-        <div className="absolute bottom-4 left-4 md:bottom-10 md:left-10 z-10 w-[280px] sm:w-[320px] max-w-[calc(100%-32px)] flex flex-col gap-1 md:gap-2">
+        <div className="absolute bottom-4 left-4 md:bottom-10 md:left-10 z-10 w-70 sm:w-[320px] max-w-[calc(100%-32px)] flex flex-col gap-1 md:gap-2">
           {/* โชว์ Stop Info Card เมื่อไม่ได้เลือกรถ */}
           {!selectedVehicleId && (
             <StopInfoCard 
