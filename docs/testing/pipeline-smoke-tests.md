@@ -74,7 +74,7 @@ seed rows, rejected unauthenticated/invalid/mismatched writes, ESP32 and mobile 
 TTN ingestion, priority selection, analytics, database history, and credential-free acknowledgements:
 
 ```bash
-node shuttle-tracking-backend/test_pipeline.js
+node shuttle-tracking-backend/tests/test_pipeline.js
 ```
 
 The script fails early when required credentials are absent or when the database rows do not match

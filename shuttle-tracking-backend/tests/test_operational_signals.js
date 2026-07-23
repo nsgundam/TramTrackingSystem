@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { emitOperationalSignal, getRequestId } = await import('./dist/services/operational-signals.js');
+const { emitOperationalSignal, getRequestId } = await import('../dist/services/operational-signals.js');
 
 const logs = [];
 const originalLog = console.log;

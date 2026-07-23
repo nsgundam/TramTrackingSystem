@@ -167,7 +167,7 @@ broadcasts that canonical result, and periodically persists canonical history to
 - `shuttle-tracking-web/simulate.js` for mobile-style Socket.IO simulation.
 - `shuttle-tracking-web/simulate-manual.js` for manually entered mobile-style coordinates.
 - `shuttle-tracking-backend/simulate-ttn.js` for TTN webhook simulation.
-- `shuttle-tracking-backend/test_pipeline.js` for an end-to-end sender, TTN, and source-priority
+- `shuttle-tracking-backend/tests/test_pipeline.js` for an end-to-end sender, TTN, and source-priority
   integration exercise.
 
 The repository does not contain a separate driver/mobile application or ESP32 firmware. These
@@ -255,9 +255,9 @@ features are represented by backend contracts and simulators.
 - `shuttle-tracking-backend/prisma/seed.js`: development fixtures and explicit production first-admin
   provisioning path.
 - `shuttle-tracking-backend/simulate-ttn.js`: TTN webhook simulator using route coordinate presets.
-- `shuttle-tracking-backend/test_auth_boundary.js`: sender JWT and claim boundary checks.
-- `shuttle-tracking-backend/test_socket_boundary.js`: unauthenticated Socket.IO sender-write check.
-- `shuttle-tracking-backend/test_pipeline.js`: manual integration pipeline test for sender and TTN
+- `shuttle-tracking-backend/tests/test_auth_boundary.js`: sender JWT and claim boundary checks.
+- `shuttle-tracking-backend/tests/test_socket_boundary.js`: unauthenticated Socket.IO sender-write check.
+- `shuttle-tracking-backend/tests/test_pipeline.js`: manual integration pipeline test for sender and TTN
   ingestion.
 - `shuttle-tracking-web/`: Next.js frontend.
 - `shuttle-tracking-web/app/`: public page, admin pages, and layouts.

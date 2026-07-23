@@ -474,24 +474,29 @@ Late data cannot move a marker backward; all-stale emits explicit state; UI can 
 
 ### Status
 
-Partially Complete — implementation and safe contract checks passed on 2026-07-22. Runtime
-integration against a disposable Postgres/Redis target, browser/manual stale/reconnect/route checks,
-and the Next.js production build remain pending because no disposable target was approved and the
-build could not fetch Google Fonts in the restricted environment.
+Partially Complete — implementation, consolidated test checks, font fallback, and disposable
+runtime verification passed on 2026-07-23. Browser/manual stale/reconnect/route checks remain
+pending; the webpack production build passed, while the default Turbopack build is blocked by the
+restricted runner's port-binding policy.
 
 ### Evidence
 
 The exact-path task spec is `docs/tasks/T6-canonical-vehicle-state.md` and the immutable Level 2
 brief is `docs/audits/specialized/T6-backend-realtime-canonical-vehicle-state.md`. Changed paths are
-the canonical backend publisher/read/route-authority services and boundaries, T6 boundary tests,
-checked-in pipeline assertions, shared frontend canonical types/API, public `ShuttleTracker`, and
-admin `LiveMap`. `shuttle-tracking-backend`: `npm run check`, `npx prisma validate`,
-`node test_t6_canonical_state.js`, `node test_t6_realtime.js`, and `git diff --check` passed on
-2026-07-22. `shuttle-tracking-web`: `npx tsc --noEmit` and `npm run lint` passed with existing
+the canonical backend publisher/read/route-authority services and boundaries, the consolidated
+`shuttle-tracking-backend/tests/` boundary suite, checked-in pipeline assertions, shared frontend
+canonical types/API, public `ShuttleTracker`, admin `LiveMap`, and system font fallback stacks in
+the root layout/styles. `shuttle-tracking-backend`: `npm run check`, `npm run test:t6`,
+`npx prisma validate`, and `git diff --check` passed on 2026-07-23. `shuttle-tracking-web`:
+`npx tsc --noEmit`, `npm run lint`, and `npx next build --webpack` passed with existing lint
 warnings. Compose config validation and `node scripts/validate-agent-workflow.js` passed. The
-required `bash scripts/ci-checks.sh` reached frontend build but failed because `next/font` could
-not fetch Google Fonts; T5 integration and socket/pipeline runtime checks were not counted because
-no explicitly approved disposable target was available.
+required `bash scripts/ci-checks.sh` passed backend checks but failed at the default Turbopack
+build because the restricted runner disallows its port binding; the Google Fonts fetch failure is
+resolved by removing the build-time remote font dependency. On the explicitly isolated
+`t6-disposable` target, migrations and development seed completed, `tests/test_socket_boundary.js`,
+`tests/test_pipeline.js`, and `npm run test:operations` passed, and the project containers and
+volumes were removed afterward. The ambient `shuttle-*` stack was left untouched. Browser/manual
+stale/reconnect/route checks remain pending.
 
 ### T7 — Implement D-002=B bounded raw diagnostics for research
 

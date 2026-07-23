@@ -1,27 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Hanken_Grotesk, Inter, JetBrains_Mono, Lato } from "next/font/google";
 import "./globals.css";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
-
-const lato = Lato({
-  weight: ["300", "400", "700", "900"],
-  variable: "--font-lato",
-  subsets: ["latin"],
-});
-
-const hankenGrotesk = Hanken_Grotesk({
-  variable: "--font-hanken-grotesk",
-  subsets: ["latin"],
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "RSU Tram Tracker",
@@ -49,11 +27,7 @@ export default function RootLayout({
           rel="stylesheet" 
         />
       </head>
-      <body
-        className={`${inter.variable} ${lato.variable} ${hankenGrotesk.variable} ${jetbrainsMono.variable} antialiased`}
-      >
-        {children}
-      </body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

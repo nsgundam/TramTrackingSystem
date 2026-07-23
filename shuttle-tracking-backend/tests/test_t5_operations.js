@@ -5,14 +5,14 @@ if (!process.env.DATABASE_URL || !process.env.REDIS_URL) {
   throw new Error('Set DATABASE_URL and REDIS_URL before running the T5 operations integration test');
 }
 
-const { prisma } = await import('./dist/config/prisma.js');
-const { connectRedis, redisClient } = await import('./dist/config/redis.js');
+const { prisma } = await import('../dist/config/prisma.js');
+const { connectRedis, redisClient } = await import('../dist/config/redis.js');
 const {
   endOperationalTrip,
   recordCanonicalHistory,
   startOperationalTrip,
   validateActiveTripForVehicle,
-} = await import('./dist/services/operations.service.js');
+} = await import('../dist/services/operations.service.js');
 
 const suffix = Date.now().toString(36);
 const routeId = `T5_ROUTE_${suffix}`;

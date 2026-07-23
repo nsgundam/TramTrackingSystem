@@ -10,7 +10,7 @@ console.log = (...args) => logs.push(args.join(' '));
 console.error = (...args) => logs.push(args.join(' '));
 
 try {
-  const { redisClient } = await import(`./dist/config/redis.js?test=${Date.now()}`);
+  const { redisClient } = await import(`../dist/config/redis.js?test=${Date.now()}`);
   redisClient.emit('connect');
   redisClient.emit('error', new Error(redisUrl));
 } finally {

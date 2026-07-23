@@ -11,8 +11,8 @@ const {
   parseTtnSourceId,
   parseTripId,
   parseTripStart,
-} = await import('./dist/middleware/validation.js');
-const { BoundaryError, mapBoundaryError } = await import('./dist/middleware/boundary-errors.js');
+} = await import('../dist/middleware/validation.js');
+const { BoundaryError, mapBoundaryError } = await import('../dist/middleware/boundary-errors.js');
 
 assert.deepEqual(parseAdminLogin({ username: 'admin', password: ' secret ' }), {
   username: 'admin',

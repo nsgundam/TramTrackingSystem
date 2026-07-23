@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+:root {
+  --font-inter: "Inter", "Noto Sans Thai", "Segoe UI", Arial, sans-serif;
+  --font-lato: "Lato", "Noto Sans Thai", "Segoe UI", Arial, sans-serif;
+  --font-hanken-grotesk: "Hanken Grotesk", "Trebuchet MS", "Noto Sans Thai", Arial, sans-serif;
+  --font-jetbrains-mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
 @theme {
   --color-outline: #727785;
   --color-surface-white: #FFFFFF;

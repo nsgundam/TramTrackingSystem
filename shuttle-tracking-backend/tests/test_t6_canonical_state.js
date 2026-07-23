@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import {
   compareCanonicalStateVersion,
   toPublicCanonicalState,
-} from './dist/services/canonical-state.service.js';
+} from '../dist/services/canonical-state.service.js';
 
 const sample = {
   schemaVersion: 1,

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { io } = require('../shuttle-tracking-web/node_modules/socket.io-client');
+const { io } = require('../../shuttle-tracking-web/node_modules/socket.io-client');
 const socket = io(process.env.SOCKET_URL || 'http://localhost:3001', {
   autoConnect: false,
   reconnection: false,

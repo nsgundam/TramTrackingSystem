@@ -11,21 +11,32 @@
 - `docs/tasks/T6-canonical-vehicle-state.md`
 - `docs/roadmap/master-refactoring-roadmap.md`
 - `docs/audits/README.md`
+- `docs/project-knowledge-base.md`
+- `docs/testing/pipeline-smoke-tests.md`
 - `shuttle-tracking-backend/src/services/canonical-state.service.ts`
 - `shuttle-tracking-backend/src/services/tracking.service.ts`
 - `shuttle-tracking-backend/src/services/operations.service.ts`
 - `shuttle-tracking-backend/src/server.ts`
 - `shuttle-tracking-backend/src/routes/ingest.route.ts`
 - `shuttle-tracking-backend/src/controllers/public.controller.ts`
-- `shuttle-tracking-backend/test_t6_canonical_state.js`
-- `shuttle-tracking-backend/test_t6_realtime.js`
-- `shuttle-tracking-backend/test_socket_boundary.js`
-- `shuttle-tracking-backend/test_pipeline.js`
+- `shuttle-tracking-backend/package.json`
+- `shuttle-tracking-backend/tests/test_auth_boundary.js`
+- `shuttle-tracking-backend/tests/test_devices_boundary.js`
+- `shuttle-tracking-backend/tests/test_operational_signals.js`
+- `shuttle-tracking-backend/tests/test_pipeline.js`
+- `shuttle-tracking-backend/tests/test_redis_logging.js`
+- `shuttle-tracking-backend/tests/test_socket_boundary.js`
+- `shuttle-tracking-backend/tests/test_t2_boundaries.js`
+- `shuttle-tracking-backend/tests/test_t5_operations.js`
+- `shuttle-tracking-backend/tests/test_t6_canonical_state.js`
+- `shuttle-tracking-backend/tests/test_t6_realtime.js`
 - `shuttle-tracking-web/types/canonical-state.ts`
 - `shuttle-tracking-web/types/index.ts`
 - `shuttle-tracking-web/services/publicApi.ts`
 - `shuttle-tracking-web/components/public/ShuttleTracker.tsx`
 - `shuttle-tracking-web/components/admin/LiveMap.tsx`
+- `shuttle-tracking-web/app/layout.tsx`
+- `shuttle-tracking-web/app/globals.css`
 
 ## Read-only Context
 
@@ -61,6 +72,8 @@
 3. Preserve canonical publication ahead of sampled-history persistence; history failures remain operational signals and do not block live publication.
 4. Add backend boundary/realtime tests and update only checked-in socket/pipeline assertions needed for the versioned envelope.
 5. Add shared frontend canonical/viewer-state types, typed initial REST loading, epoch/version guards, route-authority filtering, local freshness expiry, reconnect state, and truthful live/stale/no-service/unknown rendering in public and admin maps. Do not let selected-route state populate a vehicle route.
+6. Keep the existing necessary backend checks together under `shuttle-tracking-backend/tests/`, update their package/documentation references, and remove no coverage-bearing test; only redundant test content may be removed if identified.
+7. Make the frontend production build independent of build-time Google Font downloads by using close system-font fallbacks for the existing font roles.
 
 ## Acceptance Criteria
 
@@ -72,14 +85,16 @@
 - Initial REST state and Socket.IO state are the same versioned projection, and stale cached entries are not returned as `live`.
 - T5 operations behavior remains intact; sampled history failure remains distinct from live-state publication.
 - Frontend ignores lower versions in the same epoch, accepts a new epoch, keeps stale/no-service/unknown distinct, disables ETA when not live, seeds from REST, and re-reads REST after reconnect.
+- All retained backend tests are discoverable under one `shuttle-tracking-backend/tests/` folder, and their package/documentation references resolve to that folder.
+- Frontend production output builds without a `next/font/google` network fetch and retains a type-compatible fallback stack for each existing font role.
 
 ## Validation Commands
 
 - `npm run build` in `shuttle-tracking-backend`
-- `node test_t6_canonical_state.js` in `shuttle-tracking-backend`
-- `node test_t6_realtime.js` in `shuttle-tracking-backend`
-- `node test_socket_boundary.js` in `shuttle-tracking-backend` against an explicitly approved disposable target
-- `node test_pipeline.js` in `shuttle-tracking-backend` against an explicitly approved disposable target
+- `node tests/test_t6_canonical_state.js` in `shuttle-tracking-backend`
+- `node tests/test_t6_realtime.js` in `shuttle-tracking-backend`
+- `node tests/test_socket_boundary.js` in `shuttle-tracking-backend` against an explicitly approved disposable target
+- `node tests/test_pipeline.js` in `shuttle-tracking-backend` against an explicitly approved disposable target
 - `npm run lint` and `npm run build` in `shuttle-tracking-web`
 - `bash scripts/ci-checks.sh`
 - `git diff --check`

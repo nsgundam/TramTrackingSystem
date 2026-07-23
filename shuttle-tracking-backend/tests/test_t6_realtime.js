@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createSocketCanonicalPublisher } from './dist/services/canonical-state.service.js';
+import { createSocketCanonicalPublisher } from '../dist/services/canonical-state.service.js';
 
 const emitted = [];
 const publisher = createSocketCanonicalPublisher({

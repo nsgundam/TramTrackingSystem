@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 process.env.JWT_SECRET = 'test-only-sender-secret';
 
-const { parseSenderClaims, isAdminClaims } = await import('./dist/middleware/auth.js');
+const { parseSenderClaims, isAdminClaims } = await import('../dist/middleware/auth.js');
 
 const validToken = jwt.sign(
   {

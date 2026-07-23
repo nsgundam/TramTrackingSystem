@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 const { toDeviceMutationResponse, toDeviceResponse } = await import(
-  './dist/types/device.js'
+  '../dist/types/device.js'
 );
 
 const secret = 'device-secret-must-not-leak';
