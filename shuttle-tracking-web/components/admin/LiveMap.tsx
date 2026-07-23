@@ -73,12 +73,29 @@ export default function LiveMap() {
     };
   }, []);
 
+  const stateCounts = Object.values(activeVehicles).reduce<Record<CanonicalVehicleStateV1["serviceState"], number>>(
+    (counts, state) => {
+      counts[state.serviceState] += 1;
+      return counts;
+    },
+    { live: 0, stale: 0, no_service: 0, unknown: 0 },
+  );
+
   return (
     <div className="w-full h-125 rounded-xl overflow-hidden border border-slate-200 shadow-sm z-0 relative">
       <div className="absolute top-3 right-3 z-1000 rounded-full bg-white/90 px-3 py-1 text-xs text-slate-600 shadow">
         {connectionState === "connected" && "Connected"}
         {connectionState === "reconnecting" && "Reconnecting"}
         {connectionState === "disconnected" && "Disconnected"}
+      </div>
+      <div
+        aria-label="Vehicle service state summary"
+        className="absolute top-11 right-3 z-1000 rounded-lg bg-white/90 px-3 py-2 text-[11px] leading-5 text-slate-600 shadow"
+      >
+        <div>Live: {stateCounts.live}</div>
+        <div>Last known: {stateCounts.stale}</div>
+        <div>No service: {stateCounts.no_service}</div>
+        <div>Unavailable: {stateCounts.unknown}</div>
       </div>
       <MapContainer
         center={[13.964772, 100.587563]}
