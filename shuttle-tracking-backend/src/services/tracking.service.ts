@@ -7,6 +7,14 @@ import {
   recordCanonicalHistory,
   validateActiveTripForVehicle,
 } from './operations.service.js';
+import {
+  publishCanonicalState,
+  publishVehicleStateTransition,
+  refreshCanonicalState,
+  getCurrentCanonicalState,
+  type CanonicalSourceType,
+  type CanonicalVehicleStateV1,
+} from './canonical-state.service.js';
 
 const THROTTLE_SECONDS = 60;
 export const SOURCE_FRESHNESS_WINDOW_MS = 30_000;
@@ -92,6 +100,7 @@ export const sweepSourceHealth = async (): Promise<void> => {
 
     for (const [vehicleId, vehicleSources] of activeByVehicle) {
       const allStale = vehicleSources.every((source) => sourceHealthStates.get(source.id) !== 'online');
+      const allNeverSeen = vehicleSources.every((source) => sourceHealthStates.get(source.id) === 'never_seen');
       const previous = vehicleStaleStates.get(vehicleId);
       vehicleStaleStates.set(vehicleId, allStale);
 
@@ -102,9 +111,14 @@ export const sweepSourceHealth = async (): Promise<void> => {
           outcome: 'stale',
           transport: 'system',
           vehicleId,
-          reasonCode: 'ALL_SOURCES_STALE',
+          reasonCode: allNeverSeen ? 'SOURCE_NEVER_SEEN' : 'ALL_SOURCES_STALE',
           activeSourceCount: vehicleSources.length,
           staleSourceCount: vehicleSources.length,
+        });
+        await publishVehicleStateTransition({
+          vehicleId,
+          serviceState: allNeverSeen ? 'no_service' : 'stale',
+          reasonCode: allNeverSeen ? 'SOURCE_NEVER_SEEN' : 'ALL_SOURCES_STALE',
         });
       } else if (!allStale && previous === true) {
         emitOperationalSignal({
@@ -115,6 +129,21 @@ export const sweepSourceHealth = async (): Promise<void> => {
           vehicleId,
           reasonCode: 'SOURCE_RECOVERED',
           activeSourceCount: vehicleSources.length,
+        });
+        await refreshCanonicalState(vehicleId);
+      }
+    }
+
+    const activeVehicles = await prisma.vehicle.findMany({
+      where: { status: 'active' },
+      select: { id: true },
+    });
+    for (const vehicle of activeVehicles) {
+      if (!activeByVehicle.has(vehicle.id)) {
+        await publishVehicleStateTransition({
+          vehicleId: vehicle.id,
+          serviceState: 'no_service',
+          reasonCode: 'NO_ACTIVE_SOURCE',
         });
       }
     }
@@ -238,7 +267,7 @@ export const processObservation = async (data: ObservationData) => {
 
   // 5. Evaluate Canonical Location if device is assigned to a Vehicle
   if (source.vehicleId) {
-    return await evaluateCanonicalLocation(source.vehicleId, data.tripId);
+    return await evaluateCanonicalLocation(source.vehicleId, data.tripId, sourceId);
   }
 
   return null;
@@ -248,7 +277,11 @@ export const processObservation = async (data: ObservationData) => {
  * 2. Select Canonical Current Vehicle Location
  * Evaluates all device sources assigned to a vehicle, selecting the highest priority active one.
  */
-export const evaluateCanonicalLocation = async (vehicleId: string, tripId?: string) => {
+export const evaluateCanonicalLocation = async (
+  vehicleId: string,
+  tripId?: string,
+  triggeringSourceId?: string,
+) => {
   const sources = await prisma.trackingSource.findMany({
     where: { vehicleId, status: 'active' },
     orderBy: [
@@ -316,12 +349,19 @@ export const evaluateCanonicalLocation = async (vehicleId: string, tripId?: stri
     accuracy: selectedObservation.accuracy,
     station: actualStation,
     sourceId: selectedSourceId,
-    sourceType: selectedObservation.sourceType,
+    sourceType: selectedObservation.sourceType as CanonicalSourceType,
     recordedAt: new Date(selectedObservation.timestamp)
   };
 
-  // Save current canonical location to cache
-  await redisClient.set(`vehicle:current_location:${vehicleId}`, JSON.stringify(canonicalLocation));
+  const currentCanonicalState = await getCurrentCanonicalState(vehicleId);
+  const isNonCanonicalObservation = triggeringSourceId !== undefined && triggeringSourceId !== selectedSourceId;
+  if (
+    isNonCanonicalObservation &&
+    currentCanonicalState?.serviceState === 'live' &&
+    currentCanonicalState.sourceId === selectedSourceId
+  ) {
+    return currentCanonicalState;
+  }
 
   // Log Developer Analytics (Device selection count)
   await redisClient.hIncrBy(`analytics:vehicle:${vehicleId}:source_selection`, selectedObservation.sourceType, 1);
@@ -337,10 +377,25 @@ export const evaluateCanonicalLocation = async (vehicleId: string, tripId?: stri
     sourceType: selectedObservation.sourceType,
   });
 
-  // Trigger DB persistence
+  const canonicalState = await publishCanonicalState({
+    vehicleId,
+    sourceId: selectedSourceId,
+    sourceType: selectedObservation.sourceType,
+    lat: canonicalLocation.lat,
+    lng: canonicalLocation.lng,
+    speed: canonicalLocation.speed,
+    heading: canonicalLocation.heading,
+    accuracy: canonicalLocation.accuracy,
+    station: canonicalLocation.station,
+    recordedAt: canonicalLocation.recordedAt,
+    tripId: tripId ?? null,
+    selection: sources[0]?.id === selectedSourceId ? 'canonical' : 'fallback',
+  });
+
+  // Trigger DB persistence after live publication. T5 history remains best effort.
   await persistSampledHistory(vehicleId, canonicalLocation, tripId);
 
-  return canonicalLocation;
+  return canonicalState as CanonicalVehicleStateV1;
 };
 
 /**

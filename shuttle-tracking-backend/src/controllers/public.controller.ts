@@ -2,6 +2,10 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js';
 import { redisClient } from '../config/redis.js';
 import { logBoundaryFailure } from '../middleware/boundary-errors.js';
+import {
+    getCanonicalStateForVehicle,
+    toPublicCanonicalState,
+} from '../services/canonical-state.service.js';
 
 /** Cache TTL in seconds (5 minutes) */
 const CACHE_TTL = 300;
@@ -40,31 +44,14 @@ export const getActiveVehicles = async (req: Request, res: Response) => {
             orderBy: { id: 'asc' }
         });
 
-        const vehiclesWithLocation = await Promise.all(
-            vehicles.map(async (v) => {
-                const locData = await redisClient.get(`vehicle:current_location:${v.id}`);
-                let location = null;
-                if (locData) {
-                    const parsed = JSON.parse(locData);
-                    location = {
-                        lat: parsed.lat,
-                        lng: parsed.lng,
-                        speed: parsed.speed,
-                        heading: parsed.heading,
-                        accuracy: parsed.accuracy,
-                        station: parsed.station,
-                        sourceType: parsed.sourceType,
-                        recordedAt: parsed.recordedAt
-                    };
-                }
-                return {
-                    ...v,
-                    location
-                };
-            })
+        const vehiclesWithState = await Promise.all(
+            vehicles.map(async (v) => ({
+                ...v,
+                state: toPublicCanonicalState(await getCanonicalStateForVehicle(v.id)),
+            }))
         );
 
-        res.json(vehiclesWithLocation);
+        res.json(vehiclesWithState);
     } catch (error) {
         logBoundaryFailure('Public active vehicles', error);
         res.status(500).json({ error: 'Failed to fetch active vehicles' });

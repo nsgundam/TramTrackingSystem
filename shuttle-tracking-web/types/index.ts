@@ -1,3 +1,5 @@
+export * from "./canonical-state";
+
 export interface Stop {
     id: string | number;
     name?: string;
@@ -14,15 +16,4 @@ export interface Stop {
     actualStation?: string | number;
   }
   
-export interface LocationUpdateData {
-  vehicleId?: string | number;
-  id?: string | number;
-  lat: string | number;
-  lng: string | number;
-  speed?: string | number;
-  velocity?: string | number;
-  actualStation?: string | number;
-  station?: string | number;
-  bearing?: string | number;
-  heading?: string | number;
-}
+export type LocationUpdateData = import("./canonical-state").CanonicalVehicleStateV1;

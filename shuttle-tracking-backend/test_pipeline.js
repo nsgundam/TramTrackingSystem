@@ -58,6 +58,13 @@ async function testPipeline() {
       if (!body?.canonicalLocation) {
         throw new Error(`FAIL: ${label} acknowledgement did not include canonicalLocation`);
       }
+      const state = body.canonicalLocation;
+      for (const field of ['schemaVersion', 'eventType', 'stateEpoch', 'stateVersion', 'vehicleId', 'serviceState', 'reasonCode', 'freshness', 'timing']) {
+        if (state[field] === undefined) throw new Error(`FAIL: ${label} canonical state missing ${field}`);
+      }
+      if (state.schemaVersion !== 1 || state.eventType !== 'canonical_vehicle_state') {
+        throw new Error(`FAIL: ${label} canonical state envelope is not CanonicalVehicleStateV1`);
+      }
     };
 
     // ============================================
@@ -257,7 +264,7 @@ async function testPipeline() {
       throw new Error(`FAIL: ESP32 acknowledgement selected ${espData.canonicalLocation.sourceType}`);
     }
     console.log('   🟢 ESP32 Ingestion status:', espRes.status);
-    console.log('   🟢 Canonical Location selected:', espData.canonicalLocation.lat, espData.canonicalLocation.lng);
+    console.log('   🟢 Canonical Location selected:', espData.canonicalLocation.liveLocation?.lat, espData.canonicalLocation.liveLocation?.lng);
     console.log('   🟢 Selected Device Type:', espData.canonicalLocation.sourceType, '\n');
 
     // ============================================
@@ -305,7 +312,7 @@ async function testPipeline() {
       throw new Error(`FAIL: TTN acknowledgement did not select ${TTN_DEVICE_ID} as lorawan source`);
     }
     console.log('   🟢 TTN Webhook status:', ttnRes.status);
-    console.log('   🟢 Canonical Location selected:', ttnData.canonicalLocation.lat, ttnData.canonicalLocation.lng);
+    console.log('   🟢 Canonical Location selected:', ttnData.canonicalLocation.liveLocation?.lat, ttnData.canonicalLocation.liveLocation?.lng);
     console.log('   🟢 Selected Device Type:', ttnData.canonicalLocation.sourceType, '\n');
 
     // ============================================
@@ -338,7 +345,7 @@ async function testPipeline() {
     }
     console.log('   🟢 Mobile Ingestion status:', mobRes.status);
     console.log('   🟢 Selected Device Type:', mobData.canonicalLocation.sourceType);
-    console.log('   🟢 Selected Coordinates:', mobData.canonicalLocation.lat, mobData.canonicalLocation.lng, '\n');
+    console.log('   🟢 Selected Coordinates:', mobData.canonicalLocation.liveLocation?.lat, mobData.canonicalLocation.liveLocation?.lng, '\n');
 
     // Fetch active vehicles from Public API to verify current location maps
     console.log('🔍 [Public API] Fetching active vehicles...');
@@ -348,9 +355,9 @@ async function testPipeline() {
     if (!targetVehicle) {
       throw new Error(`FAIL: ${MOBILE_VEHICLE_ID} was not returned by the public API`);
     }
-    console.log(`   🟢 ${MOBILE_VEHICLE_ID} Position in Public API: lat=${targetVehicle.location?.lat}, lng=${targetVehicle.location?.lng}`);
-    console.log(`   🟢 Sourced from: ${targetVehicle.location?.sourceType} (Priority Winner)`);
-    if (targetVehicle.location?.sourceType !== 'mobile') {
+    console.log(`   🟢 ${MOBILE_VEHICLE_ID} Position in Public API: lat=${targetVehicle.state?.liveLocation?.lat}, lng=${targetVehicle.state?.liveLocation?.lng}`);
+    console.log(`   🟢 Sourced from: ${targetVehicle.state?.sourceType} (Priority Winner)`);
+    if (targetVehicle.state?.sourceType !== 'mobile' || targetVehicle.state?.serviceState !== 'live') {
       throw new Error(`FAIL: Mobile should be the priority winner for ${MOBILE_VEHICLE_ID}!`);
     }
     console.log('   ✅ Priority routing works correctly.\n');

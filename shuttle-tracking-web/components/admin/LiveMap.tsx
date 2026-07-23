@@ -1,10 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
+import { getActiveVehicles } from "@/services/publicApi";
+import {
+  CanonicalVehicleStateV1,
+  RealtimeConnectionState,
+  isCanonicalStateNewer,
+} from "@/types";
 
 const busIcon = new L.Icon({
   iconUrl: "https://cdn-icons-png.flaticon.com/512/3448/3448339.png",
@@ -13,42 +19,70 @@ const busIcon = new L.Icon({
   popupAnchor: [0, -38],
 });
 
-interface VehicleLocation {
-  vehicleId: string;
-  lat: number;
-  lng: number;
-  speed: number;
-  station: string;
-}
-
 export default function LiveMap() {
-  const [activeVehicles, setActiveVehicles] = useState<Record<string, VehicleLocation>>({});
+  const [activeVehicles, setActiveVehicles] = useState<Record<string, CanonicalVehicleStateV1>>({});
+  const [connectionState, setConnectionState] = useState<RealtimeConnectionState>("disconnected");
+  const versionsRef = useRef<Record<string, Pick<CanonicalVehicleStateV1, "stateEpoch" | "stateVersion">>>({});
+  const hasConnectedRef = useRef(false);
 
   useEffect(() => {
-    const socketUrl =
+    const configuredBackendOrigin =
       process.env.NEXT_PUBLIC_BACKEND_URL ||
       (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api").replace(/\/api\/?$/, "");
-    const socket = io(socketUrl);
+    const socketUrl = configuredBackendOrigin;
+    let disposed = false;
+    let socket: Socket | null = null;
 
-    socket.on("location-update", (data: VehicleLocation) => {
-      console.log("📍 Received Data:", data);
-      
-      setActiveVehicles((prev) => ({
-        ...prev,
-        [data.vehicleId]: data,
-      }));
-    });
+    const acceptState = (state: CanonicalVehicleStateV1): boolean => {
+      const previous = versionsRef.current[state.vehicleId];
+      if (!isCanonicalStateNewer(state, previous)) return false;
+      versionsRef.current[state.vehicleId] = {
+        stateEpoch: state.stateEpoch,
+        stateVersion: state.stateVersion,
+      };
+      setActiveVehicles((current) => ({ ...current, [state.vehicleId]: state }));
+      return true;
+    };
 
+    const hydrate = async () => {
+      const vehicles = await getActiveVehicles(configuredBackendOrigin);
+      vehicles.forEach((vehicle) => acceptState(vehicle.state));
+    };
+
+    const connectAfterSnapshot = async () => {
+      await hydrate();
+      if (disposed) return;
+
+      socket = io(socketUrl, { autoConnect: false });
+      socket.on("connect", () => {
+        setConnectionState("connected");
+        if (hasConnectedRef.current) void hydrate();
+        hasConnectedRef.current = true;
+      });
+      socket.on("disconnect", () => setConnectionState("disconnected"));
+      socket.on("connect_error", () => setConnectionState("reconnecting"));
+      socket.io.on("reconnect_attempt", () => setConnectionState("reconnecting"));
+      socket.on("location-update", (state: CanonicalVehicleStateV1) => acceptState(state));
+      socket.connect();
+    };
+
+    void connectAfterSnapshot().catch(() => setConnectionState("disconnected"));
     return () => {
-      socket.disconnect();
+      disposed = true;
+      socket?.disconnect();
     };
   }, []);
 
   return (
     <div className="w-full h-[500px] rounded-xl overflow-hidden border border-slate-200 shadow-sm z-0 relative">
-      <MapContainer 
+      <div className="absolute top-3 right-3 z-[1000] rounded-full bg-white/90 px-3 py-1 text-xs text-slate-600 shadow">
+        {connectionState === "connected" && "Connected"}
+        {connectionState === "reconnecting" && "Reconnecting"}
+        {connectionState === "disconnected" && "Disconnected"}
+      </div>
+      <MapContainer
         center={[13.964772, 100.587563]}
-        zoom={15} 
+        zoom={15}
         style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
@@ -56,23 +90,34 @@ export default function LiveMap() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {Object.values(activeVehicles).map((vehicle) => (
-          <Marker 
-            key={vehicle.vehicleId} 
-            position={[vehicle.lat, vehicle.lng]} 
-            icon={busIcon}
-          >
-            <Popup>
-              <div className="text-center">
-                <strong className="text-lg text-blue-600 block mb-1">{vehicle.vehicleId}</strong>
-                <p className="text-sm m-0">Speed: {vehicle.speed ? vehicle.speed.toFixed(1) : 0} km/h</p>
-                <p className="text-xs text-slate-500 m-0 mt-1">
-                  Station: {vehicle.station === 'En Route' ? 'กำลังวิ่ง 💨' : vehicle.station}
-                </p>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+        {Object.values(activeVehicles).map((state) => {
+          const location = state.serviceState === "live"
+            ? state.liveLocation
+            : state.serviceState === "stale"
+              ? state.lastKnownLocation
+              : null;
+          if (!location) return null;
+          return (
+            <Marker
+              key={`${state.vehicleId}:${state.stateEpoch}:${state.stateVersion}`}
+              position={[location.lat, location.lng]}
+              icon={busIcon}
+              opacity={state.serviceState === "stale" ? 0.55 : 1}
+            >
+              <Popup>
+                <div className="text-center">
+                  <strong className="text-lg text-blue-600 block mb-1">{state.vehicleId}</strong>
+                  <p className="text-sm m-0">State: {state.serviceState}</p>
+                  <p className="text-sm m-0">Route: {state.routeId || "Unknown"}</p>
+                  <p className="text-sm m-0">Speed: {location.speed ?? 0} km/h</p>
+                  <p className="text-xs text-slate-500 m-0 mt-1">
+                    {state.serviceState === "stale" ? "Last known location — ETA unavailable" : location.station || "No station"}
+                  </p>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
     </div>
   );

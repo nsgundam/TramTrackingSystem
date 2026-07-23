@@ -68,6 +68,57 @@ const findActiveTrip = async (tx: TransactionClient, vehicleId: string) => tx.tr
   ],
 });
 
+export type CanonicalRouteAuthority = {
+  tripId: string | null;
+  routeId: string | null;
+  routeAuthority: 'active_trip' | 'vehicle_assignment' | 'unknown';
+};
+
+/**
+ * Resolve the route that is authoritative for a canonical vehicle state.
+ * Lifecycle ownership remains in this service; canonical-state only consumes
+ * this read model and never invents route identity from a viewer filter.
+ */
+export const resolveCanonicalRouteAuthority = async (
+  vehicleId: string,
+): Promise<CanonicalRouteAuthority> => {
+  const activeTrip = await prisma.trip.findFirst({
+    where: { vehicleId, status: TRIP_IN_PROGRESS },
+    select: { id: true, routeId: true },
+    orderBy: [
+      { createdAt: 'asc' },
+      { id: 'asc' },
+    ],
+  });
+
+  if (activeTrip?.routeId) {
+    return {
+      tripId: activeTrip.id,
+      routeId: activeTrip.routeId,
+      routeAuthority: 'active_trip',
+    };
+  }
+
+  const vehicle = await prisma.vehicle.findUnique({
+    where: { id: vehicleId },
+    select: { assignedRouteId: true },
+  });
+
+  if (vehicle?.assignedRouteId) {
+    return {
+      tripId: activeTrip?.id ?? null,
+      routeId: vehicle.assignedRouteId,
+      routeAuthority: 'vehicle_assignment',
+    };
+  }
+
+  return {
+    tripId: activeTrip?.id ?? null,
+    routeId: null,
+    routeAuthority: 'unknown',
+  };
+};
+
 const ensureVehicleActive = async (tx: TransactionClient, vehicleId: string): Promise<void> => {
   await tx.vehicle.update({
     where: { id: vehicleId },

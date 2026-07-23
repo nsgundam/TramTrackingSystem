@@ -69,7 +69,7 @@ Every Critical/High finding is represented. T10–T12 are carried forward becaus
 | T3 | Complete | Simulator fixtures and repeatable pipeline evidence validated; no physical-device claim. |
 | T4 | Complete | CI checks and redacted process-local signals validated; no production alerting claim. |
 | T5 | Complete | Transactional/idempotent Operations/Trip owner and migration evidence validated. |
-| T6 | Next eligible / Ready to plan | All audit gates pass; requires Level 2 decision brief and exact-path Level 3 task spec before implementation. |
+| T6 | Partially Complete — implementation validated; runtime evidence pending | Level 3 implementation and safe/static checks are complete. Disposable Postgres/Redis, Socket.IO, browser/manual, and provider/runtime evidence remain unavailable or require an explicitly approved target. |
 | T7 | Pending | Blocked on accepted T6 contract plus retention, deletion, and research-access parameters. |
 | T8 | Pending | Blocked on accepted T6 canonical-state contract; route mutation portion also depends on T10. |
 | T9 | Blocked | D-003 ordering is approved, but hosting, domain, TLS, Redis/DB placement, and operations-owner facts are missing. |
@@ -474,12 +474,24 @@ Late data cannot move a marker backward; all-stale emits explicit state; UI can 
 
 ### Status
 
-Next eligible / Ready to plan. The audit gate is now validated; create the specialist brief and
-exact-path implementation task before starting work.
+Partially Complete — implementation and safe contract checks passed on 2026-07-22. Runtime
+integration against a disposable Postgres/Redis target, browser/manual stale/reconnect/route checks,
+and the Next.js production build remain pending because no disposable target was approved and the
+build could not fetch Google Fonts in the restricted environment.
 
 ### Evidence
 
-None; task specification and specialist briefs have not been created.
+The exact-path task spec is `docs/tasks/T6-canonical-vehicle-state.md` and the immutable Level 2
+brief is `docs/audits/specialized/T6-backend-realtime-canonical-vehicle-state.md`. Changed paths are
+the canonical backend publisher/read/route-authority services and boundaries, T6 boundary tests,
+checked-in pipeline assertions, shared frontend canonical types/API, public `ShuttleTracker`, and
+admin `LiveMap`. `shuttle-tracking-backend`: `npm run check`, `npx prisma validate`,
+`node test_t6_canonical_state.js`, `node test_t6_realtime.js`, and `git diff --check` passed on
+2026-07-22. `shuttle-tracking-web`: `npx tsc --noEmit` and `npm run lint` passed with existing
+warnings. Compose config validation and `node scripts/validate-agent-workflow.js` passed. The
+required `bash scripts/ci-checks.sh` reached frontend build but failed because `next/font` could
+not fetch Google Fonts; T5 integration and socket/pipeline runtime checks were not counted because
+no explicitly approved disposable target was available.
 
 ### T7 — Implement D-002=B bounded raw diagnostics for research
 

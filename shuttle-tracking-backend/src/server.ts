@@ -28,6 +28,10 @@ import {
   startSourceHealthSweep,
 } from "./services/tracking.service.js";
 import {
+  configureCanonicalStatePublisher,
+  createSocketCanonicalPublisher,
+} from "./services/canonical-state.service.js";
+import {
   BoundaryError,
   logBoundaryFailure,
   mapBoundaryError,
@@ -165,6 +169,10 @@ const io = new Server(httpServer, {
   cors: corsOptions,
   maxHttpBufferSize: configuredSocketBuffer,
 });
+
+configureCanonicalStatePublisher(createSocketCanonicalPublisher({
+  emit: (event, state) => io.emit(event, state),
+}));
 
 app.set('socketio', io); // Share Socket.IO instance to REST controllers
 
@@ -325,7 +333,7 @@ io.on("connection", (socket) => {
         return;
       }
 
-      const canonicalLocation = await processObservation({
+      const canonicalState = await processObservation({
         sourceId: observation.sourceId,
         sender,
         tripId: observation.tripId,
@@ -337,21 +345,21 @@ io.on("connection", (socket) => {
         station: observation.station,
       });
 
-      if (canonicalLocation) {
-        io.emit("location-update", canonicalLocation);
-      }
-
       emitSocketOutcome({
         level: 'info',
         outcome: 'accepted',
         reasonCode: 'PROCESSED',
         sourceId: sender.sourceId,
         vehicleId: sender.vehicleId,
-        sourceType: canonicalLocation?.sourceType,
-        canonicalEmitted: Boolean(canonicalLocation),
+        sourceType: canonicalState?.sourceType ?? undefined,
+        canonicalEmitted: Boolean(canonicalState),
       });
 
-      respond({ ok: true, canonicalLocation });
+      respond({
+        ok: true,
+        canonicalState,
+        canonicalLocation: canonicalState,
+      });
     } catch (error) {
       logBoundaryFailure('Socket location', error);
       const mapped = mapBoundaryError(

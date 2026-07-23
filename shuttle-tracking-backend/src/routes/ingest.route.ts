@@ -113,23 +113,19 @@ router.post(
         throw new BoundaryError(403, 'SENDER_OWNERSHIP_MISMATCH', 'Sender cannot submit for this source');
       }
 
-      const canonicalLocation = await processObservation({
+      const canonicalState = await processObservation({
         ...observation,
         sender,
       });
 
-      if (canonicalLocation) {
-        const io = req.app.get('socketio');
-        if (io) io.emit('location-update', canonicalLocation);
-      }
-
-      res.locals.canonicalEmitted = Boolean(canonicalLocation);
-      res.locals.ingestionSourceType = canonicalLocation?.sourceType;
+      res.locals.canonicalEmitted = Boolean(canonicalState);
+      res.locals.ingestionSourceType = canonicalState?.sourceType;
 
       res.status(200).json({
         success: true,
         message: 'Location observation processed successfully',
-        canonicalLocation,
+        canonicalState,
+        canonicalLocation: canonicalState,
       });
     } catch (error) {
       const mapped = mapBoundaryError(
@@ -250,24 +246,20 @@ router.post(
         station: station as string | undefined,
       });
 
-      const canonicalLocation = await processObservation({
+      const canonicalState = await processObservation({
         ...observation,
         expectedSourceType: 'lorawan',
       });
 
-      if (canonicalLocation) {
-        const io = req.app.get('socketio');
-        if (io) io.emit('location-update', canonicalLocation);
-      }
-
-      res.locals.canonicalEmitted = Boolean(canonicalLocation);
-      res.locals.ingestionVehicleId = canonicalLocation?.vehicleId;
-      res.locals.ingestionSourceType = canonicalLocation?.sourceType ?? 'lorawan';
+      res.locals.canonicalEmitted = Boolean(canonicalState);
+      res.locals.ingestionVehicleId = canonicalState?.vehicleId;
+      res.locals.ingestionSourceType = canonicalState?.sourceType ?? 'lorawan';
 
       res.status(200).json({
         success: true,
         message: 'TTN Webhook processed successfully',
-        canonicalLocation,
+        canonicalState,
+        canonicalLocation: canonicalState,
       });
     } catch (error) {
       const mapped = mapBoundaryError(
