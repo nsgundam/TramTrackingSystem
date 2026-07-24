@@ -79,10 +79,9 @@ export function useShuttleTracker() {
   // === Helper: get API origins ===
   const getApiOrigins = useCallback((): string[] => {
     const origins: string[] = [];
-    const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
-    if (isHttps && typeof window !== "undefined") origins.push(window.location.origin);
-    if (configuredBackendOrigin) origins.push(configuredBackendOrigin.replace(/\/$/, ""));
-    if (!isHttps && typeof window !== "undefined") origins.push(window.location.origin);
+    if (configuredBackendOrigin) {
+      origins.push(configuredBackendOrigin.replace(/\/$/, ""));
+    }
     origins.push("http://localhost:3001");
     return [...new Set(origins)];
   }, [configuredBackendOrigin]);
