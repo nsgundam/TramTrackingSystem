@@ -3,15 +3,15 @@
 Audit metadata:
 - Evidence baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
 - Evidence scope: `docs/project-knowledge-base.md`, all current domain audits under `docs/audits/`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, and this roadmap.
-- Reviewed at: `2026-07-22T22:01:33+07:00`
+- Reviewed at: `2026-07-24T16:13:02+07:00`
 - Validation state: **Validated**
-- Predecessor baselines: all validated domain audits and `docs/project-knowledge-base.md` @ `847a18cce9bc27c82b2622dbc176b3a89bc4d037`; approved decisions D-001 through D-004.
+- Predecessor baselines: all validated domain audits and `docs/project-knowledge-base.md` @ `847a18cce9bc27c82b2622dbc176b3a89bc4d037`; approved decisions D-001 through D-005.
 
-Last reviewed: 2026-07-22
+Last reviewed: 2026-07-24
 
-Validation state: **Validated**. T1–T5 remain complete, all required audits now have current
-evidence-baseline metadata, and the approved decision queue is current. T6 is the next eligible
-roadmap task; implementation still requires the Level 2/Level 3 task handoff contract.
+Validation state: **Validated**. T1–T6 remain complete, all required audits now have current
+evidence-baseline metadata, and the approved decision queue is current. T1–T6 are complete; T8 is
+the next eligible implementation handoff, while T7 remains gated by retention/access parameters.
 
 ## 1. Executive Summary
 
@@ -22,6 +22,8 @@ This roadmap supersedes the earlier task list. It uses all completed re-audits a
 - D-003 = A: define the deployment topology and origin contract first, then align REST and Socket configuration.
 - D-004: compare separate Mobile/Socket.IO, ESP32+GPS/Wi-Fi/HTTP, and
   LoRaWAN/Gateway/TTN/Webhook sources in an authenticated Dev Dashboard.
+- D-005 = A: keep stale observability separate from Trip closure and use an explicit/manual close
+  path for the controlled MVP; any future auto-close needs a separate policy decision.
 
 The production determination remains No-Go. D-001 reduces the immediate product scope but does not make public/daily risks acceptable. Phase 1 improves controlled-MVP safety and repeatability. Phase 2 creates the reusable technical contracts. Phase 3 stays deferred until D-001 is upgraded. Do not add playback, microservices, a second ingestion pipeline, or an operations suite early.
 
@@ -32,7 +34,7 @@ The production determination remains No-Go. D-001 reduces the immediate product 
 | Knowledge Base | 2026-07-22 | Complete / Validated | Current Discovery evidence at the stated baseline; external deployment/device facts remain unknown. |
 | Product, Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps/Observability audits | 2026-07-22 | Complete / Validated | All required domain reports passed ordered predecessor and freshness gates at the stated baseline. |
 | Production Readiness Audit | 2026-07-22 | Complete / Validated | Controlled demo is conditionally allowed under D-001=A; research, internal, and public production remain No-Go. |
-| Decision Queue | 2026-07-22 | Approved | D-001=A, D-002=B, D-003=A, and D-004 research scope |
+| Decision Queue | 2026-07-24 | Approved | D-001=A, D-002=B, D-003=A, D-004 research scope, and D-005 stale-trip closure policy |
 
 No required repository input is missing or stale under the current audit contract. Hosting, TLS,
 production recovery, browser/runtime behavior, physical devices, and TTN console state remain
@@ -69,9 +71,9 @@ Every Critical/High finding is represented. T10–T12 are carried forward becaus
 | T3 | Complete | Simulator fixtures and repeatable pipeline evidence validated; no physical-device claim. |
 | T4 | Complete | CI checks and redacted process-local signals validated; no production alerting claim. |
 | T5 | Complete | Transactional/idempotent Operations/Trip owner and migration evidence validated. |
-| T6 | Partially Complete — implementation and contract/static checks validated; direct browser/runtime evidence pending | Level 3 implementation, CI, contract-level REST/Socket parity, frontend state guards, and prior disposable Postgres/Redis/Socket.IO checks are complete. Direct browser rendering and running-server parity/ETA evidence remain unavailable. |
+| T6 | Complete | Level 3 implementation, CI, contract-level and disposable-runtime REST/Socket parity, frontend state guards, and owner-confirmed direct browser rendering/live-vs-non-live ETA checks passed on 2026-07-24. |
 | T7 | Pending | Blocked on accepted T6 contract plus retention, deletion, and research-access parameters. |
-| T8 | Pending | Blocked on accepted T6 canonical-state contract; route mutation portion also depends on T10. |
+| T8 | Pending | T6 canonical-state contract is accepted; route mutation portion also depends on T10. |
 | T9 | Blocked | D-003 ordering is approved, but hosting, domain, TLS, Redis/DB placement, and operations-owner facts are missing. |
 | T10 | Deferred | Requires T8 and D-001 upgrade from controlled demo to B/C. |
 | T11 | Deferred | Requires T5, T6, supported sender/operator choice, and D-001=B/C. |
@@ -474,18 +476,19 @@ Late data cannot move a marker backward; all-stale emits explicit state; UI can 
 
 ### Status
 
-Partially Complete — implementation, consolidated test checks, font fallback, admin service-state
-summary, disposable runtime verification, and five reported T6 manual checks passed on 2026-07-23.
+Complete — implementation, consolidated test checks, font fallback, admin service-state summary,
+disposable runtime verification, and owner-confirmed browser verification passed on 2026-07-24.
 Contract-level and disposable-runtime REST/Socket parity passed: epoch/version/route/location
 semantics matched and public `sourceId` was omitted from both projections; only dynamic
 `freshness.ageMs` differed by read time. Disposable REST checks also passed for `unknown`,
 `no_service`, `stale`, and live recovery. Frontend guards for unknown-state rendering, initial
 hydration, and non-live ETA suppression pass. Public presentation now intentionally exposes only
 the live vehicle count in `Active Trams`; connection, stale, no-service, and unknown-state panels
-remain hidden from the public surface while the underlying marker/ETA guards stay active. Direct
-browser rendering and live/non-live ETA UI evidence remain pending because the Browser capability
-is unavailable in this execution session; the full CI run passes in an escalated build runner,
-while the restricted runner still blocks the default Turbopack build on port binding.
+remain hidden from the public surface while the underlying marker/ETA guards stay active. The owner
+confirmed that the latest public UI shows the live-only `Active Trams` count, hides the requested
+status panels, preserves live ETA, and suppresses ETA for non-live state. The full CI run passes in
+an escalated build runner, while the restricted runner still blocks the default Turbopack build on
+port binding.
 
 ### Evidence
 
@@ -514,9 +517,9 @@ runtime on isolated ports `13000/13001/15432/16379` confirmed initial `no_servic
 `unknown` with `DEPENDENCY_UNAVAILABLE`, `ALL_SOURCES_STALE` with last-known-only state, live
 recovery, and structural REST/Socket parity with matching state version/epoch and omitted public
 source identity. The public `ShuttleTracker` source contract now asserts the live-only `Active Trams`
-count and absence of public connection/source-health labels. Direct browser rendering and live
-versus non-live ETA behavior still need browser evidence before T6 can be marked complete;
-frontend lint retained seven non-blocking warnings.
+count and absence of public connection/source-health labels. Owner-confirmed direct browser
+verification on 2026-07-24 passed for the latest public rendering and live versus non-live ETA
+behavior. T6 frontend lint retained seven non-blocking warnings.
 
 ### T7 — Implement D-002=B bounded raw diagnostics for research
 
@@ -626,7 +629,11 @@ Antigravity Implementation Ready after T6 acceptance.
 
 ### Task Brief
 
-Use canonical route/state instead of UI-selected route. Show connect/reconnect/last-update/fresh/stale/offline/no-service meaning and degrade ETA when state is stale. Repair local geometry cache keys to include ordered stop data or backend revision; discard corrupt cache safely.
+Use canonical route/state instead of UI-selected route. Keep detailed connection, last-update, and
+fresh/stale/no-service/unknown meaning on the admin/operations surface; keep the public surface
+neutral with the live-only Active Trams count while preserving truthful marker and ETA behavior.
+Repair local geometry cache keys to include ordered stop data or backend revision; discard corrupt
+cache safely.
 
 ### Related Files
 
@@ -634,11 +641,14 @@ Public tracker/cards, admin LiveMap/dashboard, realtime/public API types, route 
 
 ### Acceptance Criteria and Verification
 
-An R02 event remains R02 even while R01 is selected; stale/no-service is visible in both surfaces; ETA is not current when stale; cache updates after route revision. Run lint, production build, and browser/socket interruption checks.
+An R02 event remains R02 even while R01 is selected; admin state meaning remains visible and public
+marker behavior stays truthful without exposing operational labels; ETA is not current when stale;
+cache updates after route revision. Run lint, production build, and browser/socket interruption
+checks.
 
 ### Status
 
-Pending — blocked on T6.
+Pending — T6 accepted; route mutation portion remains blocked on T10.
 
 ### Evidence
 
@@ -1128,20 +1138,22 @@ This review does not implement or runtime-test code. It does not choose provider
 
 ## 15. Handoff
 
-T1–T5 are complete and the roadmap is validated against the current audit baseline. T6 is the next
-eligible task. Before implementation, create its immutable Level 2 specialist brief and
-`docs/tasks/<task-id>-<topic>.md` with exact repository-relative write paths, invariants,
-acceptance checks, rollout limits, and stop conditions. Do not start T7/T8 in parallel until the T6
-canonical-state contract is accepted. T9 remains blocked until the owner supplies topology facts.
+T1–T6 are complete and the roadmap is validated against the current audit baseline. T8 is the next
+eligible direct implementation handoff; its truthful-state UI portion is now aligned to D-005, while
+the route mutation portion remains dependent on T10. T7 remains gated by retention/access
+parameters. Before implementation, create its immutable task contract from the task template with
+exact repository-relative write paths, invariants, acceptance checks, rollout limits, and stop
+conditions. T9 remains blocked until the owner supplies topology facts.
 
 Validate each completed task against its originating audit finding before advancing. Re-run Production Readiness only after the production-bar tasks applicable to the desired release scope are complete.
 
 ## Roadmap Impact, Assumptions and Unknowns, Confidence, and Deferred Decisions
 
 **Roadmap impact:** D-001=A defers daily/public workflows to Phase 3; D-002=B creates T7 research
-diagnostics; D-003=A removes the configuration cycle by sequencing T9 before alignment. The current
-validated readiness gate confirms that T6, not historical T1, is the next implementation-planning
-target.
+diagnostics; D-003=A removes the configuration cycle by sequencing T9 before alignment; D-005 keeps
+stale observability separate from Trip closure and preserves a neutral public presentation. T6 is
+complete, T8 is the next eligible implementation-planning target, and T7 remains gated by retention
+parameters.
 
 **Assumptions and unknowns:** the next release is supervised and does not claim daily/public service; diagnostics are bounded/protected; no topology/provider/device fact is assumed.
 
