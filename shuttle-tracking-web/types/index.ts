@@ -26,3 +26,25 @@ export interface LocationUpdateData {
   bearing?: string | number;
   heading?: string | number;
 }
+
+export interface RouteData {
+  id: string;
+  name: string;
+  color: string;
+  status: string;
+}
+
+export interface ActiveVehicleInfo {
+  prev: string;
+  next: string;
+  eta: number | null;
+  nextStopId: string | number | null;
+}
+
+export type RouteGeometryCache = {
+  version: 2;
+  signature: string;
+  source: "osrm";
+  createdAt: number;
+  coords: [number, number][];
+};
