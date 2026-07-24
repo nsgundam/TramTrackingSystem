@@ -992,10 +992,10 @@ export default function ShuttleTracker() {
   }, [mapRef]);
 
   useEffect(() => {
-    const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
-    const socketOrigin = isHttps
-      ? (typeof window !== "undefined" ? window.location.origin : "")
-      : (configuredBackendOrigin || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3001"));
+    // Determine the socket origin.
+    const socketOrigin = configuredBackendOrigin || "http://localhost:3001";
+    
+    // Initialize the socket connection pointing directly to the backend
     const socket: Socket = io(socketOrigin);
 
     socket.on("location-update", (data: LocationUpdateData) => {
