@@ -1,7 +1,7 @@
 "use client";
 import { useCallback } from "react";
 import L from "leaflet";
-import { Stop, RouteData, RouteGeometryCache } from "@/types";
+import { Stop, RouteGeometryCache } from "@/types";
 import { DEFAULT_STOP_ICON, ROUTE_CACHE_TTL_MS } from "@/constants/shuttle";
 import { createStopsSignature, isCoordinateList } from "@/utils/ShuttleHelpers";
 
@@ -14,13 +14,11 @@ interface UseRouteGeometryOptions {
     loadedRoutesRef: React.MutableRefObject<Set<string>>;
     checkLoadingCompleteRef: React.MutableRefObject<() => void>;
   };
-  selectedRoute: string;
   setSelectedRoute: React.Dispatch<React.SetStateAction<string>>;
   selectedRouteRef: React.MutableRefObject<string>;
   stopsByRouteRef: React.MutableRefObject<Record<string, Stop[]>>;
   routeGeometryRef: React.MutableRefObject<Record<string, [number, number][]>>;
   stopMarkersMapRef: React.MutableRefObject<Record<string, L.Marker>>;
-  activeStopMarkerRef: React.MutableRefObject<L.Marker | null>;
   routeLayersRef: React.MutableRefObject<Record<string, L.LayerGroup>>;
   stopLayersRef: React.MutableRefObject<Record<string, L.LayerGroup>>;
 }
@@ -30,13 +28,11 @@ export function useRouteGeometry({
   setStopsByRoute,
   onStopSelect,
   preloader,
-  selectedRoute,
   setSelectedRoute,
   selectedRouteRef,
   stopsByRouteRef,
   routeGeometryRef,
   stopMarkersMapRef,
-  activeStopMarkerRef,
   routeLayersRef,
   stopLayersRef,
 }: UseRouteGeometryOptions) {

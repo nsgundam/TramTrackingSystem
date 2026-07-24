@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+"use client";
+import { useEffect, useRef, memo } from "react";
 import { Stop } from "@/types";
 import { Locate } from "lucide-react";
 
@@ -13,7 +14,7 @@ interface VehicleInfoCardProps {
   onFeedbackClick?: (vehicleId: string) => void;
 }
 
-export default function VehicleInfoCard({
+function VehicleInfoCard({
   vehicleId,
   vehicleName,
   nextStop,
@@ -66,10 +67,11 @@ export default function VehicleInfoCard({
             >
               <Locate
                 size={16}
-                className={`transition-colors duration-300 ${isTracking
+                className={`transition-colors duration-300 ${
+                  isTracking
                     ? "text-primary"
                     : "text-on-surface-variant/40 hover:text-on-surface-variant/80"
-                  }`}
+                }`}
               />
             </button>
           )}
@@ -103,10 +105,11 @@ export default function VehicleInfoCard({
             <span
               key={stop.id}
               data-active={isNext ? "true" : "false"}
-              className={`shrink-0 text-center whitespace-nowrap px-4 transition-colors py-1 ${isNext
+              className={`shrink-0 text-center whitespace-nowrap px-4 transition-colors py-1 ${
+                isNext
                   ? "font-bold text-primary border-b-2 border-primary pb-0.5"
                   : "text-on-surface-variant/70"
-                }`}
+              }`}
             >
               {stopName}
             </span>
@@ -116,3 +119,5 @@ export default function VehicleInfoCard({
     </div>
   );
 }
+
+export default memo(VehicleInfoCard);

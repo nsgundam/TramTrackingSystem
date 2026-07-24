@@ -1,6 +1,5 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { X, CheckCircle2, MessageSquarePlus, Loader2 } from "lucide-react";
 
 interface FeedbackModalProps {
@@ -19,7 +18,14 @@ interface ActiveVehicle {
   } | null;
 }
 
-export default function FeedbackModal({
+const FEEDBACK_TYPES = [
+  { id: "suggestion", label: "ข้อเสนอแนะ" },
+  { id: "complaint", label: "แจ้งปัญหา / ร้องเรียน" },
+  { id: "praise", label: "ชื่นชมการบริการ" },
+  { id: "other", label: "เรื่องอื่นๆ" },
+];
+
+function FeedbackModal({
   isOpen,
   onClose,
   initialVehicleId,
@@ -97,7 +103,7 @@ export default function FeedbackModal({
         }),
       });
 
-      const result = await response.json() as { error?: string };
+      const result = (await response.json()) as { error?: string };
 
       if (!response.ok) {
         throw new Error(result.error || "เกิดข้อผิดพลาดในการส่งข้อเสนอแนะ");
@@ -159,12 +165,7 @@ export default function FeedbackModal({
                 ประเภทการติดต่อ
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {[
-                  { id: "suggestion", label: "ข้อเสนอแนะ"},
-                  { id: "complaint", label: "แจ้งปัญหา / ร้องเรียน"},
-                  { id: "praise", label: "ชื่นชมการบริการ"},
-                  { id: "other", label: "เรื่องอื่นๆ"},
-                ].map((item) => (
+                {FEEDBACK_TYPES.map((item) => (
                   <button
                     key={item.id}
                     type="button"
@@ -175,7 +176,6 @@ export default function FeedbackModal({
                         : "border-slate-200 hover:border-slate-300 text-slate-600"
                     }`}
                   >
-                      
                     <span>{item.label}</span>
                   </button>
                 ))}
@@ -253,3 +253,5 @@ export default function FeedbackModal({
     </div>
   );
 }
+
+export default memo(FeedbackModal);

@@ -1,4 +1,6 @@
 "use client";
+import { useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
 import "@/app/shuttle-tracker.css";
 import { useShuttleTracker } from "@/hooks/useShuttleTracker";
@@ -11,8 +13,15 @@ import BottomDock from "@/components/public/BottomDock";
 import MapControls from "@/components/public/MapControls";
 import Preloader from "@/components/public/Preloader";
 import AppLockOverlay from "@/components/public/AppLockOverlay";
-import AppTour from "@/components/public/AppTour";
-import FeedbackModal from "@/components/public/FeedbackModal";
+
+// Code-split heavy interactive components to make the initial page load extremely fast
+const AppTour = dynamic(() => import("@/components/public/AppTour"), {
+  ssr: false,
+});
+
+const FeedbackModal = dynamic(() => import("@/components/public/FeedbackModal"), {
+  ssr: false,
+});
 
 export default function ShuttleTracker() {
   const {
@@ -45,13 +54,51 @@ export default function ShuttleTracker() {
     setIsFeedbackOpen,
   } = useShuttleTracker();
 
+  // Prevent downloading/rendering the tour React Joyride code chunk for returning users
+  const [shouldShowTour, setShouldShowTour] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hasSeenTour = localStorage.getItem("rsu-bus-tour-seen");
+      if (!hasSeenTour) {
+        // Defer to next microtask queue to avoid cascading render warning in React Compiler
+        Promise.resolve().then(() => {
+          setShouldShowTour(true);
+        });
+      }
+    }
+  }, []);
+
+  // Stable callbacks defined at component-level to conform to Rules of Hooks and optimize child rendering
+  const handleZoomIn = useCallback(() => {
+    mapRef.current?.zoomIn();
+  }, [mapRef]);
+
+  const handleZoomOut = useCallback(() => {
+    mapRef.current?.zoomOut();
+  }, [mapRef]);
+
+  const handleToggleRouteMenu = useCallback(() => {
+    setIsRouteMenuOpen((prev) => !prev);
+  }, [setIsRouteMenuOpen]);
+
+  const handleFeedbackClick = useCallback(() => {
+    handleOpenFeedback(selectedVehicleId);
+  }, [handleOpenFeedback, selectedVehicleId]);
+
+  const handleCloseFeedback = useCallback(() => {
+    setIsFeedbackOpen(false);
+  }, [setIsFeedbackOpen]);
+
   return (
     <div className="h-dvh w-screen overflow-hidden font-body-sm text-on-surface bg-surface map-bg relative select-none">
       <Preloader show={showPreloader} isFinished={isIntroFinished} />
       <AppLockOverlay locked={isAppLocked} />
 
       <div
-        className={`w-full h-full relative z-0 transition-all duration-700 ${showPreloader ? "map-blur-effect" : ""}`}
+        className={`w-full h-full relative z-0 transition-all duration-700 ${
+          showPreloader ? "map-blur-effect" : ""
+        }`}
       >
         <div id="rsu-map" className="w-full h-full absolute inset-0 z-0" />
 
@@ -59,17 +106,17 @@ export default function ShuttleTracker() {
         <BrandingHeader />
 
         {/* Top Right: Status & Toggles */}
-        <div className="absolute top-4 right-4 md:top-10 md:right-10 z-10 flex flex-col items-stretch gap-3 w-[160px] md:w-[180px]">
+        <div className="absolute top-4 right-4 md:top-10 md:right-10 z-10 flex flex-col items-stretch gap-3 w-40 md:w-45">
           <AvailabilityCard count={availableCount} />
           <RouteSelector
             routes={routes}
             selectedRoute={selectedRoute}
             isOpen={isRouteMenuOpen}
-            onToggle={() => setIsRouteMenuOpen(!isRouteMenuOpen)}
+            onToggle={handleToggleRouteMenu}
             onSelect={handleRouteChange}
             menuRef={routeMenuRef}
           />
-          <FeedbackButton onClick={() => handleOpenFeedback(selectedVehicleId)} />
+          <FeedbackButton onClick={handleFeedbackClick} />
         </div>
 
         {/* Bottom Left: Info Cards */}
@@ -88,13 +135,13 @@ export default function ShuttleTracker() {
 
         {/* Bottom Right: Map Controls */}
         <MapControls
-          onZoomIn={() => mapRef.current?.zoomIn()}
-          onZoomOut={() => mapRef.current?.zoomOut()}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
           onLocate={handleLocateUser}
         />
       </div>
 
-      {!showPreloader && (
+      {!showPreloader && shouldShowTour && (
         <AppTour
           onInstallClick={handleInstallClick}
           isPwaAvailable={!!deferredPrompt}
@@ -104,7 +151,7 @@ export default function ShuttleTracker() {
       {isFeedbackOpen && (
         <FeedbackModal
           isOpen={isFeedbackOpen}
-          onClose={() => setIsFeedbackOpen(false)}
+          onClose={handleCloseFeedback}
           initialVehicleId={feedbackVehicleId}
           apiOrigin={configuredBackendOrigin}
         />

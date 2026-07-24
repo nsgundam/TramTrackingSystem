@@ -8,9 +8,9 @@ export const ROUTE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 // === Icons ===
 export const DEFAULT_STOP_ICON = L.icon({
   iconUrl: "/icons/stop.png",
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32],
+  iconSize: [36, 36],
+  iconAnchor: [18, 36],
+  popupAnchor: [0, -36],
   className: "stop-marker-tour",
 });
 

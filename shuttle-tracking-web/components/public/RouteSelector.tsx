@@ -1,5 +1,5 @@
 "use client";
-
+import { memo } from "react";
 import { ChevronDown } from "lucide-react";
 
 interface RouteData {
@@ -18,7 +18,7 @@ interface RouteSelectorProps {
   menuRef: React.RefObject<HTMLDivElement | null>;
 }
 
-export default function RouteSelector({
+function RouteSelector({
   routes,
   selectedRoute,
   isOpen,
@@ -26,6 +26,8 @@ export default function RouteSelector({
   onSelect,
   menuRef,
 }: RouteSelectorProps) {
+  const currentRoute = routes.find((r) => r.id === selectedRoute);
+
   return (
     <div className="flex gap-3 w-full relative" ref={menuRef}>
       <div className="route-selector-menu w-full relative">
@@ -37,12 +39,11 @@ export default function RouteSelector({
             <span
               className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.3)]"
               style={{
-                backgroundColor:
-                  routes.find((r) => r.id === selectedRoute)?.color || "#3B82F6",
+                backgroundColor: currentRoute?.color || "#3B82F6",
               }}
             />
-            <span className="truncate max-w-[100px] md:max-w-[120px]">
-              {routes.find((r) => r.id === selectedRoute)?.name || selectedRoute}
+            <span className="truncate max-w-25 md:max-w-30">
+              {currentRoute?.name || selectedRoute}
             </span>
           </div>
           <ChevronDown
@@ -52,7 +53,7 @@ export default function RouteSelector({
         </button>
 
         {isOpen && (
-          <div className="absolute top-full left-0 right-0 mt-2 glass-panel backdrop-blur-sm rounded-[16px] py-2 flex flex-col gap-1 shadow-lg border border-outline-variant/30 overflow-hidden z-50">
+          <div className="absolute top-full left-0 right-0 mt-2 glass-panel backdrop-blur-sm rounded-2xl py-2 flex flex-col gap-1 shadow-lg border border-outline-variant/30 overflow-hidden z-50">
             {routes.map((route) => (
               <button
                 key={route.id}
@@ -79,3 +80,5 @@ export default function RouteSelector({
     </div>
   );
 }
+
+export default memo(RouteSelector);

@@ -1,4 +1,5 @@
-import { useState } from "react";
+"use client";
+import { useState, memo } from "react";
 import ReactDOM from "react-dom";
 import { Stop } from "@/types";
 
@@ -27,7 +28,7 @@ const CLOSE_BTN_STYLE: React.CSSProperties = {
   display: "flex", justifyContent: "center", alignItems: "center"
 };
 
-export default function StopInfoCard({ targetStop, eta }: StopInfoCardProps) {
+function StopInfoCard({ targetStop, eta }: StopInfoCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (!targetStop) return null;
@@ -55,6 +56,7 @@ export default function StopInfoCard({ targetStop, eta }: StopInfoCardProps) {
         <div onClick={() => setIsModalOpen(false)} style={MODAL_OVERLAY_STYLE}>
           <div onClick={(e) => e.stopPropagation()} style={MODAL_CONTENT_STYLE}>
             <button onClick={() => setIsModalOpen(false)} style={CLOSE_BTN_STYLE} title="ปิดรูปภาพ">×</button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src={imgUrl} 
               alt={targetStop.nameTh || "รูปขยายป้ายรถเมล์"} 
@@ -67,10 +69,11 @@ export default function StopInfoCard({ targetStop, eta }: StopInfoCardProps) {
 
       {imgUrl && (
         <div 
-          className="w-full h-[85px] sm:h-[120px] rounded-lg overflow-hidden bg-surface-dim/30 cursor-pointer" 
+          className="w-full h-21.25 sm:h-30 rounded-lg overflow-hidden bg-surface-dim/30 cursor-pointer" 
           onClick={() => setIsModalOpen(true)} 
           title="คลิกเพื่อขยายรูป"
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={imgUrl} alt={targetStop.nameTh || "รูปป้าย"} className="w-full h-full object-cover" />
         </div>
       )}
@@ -106,3 +109,5 @@ export default function StopInfoCard({ targetStop, eta }: StopInfoCardProps) {
     </div>
   );
 }
+
+export default memo(StopInfoCard);

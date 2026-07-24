@@ -1,11 +1,12 @@
 "use client";
+import { memo } from "react";
 
 interface PreloaderProps {
   show: boolean;
   isFinished: boolean;
 }
 
-export default function Preloader({ show, isFinished }: PreloaderProps) {
+function Preloader({ show, isFinished }: PreloaderProps) {
   if (!show) return null;
 
   return (
@@ -15,3 +16,5 @@ export default function Preloader({ show, isFinished }: PreloaderProps) {
     </div>
   );
 }
+
+export default memo(Preloader);

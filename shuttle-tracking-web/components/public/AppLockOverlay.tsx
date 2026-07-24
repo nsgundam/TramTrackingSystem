@@ -1,10 +1,11 @@
 "use client";
+import { memo } from "react";
 
 interface AppLockOverlayProps {
   locked: boolean;
 }
 
-export default function AppLockOverlay({ locked }: AppLockOverlayProps) {
+function AppLockOverlay({ locked }: AppLockOverlayProps) {
   if (!locked) return null;
 
   return (
@@ -15,3 +16,5 @@ export default function AppLockOverlay({ locked }: AppLockOverlayProps) {
     />
   );
 }
+
+export default memo(AppLockOverlay);

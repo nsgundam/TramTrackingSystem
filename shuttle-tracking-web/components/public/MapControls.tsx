@@ -1,5 +1,5 @@
 "use client";
-
+import { memo } from "react";
 import { Plus, Minus, Locate } from "lucide-react";
 
 interface MapControlsProps {
@@ -8,7 +8,7 @@ interface MapControlsProps {
   onLocate: () => void;
 }
 
-export default function MapControls({ onZoomIn, onZoomOut, onLocate }: MapControlsProps) {
+function MapControls({ onZoomIn, onZoomOut, onLocate }: MapControlsProps) {
   return (
     <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-10 flex flex-col gap-1 md:gap-2">
       <button
@@ -35,3 +35,5 @@ export default function MapControls({ onZoomIn, onZoomOut, onLocate }: MapContro
     </div>
   );
 }
+
+export default memo(MapControls);

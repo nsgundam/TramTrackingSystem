@@ -111,13 +111,11 @@ export function useShuttleTracker() {
     setStopsByRoute,
     onStopSelect,
     preloader,
-    selectedRoute,
     setSelectedRoute,
     selectedRouteRef,
     stopsByRouteRef,
     routeGeometryRef,
     stopMarkersMapRef,
-    activeStopMarkerRef,
     routeLayersRef,
     stopLayersRef,
   });

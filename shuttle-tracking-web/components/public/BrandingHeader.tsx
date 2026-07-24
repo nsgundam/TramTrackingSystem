@@ -1,4 +1,7 @@
-export default function BrandingHeader() {
+"use client";
+import { memo } from "react";
+
+function BrandingHeader() {
   return (
     <div className="absolute top-4 left-4 md:top-10 md:left-10 z-10 glass-panel backdrop-blur-sm rounded-full flex items-center gap-2.5 px-4 py-1.5 md:px-6 md:py-2.5">
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -19,3 +22,5 @@ export default function BrandingHeader() {
     </div>
   );
 }
+
+export default memo(BrandingHeader);
