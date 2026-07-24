@@ -113,6 +113,41 @@ is required.
 Roadmap effect: Refines the research handoff for T7 and T15 without bypassing audit revalidation,
 retention/access decisions, physical-device facts, or task specifications.
 
+## D-005 — Stale trip closure policy
+
+Related reports: `docs/audits/specialized/T6-backend-realtime-canonical-vehicle-state.md`,
+`docs/audits/backend-audit.md`, `docs/audits/dashboard-ux-audit.md`,
+`docs/roadmap/master-refactoring-roadmap.md`
+
+Current approach: canonical source freshness and Trip lifecycle are separate concerns. A source
+becomes `stale` after the 30-second freshness window, but the Trip remains `in_progress` until an
+authenticated sender explicitly ends it. A stale or unavailable vehicle may therefore stop being
+shown as a live marker while its database Trip remains active.
+
+Problem: a driver who forgets to end a Trip can leave an active-trip record indefinitely. The record
+can continue to provide route authority and later observations may be associated with the same
+Trip. Closing it after the 30-second freshness window would incorrectly interpret a network,
+device, or power failure as a confirmed operational end.
+
+| Option | Benefits | Costs/risks | Effort | Upgrade trigger |
+|---|---|---|---|---|
+| A — Separate stale exception and explicit/manual close | Preserves the distinction between telemetry failure and operational end; safest for the controlled MVP. | Requires an operator or sender to resolve the exception; needs a protected trip/exception surface. | Medium | Daily operations or repeated unresolved stale Trips. |
+| B — Auto-close after a separate grace period | Reduces forgotten active Trips and can preserve an auditable close reason. | May close a Trip during a prolonged outage; requires timeout, clock, recovery, notification, and override rules. | Medium-High | Owner selects a concrete grace period and accepts false-close risk. |
+| C — Hybrid confirmation then hard-cap auto-close | Gives operators a recovery window while preventing indefinite active Trips. | Most complex policy and state machine; still has false-close risk at the hard cap. | High | Formal daily-service operations with an accountable on-call owner. |
+
+Recommendation: A for the current controlled MVP. Keep freshness and Trip closure independent;
+provide a protected stale/in-progress exception and explicit/manual close path in the next
+operations task. Do not implement an automatic close from the 30-second freshness threshold.
+
+Owner decision: Approved A on 2026-07-24 — `stale`, `no_service`, and `unknown` are observability
+states, not Trip completion commands. Any future automatic closure must use a separately approved
+grace period, close reason, audit record, recovery/override behavior, and notification policy.
+
+Roadmap effect: T6 remains a canonical-state task and does not auto-close Trips. T11 must include
+stale/silent active-Trip exceptions and a protected explicit close workflow when its D-001 scope
+gate is opened. A concrete auto-close timeout remains a future decision rather than an implicit
+implementation default.
+
 ## Postponed
 
 ## Rejected

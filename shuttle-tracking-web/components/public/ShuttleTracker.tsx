@@ -16,7 +16,6 @@ import {
   Stop,
   CanonicalVehicleStateV1,
   LocationUpdateData,
-  RealtimeConnectionState,
   isCanonicalStateNewer,
 } from "@/types";
 import { getActiveVehicles } from "@/services/publicApi";
@@ -80,7 +79,6 @@ export default function ShuttleTracker() {
   const routeMenuRef = useRef<HTMLDivElement>(null);
   
   const [selectedRoute, setSelectedRoute] = useState<string>("R01");
-  const [availableCount, setAvailableCount] = useState<number>(0);
   const [userLoc, setUserLoc] = useState<[number, number] | null>(null);
   const [targetStop, setTargetStop] = useState<Stop | null>(null);
   const [realEta, setRealEta] = useState<number | null>(null);
@@ -91,7 +89,6 @@ export default function ShuttleTracker() {
   const [activeVehicleInfo, setActiveVehicleInfo] = useState<{ prev: string; next: string; eta: number | null; nextStopId: string | number | null } | null>(null);
   const [isTracking, setIsTracking] = useState<boolean>(false);
   const [stopsByRoute, setStopsByRoute] = useState<Record<string, Stop[]>>({});
-  const [realtimeConnection, setRealtimeConnection] = useState<RealtimeConnectionState>("disconnected");
   const [vehicleStateCounts, setVehicleStateCounts] = useState<Record<"live" | "stale" | "no_service" | "unknown", number>>({
     live: 0,
     stale: 0,
@@ -251,7 +248,6 @@ export default function ShuttleTracker() {
       ) {
         expiredVehiclesRef.current[id] = true;
         removeVehicleMarker(id);
-        setAvailableCount(Object.values(vehiclesRef.current).filter((marker) => mapRef.current?.hasLayer(marker)).length);
         calculateETARef.current();
       }
     }, expiresInMs);
@@ -366,14 +362,8 @@ export default function ShuttleTracker() {
     setRealEta(minEtaMinutes === Infinity ? null : minEtaMinutes);
   };
 
-  const updateAvailableCount = () => {
+  const updateMapDerivedState = () => {
     if (!mapRef.current) return;
-    const count = Object.entries(vehiclesRef.current).filter(([id, marker]) =>
-      vehicleStatesRef.current[id]?.serviceState === "live" &&
-      !expiredVehiclesRef.current[id] &&
-      mapRef.current?.hasLayer(marker)
-    ).length;
-    setAvailableCount(count);
     calculateETA();
   };
 
@@ -444,7 +434,7 @@ export default function ShuttleTracker() {
     setIsTracking(false);
     isTrackingRef.current = false;
 
-    updateAvailableCount();
+    updateMapDerivedState();
   };
 
   const handleLocateUser = () => {
@@ -544,7 +534,7 @@ export default function ShuttleTracker() {
     ) {
       vehicleRouteMapRef.current[id] = "";
       removeVehicleMarker(id);
-      updateAvailableCount();
+      updateMapDerivedState();
       return;
     }
 
@@ -637,7 +627,7 @@ export default function ShuttleTracker() {
       });
 
       if (vehicleRouteMapRef.current[id] === selectedRouteRef.current) marker.addTo(mapRef.current);
-      updateAvailableCount();
+      updateMapDerivedState();
       return;
     }
 
@@ -719,7 +709,7 @@ export default function ShuttleTracker() {
       mapRef.current?.panTo(newPos, { animate: true, duration: 0.8 });
     }
     
-    updateAvailableCount();
+    updateMapDerivedState();
   };
   // === 4. Effects ===
   useEffect(() => {
@@ -1108,13 +1098,9 @@ export default function ShuttleTracker() {
 
       socket = io(socketOrigin, { autoConnect: false });
       socket.on("connect", () => {
-        setRealtimeConnection("connected");
         if (hasConnectedRef.current) void hydrateActiveVehicles();
         hasConnectedRef.current = true;
       });
-      socket.on("disconnect", () => setRealtimeConnection("disconnected"));
-      socket.on("connect_error", () => setRealtimeConnection("reconnecting"));
-      socket.io.on("reconnect_attempt", () => setRealtimeConnection("reconnecting"));
       socket.on("location-update", (data: LocationUpdateData) => {
         if (!acceptCanonicalState(data)) return;
         if (isZoomingRef.current) {
@@ -1126,7 +1112,7 @@ export default function ShuttleTracker() {
       socket.connect();
     };
 
-    void connectAfterSnapshot().catch(() => setRealtimeConnection("disconnected"));
+    void connectAfterSnapshot().catch(() => undefined);
     return () => {
       disposed = true;
       socket?.disconnect();
@@ -1170,21 +1156,9 @@ export default function ShuttleTracker() {
           </div>
         </div>
 
-        {/* Top Right: Status & Toggles */}
+        {/* Top Right: Controls */}
         <div className="absolute top-4 right-4 md:top-10 md:right-10 z-10 flex flex-col items-stretch gap-3 w-40 md:w-45">
-          <AvailabilityCard count={availableCount} />
-          <div className="glass-panel rounded-full px-3 py-1 text-center text-[11px] text-on-surface-variant">
-            {realtimeConnection === "connected" && "เชื่อมต่อข้อมูลสด"}
-            {realtimeConnection === "reconnecting" && "กำลังเชื่อมต่อใหม่"}
-            {realtimeConnection === "disconnected" && "ข้อมูลสดขาดการเชื่อมต่อ"}
-          </div>
-          {(vehicleStateCounts.stale > 0 || vehicleStateCounts.no_service > 0 || vehicleStateCounts.unknown > 0) && (
-            <div className="glass-panel rounded-2xl px-3 py-2 text-[10px] text-on-surface-variant">
-              {vehicleStateCounts.stale > 0 && <div>ข้อมูลล่าสุดเก่า: {vehicleStateCounts.stale}</div>}
-              {vehicleStateCounts.no_service > 0 && <div>ไม่มีบริการ: {vehicleStateCounts.no_service}</div>}
-              {vehicleStateCounts.unknown > 0 && <div>ข้อมูลขัดข้อง: {vehicleStateCounts.unknown}</div>}
-            </div>
-          )}
+          <AvailabilityCard count={vehicleStateCounts.live} />
           <div className="flex gap-3 w-full relative" ref={routeMenuRef}>
             <div className="route-selector-menu w-full relative">
               <button 

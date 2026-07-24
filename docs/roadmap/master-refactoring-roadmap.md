@@ -476,11 +476,16 @@ Late data cannot move a marker backward; all-stale emits explicit state; UI can 
 
 Partially Complete — implementation, consolidated test checks, font fallback, admin service-state
 summary, disposable runtime verification, and five reported T6 manual checks passed on 2026-07-23.
-Contract-level REST/Socket projection parity and frontend guards for unknown-state rendering,
-initial hydration, and non-live ETA suppression now pass. Direct browser rendering, runtime REST /
-Socket parity, and live/non-live ETA UI evidence remain pending; the full CI run passes in an
-escalated build runner, while the restricted runner still blocks the default Turbopack build on
-port binding.
+Contract-level and disposable-runtime REST/Socket parity passed: epoch/version/route/location
+semantics matched and public `sourceId` was omitted from both projections; only dynamic
+`freshness.ageMs` differed by read time. Disposable REST checks also passed for `unknown`,
+`no_service`, `stale`, and live recovery. Frontend guards for unknown-state rendering, initial
+hydration, and non-live ETA suppression pass. Public presentation now intentionally exposes only
+the live vehicle count in `Active Trams`; connection, stale, no-service, and unknown-state panels
+remain hidden from the public surface while the underlying marker/ETA guards stay active. Direct
+browser rendering and live/non-live ETA UI evidence remain pending because the Browser capability
+is unavailable in this execution session; the full CI run passes in an escalated build runner,
+while the restricted runner still blocks the default Turbopack build on port binding.
 
 ### Evidence
 
@@ -493,9 +498,10 @@ the root layout/styles. `shuttle-tracking-backend`: `npm run check`, `npm run te
 `npx prisma validate`, and `git diff --check` passed on 2026-07-23. `shuttle-tracking-web`:
 `npx tsc --noEmit`, `npm run lint`, and `npx next build --webpack` passed with existing lint
 warnings. Compose config validation and `node scripts/validate-agent-workflow.js` passed. The
-required `bash scripts/ci-checks.sh` passed backend checks but failed at the default Turbopack
-build because the restricted runner disallows its port binding; the Google Fonts fetch failure is
-resolved by removing the build-time remote font dependency. On the explicitly isolated
+required `bash scripts/ci-checks.sh` passed all checks in the escalated runner on 2026-07-24; the
+restricted runner still fails at the default Turbopack build because it disallows the internal
+port binding. The Google Fonts fetch failure is resolved by removing the build-time remote font
+dependency. On the explicitly isolated
 `t6-disposable` target, migrations and development seed completed, `tests/test_socket_boundary.js`,
 `tests/test_pipeline.js`, and `npm run test:operations` passed, and the project containers and
 volumes were removed afterward. The ambient `shuttle-*` stack was left untouched. The manual
@@ -503,11 +509,14 @@ verification report for the isolated target recorded PASS for initial `no_servic
 `SOURCE_NEVER_SEEN`, live recovery with fresh freshness, the `ALL_SOURCES_STALE` transition,
 backend stop/start recovery, and route-authority filtering behavior. The route item was supported
 by source/logic inspection rather than a direct browser interaction. The T6 realtime boundary now
-also asserts public projection parity and the frontend source-level state/ETA guards. Unknown-state
-rendering, initial REST versus Socket parity against a running server (including public source
-identity omission), and live versus non-live ETA behavior still need direct browser/runtime
-evidence before T6 can be marked complete. The escalated `bash scripts/ci-checks.sh` run passed on
-2026-07-23; frontend lint retained seven non-blocking warnings.
+also asserts public projection parity and the frontend source-level state/ETA guards. A disposable
+runtime on isolated ports `13000/13001/15432/16379` confirmed initial `no_service`, injected
+`unknown` with `DEPENDENCY_UNAVAILABLE`, `ALL_SOURCES_STALE` with last-known-only state, live
+recovery, and structural REST/Socket parity with matching state version/epoch and omitted public
+source identity. The public `ShuttleTracker` source contract now asserts the live-only `Active Trams`
+count and absence of public connection/source-health labels. Direct browser rendering and live
+versus non-live ETA behavior still need browser evidence before T6 can be marked complete;
+frontend lint retained seven non-blocking warnings.
 
 ### T7 — Implement D-002=B bounded raw diagnostics for research
 
