@@ -992,10 +992,10 @@ export default function ShuttleTracker() {
   }, [mapRef]);
 
   useEffect(() => {
-    // Determine the socket origin.
-    const socketOrigin = configuredBackendOrigin || "http://localhost:3001";
-    
-    // Initialize the socket connection pointing directly to the backend
+    const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
+    const socketOrigin = isHttps
+      ? (typeof window !== "undefined" ? window.location.origin : "")
+      : (configuredBackendOrigin || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3001"));
     const socket: Socket = io(socketOrigin);
 
     socket.on("location-update", (data: LocationUpdateData) => {
@@ -1155,10 +1155,12 @@ export default function ShuttleTracker() {
           </button>
         </div>
       </div>
-      <AppTour 
-        onInstallClick={handleInstallClick}
-        isPwaAvailable={!!deferredPrompt}
-      />
+      {!showPreloader && (
+        <AppTour 
+          onInstallClick={handleInstallClick}
+          isPwaAvailable={!!deferredPrompt}
+        />
+      )}
 
       {isFeedbackOpen && (
         <FeedbackModal
