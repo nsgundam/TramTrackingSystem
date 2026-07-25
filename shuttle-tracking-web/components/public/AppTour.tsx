@@ -54,6 +54,12 @@ export default function AppTour({ onInstallClick, isPwaAvailable = false }: AppT
       content: isPwaAvailable 
         ? 'คุณสามารถติดตั้งแอปพลิเคชันลงบนหน้าจอหลักเพื่อการใช้งานที่สะดวกรวดเร็วและเสถียรยิ่งขึ้น'
         : 'สำหรับอุปกรณ์ของคุณ: สามารถกดที่ปุ่มแชร์ "Share" ในเบราว์เซอร์ของคุณ แล้วเลือก "เพิ่มไปยังหน้าจอโฮม" (Add to Home Screen) เพื่อติดตั้งแอปได้ครับ',
+    },
+    {
+      target: 'body',
+      placement: 'center',
+      title: 'เริ่มต้นใช้งาน',
+      content: 'ขอบคุณที่ใช้บริการแอปพลิเคชันของเรา'
     }
   ], [isPwaAvailable]);
 
@@ -92,16 +98,18 @@ export default function AppTour({ onInstallClick, isPwaAvailable = false }: AppT
   const CustomTooltip = ({
     index,
     isLastStep,
+    size,
     step,
     backProps,
     primaryProps,
     skipProps,
     tooltipProps,
   }: TooltipRenderProps) => {
+    const isBeforeLastStep = index === size - 2;
     return (
       <div 
         {...tooltipProps} 
-        className="bg-white text-gray-800 p-6 rounded-2xl shadow-2xl max-w-sm border border-gray-100 flex flex-col gap-4 relative"
+        className="bg-white text-gray-800 p-6 rounded-xl shadow-2xl max-w-sm border border-gray-100 flex flex-col gap-4 relative"
         style={{ minWidth: "320px" }}
       >
         {/* Close Button (X) */}
@@ -124,8 +132,19 @@ export default function AppTour({ onInstallClick, isPwaAvailable = false }: AppT
           {step.content}
         </div>
 
+        {/* <div className="flex items-center justify-center"> */}
+          {isBeforeLastStep && isPwaAvailable && (
+              <button
+                onClick={onInstallClick}
+                className="flex items-center justify-center gap-1.5 h-10 px-4 bg-blue-600 text-white font-semibold rounded-2xl hover:bg-blue-700 shadow-xl active:scale-95 transition-all text-sm cursor-pointer border-none"
+              >
+                <span className="material-symbols-outlined text-base leading-none">download</span>
+                <p className="text-white font-extrabold text-body-lg">ติดตั้ง</p>
+              </button>
+            )}
+        {/* </div> */}
         {/* Footer actions */}
-        <div className="flex items-center justify-between mt-2 w-full gap-2">
+        <div className="flex items-center justify-between w-full gap-2">
           {/* Left side: Skip button (only if not on the last step) */}
           {!isLastStep ? (
             <button 
@@ -137,31 +156,23 @@ export default function AppTour({ onInstallClick, isPwaAvailable = false }: AppT
           ) : (
             <div />
           )}
-
+          
           {/* Right side: Back, Install, Next */}
           <div className="flex items-center gap-2">
             {index > 0 && (
               <button 
                 {...backProps}
-                className="px-3.5 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer font-medium border-none bg-transparent"
+                className="px-3.5 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-2xl transition-colors cursor-pointer font-medium border-none bg-transparent"
               >
                 Back
               </button>
             )}
 
-            {isLastStep && isPwaAvailable && (
-              <button
-                onClick={onInstallClick}
-                className="flex items-center justify-center gap-1.5 h-10 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 shadow-sm active:scale-95 transition-all text-sm cursor-pointer border-none"
-              >
-                <span className="material-symbols-outlined text-base leading-none">download</span>
-                ติดตั้งแอป
-              </button>
-            )}
+            
 
             <button 
               {...primaryProps}
-              className="flex items-center justify-center h-10 px-4 bg-[#151c25] text-white font-semibold rounded-lg hover:bg-[#202938] transition-colors cursor-pointer shadow-sm border-none text-sm"
+              className="flex items-center justify-center h-10 px-4 bg-[#151c25] text-white font-semibold rounded-2xl hover:bg-[#202938] transition-colors cursor-pointer shadow-md border-none text-sm"
             >
               {isLastStep ? "เริ่มใช้งานเลย!" : "ถัดไป"}
             </button>
