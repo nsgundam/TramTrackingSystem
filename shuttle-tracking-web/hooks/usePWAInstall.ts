@@ -26,13 +26,17 @@ export function usePWAInstall() {
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log("Install prompt outcome:", outcome);
-    if (outcome === "accepted") {
+    try {
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log("Install prompt outcome:", outcome);
+    } catch (err) {
+      console.error("Error showing PWA install prompt:", err);
+    } finally {
       setDeferredPrompt(null);
     }
   };
+
 
   return { deferredPrompt, handleInstallClick };
 }
