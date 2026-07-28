@@ -43,4 +43,3 @@ paths containing `..`.
 - Stop if another write path is required.
 - Stop if an owner decision, migration target, secret, provider, or hardware fact is unresolved.
 - Stop rather than changing architecture or adding dependencies outside this specification.
-
