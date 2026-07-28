@@ -1,6 +1,17 @@
 # Master Refactoring Roadmap
 
-Last reviewed: 2026-07-20
+Audit metadata:
+- Evidence baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
+- Evidence scope: `docs/project-knowledge-base.md`, all current domain audits under `docs/audits/`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, and this roadmap.
+- Reviewed at: `2026-07-24T16:13:02+07:00`
+- Validation state: **Validated**
+- Predecessor baselines: all validated domain audits and `docs/project-knowledge-base.md` @ `847a18cce9bc27c82b2622dbc176b3a89bc4d037`; approved decisions D-001 through D-005.
+
+Last reviewed: 2026-07-24
+
+Validation state: **Validated**. T1–T6 remain complete, all required audits now have current
+evidence-baseline metadata, and the approved decision queue is current. T1–T6 are complete; T8 is
+the next eligible implementation handoff, while T7 remains gated by retention/access parameters.
 
 ## 1. Executive Summary
 
@@ -9,6 +20,10 @@ This roadmap supersedes the earlier task list. It uses all completed re-audits a
 - D-001 = A: the next release is a supervised controlled demonstration/pilot, not daily operations or a public launch.
 - D-002 = B: retain bounded raw diagnostics to compare mobile, LoRaWAN, and ESP32 senders for research.
 - D-003 = A: define the deployment topology and origin contract first, then align REST and Socket configuration.
+- D-004: compare separate Mobile/Socket.IO, ESP32+GPS/Wi-Fi/HTTP, and
+  LoRaWAN/Gateway/TTN/Webhook sources in an authenticated Dev Dashboard.
+- D-005 = A: keep stale observability separate from Trip closure and use an explicit/manual close
+  path for the controlled MVP; any future auto-close needs a separate policy decision.
 
 The production determination remains No-Go. D-001 reduces the immediate product scope but does not make public/daily risks acceptable. Phase 1 improves controlled-MVP safety and repeatability. Phase 2 creates the reusable technical contracts. Phase 3 stays deferred until D-001 is upgraded. Do not add playback, microservices, a second ingestion pipeline, or an operations suite early.
 
@@ -16,12 +31,14 @@ The production determination remains No-Go. D-001 reduces the immediate product 
 
 | Input | Date | Status | Use |
 |---|---:|---|---|
-| Knowledge Base | 2026-07-18 | Current | Repository baseline |
-| Product, Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps/Observability audits | 2026-07-19 | Complete | Findings and task traceability |
-| Production Readiness Audit | 2026-07-19 | Complete | No-Go and production bar |
-| Decision Queue | 2026-07-20 | Approved | D-001=A, D-002=B, D-003=A |
+| Knowledge Base | 2026-07-22 | Complete / Validated | Current Discovery evidence at the stated baseline; external deployment/device facts remain unknown. |
+| Product, Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps/Observability audits | 2026-07-22 | Complete / Validated | All required domain reports passed ordered predecessor and freshness gates at the stated baseline. |
+| Production Readiness Audit | 2026-07-22 | Complete / Validated | Controlled demo is conditionally allowed under D-001=A; research, internal, and public production remain No-Go. |
+| Decision Queue | 2026-07-24 | Approved | D-001=A, D-002=B, D-003=A, D-004 research scope, and D-005 stale-trip closure policy |
 
-No required input is missing, stale, blocked, or unvalidated. Hosting, TLS, production recovery, browser/runtime behavior, physical devices, and TTN console state remain external unknowns.
+No required repository input is missing or stale under the current audit contract. Hosting, TLS,
+production recovery, browser/runtime behavior, physical devices, and TTN console state remain
+external unknowns and continue to gate the tasks that depend on them.
 
 ## 3. Consolidated Recommendation List
 
@@ -44,6 +61,26 @@ No required input is missing, stale, blocked, or unvalidated. Hosting, TLS, prod
 | T15 | Physical senders, research dashboard, playback/reports, scale extensions | Deferred | Product 11; Architecture 9–10, 12; Infrastructure 7–9; D-002 | Phase 5 |
 
 Every Critical/High finding is represented. T10–T12 are carried forward because the approved controlled-MVP scope does not include daily/public operating workflows.
+
+### Revalidated task state
+
+| Task | Current state | Gate or evidence |
+|---|---|---|
+| T1 | Complete | Secret-hash/config URL exposure controls validated. |
+| T2 | Complete | Shared validation, safe errors, and main boundary abuse controls validated; legacy admin writes remain outside scope. |
+| T3 | Complete | Simulator fixtures and repeatable pipeline evidence validated; no physical-device claim. |
+| T4 | Complete | CI checks and redacted process-local signals validated; no production alerting claim. |
+| T5 | Complete | Transactional/idempotent Operations/Trip owner and migration evidence validated. |
+| T6 | Complete | Level 3 implementation, CI, contract-level and disposable-runtime REST/Socket parity, frontend state guards, and owner-confirmed direct browser rendering/live-vs-non-live ETA checks passed on 2026-07-24. |
+| T7 | Pending | Blocked on accepted T6 contract plus retention, deletion, and research-access parameters. |
+| T8 | Pending | T6 canonical-state contract is accepted; route mutation portion also depends on T10. |
+| T9 | Blocked | D-003 ordering is approved, but hosting, domain, TLS, Redis/DB placement, and operations-owner facts are missing. |
+| T10 | Deferred | Requires T8 and D-001 upgrade from controlled demo to B/C. |
+| T11 | Deferred | Requires T5, T6, supported sender/operator choice, and D-001=B/C. |
+| T12 | Deferred | Requires D-001=C plus feedback ownership, privacy, and retention policy. |
+| T13 | Pending | Requires T4/T5 plus T6 and T9, then deployment/recovery/alert evidence. |
+| T14 | Pending | Requires T8 and browser/runtime evidence; no scale work without measurement. |
+| T15 | Deferred | Requires T7, physical sender/provider facts, and T13 for public-operation claims. |
 
 ## 4. Dependency Map
 
@@ -69,6 +106,14 @@ Cycle check: the previous topology/frontend configuration cycle is resolved by D
 
 Safe parallel work: T1 and the planning portion of T4. After Phase 1, T5 and the planning portion of T9 may run in parallel. Do not modify raw telemetry, canonical selection, and map consumers concurrently without accepting the T6 contract first.
 
+### 4.1 Task Contract
+
+Every task must expose Source Audits, Phase, Depends On, Blocks, Decision Gates, Priority,
+Difficulty, Suggested Agent, Execution Mode, Task Brief, Related Files, Acceptance Criteria and
+Verification, Status, and Evidence. `Related Files` are planning candidates only. Before worker
+execution, resolve them to exact repository-relative files in
+`docs/tasks/<task-id>-<topic>.md`; that task spec is the authoritative write allowlist.
+
 ## 5. Phase 1 — Controlled MVP Safety and Production Blockers
 
 **Entry criteria:** all audits complete; D-001=A, D-002=B, and D-003=A approved; no daily/public claim.
@@ -86,6 +131,10 @@ Production Readiness 3.4; Security 4, 13, 16; Backend 5.
 1.
 
 ### Depends On
+
+None.
+
+### Decision Gates
 
 None.
 
@@ -121,6 +170,14 @@ Device controller/routes/types, Redis configuration, backend route tests.
 
 No secretHash appears in device responses and no credential-bearing URL appears in logs. Device CRUD/rotation remains functional. Add absence tests; run backend test/build and a repository search for unsafe output.
 
+### Status
+
+Complete.
+
+### Evidence
+
+`shuttle-tracking-backend`: `npm run build`, `npm test`, `node test_devices_boundary.js`, `node test_redis_logging.js`, and unsafe-output search passed on 2026-07-20.
+
 ### T2 — Add validated, bounded public and sender write boundaries
 
 ### Source Audit(s)
@@ -134,6 +191,10 @@ Production Readiness 3.4; Security 4, 6, 16; Backend 6, 13.
 ### Depends On
 
 T1 response/error conventions.
+
+### Decision Gates
+
+None; security/abuse details must remain within the approved controlled-MVP scope.
 
 ### Blocks
 
@@ -167,6 +228,14 @@ Server middleware, auth/public/ingest/trip/device/route-stop controllers, tracki
 
 Malformed writes receive stable 4xx/429 responses and never reach Prisma/broadcast; source-aware limits work; authenticated sender behavior remains valid. Run backend tests and configured integration smoke tests.
 
+### Status
+
+Complete.
+
+### Evidence
+
+`shuttle-tracking-backend`: `npm test`, `node test_devices_boundary.js`, `node test_redis_logging.js`, `npx prisma validate`, `node test_pipeline.js`, `node test_socket_boundary.js`, and `git diff --check` passed on 2026-07-20. Docker Compose `db` and `redis` were healthy; the smoke used the built `dist/server.js` because the local `npm run dev` command references `tsx`, which is not installed in the backend package.
+
 ### T3 — Align device fixtures and document pipeline smoke tests
 
 ### Source Audit(s)
@@ -180,6 +249,14 @@ Production Readiness 3.6; Infrastructure & Device 4, 6–9, 12.
 ### Depends On
 
 T1, T2.
+
+### Decision Gates
+
+None.
+
+### Dependency Note
+
+T1 completed on 2026-07-20, and T2 completed with configured Postgres/Redis integration and Socket.IO smoke evidence on 2026-07-20.
 
 ### Blocks
 
@@ -213,6 +290,14 @@ Frontend simulator scripts, backend TTN simulator/pipeline test, seed data, envi
 
 Checked-in defaults match seed fixtures; documented mobile and TTN smoke commands pass on a disposable configured stack; failures reveal no secrets. Run Compose configuration validation and the smoke commands.
 
+### Status
+
+Complete.
+
+### Evidence
+
+Aligned environment-driven mobile/TTN simulators and pipeline fixtures; `docker compose --env-file env.example config --quiet` (development and production), backend build/tests, one-shot mobile Socket.IO smoke, one-shot TTN `sensor-c4`/`sensor-f2` smoke, full `test_pipeline.js`, and `git diff --check` passed on 2026-07-21. Smoke documentation: `docs/testing/pipeline-smoke-tests.md`.
+
 ### T4 — Automate current checks and emit minimum redacted signals
 
 ### Source Audit(s)
@@ -226,6 +311,14 @@ Production Readiness 3.8; Security 9–16; Infrastructure 5, 12; Backend 11.
 ### Depends On
 
 T1 and existing commands.
+
+### Decision Gates
+
+None; external monitoring providers remain out of scope.
+
+### Dependency Note
+
+T1 completed on 2026-07-20; CI and operational-signal work can use the established no-secret output checks.
 
 ### Blocks
 
@@ -259,9 +352,17 @@ Package scripts, CI workflow, server/tracking logging paths, Compose, documentat
 
 CI runs all listed checks and blocks failures; logs/metrics contain no secrets and distinguish operational outcomes. Run every local equivalent and inspect sample output.
 
+### Status
+
+Complete.
+
+### Evidence
+
+`bash scripts/ci-checks.sh` passed on 2026-07-21: backend build/boundary-redaction tests, Prisma validation, frontend lint/build, development/production Compose config, and unsafe dynamic-logging check. Signal contract/sample: `docs/testing/ci-checks.md` and `test_operational_signals.js`.
+
 ## 6. Phase 2 — Structural Foundations and Approved Research
 
-**Entry criteria:** Phase 1 exit criteria pass.
+**Entry criteria:** Phase 1 exit criteria pass and the required audit profiles are validated.
 
 **Exit criteria:** one lifecycle owner and one versioned canonical contract exist; maps consume canonical truth; D-002 research diagnostics has a bounded policy; D-003 topology/origin contract is written. Daily/public workflows remain deferred by D-001=A.
 
@@ -278,6 +379,10 @@ Production Readiness 3.3; Architecture 5, 8; Backend 5, 7, 11, 13; Database 4, 1
 ### Depends On
 
 T2 and the existing partial active-trip index.
+
+### Decision Gates
+
+Duplicate start/end and virtual-trip policy recorded in this task brief.
 
 ### Blocks
 
@@ -301,7 +406,7 @@ Codex + Specialist.
 
 ### Task Brief
 
-Move start/end/virtual-trip policy into one Operations/Trip service. Preserve the partial unique active-trip index, make trip/vehicle/history changes atomic, define duplicate start/end behavior, then add status/time integrity checks.
+Move start/end/virtual-trip policy into one Operations/Trip service. Preserve the partial unique active-trip index, make trip/vehicle/history changes atomic, define duplicate start/end behavior, then add status/time integrity checks. The controlled-MVP policy keeps virtual trips: the first routed observation creates one active trip when none exists; explicit duplicate start returns that active trip, and duplicate end returns the completed trip without mutating a newer active trip.
 
 ### Related Files
 
@@ -310,6 +415,14 @@ Trip controller/routes, tracking service, Prisma schema/migrations, lifecycle in
 ### Acceptance Criteria and Verification
 
 Duplicate start/end behavior is documented and deterministic; foreign/non-active writes fail safely; vehicle and active-trip state remain consistent under retry/race tests. Run Prisma validation, backend tests, and disposable Postgres/Redis integration tests.
+
+### Status
+
+Complete.
+
+### Current Evidence
+
+`operations.service.ts` now owns explicit start, virtual-trip creation, active-trip validation, end, and sampled-history writes. Vehicle row locks serialize all lifecycle writers; duplicate start/end are deterministic and trip/vehicle/history database changes use transactions. The T5 migration adds trip status/time checks while preserving the existing partial unique index. `npx prisma migrate deploy`, `npm run check`, `npm run test:operations`, `git diff --check`, and the temporary-fixture cleanup verification passed on 2026-07-22. The current Backend, Architecture, Database, and Production Readiness audits revalidated this evidence; remaining gaps are protected history reads, richer ordering/raw evidence, and production operations.
 
 ### T6 — Publish a versioned, route-aware canonical vehicle-state contract
 
@@ -324,6 +437,10 @@ Production Readiness 3.2; Architecture 5, 7, 11; Backend 8–10; Frontend 4, 7, 
 ### Depends On
 
 T2 and T5 lifecycle vocabulary.
+
+### Decision Gates
+
+None beyond validated T5 behavior; cross-domain specialist decisions must be recorded before implementation.
 
 ### Blocks
 
@@ -357,6 +474,53 @@ Tracking service, Socket.IO events, public reads/types, simulator payload types,
 
 Late data cannot move a marker backward; all-stale emits explicit state; UI can ignore lower versions and never infer route from selected UI route. Test priority, stale fallback, duplicate, late, and reconnect cases.
 
+### Status
+
+Complete — implementation, consolidated test checks, font fallback, admin service-state summary,
+disposable runtime verification, and owner-confirmed browser verification passed on 2026-07-24.
+Contract-level and disposable-runtime REST/Socket parity passed: epoch/version/route/location
+semantics matched and public `sourceId` was omitted from both projections; only dynamic
+`freshness.ageMs` differed by read time. Disposable REST checks also passed for `unknown`,
+`no_service`, `stale`, and live recovery. Frontend guards for unknown-state rendering, initial
+hydration, and non-live ETA suppression pass. Public presentation now intentionally exposes only
+the live vehicle count in `Active Trams`; connection, stale, no-service, and unknown-state panels
+remain hidden from the public surface while the underlying marker/ETA guards stay active. The owner
+confirmed that the latest public UI shows the live-only `Active Trams` count, hides the requested
+status panels, preserves live ETA, and suppresses ETA for non-live state. The full CI run passes in
+an escalated build runner, while the restricted runner still blocks the default Turbopack build on
+port binding.
+
+### Evidence
+
+The exact-path task spec is `docs/tasks/T6-canonical-vehicle-state.md` and the immutable Level 2
+brief is `docs/audits/specialized/T6-backend-realtime-canonical-vehicle-state.md`. Changed paths are
+the canonical backend publisher/read/route-authority services and boundaries, the consolidated
+`shuttle-tracking-backend/tests/` boundary suite, checked-in pipeline assertions, shared frontend
+canonical types/API, public `ShuttleTracker`, admin `LiveMap`, and system font fallback stacks in
+the root layout/styles. `shuttle-tracking-backend`: `npm run check`, `npm run test:t6`,
+`npx prisma validate`, and `git diff --check` passed on 2026-07-23. `shuttle-tracking-web`:
+`npx tsc --noEmit`, `npm run lint`, and `npx next build --webpack` passed with existing lint
+warnings. Compose config validation and `node scripts/validate-agent-workflow.js` passed. The
+required `bash scripts/ci-checks.sh` passed all checks in the escalated runner on 2026-07-24; the
+restricted runner still fails at the default Turbopack build because it disallows the internal
+port binding. The Google Fonts fetch failure is resolved by removing the build-time remote font
+dependency. On the explicitly isolated
+`t6-disposable` target, migrations and development seed completed, `tests/test_socket_boundary.js`,
+`tests/test_pipeline.js`, and `npm run test:operations` passed, and the project containers and
+volumes were removed afterward. The ambient `shuttle-*` stack was left untouched. The manual
+verification report for the isolated target recorded PASS for initial `no_service` with
+`SOURCE_NEVER_SEEN`, live recovery with fresh freshness, the `ALL_SOURCES_STALE` transition,
+backend stop/start recovery, and route-authority filtering behavior. The route item was supported
+by source/logic inspection rather than a direct browser interaction. The T6 realtime boundary now
+also asserts public projection parity and the frontend source-level state/ETA guards. A disposable
+runtime on isolated ports `13000/13001/15432/16379` confirmed initial `no_service`, injected
+`unknown` with `DEPENDENCY_UNAVAILABLE`, `ALL_SOURCES_STALE` with last-known-only state, live
+recovery, and structural REST/Socket parity with matching state version/epoch and omitted public
+source identity. The public `ShuttleTracker` source contract now asserts the live-only `Active Trams`
+count and absence of public connection/source-health labels. Owner-confirmed direct browser
+verification on 2026-07-24 passed for the latest public rendering and live versus non-live ETA
+behavior. T6 frontend lint retained seven non-blocking warnings.
+
 ### T7 — Implement D-002=B bounded raw diagnostics for research
 
 ### Source Audit(s)
@@ -370,6 +534,14 @@ Production Readiness 3.3, 3.6; Database 4, 8–9, 12; Architecture 5, 9; Infrast
 ### Depends On
 
 T3, T6, and documented retention/deletion parameters.
+
+### Decision Gates
+
+D-002=B is approved; retention duration, deletion owner, and research-access policy remain required.
+
+### Dependency Note
+
+T3 completed on 2026-07-21; seed-aligned mobile/ESP32/LoRaWAN fixture IDs and repeatable mobile/TTN pipeline smoke commands are documented. No schema or migration change was introduced.
 
 ### Blocks
 
@@ -393,7 +565,10 @@ Codex + Specialist.
 
 ### Task Brief
 
-Add append-only bounded raw observations separate from canonical current state. Retain source/vehicle/trip identity, event/receive times, sequence/transport facts, reported accuracy, validation outcome, and canonical-selection disposition to compare mobile, LoRaWAN, and ESP32 behavior.
+Add append-only bounded raw observations separate from canonical current state. Retain
+source/vehicle/trip/experiment identity, event/receive times, sequence/transport facts, reported
+accuracy, validation outcome, canonical-selection disposition, and allowlisted transport metadata
+to compare Mobile, ESP32, and LoRaWAN behavior under D-004 metric definitions.
 
 ### Related Files
 
@@ -401,7 +576,18 @@ Prisma schema/migrations, tracking service, protected research reads, retention 
 
 ### Acceptance Criteria and Verification
 
-Raw observations do not alter canonical state merely because they are retained; research reads compute latency, acceptance/rejection/duplicate/late rate, and fallback rate; retention and indexes are tested; secrets are absent from data/response paths.
+Raw observations do not alter canonical state merely because they are retained; research reads
+compute latency, cadence/jitter, availability, acceptance/rejection/duplicate/late rate, route
+conformance, pairwise/reference error where valid, selection and fallback; retention and indexes are
+tested; secrets are absent from data/response paths.
+
+### Status
+
+Pending — blocked on T6 and retention/access parameters.
+
+### Evidence
+
+None.
 
 ### T8 — Make maps truthful and repair route/cache behavior
 
@@ -416,6 +602,10 @@ Production Readiness 3.2, 3.7; Frontend 4, 7, 9, 13; Dashboard 5, 10–11; Backe
 ### Depends On
 
 T6; T10 for final route mutation invalidation.
+
+### Decision Gates
+
+None for truthful-state UI; D-001=B/C is required before the T10-dependent route-management portion.
 
 ### Blocks
 
@@ -439,7 +629,11 @@ Antigravity Implementation Ready after T6 acceptance.
 
 ### Task Brief
 
-Use canonical route/state instead of UI-selected route. Show connect/reconnect/last-update/fresh/stale/offline/no-service meaning and degrade ETA when state is stale. Repair local geometry cache keys to include ordered stop data or backend revision; discard corrupt cache safely.
+Use canonical route/state instead of UI-selected route. Keep detailed connection, last-update, and
+fresh/stale/no-service/unknown meaning on the admin/operations surface; keep the public surface
+neutral with the live-only Active Trams count while preserving truthful marker and ETA behavior.
+Repair local geometry cache keys to include ordered stop data or backend revision; discard corrupt
+cache safely.
 
 ### Related Files
 
@@ -447,7 +641,18 @@ Public tracker/cards, admin LiveMap/dashboard, realtime/public API types, route 
 
 ### Acceptance Criteria and Verification
 
-An R02 event remains R02 even while R01 is selected; stale/no-service is visible in both surfaces; ETA is not current when stale; cache updates after route revision. Run lint, production build, and browser/socket interruption checks.
+An R02 event remains R02 even while R01 is selected; admin state meaning remains visible and public
+marker behavior stays truthful without exposing operational labels; ETA is not current when stale;
+cache updates after route revision. Run lint, production build, and browser/socket interruption
+checks.
+
+### Status
+
+Pending — T6 accepted; route mutation portion remains blocked on T10.
+
+### Evidence
+
+None.
 
 ### T9 — Define topology/origin contract, then align configuration
 
@@ -462,6 +667,10 @@ Production Readiness 3.5; Infrastructure 4–5, 10–12; Security 7, 9–11; Fro
 ### Depends On
 
 D-003=A plus hosting/domain/TLS facts.
+
+### Decision Gates
+
+Hosting provider, domains, TLS terminator, database/Redis placement, and operations owners require confirmation.
 
 ### Blocks
 
@@ -495,6 +704,15 @@ Production Compose/Dockerfiles, environment templates, frontend configuration, b
 
 No configuration cycle remains; REST and Socket.IO resolve the documented backend origin; TLS, secret, backup/restore, migration/rollback, and log ownership are assigned. Run staging/production Compose readiness and origin smoke tests.
 
+### Status
+
+Blocked — hosting, domain, TLS, and operations-owner facts are missing. D-003 resolves sequencing,
+not the required deployment choices.
+
+### Evidence
+
+D-003 resolves ordering only; deployment facts remain unconfirmed.
+
 ## 7. Phase 3 — Feature Completion
 
 **Entry criteria:** Phase 2 contracts are accepted and D-001 is upgraded to B or C.
@@ -514,6 +732,10 @@ Production Readiness 3.1, 3.7; Product 7; Frontend 4, 13; Backend 9, 12; Dashboa
 ### Depends On
 
 T2, T8, D-001=B/C.
+
+### Decision Gates
+
+D-001 must be upgraded from A to B or C.
 
 ### Blocks
 
@@ -547,6 +769,14 @@ Admin route/sidebar UI, route-stop controller/cache service, public route cache/
 
 Admins can publish ordered stops without manual/API work; invalid ordering fails; next public read uses revised geometry. Run backend cache tests, frontend lint/build, and browser route-change smoke test.
 
+### Status
+
+Deferred — blocked on T8 and D-001 upgrade to B/C.
+
+### Evidence
+
+None.
+
 ### T11 — Add sender operations, trip history, and exceptions
 
 ### Source Audit(s)
@@ -560,6 +790,10 @@ Production Readiness 3.1, 3.3; Product 7–9; Backend 7, 12; Dashboard 7, 10.
 ### Depends On
 
 T5, T6, D-001=B/C.
+
+### Decision Gates
+
+D-001 must be upgraded from A to B or C; the supported sender/operator workflow must be confirmed.
 
 ### Blocks
 
@@ -593,6 +827,14 @@ Trip/history APIs, admin navigation/pages, sender client/external contract, cano
 
 A non-developer operator can complete the approved flow; admins can find active/completed trips; exceptions use canonical state. Run authorization, lifecycle, frontend, and operator acceptance checks.
 
+### Status
+
+Deferred — blocked on T6 and D-001 upgrade to B/C.
+
+### Evidence
+
+T5 lifecycle boundary is complete; remaining dependencies are unresolved.
+
 ### T12 — Add feedback triage and source/device operations views
 
 ### Source Audit(s)
@@ -606,6 +848,10 @@ Product 7, 11; Frontend 12; Dashboard 10; Database 12; Production 3.1.
 ### Depends On
 
 D-001=C, T6, feedback owner/privacy policy.
+
+### Decision Gates
+
+D-001=C plus feedback ownership, privacy, and retention policy approval.
 
 ### Blocks
 
@@ -639,6 +885,14 @@ Feedback schema/API, safe device DTOs, admin pages/navigation, source-health rea
 
 Staff can manage feedback under the agreed policy; device/source views reveal safe facts only; unauthorized users are denied. Run migration, authorization, and UI workflow tests.
 
+### Status
+
+Deferred — blocked on D-001=C and feedback ownership/privacy policy.
+
+### Evidence
+
+None.
+
 ## 8. Phase 4 — Hardening & Scale
 
 **Entry criteria:** Phase 2 is complete; T9 is complete for deployment work.
@@ -658,6 +912,14 @@ Production Readiness 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16.
 ### Depends On
 
 T4, T5, T6, T9.
+
+### Decision Gates
+
+Approved disposable deployment target, recovery owners, and alert destinations are required.
+
+### Dependency Note
+
+T4 completed on 2026-07-21; repeatable CI/local gates and the redacted operational-signal contract are available. T13 still requires T5, T6, and T9 before the production drill.
 
 ### Blocks
 
@@ -691,6 +953,14 @@ Deployment definitions, entrypoint, server/tracking logs/metrics, runbook, CI ar
 
 Clean production build completes; simulated dependency/source failures change readiness/alerts; backup restore and migration recovery have owners and evidence. Run the documented drill.
 
+### Status
+
+Pending — blocked on T6 and T9.
+
+### Evidence
+
+T4 and T5 are complete; remaining dependencies and deployment facts are unresolved.
+
 ### T14 — Improve map maintainability and measured scale quality
 
 ### Source Audit(s)
@@ -704,6 +974,10 @@ Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10.
 ### Depends On
 
 T8 and browser/runtime evidence.
+
+### Decision Gates
+
+None; measured evidence is required before scale-specific work.
 
 ### Blocks
 
@@ -737,6 +1011,14 @@ Public tracker/map/helpers/tour/cards, admin dashboard/CRUD feedback, frontend t
 
 One maintained public realtime map path remains; extracted units clean up correctly; tour/accessibility/error behavior is browser-verified; no scale work occurs without captured measurement. Run lint, production build, browser/mobile smoke test.
 
+### Status
+
+Pending — blocked on T8 and browser/runtime evidence.
+
+### Evidence
+
+None.
+
 ## 9. Phase 5 — Future Enhancements
 
 **Entry criteria:** Phase 2 is complete and physical provider/device facts are documented.
@@ -756,6 +1038,12 @@ Production Readiness 3.6, 3.7; Product 11; Architecture 9–10, 12; Infrastructu
 ### Depends On
 
 T7, physical sender/provider facts, and T13 for public operation.
+
+### Decision Gates
+
+D-004 fixes the three transport boundaries and initial Dev Dashboard scope. TTN identifiers,
+physical hardware/firmware/provisioning, retention/access parameters, clock/reference protocol, and
+any playback/public-report scope still require confirmation.
 
 ### Blocks
 
@@ -779,7 +1067,10 @@ Codex Only until facts exist; Codex + Specialist afterward.
 
 ### Task Brief
 
-Use existing server-side webhook/HTTP boundaries to test physical mobile, TTN, and ESP32 senders. Build protected research comparison from T7. Add playback, reports, analytics, rooms, or backend ETA only when a product question and telemetry/query evidence justify it.
+Use the existing Socket.IO, HTTP, and TTN webhook boundaries to test the three physical sources.
+Build the protected D-004 Dev Dashboard from T7 with live/historical comparison, health, delivery,
+accuracy definitions, selection/failover, filters, and bounded export. Add public reports, playback,
+rooms, or backend ETA only when a product question and telemetry/query evidence justify them.
 
 ### Related Files
 
@@ -788,6 +1079,14 @@ External device contracts/firmware, TTN configuration, ingest/tracking/research 
 ### Acceptance Criteria and Verification
 
 Each device has mapping, payload, cadence, offline, credential, and test metadata; research data never changes public canonical state; fidelity claims match retention. Document physical failure/reconnect and provider webhook tests.
+
+### Status
+
+Deferred — blocked on T7, physical sender/provider facts, and T13 for public operation.
+
+### Evidence
+
+Repository simulators exist; physical/provider evidence is unavailable.
 
 ## 10. Research Queue
 
@@ -820,12 +1119,16 @@ The Decision Queue is approved. Remaining implementation parameters are:
 |---|---|---|
 | Hosting/topology, domains, TLS terminator, and operations owner | T9, T13 | D-003 resolves order, not provider/domain/recovery choice. |
 | Raw-diagnostic retention duration, deletion owner, and research access policy | T7 | D-002=B chooses bounded diagnostics but not the bound. |
-| TTN application/device IDs; ESP32 hardware/network/provisioning; simulator-only or physical pilot | T15 | Repository evidence cannot establish physical behavior. |
+| TTN application/device IDs; physical device/module models; firmware/provisioning; clock/reference and field protocol | T15 | D-004 fixes transport roles and dashboard scope, but repository evidence cannot establish physical behavior or absolute accuracy. |
 | Feedback triage owner and privacy/retention policy | T12 | Needed only if scope becomes C. |
 
 ## 13. Recommended Level 2/3 Agent Usage
 
-- Direct Level 3 tasks: T1, T3, T8 after T6, T10 after D-001 upgrade, and T14 after T8. Before handing any Antigravity-ready task to an implementation agent, create the matching task handoff document under docs/tasks with allowed files, approved decisions, invariants, steps, checks, rollout limits, and stop conditions.
+Route every focused technical question through `agents/level-2-specialist/AGENT.md` with
+`tram-specialist-consultation`. Route every implementation through
+`agents/level-3-refactor/AGENT.md` with `tram-refactoring-workflow`.
+
+- Direct Level 3 tasks: T1, T3, T8 after T6, T10 after D-001 upgrade, and T14 after T8. Before handing any Antigravity-ready task to an implementation agent, create `docs/tasks/<task-id>-<topic>.md` from the task template with exact allowed file paths, approved decisions, invariants, checks, rollout limits, and stop conditions.
 - Specialist-led: T2 security/abuse; T4, T9, T13 observability/deployment; T5 database transactions; T6/T7 realtime and time-series; T11 operations/mobile; T15 device/LoRaWAN.
 - T12 requires product-owner/privacy input before implementation.
 
@@ -835,13 +1138,22 @@ This review does not implement or runtime-test code. It does not choose provider
 
 ## 15. Handoff
 
-Begin with T1. Then run T2 and T3 under their gates; do not reuse the earlier roadmap task ordering because the re-audits and approvals changed its dependencies.
+T1–T6 are complete and the roadmap is validated against the current audit baseline. T8 is the next
+eligible direct implementation handoff; its truthful-state UI portion is now aligned to D-005, while
+the route mutation portion remains dependent on T10. T7 remains gated by retention/access
+parameters. Before implementation, create its immutable task contract from the task template with
+exact repository-relative write paths, invariants, acceptance checks, rollout limits, and stop
+conditions. T9 remains blocked until the owner supplies topology facts.
 
 Validate each completed task against its originating audit finding before advancing. Re-run Production Readiness only after the production-bar tasks applicable to the desired release scope are complete.
 
 ## Roadmap Impact, Assumptions and Unknowns, Confidence, and Deferred Decisions
 
-**Roadmap impact:** D-001=A defers daily/public workflows to Phase 3; D-002=B creates T7 research diagnostics; D-003=A removes the configuration cycle by sequencing T9 before alignment.
+**Roadmap impact:** D-001=A defers daily/public workflows to Phase 3; D-002=B creates T7 research
+diagnostics; D-003=A removes the configuration cycle by sequencing T9 before alignment; D-005 keeps
+stale observability separate from Trip closure and preserves a neutral public presentation. T6 is
+complete, T8 is the next eligible implementation-planning target, and T7 remains gated by retention
+parameters.
 
 **Assumptions and unknowns:** the next release is supervised and does not claim daily/public service; diagnostics are bounded/protected; no topology/provider/device fact is assumed.
 

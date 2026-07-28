@@ -1,4 +1,5 @@
 import { prisma } from '../config/prisma.js';
+import { notFound } from '../middleware/boundary-errors.js';
 
 export interface CreateFeedbackInput {
   type: string;
@@ -24,7 +25,7 @@ export const createFeedback = async (
   });
 
   if (!vehicle) {
-    throw new Error(`Vehicle with id "${vehicleId}" not found`);
+    throw notFound('Vehicle not found');
   }
 
   const feedback = await prisma.feedback.create({

@@ -1,76 +1,110 @@
 # Lead Audit Summary
 
-Last updated: 2026-07-20
+Last updated: 2026-07-22
+
+Coordination status: **Discovery, Product, Architecture, Backend, Frontend, Database,
+Infrastructure & Device, Dashboard & UX, Security, DevOps & Observability, Production Readiness,
+and Roadmap validated**. The Level 1 audit cycle is complete at the current evidence baseline.
+T6 is the next implementation-planning target; it is not yet an implementation approval.
 
 ## 1. Executive Summary and Changes Detected
 
-Discovery is current as of 2026-07-18. Since the prior audit-document refresh, repository changes
-include authenticated sender sessions, tracking-source lifecycle work, sender/trip/realtime changes,
-production-mode Compose/startup work, feedback submission, and simulator/test additions.
+Discovery is validated as of `2026-07-22` at baseline
+`847a18cce9bc27c82b2622dbc176b3a89bc4d037`. It confirms the current public/admin/sender/provider
+boundaries, T5's transactional Operations/Trip service, aligned simulator/seed fixtures, and the
+remaining repository-visible gaps around raw history, health truth, API-only workflows, and missing
+external deployment/device evidence.
 
-The Product, Architecture, Backend, Database, Infrastructure & Device, Dashboard & UX,
-Security/DevOps/Observability, Frontend, and Production Readiness Audits were re-run and validated
-on 2026-07-19. The production determination is **Not Ready** for real vehicles, drivers, and public
-riders. The product is a usable controlled tracking MVP, not yet a daily operations product. The
-architecture remains an appropriate monolith, but needs a backend-owned canonical vehicle-state
-contract and one Operations/Trip ownership boundary before it can support reliable operational
-workflows.
+Product is now validated at the same baseline. It confirms the approved D-001=A controlled-demo
+boundary: public tracking and feedback capture are present, but route-stop operations, a supported
+sender surface, trip history, feedback triage, source health, truthful stale/offline states, and the
+D-004 research dashboard are absent or incomplete.
+
+Architecture is now validated at the same baseline with both predecessors current. It confirms that
+T5 now centralizes transactional trip lifecycle/history ownership, while canonical current state is
+still Redis-only, raw/event-time research evidence is absent, public stale/offline semantics are
+incomplete, and the client still supplies route/ETA intelligence. T6 is the next architectural
+contract; it must precede map truthfulness and approved research implementation.
+
+Backend, Frontend, and Database are now validated at the same baseline. Backend confirms T5
+integration, transport-specific authentication, and shared ingest convergence while ordering/raw
+diagnostics, operational reads, and route-stop cache invalidation remain open. Frontend confirms the
+route-geometry cache improvement but still finds no realtime freshness/reconnect model, authoritative
+route assignment, or research/operations surfaces. Database confirms T5 lifecycle constraints while
+sampled-only history, timestamp semantics, retention, and source-assignment history remain open.
+
+Infrastructure & Device is now validated at the same baseline. It confirms the self-hosted Compose
+and compiled production image foundation plus seed-aligned simulator/pipeline evidence, but no
+deployed topology, TLS/origin contract, backup/recovery operation, TTN account, mobile app, ESP32
+firmware, or physical/provider behavior. Production Compose still needs explicit health-gated
+operations and protection of host-published data services before any broader release claim.
+
+Dashboard & UX is now validated at the same baseline. It confirms a useful controlled-demo rider
+tracker, basic admin master-data UI, improved current tour selectors, and feedback capture. It also
+confirms that live/stale/offline state, evidence-based admin health, source/trip/feedback operations,
+and the separate D-004 research dashboard are still absent or incomplete.
+
+Security, DevOps & Observability is now validated at the same baseline. Sender and TTN trust
+boundaries, device-response redaction, bounded inputs, Redis-backed rate limits, and repository CI
+are evidenced. Production data-service isolation, durable alertable observability, admin session
+policy, complete legacy admin-write protection, and deployed/provider/physical security evidence
+remain open. The report introduces no new owner decision and keeps D-003's topology-before-origin
+alignment order.
+
+The prior Architecture, Backend, Database, Infrastructure & Device, Dashboard & UX, Frontend, and
+Production Readiness conclusions remain historical evidence only. The current Security/DevOps/Observability,
+Production Readiness, and Roadmap reports are now validated; their controlled-MVP boundary,
+stage-specific gates, task status, and open production risks are current evidence.
 
 ## 2. Audit Progress, Validated Findings, and Remaining Risks
 
-- Discovery: Complete.
-- Product: Complete; prior feedback gap is Partially Resolved. Route-stop management, driver
-  workflow, trip history, stale/offline visibility, and reports remain unresolved or incomplete.
-- Architecture: Complete; source/vehicle identity is resolved, while source-health visibility,
-  canonical-state durability/versioning, trip ownership, and telemetry policy remain open.
-- Backend: Complete; prior sender-authentication and unsafe realtime-result findings are resolved.
-  Trip ownership/idempotency, device-response hash exposure, validation/error contracts,
-  route-stop cache invalidation, and observation ordering remain open.
-- Database: Complete; tracking-source constraints and the partial active-trip unique index are
-  present. The remaining risk is transactional lifecycle behavior around that guard, canonical GPS
-  retention/fidelity, historical source meaning, and timestamp semantics.
-- Infrastructure & Device: Complete; production-mode Compose, production images, migrations, and
-  source/TTN boundaries are materially improved. Deployed topology, runtime operations, TTN
-  registry, physical hardware, and fixture alignment remain open or unverified.
-- Dashboard & UX: Complete; public feedback is now usable, but public/admin freshness, connection
-  truthfulness, stale/offline visibility, and exception-first operations UX remain open.
-- Security/DevOps/Observability: Complete; sender trust boundaries and production secret checks are
-  improved. Device secret-hash exposure, Redis URL logging, abuse controls, CI, and minimum
-  monitoring remain High risks before public/daily use.
-- Frontend: Complete; public feedback capture is resolved. Route-stop operations, visible
-  connection/freshness/no-service state, authoritative vehicle-route association, cache
-  invalidation, and maintainable public-map boundaries remain open.
-- Production Readiness: Complete; **No-Go** for daily/public production. Direct data/configuration
-  leakage, abuse controls, operational truth, lifecycle/workflow, deployment, real-device, CI, and
-  monitoring blockers must be resolved and validated before a Ready decision.
+- Discovery: **Complete / Validated** at the current baseline.
+- Product: **Complete / Validated** at the current baseline; D-001=A remains the release boundary.
+- Architecture: **Complete / Validated** at the current baseline; T5 lifecycle ownership is resolved,
+  while canonical state, ordering, freshness, route authority, and research evidence remain gated by
+  T6/T7.
+- Backend: **Complete / Validated** at the current baseline; T5 and transport boundaries are current,
+  while T6 ordering/state and protected operational reads remain open.
+- Frontend: **Complete / Validated** at the current baseline; geometry-cache correctness improved,
+  while freshness/reconnect, route authority, and missing operations/research surfaces remain open.
+- Database: **Complete / Validated** at the current baseline; T5 integrity checks are current, while
+  sampled history, retention, timestamps, and raw research data remain open.
+- Infrastructure & Device: **Complete / Validated** at the current baseline; Compose/startup and
+  simulator boundaries are current, while deployment, recovery, and physical/provider evidence are
+  unavailable.
+- Dashboard & UX: **Complete / Validated** at the current baseline; controlled-demo journeys and
+  current gaps in freshness, exception-first operations, accessibility, and research separation are
+  current.
+- Security/DevOps/Observability: **Complete / Validated** at the current baseline; sender/TTN
+  boundaries and redacted local signals are current, while production isolation, session policy,
+  legacy admin writes, durable monitoring, and external deployment/device evidence remain open.
+- Production Readiness: **Complete / Validated** at the current baseline; controlled demonstration is
+  conditionally allowed under D-001=A, while research field trial, internal operations, and public
+  rider service remain No-Go.
+- Roadmap: **Complete / Validated** at the current baseline; T6 is next for Level 2/Level 3 planning,
+  while T9 remains blocked on topology facts.
 
 Remaining product risk: the system may appear suitable for operation while key workflows still
 require manual/API-only/external-client work.
 
 ## 3. Conflicts, Decisions, and Recommended Next Action
 
-Approved decisions (2026-07-20):
+Approved decisions carried forward:
 - **D-001 (Approved A)**: Minimal controlled demonstration scope for MVP pilot testing.
-- **D-002 (Approved B)**: Bounded raw diagnostics retained to compare 3 senders (Mobile, LoRaWAN, ESP32) for latency and accuracy research.
-- **D-003 (Approved A)**: T6 production configuration precedes T16 Socket/REST origin alignment.
+- **D-002 (Approved B)**: Bounded raw diagnostics are approved for comparing 3 senders (Mobile, LoRaWAN, ESP32) for latency and accuracy research; parameters and implementation remain gated.
+- **D-003 (Approved A)**: define topology/origin facts before configuration alignment; the historical
+  T6/T16 cycle is closed and current roadmap T9 carries this order.
+- **D-004**: Three-device research boundaries and authenticated Dev Dashboard scope.
 
 All decision records have been moved from Pending to Approved in `docs/decision-queue.md`.
 
-The Database re-audit reconciles the active-trip evidence: the database partial unique index exists;
-the unresolved issue is the non-transactional lifecycle code around it. Infrastructure & Device
-adds no new decision: D-003 governs production configuration/origin order and D-002 governs
-telemetry fidelity. Dashboard & UX and Frontend both confirm that canonical freshness and source
-health are not communicated truthfully to users. Frontend also establishes that rider route
-selection is incorrectly used as the initial vehicle-route assignment. Production Readiness
-consolidates these into a No-Go: the current service is limited to a controlled demonstration, with
-security, operational-truth, lifecycle, deployment, and observability blockers before daily/public
-use. The Master Refactoring Roadmap has been re-reviewed against the approved decision gates:
-D-001=A defers daily/public workflows, D-002=B creates bounded diagnostics research work, and
-D-003=A removes the topology/origin ordering cycle. The recommended next action is T1: remove
-secret-hash and credential-bearing configuration exposure before any further pilot expansion.
+Discovery, Product, Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard
+& UX, Security/DevOps/Observability, Production Readiness, and Roadmap introduced no new owner
+decision. The next action is to prepare the T6 specialist brief and exact-path implementation handoff;
+the controlled-demo boundary remains in force unless the owner changes D-001.
 
 ## 4. Confidence and Limitations
 
-Confidence is High for repository-visible product functionality, database boundaries, Compose
-configuration, and static UI states; Medium for real-world usability and runtime operations. No
-browser session, deployment, real mobile sender, IoT device, or TTN provider behaviour was observed.
+Confidence is High for repository-visible functionality, schema/configuration, and static UI states;
+Medium for runtime lifecycle and integration because no database/Redis integration target was run in
+this refresh; Low for real-world usability, deployment, physical devices, and TTN provider behavior.

@@ -59,9 +59,10 @@ the owner selects a scope that needs device comparison or incident diagnostics.
 
 Owner decision: Approved B — Bounded raw diagnostics (Retain raw observation facts to compare 3 senders—mobile, LoRaWAN, ESP32—measuring latency, accuracy, etc. for research analysis)
 
-Roadmap effect: Unblocks T14, T26, T29, and telemetry retention/diagnostics tasks.
+Roadmap effect: Unblocks current-roadmap T7 and the research portion of T15. References to T14,
+T26, and T29 belonged to superseded roadmap numbering.
 
-## D-003 — T6/T16 production-configuration dependency order
+## D-003 — Topology/origin dependency order (legacy T6/T16 numbering)
 
 Related reports: `docs/audits/architecture-audit.md`,
 `docs/audits/infrastructure-device-audit.md`,
@@ -70,8 +71,9 @@ Related reports: `docs/audits/architecture-audit.md`,
 `docs/audits/production-readiness-audit.md`,
 `docs/roadmap/master-refactoring-roadmap.md`
 
-Current approach: roadmap task T6 depends on T16, while T16 depends on T6. This forms a cycle that
-prevents either task from satisfying its dependency order.
+Historical context: the superseded roadmap made its former T6 and T16 depend on each other. The
+current roadmap carries the approved policy into current T9: establish topology and origin facts
+before client/server configuration alignment.
 
 Problem: deployable production configuration and unified REST/Socket origin behaviour are both
 required, but the roadmap must define their sequence without a circular prerequisite.
@@ -87,9 +89,65 @@ enforce REST/Socket alignment against that contract.
 
 Owner decision: Approved A — T6 first, T16 follows
 
-Roadmap effect: Dependency order updated; T6 precedes T16, unblocking roadmap execution sequence.
+Roadmap effect: The historical cycle is closed. Current T9 owns topology/origin definition and
+configuration alignment; there is no current T16.
+
+## D-004 — Three-device research and Dev Dashboard scope
+
+Related artifact: `docs/research/device-comparison-scope.md`
+
+Current approach: D-002 approves bounded raw diagnostics, but it did not define the physical source
+boundaries, dashboard audience, or accuracy vocabulary.
+
+Owner decision: Approved on 2026-07-22. Compare three separate sources: Mobile GPS through
+Socket.IO, ESP32 with a GPS module through Wi-Fi/HTTP, and a separate LoRaWAN device through
+Gateway/TTN/Webhook. Start with an authenticated Dev Dashboard containing live and historical
+comparison, health/freshness, latency, cadence, delivery quality, accuracy proxies/reference error,
+selection/failover, available signal/power metadata, filters, and bounded CSV/JSON export.
+
+Guardrail: distance from a point to the known route is route-conformance evidence and a
+device-reported accuracy value is reported uncertainty. Neither alone proves absolute accuracy.
+Add surveyed checkpoints or a higher-quality synchronized reference when an absolute accuracy claim
+is required.
+
+Roadmap effect: Refines the research handoff for T7 and T15 without bypassing audit revalidation,
+retention/access decisions, physical-device facts, or task specifications.
+
+## D-005 — Stale trip closure policy
+
+Related reports: `docs/audits/specialized/T6-backend-realtime-canonical-vehicle-state.md`,
+`docs/audits/backend-audit.md`, `docs/audits/dashboard-ux-audit.md`,
+`docs/roadmap/master-refactoring-roadmap.md`
+
+Current approach: canonical source freshness and Trip lifecycle are separate concerns. A source
+becomes `stale` after the 30-second freshness window, but the Trip remains `in_progress` until an
+authenticated sender explicitly ends it. A stale or unavailable vehicle may therefore stop being
+shown as a live marker while its database Trip remains active.
+
+Problem: a driver who forgets to end a Trip can leave an active-trip record indefinitely. The record
+can continue to provide route authority and later observations may be associated with the same
+Trip. Closing it after the 30-second freshness window would incorrectly interpret a network,
+device, or power failure as a confirmed operational end.
+
+| Option | Benefits | Costs/risks | Effort | Upgrade trigger |
+|---|---|---|---|---|
+| A — Separate stale exception and explicit/manual close | Preserves the distinction between telemetry failure and operational end; safest for the controlled MVP. | Requires an operator or sender to resolve the exception; needs a protected trip/exception surface. | Medium | Daily operations or repeated unresolved stale Trips. |
+| B — Auto-close after a separate grace period | Reduces forgotten active Trips and can preserve an auditable close reason. | May close a Trip during a prolonged outage; requires timeout, clock, recovery, notification, and override rules. | Medium-High | Owner selects a concrete grace period and accepts false-close risk. |
+| C — Hybrid confirmation then hard-cap auto-close | Gives operators a recovery window while preventing indefinite active Trips. | Most complex policy and state machine; still has false-close risk at the hard cap. | High | Formal daily-service operations with an accountable on-call owner. |
+
+Recommendation: A for the current controlled MVP. Keep freshness and Trip closure independent;
+provide a protected stale/in-progress exception and explicit/manual close path in the next
+operations task. Do not implement an automatic close from the 30-second freshness threshold.
+
+Owner decision: Approved A on 2026-07-24 — `stale`, `no_service`, and `unknown` are observability
+states, not Trip completion commands. Any future automatic closure must use a separately approved
+grace period, close reason, audit record, recovery/override behavior, and notification policy.
+
+Roadmap effect: T6 remains a canonical-state task and does not auto-close Trips. T11 must include
+stale/silent active-Trip exceptions and a protected explicit close workflow when its D-001 scope
+gate is opened. A concrete auto-close timeout remains a future decision rather than an implicit
+implementation default.
 
 ## Postponed
 
 ## Rejected
-

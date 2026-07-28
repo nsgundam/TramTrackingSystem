@@ -1,5 +1,12 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js';
+import {
+    BoundaryError,
+    logBoundaryFailure,
+    notFound,
+    sendBoundaryError,
+} from '../middleware/boundary-errors.js';
+import type { RouteStopCreateInput } from '../middleware/validation.js';
 
 export const getAllRouteStops = async (req: Request, res: Response) => {
     try {
@@ -11,8 +18,8 @@ export const getAllRouteStops = async (req: Request, res: Response) => {
         });
         res.json(routeStops);
     } catch (error) {
-        console.error('Error fetching route stops:', error);
-        res.status(500).json({ error: 'Failed to fetch route stops' });
+        logBoundaryFailure('Route-stop list', error);
+        sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to fetch route stops'));
     }
 };
 
@@ -35,14 +42,20 @@ export const getStopsByRoute = async (req: Request, res: Response) => {
         `;
         res.json(routeStops);
     } catch (error) {
-        console.error('Error fetching stops for route:', error);
-        res.status(500).json({ error: 'Failed to fetch stops for route' });
+        logBoundaryFailure('Route-stop read', error);
+        sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to fetch stops for route'));
     }
 };
 
 export const createRouteStop = async (req: Request, res: Response) => {
     try {
-        const { routeId, stopId, stopOrder } = req.body;
+        const { routeId, stopId, stopOrder } = req.body as RouteStopCreateInput;
+        const [route, stop] = await Promise.all([
+            prisma.route.findUnique({ where: { id: routeId }, select: { id: true } }),
+            prisma.stop.findUnique({ where: { id: stopId }, select: { id: true } }),
+        ]);
+        if (!route || !stop) throw notFound('Route or stop not found');
+
         const newRouteStop = await prisma.routeStop.create({
             data: {
                 routeId,
@@ -52,8 +65,8 @@ export const createRouteStop = async (req: Request, res: Response) => {
         });
         res.status(201).json(newRouteStop);
     } catch (error) {
-        console.error('Error creating route stop:', error);
-        res.status(500).json({ error: 'Failed to create route stop' });
+        logBoundaryFailure('Route-stop create', error);
+        sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to create route stop'));
     }
 };
 
@@ -65,7 +78,7 @@ export const deleteRouteStop = async (req: Request, res: Response) => {
         });
         res.status(204).send();
     } catch (error) {
-        console.error('Error deleting route stop:', error);
-        res.status(500).json({ error: 'Failed to delete route stop' });
+        logBoundaryFailure('Route-stop delete', error);
+        sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to delete route stop'));
     }
 };

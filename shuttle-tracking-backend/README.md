@@ -80,8 +80,13 @@ cannot emit GPS writes. Sender sockets revalidate the token on every GPS write, 
 login again after expiry or credential rotation. TTN webhook requests require
 `Authorization: Bearer <TTN_WEBHOOK_SECRET>` and fail closed when the production secret is absent.
 
-The simulator uses the same flow. Set `TRACKING_SOURCE_SECRET` before running it; do not put a
-source secret in committed frontend code.
+The simulator uses the same flow. Set `TRACKING_SOURCE_SECRET_MOBILE` in an ignored environment
+file before running it; do not put a source secret in committed frontend code. The checked-in
+fixture defaults are `TS_MOB_01` → `VH001`, `TS_ESP_01` → `VH001`, `sensor-c4` → `VH003`, and
+`sensor-f2` → `VN002`.
+
+For repeatable mobile/TTN pipeline smoke commands, see
+[`docs/testing/pipeline-smoke-tests.md`](../docs/testing/pipeline-smoke-tests.md).
 
 ### Architecture Summary
 

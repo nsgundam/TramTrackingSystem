@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type NextFunction, type Request, type Response } from "express";
 import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -23,12 +23,60 @@ import {
 } from "./middleware/auth.js";
 import type { SenderContext } from "./middleware/auth.js";
 
-import { processObservation } from "./services/tracking.service.js";
+import {
+  processObservation,
+  startSourceHealthSweep,
+} from "./services/tracking.service.js";
+import {
+  configureCanonicalStatePublisher,
+  createSocketCanonicalPublisher,
+} from "./services/canonical-state.service.js";
+import {
+  BoundaryError,
+  logBoundaryFailure,
+  mapBoundaryError,
+} from "./middleware/boundary-errors.js";
+import { consumeRateLimit, RATE_LIMITS } from "./middleware/rate-limit.js";
+import { parseObservation } from "./middleware/validation.js";
 
 import { connectRedis, redisClient } from "./config/redis.js";
 import { prisma } from "./config/prisma.js";
+import {
+  emitOperationalSignal,
+  getRequestId,
+} from "./services/operational-signals.js";
 
 const app = express();
+
+app.use((req, res, next) => {
+  const requestId = getRequestId();
+  req.requestId = requestId;
+  res.setHeader('X-Request-ID', requestId);
+  next();
+});
+
+const configuredBodyLimit = (() => {
+  const match = /^(\d+)(b|kb|mb)$/i.exec(process.env.REQUEST_BODY_LIMIT || '');
+  if (!match) return '64kb';
+
+  const amount = Number(match[1]!);
+  const unit = match[2]!.toLowerCase();
+  const multiplier = unit === 'mb'
+    ? 1024 * 1024
+    : unit === 'kb'
+      ? 1024
+      : 1;
+  const bytes = amount * multiplier;
+  return Number.isSafeInteger(bytes) && bytes > 0 && bytes <= 1024 * 1024
+    ? `${bytes}b`
+    : '64kb';
+})();
+const configuredSocketBuffer = (() => {
+  const parsed = Number(process.env.SOCKET_MAX_BUFFER_BYTES);
+  return Number.isSafeInteger(parsed) && parsed > 0 && parsed <= 1024 * 1024
+    ? parsed
+    : 64 * 1024;
+})();
 
 // HTTP server and Socket.IO setup
 const httpServer = createServer(app);
@@ -45,7 +93,7 @@ const corsOptions = {
     if (!origin || FRONTEND_URLS.includes(origin)) {
       callback(null, true);
     } else {
-      console.warn(`CORS blocked origin: ${origin}`);
+      console.warn('CORS blocked origin');
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -54,7 +102,7 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: configuredBodyLimit }));
 
 // Routes
 app.use("/api/auth", authRouter);
@@ -77,26 +125,54 @@ app.get("/health", (req, res) => {
 });
 
 app.get("/ready", async (req, res) => {
+  const startedAt = Date.now();
   try {
     await prisma.$queryRaw`SELECT 1`;
     await redisClient.ping();
+    emitOperationalSignal({
+      event: 'readiness.outcome',
+      level: 'info',
+      outcome: 'ready',
+      route: '/ready',
+      transport: 'system',
+      correlationId: req.requestId,
+      reasonCode: 'READY',
+      responseStatus: 200,
+      durationMs: Date.now() - startedAt,
+    });
     res.status(200).json({
       status: "READY",
       database: "connected",
       redis: "connected"
     });
   } catch (error: any) {
-    console.error("[Ready Check] Failed:", error.message);
+    logBoundaryFailure('Ready check', error);
+    emitOperationalSignal({
+      event: 'readiness.outcome',
+      level: 'error',
+      outcome: 'not_ready',
+      route: '/ready',
+      transport: 'system',
+      correlationId: req.requestId,
+      reasonCode: 'DEPENDENCY_UNAVAILABLE',
+      responseStatus: 503,
+      durationMs: Date.now() - startedAt,
+    });
     res.status(503).json({
       status: "NOT_READY",
-      error: error.message
+      error: 'Dependencies are unavailable'
     });
   }
 });
 
 const io = new Server(httpServer, {
   cors: corsOptions,
+  maxHttpBufferSize: configuredSocketBuffer,
 });
+
+configureCanonicalStatePublisher(createSocketCanonicalPublisher({
+  emit: (event, state) => io.emit(event, state),
+}));
 
 app.set('socketio', io); // Share Socket.IO instance to REST controllers
 
@@ -108,6 +184,7 @@ io.use(async (socket, next) => {
     : extractBearerToken(socket.handshake.headers.authorization);
 
   if (!authToken) {
+    socket.data.correlationId = getRequestId();
     next();
     return;
   }
@@ -115,6 +192,7 @@ io.use(async (socket, next) => {
   try {
     socket.data.sender = await getSenderFromToken(authToken);
     socket.data.senderToken = authToken;
+    socket.data.correlationId = getRequestId();
     next();
   } catch (error) {
     next(new Error(
@@ -127,7 +205,21 @@ io.use(async (socket, next) => {
 
 // Logic for handling Socket.IO connections
 io.on("connection", (socket) => {
-  console.log("A client connected:", socket.id);
+  const emitSocketOutcome = (signal: {
+    level: 'info' | 'warn' | 'error';
+    outcome: 'accepted' | 'rejected' | 'ignored';
+    reasonCode: string;
+    sourceId?: string;
+    vehicleId?: string;
+    sourceType?: 'mobile' | 'lorawan' | 'esp32' | 'simulator';
+    canonicalEmitted?: boolean;
+  }) => emitOperationalSignal({
+    event: 'ingestion.outcome',
+    transport: 'socket',
+    route: 'socket:send-location',
+    correlationId: socket.data.correlationId,
+    ...signal,
+  });
 
   socket.on("send-location", async (rawData, acknowledge) => {
     const respond = typeof acknowledge === 'function' ? acknowledge : () => {};
@@ -135,12 +227,25 @@ io.on("connection", (socket) => {
 
     if (typeof senderToken !== 'string') {
       const error = { ok: false, code: 'SENDER_AUTH_REQUIRED', error: 'Sender authentication required' };
+      emitSocketOutcome({ level: 'warn', outcome: 'rejected', reasonCode: 'SENDER_AUTH_REQUIRED' });
       respond(error);
       socket.emit('error-response', error);
       return;
     }
 
     try {
+      let observation;
+      try {
+        observation = parseObservation(rawData);
+      } catch (error) {
+        const invalid = mapBoundaryError(error, new BoundaryError(400, 'INVALID_REQUEST', 'Location payload is invalid'));
+        const response = { ok: false, code: invalid.code, error: invalid.message };
+        emitSocketOutcome({ level: 'warn', outcome: 'rejected', reasonCode: invalid.code });
+        respond(response);
+        socket.emit('error-response', response);
+        return;
+      }
+
       // Handshake authentication is not enough for a long-lived sender socket.
       // Revalidate expiry, source status, vehicle binding, and credential version
       // for every write so rotation/revocation takes effect immediately.
@@ -154,6 +259,11 @@ io.on("connection", (socket) => {
             code: 'SENDER_AUTH_UNAVAILABLE',
             error: 'Sender authentication temporarily unavailable',
           };
+          emitSocketOutcome({
+            level: 'error',
+            outcome: 'rejected',
+            reasonCode: 'SENDER_AUTH_UNAVAILABLE',
+          });
           respond(response);
           socket.emit("error-response", response);
           return;
@@ -164,6 +274,11 @@ io.on("connection", (socket) => {
           code: 'SENDER_CREDENTIAL_INVALID',
           error: 'Sender credential is invalid or no longer active',
         };
+        emitSocketOutcome({
+          level: 'warn',
+          outcome: 'rejected',
+          reasonCode: 'SENDER_CREDENTIAL_INVALID',
+        });
         respond(response);
         socket.emit("error-response", response);
         socket.disconnect(true);
@@ -172,57 +287,128 @@ io.on("connection", (socket) => {
 
       socket.data.sender = sender;
 
-      if (!rawData || typeof rawData !== 'object' || !rawData.sourceId) {
-        const error = { ok: false, code: 'SOURCE_ID_REQUIRED', error: 'sourceId is required' };
-        respond(error);
-        socket.emit('error-response', error);
+      let quota;
+      try {
+        quota = await consumeRateLimit({
+          scope: 'sender:observation',
+          ...RATE_LIMITS.sender,
+          key: sender.sourceId,
+        });
+      } catch {
+        throw new BoundaryError(503, 'DEPENDENCY_UNAVAILABLE', 'Rate limiting is temporarily unavailable');
+      }
+      if (!quota.allowed) {
+        const response = {
+          ok: false,
+          code: 'RATE_LIMITED',
+          error: 'Too many requests',
+          retryAfter: quota.retryAfterSeconds,
+        };
+        emitSocketOutcome({
+          level: 'warn',
+          outcome: 'rejected',
+          reasonCode: 'RATE_LIMITED',
+          sourceId: sender.sourceId,
+          vehicleId: sender.vehicleId,
+        });
+        respond(response);
+        socket.emit('error-response', response);
         return;
       }
 
       if (
-        rawData.sourceId !== sender.sourceId ||
-        (rawData.vehicleId && rawData.vehicleId !== sender.vehicleId)
+        observation.sourceId !== sender.sourceId ||
+        (observation.vehicleId && observation.vehicleId !== sender.vehicleId)
       ) {
         const error = { ok: false, code: 'SENDER_OWNERSHIP_MISMATCH', error: 'Sender cannot submit for this source or vehicle' };
+        emitSocketOutcome({
+          level: 'warn',
+          outcome: 'rejected',
+          reasonCode: 'SENDER_OWNERSHIP_MISMATCH',
+          sourceId: sender.sourceId,
+          vehicleId: sender.vehicleId,
+        });
         respond(error);
         socket.emit('error-response', error);
         return;
       }
 
-      const canonicalLocation = await processObservation({
-        sourceId: rawData.sourceId,
+      const canonicalState = await processObservation({
+        sourceId: observation.sourceId,
         sender,
-        tripId: rawData.tripId,
-        lat: rawData.lat,
-        lng: rawData.lng,
-        speed: rawData.speed,
-        bearing: rawData.bearing ?? rawData.heading,
-        accuracy: rawData.accuracy,
-        station: rawData.station
+        tripId: observation.tripId,
+        lat: observation.lat,
+        lng: observation.lng,
+        speed: observation.speed,
+        bearing: observation.bearing,
+        accuracy: observation.accuracy,
+        station: observation.station,
       });
 
-      if (canonicalLocation) {
-        io.emit("location-update", canonicalLocation);
-      }
+      emitSocketOutcome({
+        level: 'info',
+        outcome: 'accepted',
+        reasonCode: 'PROCESSED',
+        sourceId: sender.sourceId,
+        vehicleId: sender.vehicleId,
+        sourceType: canonicalState?.sourceType ?? undefined,
+        canonicalEmitted: Boolean(canonicalState),
+      });
 
-      respond({ ok: true, canonicalLocation });
-    } catch (error: any) {
-      const message = error instanceof Error ? error.message : '';
-      const response = message.includes('Trip')
-        ? { ok: false, code: 'TRIP_OWNERSHIP_MISMATCH', error: 'Trip is invalid or does not belong to the sender vehicle' }
-        : message.includes('bounds')
-          ? { ok: false, code: 'INVALID_COORDINATES', error: 'Coordinates are invalid' }
-          : message.includes('sender') || message.includes('credential')
-            ? { ok: false, code: 'SENDER_CREDENTIAL_INVALID', error: 'Sender credential is invalid or no longer active' }
-            : { ok: false, code: 'LOCATION_REJECTED', error: 'Location observation was rejected' };
+      respond({
+        ok: true,
+        canonicalState,
+        canonicalLocation: canonicalState,
+      });
+    } catch (error) {
+      logBoundaryFailure('Socket location', error);
+      const mapped = mapBoundaryError(
+        error,
+        new BoundaryError(500, 'INTERNAL_ERROR', 'Location observation was rejected'),
+      );
+      emitSocketOutcome({
+        level: mapped.status >= 500 ? 'error' : 'warn',
+        outcome: 'rejected',
+        reasonCode: mapped.code,
+        sourceId: socket.data.sender?.sourceId,
+        vehicleId: socket.data.sender?.vehicleId,
+      });
+      const response = { ok: false, code: mapped.code, error: mapped.message };
       respond(response);
       socket.emit("error-response", response);
     }
   });
 
-  socket.on("disconnect", () => {
-    console.log("Client disconnected:", socket.id);
-  });
+});
+
+app.use((error: unknown, req: Request, res: Response, next: NextFunction) => {
+  if (res.headersSent) {
+    next(error);
+    return;
+  }
+
+  if (error && typeof error === 'object' && 'type' in error && error.type === 'entity.too.large') {
+    if (req.path === '/api/ingest/http' || req.path === '/api/ingest/ttn') {
+      res.locals.ingestionReasonCode = 'REQUEST_TOO_LARGE';
+    }
+    res.status(413).json({ code: 'REQUEST_TOO_LARGE', error: 'Request body is too large' });
+    return;
+  }
+
+  if (error instanceof SyntaxError) {
+    if (req.path === '/api/ingest/http' || req.path === '/api/ingest/ttn') {
+      res.locals.ingestionReasonCode = 'INVALID_REQUEST';
+    }
+    res.status(400).json({ code: 'INVALID_REQUEST', error: 'Malformed JSON request' });
+    return;
+  }
+
+  logBoundaryFailure('HTTP boundary', error);
+  const mapped = mapBoundaryError(error);
+  if (req.path === '/api/ingest/http' || req.path === '/api/ingest/ttn') {
+    res.locals.ingestionReasonCode = mapped.code;
+  }
+  res.status(mapped.status).json({ code: mapped.code, error: mapped.message });
 });
 
 const PORT = process.env.PORT;
@@ -242,12 +428,37 @@ const startServer = async () => {
     console.log("[Socket.IO] Redis adapter attached");
 
     httpServer.listen(PORT, () => {
-      console.log(`Server running on ${PORT}`);
+      emitOperationalSignal({
+        event: 'startup.outcome',
+        level: 'info',
+        outcome: 'started',
+        transport: 'system',
+        reasonCode: 'STARTUP_COMPLETE',
+      });
+      void startSourceHealthSweep();
     });
   } catch (error) {
-    console.error("[Server] Failed to start:", error);
+    logBoundaryFailure('Server startup', error);
+    emitOperationalSignal({
+      event: 'startup.outcome',
+      level: 'error',
+      outcome: 'failed',
+      transport: 'system',
+      reasonCode: 'STARTUP_FAILED',
+    });
     process.exit(1);
   }
 };
+
+httpServer.on('error', () => {
+  emitOperationalSignal({
+    event: 'startup.outcome',
+    level: 'error',
+    outcome: 'failed',
+    transport: 'system',
+    reasonCode: 'LISTEN_FAILED',
+  });
+  process.exit(1);
+});
 
 startServer();

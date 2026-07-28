@@ -1,16 +1,13 @@
-import dotenv from 'dotenv';
 import { io } from 'socket.io-client';
 import { jwtDecode } from 'jwt-decode';
 import readline from 'readline';
 
-dotenv.config();
-
-const API_URL = 'http://localhost:3001/api';
-const SOCKET_URL = 'http://localhost:3001'; 
-const VEHICLE_ID = 'VH001';
-const SOURCE_ID = 'TS_MOB_01';
-
-const SOURCE_SECRET = process.env.TRACKING_SOURCE_SECRET_MOBILE || process.env.TRACKING_SOURCE_SECRET || 'mobile_secret_key';
+const rawBackendUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+const API_URL = rawBackendUrl.endsWith('/api') ? rawBackendUrl : `${rawBackendUrl}/api`;
+const SOCKET_URL = process.env.SOCKET_URL || API_URL.replace(/\/api\/?$/, '');
+const VEHICLE_ID = process.env.TRACKING_VEHICLE_ID_MOBILE || 'VH001';
+const SOURCE_ID = process.env.TRACKING_SOURCE_ID_MOBILE || 'TS_MOB_01';
+const SOURCE_SECRET = process.env.TRACKING_SOURCE_SECRET_MOBILE;
 
 const socket = io(SOCKET_URL, { autoConnect: false, reconnection: true });
 let senderToken = null;
@@ -54,7 +51,7 @@ function getBearing(startLat, startLng, destLat, destLng) {
 
 async function loginSender() {
   if (!SOURCE_SECRET) {
-    throw new Error('TRACKING_SOURCE_SECRET_MOBILE is not defined in .env file');
+    throw new Error('TRACKING_SOURCE_SECRET_MOBILE is not set');
   }
 
   console.log(`🔐 Requesting Token for Mobile Sender (${SOURCE_ID})...`);
@@ -70,7 +67,7 @@ async function loginSender() {
 
   const data = await res.json();
   if (!res.ok || !data.token) {
-    throw new Error(`REST Login Rejected: ${JSON.stringify(data)}`);
+    throw new Error(`REST Login Rejected (HTTP ${res.status}): ${data.code || data.error || 'unknown error'}`);
   }
   console.log('✅ Mobile Token acquired successfully.');
   console.log('Token Claims:', jwtDecode(data.token));
@@ -132,7 +129,6 @@ async function sendLocation(lat, lng, speed, bearing, station) {
     }
 
     const payload = {
-      tripId,
       sourceId: SOURCE_ID,
       vehicleId: VEHICLE_ID,
       lat,
@@ -142,6 +138,7 @@ async function sendLocation(lat, lng, speed, bearing, station) {
       accuracy: 100,
       station
     };
+    if (tripId) payload.tripId = tripId;
 
     const response = await new Promise((resolve) => {
       socket.timeout(5000).emit('send-location', payload, (timeoutError, acknowledgement) => {
@@ -154,7 +151,19 @@ async function sendLocation(lat, lng, speed, bearing, station) {
     });
 
     if (!response || response.ok !== true) {
-      console.error('❌ Signal rejected by WS Node:', response);
+      const safeError = {
+        ok: response?.ok === true,
+        code: response?.code,
+        error: response?.error,
+        canonicalLocation: response?.canonicalLocation
+          ? {
+              vehicleId: response.canonicalLocation.vehicleId,
+              sourceId: response.canonicalLocation.sourceId,
+              sourceType: response.canonicalLocation.sourceType,
+            }
+          : undefined,
+      };
+      console.error('❌ Signal rejected by WS Node:', JSON.stringify(safeError));
       if (response?.code === 'SENDER_CREDENTIAL_INVALID' || response?.status === 401) {
         console.warn('⚠️ Token Session Expired. Re-authenticating...');
         await establishSocketConnection();

@@ -271,6 +271,133 @@ Applied date: 2026-07-19
 
 ---
 
+### AC-011
+
+Agent: Cross-level agent and project-skill workflow
+Files: `AGENTS.md`, `.agents/skills/*/SKILL.md`, `agents/`, `skills/`, `scripts/agy-worker.sh`,
+`scripts/ci-checks.sh`, and workflow coordination documents under `docs/`
+
+Problem/evidence:
+The 2026-07-22 skill refactor introduced concise role separation but left project skills
+undiscoverable to Codex, mismatched the roadmap section/task schema, allowed contradictory
+specialist and shared-state ownership rules, relied on prompt-only worker scope enforcement,
+included an ambient `prisma migrate deploy` verification command, and left audit/roadmap status
+documents pointing to superseded task IDs and T1 as the next task after T1–T5 completed.
+
+Exact approved change:
+Add a root agent router and Codex discovery bridges; define one predecessor/freshness/ownership
+contract; allow multiple specialists with one focused question each; use immutable task-keyed
+specialist briefs; require exact-path task specs; isolate Antigravity execution in a sandboxed
+temporary worktree and import only validated patches; gate stateful verification; normalize roadmap
+task metadata; reconcile stale audit/decision/roadmap state; and add automated workflow validation.
+
+Expected benefit:
+Agent activation becomes discoverable, audit freshness and shared-state writes become deterministic,
+cross-domain consultation no longer conflicts, worker scope breaches cannot overwrite the user's
+worktree, and roadmap handoffs reflect current evidence.
+
+Priority: Critical
+Audit-blocking status: Cleared — required before unattended agent workflow use
+Owner decision: Approved explicitly in the 2026-07-22 user request to fix every listed issue
+Proposal date: 2026-07-22
+Approval date: 2026-07-22
+Applied date: 2026-07-22
+Verification: All 14 canonical/bridge skill directories passed `quick_validate.py`; shell syntax and
+`git diff --check` passed; the agent workflow validator passed for 7 skills and 15 roadmap tasks;
+and `bash scripts/ci-checks.sh` passed backend tests/build, Prisma validation, frontend lint/build,
+Compose validation, redaction checks, and workflow validation on 2026-07-22.
+
+---
+
+### AC-012
+
+Agent: Simplified three-level agent architecture
+Files: `AGENTS.md`, `agents/`, `.agents/skills/`, `README.md`,
+`docs/project-knowledge-base.md`, `docs/audits/specialized/README.md`, and
+`scripts/validate-agent-workflow.js`
+
+Problem/evidence:
+AC-011 restored safety but kept 26 agent instruction files, 7 canonical skills under `skills/`, and
+7 discovery bridges under `.agents/skills/`. Codex discovers repository skills directly from
+`.agents/skills`; duplicate canonical/bridge layers increased navigation cost and drift risk without
+adding capability.
+
+Exact approved change:
+Replace the distributed contracts with exactly three role files (`level-1-audit`,
+`level-2-specialist`, `level-3-refactor`) and exactly three repo skills (`tram-audit-workflow`,
+`tram-specialist-consultation`, `tram-refactoring-workflow`). Move all canonical skill content into
+`.agents/skills`, remove the root `skills/` mirror and obsolete agent files, update active path
+references, preserve AC-011 safety/freshness/ownership rules, and make the validator enforce the
+three-by-three architecture.
+
+Expected benefit:
+The active instruction surface becomes discoverable from one router, one role per level, and one
+workflow per level while retaining audit evidence gates, focused specialist decisions, exact task
+scope, isolated worker execution, stateful-check gating, and audit-staleness synchronization.
+
+Priority: High
+Audit-blocking status: Cleared — simplification requested before further agent workflow use
+Owner decision: Approved explicitly in the 2026-07-22 user request to redesign and consolidate the workflow
+Proposal date: 2026-07-22
+Approval date: 2026-07-22
+Applied date: 2026-07-22
+Verification: All three skills passed `quick_validate.py`; the workflow validator passed exactly
+3 agents, 3 skills, and 15 roadmap tasks; `git diff --check` and shell syntax passed; read-only
+forward tests correctly selected Discovery as the next audit and blocked T6 on stale audits,
+missing specialist briefs, and missing exact-path task spec; and `bash scripts/ci-checks.sh` passed
+backend tests/build, Prisma validation, frontend lint/build, Compose validation, redaction checks,
+and workflow validation on 2026-07-22.
+
+---
+
+### AC-013
+
+Agent: Domain playbooks and three-device research scope
+Files: `agents/level-1-audit/AGENT.md`, `agents/level-2-specialist/AGENT.md`,
+`.agents/skills/tram-audit-workflow/`, `.agents/skills/tram-specialist-consultation/`,
+`docs/research/device-comparison-scope.md`, `docs/decision-queue.md`,
+`docs/roadmap/master-refactoring-roadmap.md`, `README.md`, and
+`scripts/validate-agent-workflow.js`
+
+Problem/evidence:
+The three-contract architecture removed duplication but left Level 1 domain depth and Level 2
+research methodology too implicit. D-002 approved bounded comparison of three senders, while the
+repository lacked durable definitions for the three physical transport boundaries, Dev Dashboard
+scope, route-distance limitations, current primary-source research, and on-demand audit/specialist
+knowledge.
+
+Exact approved change:
+Keep exactly one contract per level and add one-level `references/` playbooks: nine audit playbooks
+for Level 1 and ten focused specialist playbooks for Level 2. Record Mobile/Socket.IO,
+ESP32+GPS/Wi-Fi/HTTP, and separate LoRaWAN/Gateway/TTN/Webhook as the three research sources; define
+the initial authenticated Dev Dashboard; distinguish route conformance, reported uncertainty,
+pairwise disagreement, and measured ground-truth error; require primary-source/version/evidence
+metadata for current research; and validate the complete reference inventory automatically.
+
+Expected benefit:
+Agents retain a small always-loaded surface while gaining repeatable product, device, telemetry,
+security, field-test, data, and visualization depth. Research recommendations become traceable and
+the future implementation cannot silently overstate route proximity or device-reported accuracy as
+absolute GPS accuracy.
+
+Priority: High
+Audit-blocking status: Cleared — required before relying on the consolidated agents for re-audit or
+device-comparison design
+Owner decision: Approved explicitly in the 2026-07-22 clarification of the three devices and Dev
+Dashboard scope
+Proposal date: 2026-07-22
+Approval date: 2026-07-22
+Applied date: 2026-07-22
+Verification: All three skills passed `quick_validate.py`; the workflow validator passed exactly 3
+agents, 3 skills, 9 Level 1 references, 10 Level 2 references, and 15 roadmap tasks; `git diff
+--check` and shell syntax passed. Read-only forward tests selected only the Database audit playbook
+to identify the current raw-telemetry and predecessor blockers, and selected Product/Research as
+primary plus Telemetry/Geospatial as the inseparable supporting playbook to produce a correct T7
+accuracy contract. The latter also detected the current TTN `accuracy ?? hdop` semantic risk. No
+forward-test files or external systems were modified.
+
+---
+
 ## Rejected Changes
 
 ## Postponed Changes

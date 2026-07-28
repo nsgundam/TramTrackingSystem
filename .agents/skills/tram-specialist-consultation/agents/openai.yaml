@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tram Specialist Consultation"
+  short_description: "Research one focused technical decision deeply"
+  default_prompt: "Use $tram-specialist-consultation to research one focused Tram Tracking System decision."
