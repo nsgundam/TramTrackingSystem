@@ -10,6 +10,8 @@ interface UseSocketOptions {
   isZoomingRef: React.MutableRefObject<boolean>;
   pendingUpdatesRef: React.MutableRefObject<Record<string, LocationUpdateData>>;
   processLocationUpdateRef: React.MutableRefObject<(data: LocationUpdateData) => void>;
+  hydrateActiveVehicles: () => Promise<void>;
+  acceptCanonicalState: (data: LocationUpdateData) => boolean;
 }
 
 export function useSocketConnection({
@@ -18,21 +20,51 @@ export function useSocketConnection({
   isZoomingRef,
   pendingUpdatesRef,
   processLocationUpdateRef,
+  hydrateActiveVehicles,
+  acceptCanonicalState,
 }: UseSocketOptions) {
   useEffect(() => {
     const socketOrigin = configuredBackendOrigin || "http://localhost:3001";
-    const socket: Socket = io(socketOrigin);
+    let disposed = false;
+    let socket: Socket | null = null;
+    let hasConnected = false;
 
-    socket.on("location-update", (data: LocationUpdateData) => {
-      if (!mapRef.current) return;
-      if (isZoomingRef.current) {
-        const id = String(data.vehicleId || data.id);
-        pendingUpdatesRef.current[id] = data;
-        return;
+    const connectAfterSnapshot = async () => {
+      try {
+        await hydrateActiveVehicles();
+      } catch {
+        // The socket can still recover if the initial REST snapshot is unavailable.
       }
-      processLocationUpdateRef.current(data);
-    });
+      if (disposed) return;
 
-    return () => { socket.disconnect(); };
-  }, [configuredBackendOrigin, mapRef, isZoomingRef, pendingUpdatesRef, processLocationUpdateRef]);
+      socket = io(socketOrigin, { autoConnect: false });
+      socket.on("connect", () => {
+        if (hasConnected) void hydrateActiveVehicles();
+        hasConnected = true;
+      });
+      socket.on("location-update", (data: LocationUpdateData) => {
+        if (!acceptCanonicalState(data) || !mapRef.current) return;
+        if (isZoomingRef.current) {
+          pendingUpdatesRef.current[data.vehicleId] = data;
+          return;
+        }
+        processLocationUpdateRef.current(data);
+      });
+      socket.connect();
+    };
+
+    void connectAfterSnapshot();
+    return () => {
+      disposed = true;
+      socket?.disconnect();
+    };
+  }, [
+    configuredBackendOrigin,
+    mapRef,
+    isZoomingRef,
+    pendingUpdatesRef,
+    processLocationUpdateRef,
+    hydrateActiveVehicles,
+    acceptCanonicalState,
+  ]);
 }

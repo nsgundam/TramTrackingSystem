@@ -1,3 +1,5 @@
+import type { CanonicalVehicleStatePublic } from "./canonical-state";
+
 export * from "./canonical-state";
 
 export interface Stop {
@@ -16,18 +18,8 @@ export interface Stop {
     actualStation?: string | number;
   }
   
-export interface LocationUpdateData {
-  vehicleId?: string | number;
-  id?: string | number;
-  lat: string | number;
-  lng: string | number;
-  speed?: string | number;
-  velocity?: string | number;
-  actualStation?: string | number;
-  station?: string | number;
-  bearing?: string | number;
-  heading?: string | number;
-}
+/** Compatibility name for consumers that now receive the canonical envelope. */
+export type LocationUpdateData = CanonicalVehicleStatePublic;
 
 export interface RouteData {
   id: string;

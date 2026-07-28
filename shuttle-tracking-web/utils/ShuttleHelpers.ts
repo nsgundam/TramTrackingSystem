@@ -1,5 +1,5 @@
 import L from "leaflet";
-import { Stop } from "@/types";
+import { CanonicalVehicleStatePublic, Stop } from "@/types";
 import { METERS_PER_MIN } from "@/constants/shuttle";
 
 // ===== Helpers ที่ 1: createStopsSignature =====
@@ -105,6 +105,8 @@ export const getVehicleETAToStop = (
 interface EtaCalcDeps extends EtaDeps {
   vehicles: Record<string, L.Marker>;
   map: L.Map | null;
+  canonicalStates: Record<string, Pick<CanonicalVehicleStatePublic, "serviceState">>;
+  expiredVehicles: Record<string, boolean>;
 }
 
 export const calculateETAForStop = (
@@ -120,6 +122,8 @@ export const calculateETAForStop = (
 
   Object.keys(deps.vehicles).forEach((id) => {
     if (
+      deps.canonicalStates[id]?.serviceState !== "live" ||
+      deps.expiredVehicles[id] ||
       deps.vehicleRouteMap[id] !== routeId ||
       !deps.map?.hasLayer(deps.vehicles[id])
     )

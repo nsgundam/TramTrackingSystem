@@ -78,15 +78,23 @@ assert.deepEqual(emitted[0].state, toPublicCanonicalState({
 const serverSource = await (await import('node:fs/promises')).readFile('src/server.ts', 'utf8');
 const ingestSource = await (await import('node:fs/promises')).readFile('src/routes/ingest.route.ts', 'utf8');
 const publicTrackerSource = await readFile('../shuttle-tracking-web/components/public/ShuttleTracker.tsx', 'utf8');
+const trackerHookSource = await readFile('../shuttle-tracking-web/hooks/useShuttleTracker.ts', 'utf8');
+const socketHookSource = await readFile('../shuttle-tracking-web/hooks/useSocketConnection.ts', 'utf8');
+const vehicleTrackingSource = await readFile('../shuttle-tracking-web/hooks/useVehicleTracking.ts', 'utf8');
 const liveMapSource = await readFile('../shuttle-tracking-web/components/admin/LiveMap.tsx', 'utf8');
 assert.match(serverSource, /canonicalState/);
 assert.match(ingestSource, /canonicalState/);
 assert.doesNotMatch(serverSource, /canonicalLocation\.lat/);
 assert.doesNotMatch(ingestSource, /canonicalLocation\.lat/);
-assert.match(publicTrackerSource, /serviceState !== "live"/);
+assert.match(trackerHookSource, /isCanonicalStateNewer/);
+assert.match(trackerHookSource, /await getActiveVehicles/);
+assert.match(trackerHookSource, /freshness\.thresholdMs/);
+assert.match(socketHookSource, /await hydrateActiveVehicles/);
+assert.match(vehicleTrackingSource, /data\.serviceState === "live"/);
+assert.match(vehicleTrackingSource, /data\.routeAuthority/);
+assert.doesNotMatch(vehicleTrackingSource, /vehicleRouteMapRef\.current\[id\]\s*=\s*selectedRouteRef\.current/);
 assert.match(publicTrackerSource, /<AvailabilityCard count=\{vehicleStateCounts\.live\} \/>/);
 assert.doesNotMatch(publicTrackerSource, /เชื่อมต่อข้อมูลสด|กำลังเชื่อมต่อใหม่|ข้อมูลล่าสุดเก่า|ไม่มีบริการ|ข้อมูลขัดข้อง/);
-assert.match(publicTrackerSource, /hydrateActiveVehicles/);
 assert.match(liveMapSource, /Vehicle service state summary/);
 assert.match(liveMapSource, /Unavailable: \{stateCounts\.unknown\}/);
 

@@ -8,10 +8,20 @@ import { useGeolocation } from "@/hooks/useGeolocation";
 import { useSocketConnection } from "@/hooks/useSocketConnection";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { calculateETAForStop } from "@/utils/ShuttleHelpers";
-import { Stop, LocationUpdateData, RouteData, ActiveVehicleInfo } from "@/types";
+import {
+  Stop,
+  LocationUpdateData,
+  RouteData,
+  ActiveVehicleInfo,
+  ActiveVehicleState,
+  CanonicalServiceState,
+  CanonicalVehicleStateV1,
+  isCanonicalStateNewer,
+} from "@/types";
 import { DEFAULT_STOP_ICON, ACTIVE_STOP_ICON } from "@/constants/shuttle";
 import { useRouteGeometry } from "@/hooks/useRouteGeometry";
 import { useVehicleTracking } from "@/hooks/useVehicleTracking";
+import { getActiveVehicles } from "@/services/publicApi";
 
 export function useShuttleTracker() {
   const { mapRef, LRef } = useLeafletMap();
@@ -27,6 +37,12 @@ export function useShuttleTracker() {
   const routeMenuRef = useRef<HTMLDivElement>(null);
 
   const [availableCount, setAvailableCount] = useState<number>(0);
+  const [vehicleStateCounts, setVehicleStateCounts] = useState<Record<CanonicalServiceState, number>>({
+    live: 0,
+    stale: 0,
+    no_service: 0,
+    unknown: 0,
+  });
   const [targetStop, setTargetStop] = useState<Stop | null>(null);
   const [realEta, setRealEta] = useState<number | null>(null);
   const [isAppLocked, setIsAppLocked] = useState<boolean>(true);
@@ -44,7 +60,6 @@ export function useShuttleTracker() {
   const preloader = usePreloader({ routesLength: routes.length });
   const {
     namesLoadedRef,
-    checkLoadingComplete,
     mapReadyRef,
     checkLoadingCompleteRef,
   } = preloader;
@@ -69,6 +84,10 @@ export function useShuttleTracker() {
   const vehicleRouteMapRef = useRef<Record<string, string>>({});
   const vehicleLastPolyIndexRef = useRef<Record<string, number>>({});
   const vehicleStopsStatusRef = useRef<Record<string, ActiveVehicleInfo>>({});
+  const canonicalVersionsRef = useRef<Record<string, Pick<CanonicalVehicleStateV1, "stateEpoch" | "stateVersion">>>({});
+  const vehicleStatesRef = useRef<Record<string, CanonicalVehicleStateV1>>({});
+  const expiredVehiclesRef = useRef<Record<string, boolean>>({});
+  const expiryTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const isZoomingRef = useRef<boolean>(false);
   const hasInitRoutesRef = useRef<boolean>(false);
@@ -85,6 +104,65 @@ export function useShuttleTracker() {
     origins.push("http://localhost:3001");
     return [...new Set(origins)];
   }, [configuredBackendOrigin]);
+
+  const removeVehicleMarker = useCallback((id: string) => {
+    const marker = vehiclesRef.current[id];
+    if (marker && mapRef.current?.hasLayer(marker)) mapRef.current.removeLayer(marker);
+  }, [mapRef]);
+
+  const scheduleLocalExpiry = useCallback((state: CanonicalVehicleStateV1) => {
+    const id = state.vehicleId;
+    const previousTimer = expiryTimersRef.current[id];
+    if (previousTimer) clearTimeout(previousTimer);
+    expiredVehiclesRef.current[id] = false;
+
+    if (state.serviceState !== "live") return;
+
+    const elapsedMs = state.freshness.ageMs ?? 0;
+    const expiresInMs = Math.max(0, state.freshness.thresholdMs - elapsedMs);
+    expiryTimersRef.current[id] = setTimeout(() => {
+      const current = vehicleStatesRef.current[id];
+      if (
+        current &&
+        current.stateEpoch === state.stateEpoch &&
+        current.stateVersion === state.stateVersion &&
+        current.serviceState === "live"
+      ) {
+        expiredVehiclesRef.current[id] = true;
+        removeVehicleMarker(id);
+        calculateETARef.current();
+      }
+    }, expiresInMs);
+  }, [removeVehicleMarker]);
+
+  const acceptCanonicalState = useCallback((state: LocationUpdateData): boolean => {
+    if (
+      state.schemaVersion !== 1 ||
+      state.eventType !== "canonical_vehicle_state" ||
+      !state.vehicleId
+    ) return false;
+
+    const previous = canonicalVersionsRef.current[state.vehicleId];
+    if (!isCanonicalStateNewer(state, previous)) return false;
+
+    canonicalVersionsRef.current[state.vehicleId] = {
+      stateEpoch: state.stateEpoch,
+      stateVersion: state.stateVersion,
+    };
+    vehicleStatesRef.current[state.vehicleId] = state;
+
+    const counts = Object.values(vehicleStatesRef.current).reduce<Record<CanonicalServiceState, number>>(
+      (next, vehicleState) => {
+        next[vehicleState.serviceState] += 1;
+        return next;
+      },
+      { live: 0, stale: 0, no_service: 0, unknown: 0 },
+    );
+    setVehicleStateCounts(counts);
+    setAvailableCount(counts.live);
+    scheduleLocalExpiry(state);
+    return true;
+  }, [scheduleLocalExpiry]);
 
   // === Stop Select callback ===
   const onStopSelect = useCallback((stop: Stop, marker: L.Marker) => {
@@ -154,20 +232,47 @@ export function useShuttleTracker() {
       }
     }, [mapRef]),
     updateAvailableCount: useCallback(() => {
-      if (!mapRef.current) return;
-      const count = Object.values(vehiclesRef.current).filter((marker) =>
-        mapRef.current?.hasLayer(marker)
+      const count = Object.entries(vehicleStatesRef.current).filter(([id, state]) =>
+        state.serviceState === "live" && !expiredVehiclesRef.current[id]
       ).length;
       setAvailableCount(count);
       calculateETARef.current();
-    }, [mapRef, vehiclesRef]),
+    }, []),
     vehiclesRef,
     prevPositionsRef,
     vehicleSpeedHistoryRef,
     vehicleRouteMapRef,
     vehicleLastPolyIndexRef,
     vehicleStopsStatusRef,
+    expiredVehiclesRef,
   });
+
+  const hydrateActiveVehicles = useCallback(async () => {
+    for (const origin of getApiOrigins()) {
+      try {
+        const vehicles = await getActiveVehicles(origin);
+        const names = vehicles.reduce<Record<string, string>>((mapping, vehicle) => {
+          mapping[String(vehicle.id)] = vehicle.name || String(vehicle.id);
+          return mapping;
+        }, {});
+        setVehicleNames((current) => ({ ...current, ...names }));
+
+        vehicles.forEach((vehicle: ActiveVehicleState) => {
+          if (acceptCanonicalState(vehicle.state)) {
+            processLocationUpdateRef.current(vehicle.state);
+          }
+        });
+        namesLoadedRef.current = true;
+        checkLoadingCompleteRef.current();
+        return;
+      } catch {
+        // Try the next configured backend origin.
+      }
+    }
+
+    namesLoadedRef.current = true;
+    checkLoadingCompleteRef.current();
+  }, [acceptCanonicalState, getApiOrigins, namesLoadedRef, checkLoadingCompleteRef]);
 
   // === Sync Socket Connection ===
   useSocketConnection({
@@ -176,6 +281,8 @@ export function useShuttleTracker() {
     isZoomingRef,
     pendingUpdatesRef,
     processLocationUpdateRef,
+    hydrateActiveVehicles,
+    acceptCanonicalState,
   });
 
   // === Calculation / Handlers ===
@@ -193,6 +300,8 @@ export function useShuttleTracker() {
       stopsByRoute: stopsByRouteRef.current,
       vehicles: vehiclesRef.current,
       map: mapRef.current,
+      canonicalStates: vehicleStatesRef.current,
+      expiredVehicles: expiredVehiclesRef.current,
     });
     setRealEta(eta);
   }, [mapRef, selectedRoute, routeGeometryRef, stopsByRouteRef, vehicleRouteMapRef, vehicleLastPolyIndexRef, prevPositionsRef, vehicleSpeedHistoryRef, vehiclesRef]);
@@ -259,12 +368,6 @@ export function useShuttleTracker() {
     setIsTracking(false);
     isTrackingRef.current = false;
 
-    // Trigger local count calculation
-    if (!mapRef.current) return;
-    const count = Object.values(vehiclesRef.current).filter((marker) =>
-      mapRef.current?.hasLayer(marker)
-    ).length;
-    setAvailableCount(count);
     calculateETA();
   }, [mapRef, routeGeometry, calculateETA, vehiclesRef, vehicleRouteMapRef, activeStopMarkerRef]);
 
@@ -314,42 +417,6 @@ export function useShuttleTracker() {
     processLocationUpdateRef.current = vehicleTracking.processLocationUpdate;
   });
 
-  // === Fetch Vehicle Names ===
-  useEffect(() => {
-    const fetchVehicleNames = async () => {
-      try {
-        const apiOrigins = getApiOrigins();
-        let data = null;
-        for (const origin of apiOrigins) {
-          try {
-            const res = await fetch(`${origin}/api/public/active-vehicles`);
-            if (res.ok) {
-              data = await res.json();
-              break;
-            }
-          } catch { /* try next origin */ }
-        }
-
-        if (data && Array.isArray(data)) {
-          const mapping = data.reduce(
-            (acc: Record<string, string>, v: { id: string | number; name: string }) => {
-              acc[String(v.id)] = v.name || String(v.id);
-              return acc;
-            },
-            {}
-          );
-          setVehicleNames(mapping);
-        }
-      } catch (err) {
-        console.error("Failed to fetch vehicle names:", err);
-      } finally {
-        namesLoadedRef.current = true;
-        checkLoadingComplete();
-      }
-    };
-    fetchVehicleNames();
-  }, [configuredBackendOrigin, checkLoadingComplete, getApiOrigins, namesLoadedRef]);
-
   // === Init Routes & Map ===
   useEffect(() => {
     if (hasInitRoutesRef.current) return;
@@ -397,6 +464,9 @@ export function useShuttleTracker() {
           mapRef.current.flyTo(RSU_CENTER, 16.7, { animate: true, duration: 1.2 });
           mapReadyRef.current = true;
           checkLoadingCompleteRef.current();
+          Object.values(vehicleStatesRef.current).forEach((state) => {
+            processLocationUpdateRef.current(state);
+          });
 
           mapRef.current.on("zoomstart", (e: L.LeafletEvent & { originalEvent?: unknown }) => {
             isZoomingRef.current = true;
@@ -478,6 +548,7 @@ export function useShuttleTracker() {
     routes,
     selectedRoute,
     availableCount,
+    vehicleStateCounts,
     userLoc,
     targetStop,
     realEta,

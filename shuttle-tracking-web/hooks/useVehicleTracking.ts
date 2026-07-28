@@ -21,6 +21,7 @@ interface UseVehicleTrackingOptions {
   vehicleRouteMapRef: React.MutableRefObject<Record<string, string>>;
   vehicleLastPolyIndexRef: React.MutableRefObject<Record<string, number>>;
   vehicleStopsStatusRef: React.MutableRefObject<Record<string, ActiveVehicleInfo>>;
+  expiredVehiclesRef: React.MutableRefObject<Record<string, boolean>>;
 }
 
 export function useVehicleTracking({
@@ -38,30 +39,52 @@ export function useVehicleTracking({
   vehicleRouteMapRef,
   vehicleLastPolyIndexRef,
   vehicleStopsStatusRef,
+  expiredVehiclesRef,
 }: UseVehicleTrackingOptions) {
 
   const processLocationUpdate = useCallback(
     (data: LocationUpdateData) => {
       if (!mapRef.current) return;
 
-      const id = String(data.vehicleId || data.id);
+      const id = data.vehicleId;
+      const stateLocation = data.serviceState === "live"
+        ? data.liveLocation
+        : data.serviceState === "stale"
+          ? data.lastKnownLocation
+          : null;
+      const routeId = data.routeAuthority === "unknown" ? null : data.routeId;
 
-      const currentSpeed = Number(data.speed ?? data.velocity ?? 15);
-      if (!vehicleSpeedHistoryRef.current[id])
-        vehicleSpeedHistoryRef.current[id] = [];
-      vehicleSpeedHistoryRef.current[id].push(currentSpeed);
-      if (vehicleSpeedHistoryRef.current[id].length > 5)
-        vehicleSpeedHistoryRef.current[id].shift();
+      if (!stateLocation || !routeId) {
+        vehicleRouteMapRef.current[id] = "";
+        const marker = vehiclesRef.current[id];
+        if (marker && mapRef.current.hasLayer(marker)) mapRef.current.removeLayer(marker);
+        const unavailableInfo: ActiveVehicleInfo = {
+          prev: "ไม่พร้อมให้บริการ",
+          next: "ไม่พร้อมให้บริการ",
+          eta: null,
+          nextStopId: null,
+        };
+        vehicleStopsStatusRef.current[id] = unavailableInfo;
+        onVehicleUpdate(id, unavailableInfo);
+        updateAvailableCount();
+        return;
+      }
 
-      const rawLat = Number(data.lat);
-      const rawLng = Number(data.lng);
+      const currentSpeed = Number(stateLocation.speed ?? 15);
+      if (data.serviceState === "live") {
+        if (!vehicleSpeedHistoryRef.current[id])
+          vehicleSpeedHistoryRef.current[id] = [];
+        vehicleSpeedHistoryRef.current[id].push(currentSpeed);
+        if (vehicleSpeedHistoryRef.current[id].length > 5)
+          vehicleSpeedHistoryRef.current[id].shift();
+      }
+
+      const rawLat = Number(stateLocation.lat);
+      const rawLng = Number(stateLocation.lng);
       const newPos: [number, number] = [rawLat, rawLng];
+      vehicleRouteMapRef.current[id] = routeId;
 
-      if (!vehicleRouteMapRef.current[id])
-        vehicleRouteMapRef.current[id] = selectedRouteRef.current;
-      const routeId = vehicleRouteMapRef.current[id];
-
-      const backendBearing = Number(data.bearing ?? data.heading ?? 0);
+      const backendBearing = Number(stateLocation.heading ?? 0);
 
       // 1. Calculate polyline index for ETA
       const coords = routeGeometryRef.current[routeId];
@@ -99,6 +122,7 @@ export function useVehicleTracking({
         });
         vehiclesRef.current[id] = marker;
         prevPositionsRef.current[id] = newPos;
+        marker.setOpacity(data.serviceState === "stale" ? 0.55 : 1);
 
         marker.on("click", (e) => {
           L.DomEvent.stopPropagation(e);
@@ -114,6 +138,7 @@ export function useVehicleTracking({
 
       // 3. Update existing marker
       const marker = vehiclesRef.current[id];
+      marker.setOpacity(data.serviceState === "stale" ? 0.55 : 1);
       if (vehicleRouteMapRef.current[id] === selectedRouteRef.current) {
         if (!mapRef.current.hasLayer(marker)) marker.addTo(mapRef.current);
       } else {
@@ -137,7 +162,7 @@ export function useVehicleTracking({
       const currentIdx = vehicleLastPolyIndexRef.current[id] ?? -1;
       const { prevStopName, nextStopName, nextStopObj } = findPrevNextStops(routeStops, currentIdx, coords);
 
-      const etaVal = nextStopObj
+      const etaVal = data.serviceState === "live" && !expiredVehiclesRef.current[id] && nextStopObj
         ? getVehicleETAToStop(id, nextStopObj, {
             vehicleRouteMap: vehicleRouteMapRef.current,
             routeGeometry: routeGeometryRef.current,
@@ -166,7 +191,7 @@ export function useVehicleTracking({
       }
 
       // Camera tracking
-      onCameraTrack(id, newPos);
+      if (data.serviceState === "live") onCameraTrack(id, newPos);
 
       updateAvailableCount();
     },
@@ -185,6 +210,7 @@ export function useVehicleTracking({
       vehicleRouteMapRef,
       vehicleLastPolyIndexRef,
       vehicleStopsStatusRef,
+      expiredVehiclesRef,
     ]
   );
 
