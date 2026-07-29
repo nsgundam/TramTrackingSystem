@@ -14,6 +14,7 @@ import tripsRouter from "./routes/trips.route.js";
 import publicRouter from "./routes/public.route.js";
 import ingestRouter from "./routes/ingest.route.js";
 import devicesRouter from "./routes/devices.route.js";
+import researchRouter from "./routes/research.route.js";
 
 import {
   authenticateToken,
@@ -27,6 +28,7 @@ import {
   processObservation,
   startSourceHealthSweep,
 } from "./services/tracking.service.js";
+import { extractResearchMetadata } from "./services/research-diagnostics.service.js";
 import {
   configureCanonicalStatePublisher,
   createSocketCanonicalPublisher,
@@ -113,6 +115,7 @@ app.use("/api/admin/routes", authenticateToken, routeRouter);
 app.use("/api/admin/stops", authenticateToken, stopRouter);
 app.use("/api/admin/route-stops", authenticateToken, routeStopsRouter);
 app.use("/api/admin/devices", authenticateToken, devicesRouter);
+app.use("/api/research", authenticateToken, researchRouter);
 
 // Public & Ingest Routes (Open)
 app.use("/api/public", publicRouter);
@@ -240,6 +243,7 @@ io.on("connection", (socket) => {
       } catch (error) {
         const invalid = mapBoundaryError(error, new BoundaryError(400, 'INVALID_REQUEST', 'Location payload is invalid'));
         const response = { ok: false, code: invalid.code, error: invalid.message };
+        console.warn(`[Socket.IO] send-location invalid payload rejected: ${invalid.message}`, { rawData });
         emitSocketOutcome({ level: 'warn', outcome: 'rejected', reasonCode: invalid.code });
         respond(response);
         socket.emit('error-response', response);
@@ -343,6 +347,11 @@ io.on("connection", (socket) => {
         bearing: observation.bearing,
         accuracy: observation.accuracy,
         station: observation.station,
+        transport: 'socketio',
+        researchMetadata: extractResearchMetadata(rawData, 'socketio'),
+        accuracyUnit: observation.accuracy === undefined ? undefined : 'm',
+        accuracyKind: observation.accuracy === undefined ? undefined : 'radius_m',
+        accuracySource: observation.accuracy === undefined ? undefined : 'mobile_reported',
       });
 
       emitSocketOutcome({

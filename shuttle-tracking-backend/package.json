@@ -9,6 +9,7 @@
     "test:operations": "npm run build && node tests/test_t5_operations.js",
     "test:socket": "node tests/test_socket_boundary.js",
     "test:t6": "npm run build && node tests/test_t6_canonical_state.js && node tests/test_t6_realtime.js",
+    "test:t7": "npm run build && node tests/test_t7_research_contract.js && node tests/test_t7_metrics.js && node tests/test_t7_data_lifecycle.js && node tests/test_t7_export.js && node tests/test_t7_retention.js && node tests/test_t7_backup_verification.js && node tests/test_t7_canonical_boundary.js",
     "prisma:validate": "npx prisma validate",
     "check": "npm run test && npm run prisma:validate",
     "dev": "nodemon",

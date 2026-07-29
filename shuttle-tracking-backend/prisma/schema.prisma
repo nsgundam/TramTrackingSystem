@@ -17,6 +17,7 @@ model User {
   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   username      String   @unique @db.VarChar(50)
   passwordHash  String   @map("password_hash") @db.VarChar(255)
+  role          String   @default("OPERATOR") @db.VarChar(30)
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(6)
 
   @@map("users")
@@ -196,4 +197,184 @@ model Feedback {
   @@index([type])
   @@index([vehicleId])
   @@map("feedback")
+}
+
+// ============================================
+// 10. T7 RESEARCH SESSIONS
+// ============================================
+model ResearchSession {
+  id                     String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  experimentId           String                    @map("experiment_id") @db.VarChar(100)
+  sessionAlias           String                    @map("session_alias") @db.VarChar(100)
+  protocolVersion        String                    @map("protocol_version") @db.VarChar(50)
+  metricDefinitionVersion String                   @map("metric_definition_version") @db.VarChar(50)
+  status                 String                    @db.VarChar(30)
+  startedAt              DateTime                  @map("started_at") @db.Timestamptz(6)
+  endedAt                DateTime?                 @map("ended_at") @db.Timestamptz(6)
+  routeId                String?                   @map("route_id") @db.VarChar(50)
+  routeGeometryVersion   String?                   @map("route_geometry_version") @db.VarChar(100)
+  consentBasisVersion    String                    @map("consent_basis_version") @db.VarChar(50)
+  aggregateRetentionClass String                  @default("manual_delete") @map("aggregate_retention_class") @db.VarChar(30)
+  createdAt              DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  rawObservations ResearchRawObservation[]
+  aggregates     ResearchMetricAggregate[]
+  lifecycleRuns  ResearchLifecycleRun[]
+
+  @@index([experimentId, startedAt(sort: Desc)])
+  @@index([status, startedAt(sort: Desc)])
+  @@map("research_sessions")
+}
+
+// ============================================
+// 11. T7 APPEND-ONLY RAW OBSERVATIONS
+// ============================================
+model ResearchRawObservation {
+  id                              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId                       String    @map("session_id") @db.Uuid
+  runId                           String    @map("run_id") @db.VarChar(100)
+  vehicleIdAtReceive              String?   @map("vehicle_id_at_receive") @db.VarChar(50)
+  tripId                          String?   @map("trip_id") @db.Uuid
+  sourceId                        String    @map("source_id") @db.VarChar(50)
+  sourceType                      String    @map("source_type") @db.VarChar(30)
+  sourceUnitKey                   String    @map("source_unit_key") @db.VarChar(100)
+  routeId                         String?   @map("route_id") @db.VarChar(50)
+  routeGeometryVersion            String?   @map("route_geometry_version") @db.VarChar(100)
+  segmentId                       String?   @map("segment_id") @db.VarChar(100)
+  metricDefinitionVersion         String    @map("metric_definition_version") @db.VarChar(50)
+  transport                       String    @db.VarChar(30)
+  payloadSchemaVersion            String    @map("payload_schema_version") @db.VarChar(50)
+  deviceModel                     String?   @map("device_model") @db.VarChar(100)
+  deviceOsOrAppVersion            String?   @map("device_os_or_app_version") @db.VarChar(100)
+  firmwareVersion                 String?   @map("firmware_version") @db.VarChar(100)
+  codecVersion                    String?   @map("codec_version") @db.VarChar(100)
+  mountingProfile                 String?   @map("mounting_profile") @db.VarChar(100)
+  powerProfile                    String?   @map("power_profile") @db.VarChar(100)
+  fieldNotes                      String?   @map("field_notes") @db.VarChar(500)
+  latitude                        Decimal?  @db.Decimal(10, 7)
+  longitude                       Decimal?  @db.Decimal(10, 7)
+  location                        Unsupported("geography")?
+  speedMps                        Decimal?  @map("speed_mps") @db.Decimal(8, 3)
+  headingDeg                      Decimal?  @map("heading_deg") @db.Decimal(6, 2)
+  producerEventTime               DateTime? @map("producer_event_time") @db.Timestamptz(6)
+  producerEventTimeKind            String?   @map("producer_event_time_kind") @db.VarChar(40)
+  producerMonotonicTime            BigInt?   @map("producer_monotonic_time")
+  producerClockId                  String?   @map("producer_clock_id") @db.VarChar(100)
+  producerClockStatus              String?   @map("producer_clock_status") @db.VarChar(40)
+  providerReceiveTime              DateTime? @map("provider_receive_time") @db.Timestamptz(6)
+  providerNetworkReceiveTime       DateTime? @map("provider_network_receive_time") @db.Timestamptz(6)
+  backendReceiveTime               DateTime  @map("backend_receive_time") @db.Timestamptz(6)
+  processTime                      DateTime  @map("process_time") @db.Timestamptz(6)
+  selectedTime                     DateTime? @map("selected_time") @db.Timestamptz(6)
+  sourceSequence                   String?   @map("source_sequence") @db.VarChar(100)
+  sourceSequenceKind               String?   @map("source_sequence_kind") @db.VarChar(40)
+  traceId                          String?   @map("trace_id") @db.VarChar(100)
+  clockUncertaintyMs               Int?      @map("clock_uncertainty_ms")
+  clockOffsetMs                    Int?      @map("clock_offset_ms")
+  validationOutcome                String    @map("validation_outcome") @db.VarChar(30)
+  duplicateOf                      String?   @map("duplicate_of") @db.Uuid
+  rejectReason                     String?   @map("reject_reason") @db.VarChar(100)
+  lateReason                       String?   @map("late_reason") @db.VarChar(100)
+  canonicalDisposition              String    @map("canonical_disposition") @db.VarChar(40)
+  reportedAccuracyValue             Decimal?  @map("reported_accuracy_value") @db.Decimal(12, 3)
+  reportedAccuracyUnit              String?   @map("reported_accuracy_unit") @db.VarChar(30)
+  reportedAccuracyKind              String?   @map("reported_accuracy_kind") @db.VarChar(40)
+  reportedAccuracySource            String?   @map("reported_accuracy_source") @db.VarChar(40)
+  observedTimestampDifferenceMs     Int?      @map("observed_timestamp_difference_ms")
+  clockBasis                        String?   @map("clock_basis") @db.VarChar(40)
+  latencyClaim                      String?   @map("latency_claim") @db.VarChar(40)
+  routeConformanceStatus            String?   @map("route_conformance_status") @db.VarChar(40)
+  routeConformanceDistanceM         Decimal?  @map("route_conformance_distance_m") @db.Decimal(12, 3)
+  pairMatchId                       String?   @map("pair_match_id") @db.VarChar(100)
+  pairingWindowMs                   Int?      @map("pairing_window_ms")
+  pairwiseDisagreementM             Decimal?  @map("pairwise_disagreement_m") @db.Decimal(12, 3)
+  ttnFramePort                      Int?      @map("ttn_frame_port")
+  ttnFrameCounter                   BigInt?   @map("ttn_frame_counter")
+  gatewayCount                      Int?      @map("gateway_count")
+  rssi                              Decimal?  @db.Decimal(8, 2)
+  snr                               Decimal?  @db.Decimal(8, 2)
+  providerMetadataAllowlistVersion  String?   @map("provider_metadata_allowlist_version") @db.VarChar(50)
+  batteryPercentage                 Decimal?  @map("battery_percentage") @db.Decimal(5, 2)
+  networkType                       String?   @map("network_type") @db.VarChar(40)
+  wifiRssi                          Decimal?  @map("wifi_rssi") @db.Decimal(8, 2)
+  lorawanRssi                       Decimal?  @map("lorawan_rssi") @db.Decimal(8, 2)
+  lorawanSnr                        Decimal?  @map("lorawan_snr") @db.Decimal(8, 2)
+  dedupeKey                         String?   @map("dedupe_key") @db.VarChar(160)
+  createdAt                         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  session ResearchSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, runId, backendReceiveTime, id])
+  @@index([sourceId, backendReceiveTime, id])
+  @@index([vehicleIdAtReceive, backendReceiveTime, id])
+  @@index([backendReceiveTime])
+  @@index([validationOutcome, backendReceiveTime])
+  @@unique([sessionId, sourceId, dedupeKey])
+  @@map("research_raw_observations")
+}
+
+// ============================================
+// 12. T7 TYPED METRIC AGGREGATES
+// ============================================
+model ResearchMetricAggregate {
+  id                         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId                  String    @map("session_id") @db.Uuid
+  metricDefinitionVersion   String    @map("metric_definition_version") @db.VarChar(50)
+  timeBucket                 DateTime? @map("time_bucket") @db.Timestamptz(6)
+  sourceAlias                String?   @map("source_alias") @db.VarChar(100)
+  vehicleAlias               String?   @map("vehicle_alias") @db.VarChar(100)
+  routeAlias                 String?   @map("route_alias") @db.VarChar(100)
+  transport                  String?   @db.VarChar(30)
+  sampleCount                Int       @map("sample_count")
+  validCount                 Int       @map("valid_count")
+  missingCount               Int       @map("missing_count")
+  duplicateCount             Int       @map("duplicate_count")
+  lateCount                  Int       @map("late_count")
+  availabilityCount          Int       @map("availability_count")
+  cadenceMeanMs              Decimal?  @map("cadence_mean_ms") @db.Decimal(12, 3)
+  cadenceJitterMs             Decimal?  @map("cadence_jitter_ms") @db.Decimal(12, 3)
+  observedTimestampDifferenceMs Decimal? @map("observed_timestamp_difference_ms") @db.Decimal(12, 3)
+  routeConformanceDistanceM  Decimal?  @map("route_conformance_distance_m") @db.Decimal(12, 3)
+  pairwiseDisagreementM      Decimal?  @map("pairwise_disagreement_m") @db.Decimal(12, 3)
+  reportedAccuracyValue      Decimal?  @map("reported_accuracy_value") @db.Decimal(12, 3)
+  groundTruthErrorM          Decimal?  @map("ground_truth_error_m") @db.Decimal(12, 3)
+  inputWatermark              DateTime? @map("input_watermark") @db.Timestamptz(6)
+  deletionStatus              String    @default("retained_manual_delete") @map("deletion_status") @db.VarChar(40)
+  createdAt                   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  computedAt                  DateTime  @map("computed_at") @db.Timestamptz(6)
+
+  session ResearchSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, computedAt(sort: Desc)])
+  @@index([sourceAlias, computedAt(sort: Desc)])
+  @@map("research_metric_aggregates")
+}
+
+// ============================================
+// 13. T7 LIFECYCLE / BACKUP VERIFICATION RUNS
+// ============================================
+model ResearchLifecycleRun {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId          String?   @map("session_id") @db.Uuid
+  runId              String    @map("run_id") @db.VarChar(100)
+  action             String    @db.VarChar(40)
+  cutoff             DateTime? @db.Timestamptz(6)
+  candidateRowCount  Int?      @map("candidate_row_count")
+  backupRowCount     Int?      @map("backup_row_count")
+  deletedRowCount    Int?      @map("deleted_row_count")
+  artifactName       String?   @map("artifact_name") @db.VarChar(255)
+  artifactSha256     String?   @map("artifact_sha256") @db.VarChar(64)
+  verificationStatus String    @map("verification_status") @db.VarChar(30)
+  actorRole          String    @map("actor_role") @db.VarChar(30)
+  scope              String?   @db.VarChar(255)
+  startedAt          DateTime  @map("started_at") @db.Timestamptz(6)
+  endedAt            DateTime? @map("ended_at") @db.Timestamptz(6)
+  errorCode          String?   @map("error_code") @db.VarChar(80)
+
+  session ResearchSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([action, startedAt(sort: Desc)])
+  @@index([verificationStatus, startedAt(sort: Desc)])
+  @@map("research_lifecycle_runs")
 }

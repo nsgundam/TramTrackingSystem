@@ -4,15 +4,15 @@ Audit metadata:
 - Evidence baseline: `fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
 - Evidence scope: `docs/project-knowledge-base.md`, all current domain audits under `docs/audits/`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, and this roadmap.
 - Reviewed at: `2026-07-29T11:24:00+07:00`
-- Validation state: **Validated**
+- Validation state: **Validated with T7 re-audit follow-up**
 - Predecessor baselines: Discovery and Product `@ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`; Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps/Observability, and Production Readiness `@ fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`; approved decisions D-001 through D-006, with D-006 coordination changes currently uncommitted.
 
 Last reviewed: 2026-07-29
 
-Validation state: **Validated**. All domain audits and Production Readiness have current
-evidence-baseline metadata at the re-audit baseline. T1–T6 remain complete; T7's Level 1 freshness
-gate now passes, but its implementation/stateful-validation gate remains held until the D-006 exact
-target evidence is attached and validated. T8 retains an independent public live-count expiry handoff.
+Validation state: **Validated with T7 re-audit follow-up**. The Level 1 freshness gate passed at the
+re-audit baseline. T1–T6 remain complete; T7's approved disposable migration and stateful checks passed,
+while affected audits still require Level 1 re-audit before any promotion claim. T8 retains an
+independent public live-count expiry handoff.
 
 ## 1. Executive Summary
 
@@ -26,7 +26,7 @@ This roadmap supersedes the earlier task list. It uses all completed re-audits a
 - D-005 = A: keep stale observability separate from Trip closure and use an explicit/manual close
   path for the controlled MVP; any future auto-close needs a separate policy decision.
 - D-006: use the isolated `t7-disposable` target and safer bounded research export controls; record
-  the exact Redis image/digest and target execution evidence before stateful validation.
+  the exact Redis image/digest and target execution evidence before and during stateful validation.
 
 The production determination remains No-Go. D-001 reduces the immediate product scope but does not make public/daily risks acceptable. Phase 1 improves controlled-MVP safety and repeatability. Phase 2 creates the reusable technical contracts. Phase 3 stays deferred until D-001 is upgraded. Do not add playback, microservices, a second ingestion pipeline, or an operations suite early.
 
@@ -36,14 +36,14 @@ The production determination remains No-Go. D-001 reduces the immediate product 
 |---|---:|---|---|
 | Knowledge Base | 2026-07-22 | Complete / Validated | Discovery remains validated at `847a18c...`; external deployment/device facts remain unknown. |
 | Product | 2026-07-22 | Complete / Validated | Product remains validated at `847a18c...`; D-001=A controlled demonstration is current. |
-| Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps/Observability audits | 2026-07-29 | Complete / Validated | Sequential re-audits passed at `fa9441b...`; remaining domain findings are carried forward with explicit states. |
-| Production Readiness Audit | 2026-07-29 | Complete / Validated | Controlled demo is Conditional Go under D-001=A; research, internal daily operations, and public production remain No-Go. |
-| Decision Queue and T7 owner/task evidence | 2026-07-29 | Approved with follow-up evidence | D-001–D-006 are recorded; D-006 exact Redis digest, target scope/mutations, cleanup, rollback, and task metadata synchronization remain required before T7 stateful validation. |
+| Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps/Observability audits | 2026-07-29 | Complete / Validated with T7 follow-up | Sequential re-audits passed at `fa9441b...`; T7 implementation changes now require targeted Level 1 re-audits for the affected architecture, backend, database, security, and target-evidence claims. |
+| Production Readiness Audit | 2026-07-29 | Complete / Validated with T7 follow-up | Controlled demo remains Conditional Go under D-001=A; T7 research remains No-Go until affected audits and disposable stateful evidence are revalidated. |
+| Decision Queue and T7 owner/task evidence | 2026-07-29 | Approved; disposable execution complete | D-001–D-006 are recorded, the T7 task metadata and D-006 target record are synchronized, Owner/Level 1 approval was recorded, and the approved stateful evidence is attached to the task spec. |
 
-No required audit input is stale under the current audit contract. Hosting, TLS, production recovery,
-browser/runtime behavior, physical devices, and TTN console state remain external unknowns. T7 also
-has a non-owner execution-evidence follow-up under D-006; the exact Redis digest and disposable-run
-record are not yet present.
+The T7 implementation changes make the affected Architecture, Backend, Database, Infrastructure &
+Device, Security/DevOps/Observability, and Production Readiness evidence pending targeted re-audit;
+Level 1 owns that revalidation. Hosting, TLS, production recovery, browser/runtime behavior, physical
+devices, and TTN console state remain external unknowns.
 
 ## 3. Consolidated Recommendation List
 
@@ -77,7 +77,7 @@ Every Critical/High finding is represented. T10–T12 are carried forward becaus
 | T4 | Complete | CI checks and redacted process-local signals validated; no production alerting claim. |
 | T5 | Complete | Transactional/idempotent Operations/Trip owner and migration evidence validated. |
 | T6 | Complete | Re-audited at the current baseline: canonical REST/Socket parity, version/route/freshness semantics, frontend guards, admin state surface, and public neutral presentation are current; a public live-count expiry gap is carried into T8/T6 follow-up. |
-| T7 | Pending | Level 1 audit-freshness gate passed on 2026-07-29 and D-006 resolves the owner parameter ambiguity. Hold implementation/stateful validation until exact Redis digest, target credentials/data scope, expected mutations, cleanup/rollback evidence, and synchronized task metadata are attached and validated. |
+| T7 | Complete for approved disposable scope — Level 1 re-audit pending | Additive implementation, migration, protected export/lifecycle checks, Redis failure/recovery, retention, backup/restore, canonical-boundary, and query-plan evidence passed on 2026-07-29 using the exact D-006 target. Do not promote research capability to production/public operation until affected audits are revalidated. |
 | T8 | Pending | T6 canonical-state contract is accepted; the Dashboard/Frontend re-audit records a public live-count expiry gap, and the route mutation portion also depends on T10. |
 | T9 | Blocked | D-003 ordering is approved, but hosting, domain, TLS, Redis/DB placement, and operations-owner facts are missing. |
 | T10 | Deferred | Requires T8 and D-001 upgrade from controlled demo to B/C. |
@@ -551,8 +551,9 @@ T3, T6, and documented retention/deletion parameters.
 D-002=B and D-006 are approved. Raw retention is 90 days from backend receive time; aggregate
 deletion, protected `DEV`/`SUPER_ADMIN` access, safer bounded default exports, break-glass full
 exports, manifests, and temporary-artifact cleanup are documented. The exact Redis image/digest,
-credentials/data scope, expected mutations, cleanup, rollback, and task metadata synchronization
-remain required evidence before stateful validation.
+credentials/data scope, expected mutations, cleanup, rollback, approval, and disposable stateful
+evidence are recorded in the T7 task spec; affected-audit revalidation remains required before
+promotion.
 
 ### Dependency Note
 
@@ -598,18 +599,21 @@ tested; secrets are absent from data/response paths.
 
 ### Status
 
-Pending — the Level 1 audit-freshness gate passed on 2026-07-29, but implementation and stateful
-validation remain on hold under D-006 until the exact disposable-target evidence is recorded and
-validated. Do not use the ambient `shuttle-*` stack.
+Complete for approved disposable scope — implementation, migration, runtime, and stateful validation
+passed on 2026-07-29 against the recorded `t7-disposable` target. Affected audit rows remain
+`Needs Re-audit`; do not use the ambient `shuttle-*` stack or promote the research capability before
+Level 1 validates the changed evidence.
 
 ### Evidence
 
-The current T6 contract and all required Level 1 re-audits are validated at
-`fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`. D-006 is recorded in `docs/decision-queue.md` and the
-owner follow-up is reflected in the T7 task. No T7 schema, migration, raw service, research read,
-export, retention job, backup/restore, Redis-failure, or stateful disposable test has run. The T7
-task's earlier approved-decision summary still needs D-006 metadata synchronization before Level 3
-consumption.
+The current T6 contract and Level 1 freshness baseline are recorded at
+`fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`. D-006, the pinned official Redis image/index digest,
+and the target execution record are attached in `docs/tasks/T7-raw-research-observations.md`.
+Safe T7 implementation, build, contract tests, Prisma validation, repository CI, and diff checks
+passed on 2026-07-29. The approved disposable migration, runtime smoke, backup/restore,
+retention/deletion, Redis failure/recovery, export, canonical-boundary, and query-plan checks also
+passed using synthetic/redacted data. Affected audit rows remain `Needs Re-audit` pending Level 1
+validation; production/public promotion is not implied.
 
 ### T8 — Make maps truthful and repair route/cache behavior
 
@@ -1148,7 +1152,7 @@ The Decision Queue is approved. Remaining implementation parameters are:
 | Needed information | Blocks | Reason |
 |---|---|---|
 | Hosting/topology, domains, TLS terminator, and operations owner | T9, T13 | D-003 resolves order, not provider/domain/recovery choice. |
-| Exact T7 Redis image/digest, disposable credentials/data scope, expected mutations, cleanup, rollback, and task-handoff metadata | T7 | D-006 supplies the safer target/policy, but stateful validation must remain isolated and auditable. |
+| Affected-audit revalidation and promotion decision for T7 | T7 | Owner/Level 1 approval and isolated stateful evidence are recorded; Level 1 must validate the changed architecture, backend, database, security, infrastructure, roadmap, and production-readiness evidence before promotion. |
 | TTN application/device IDs; physical device/module models; firmware/provisioning; clock/reference and field protocol | T15 | D-004 fixes transport roles and dashboard scope, but repository evidence cannot establish physical behavior or absolute accuracy. |
 | Feedback triage owner and privacy/retention policy | T12 | Needed only if scope becomes C. |
 
@@ -1168,13 +1172,11 @@ This review does not implement or runtime-test code. It does not choose provider
 
 ## 15. Handoff
 
-T1–T6 are complete and all required domain/Production Readiness audits are current at the roadmap
-baseline. The T7 Level 1 freshness gate passes, but T7 implementation/stateful validation remains
-held until the exact D-006 target evidence and task metadata synchronization are attached and
-validated. T8 retains a separate public live-count expiry handoff; its route mutation portion remains
-dependent on T10. Before any T7 implementation, use the existing immutable task contract with exact
-repository-relative paths, invariants, acceptance checks, rollout limits, and stop conditions. T9
-remains blocked until the owner supplies topology facts.
+T1–T6 are complete at the roadmap baseline. T7 implementation and approved disposable stateful
+validation pass, while affected audits require Level 1 re-audit before promotion. T8 retains a
+separate public live-count expiry handoff; its route mutation portion remains dependent on T10. The
+next T7 handoff is Level 1 evidence revalidation. T9 remains blocked until the owner supplies
+topology facts.
 
 Validate each completed task against its originating audit finding before advancing. Re-run Production Readiness only after the production-bar tasks applicable to the desired release scope are complete.
 
@@ -1183,13 +1185,14 @@ Validate each completed task against its originating audit finding before advanc
 **Roadmap impact:** D-001=A defers daily/public workflows to Phase 3; D-002=B creates T7 research
 diagnostics; D-003=A removes the configuration cycle by sequencing T9 before alignment; D-005 keeps
 stale observability separate from Trip closure and preserves a neutral public presentation; D-006
-resolves T7's safer target/export policy. T6 and all audits are current, but T7 remains on hold for
-exact disposable-target evidence and task-handoff synchronization.
+resolves T7's safer target/export policy. T6 remains complete; T7 implementation and approved
+disposable stateful evidence are recorded, while affected audits need Level 1 re-audit before
+promotion.
 
 **Assumptions and unknowns:** the next release is supervised and does not claim daily/public service; diagnostics are bounded/protected; no topology/provider/device fact is assumed.
 
 **Confidence:** High for the evidence-based task ordering. Medium for later execution because topology, retention parameters, and device facts are external inputs.
 
 **Deferred decisions:** topology details, physical sender/provider facts, feedback ownership,
-playback/report scope, and scale-triggered features. D-006 retention/access/export parameters are
-approved; its exact execution evidence is still outstanding.
+playback/report scope, and scale-triggered features. D-006 retention/access/export parameters and the
+T7 target record and disposable evidence are documented; affected-audit revalidation remains open.

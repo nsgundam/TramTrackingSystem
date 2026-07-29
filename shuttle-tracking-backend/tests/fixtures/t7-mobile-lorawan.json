@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "t7-fixture-v1",
+  "synthetic": true,
+  "observations": [
+    {
+      "sourceType": "mobile",
+      "sourceUnitKey": "unit-mobile-redacted",
+      "transport": "socketio",
+      "latitude": 13.9531,
+      "longitude": 100.5868,
+      "producerEventTime": "2026-07-29T03:00:00.000Z",
+      "producerEventTimeKind": "android_epoch",
+      "producerMonotonicTime": 1000000000,
+      "producerClockStatus": "unverified",
+      "reportedAccuracyValue": 8.5,
+      "reportedAccuracyUnit": "m",
+      "reportedAccuracyKind": "radius_m",
+      "validationOutcome": "accepted",
+      "canonicalDisposition": "selected"
+    },
+    {
+      "sourceType": "lorawan",
+      "sourceUnitKey": "unit-lorawan-redacted",
+      "transport": "ttn_webhook",
+      "latitude": 13.9532,
+      "longitude": 100.5869,
+      "providerReceiveTime": "2026-07-29T03:00:00.100Z",
+      "sourceSequence": "42",
+      "sourceSequenceKind": "ttn_f_cnt",
+      "ttnFrameCounter": 42,
+      "gatewayCount": 2,
+      "rssi": -92,
+      "snr": 7.5,
+      "validationOutcome": "accepted",
+      "canonicalDisposition": "eligible_not_selected"
+    }
+  ]
+}

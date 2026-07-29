@@ -24,6 +24,7 @@ import {
   senderKey,
 } from '../middleware/rate-limit.js';
 import type { ObservationInput } from '../middleware/validation.js';
+import { extractResearchMetadata } from '../services/research-diagnostics.service.js';
 import {
   emitOperationalSignal,
   getRequestId,
@@ -51,6 +52,12 @@ const hasCoordinateField = (value: Record<string, unknown> | undefined): boolean
   Boolean(value && ['latitude', 'longitude', 'lat', 'lng'].some((key) => value[key] !== undefined));
 
 const sourceLimit = rateLimit({ scope: 'sender:observation', ...RATE_LIMITS.sender, key: senderKey });
+
+const captureResearchMetadata = (transport: 'http' | 'ttn_webhook') =>
+  (req: Request, res: Response, next: () => void): void => {
+    res.locals.researchMetadata = extractResearchMetadata(req.body, transport);
+    next();
+  };
 
 const ingestionSignal = (
   transport: OperationalTransport,
@@ -98,6 +105,7 @@ const ingestionSignal = (
 router.post(
   '/http',
   ingestionSignal('http', '/api/ingest/http'),
+  captureResearchMetadata('http'),
   validateBody(parseObservation),
   authenticateSenderToken,
   sourceLimit,
@@ -116,6 +124,11 @@ router.post(
       const canonicalState = await processObservation({
         ...observation,
         sender,
+        transport: 'http',
+        researchMetadata: res.locals.researchMetadata,
+        accuracyUnit: observation.accuracy === undefined ? undefined : 'm',
+        accuracyKind: observation.accuracy === undefined ? undefined : 'radius_m',
+        accuracySource: observation.accuracy === undefined ? undefined : 'sender_reported',
       });
 
       res.locals.canonicalEmitted = Boolean(canonicalState);
@@ -249,6 +262,11 @@ router.post(
       const canonicalState = await processObservation({
         ...observation,
         expectedSourceType: 'lorawan',
+        transport: 'ttn_webhook',
+        researchMetadata: extractResearchMetadata(payload, 'ttn_webhook'),
+        accuracyUnit: decoded?.hdop !== undefined ? 'dimensionless' : 'm',
+        accuracyKind: decoded?.hdop !== undefined ? 'hdop' : 'radius_m',
+        accuracySource: 'ttn_payload',
       });
 
       res.locals.canonicalEmitted = Boolean(canonicalState);
