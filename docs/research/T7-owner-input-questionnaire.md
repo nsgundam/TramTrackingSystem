@@ -66,3 +66,11 @@ Owner input is recorded. Level 2 specialists may now proceed with the focused co
 
 - `docs/audits/specialized/T7-product-research-accuracy-protocol.md`
 - `docs/audits/specialized/T7-data-lifecycle-access.md`
+
+## Owner follow-up decision
+
+On 2026-07-29, the owner approved using the Level 2 safer alternatives whenever they are more
+restrictive than the original answers: isolated disposable targets, seven-day temporary raw-artifact
+cleanup after verification, bounded session/time-scoped default exports, controlled break-glass full
+exports, fixed field allowlists, streaming/backpressure, and minimal export manifests. The original
+90-day raw receive-time retention and manual aggregate deletion policy remain in force.

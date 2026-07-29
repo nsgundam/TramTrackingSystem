@@ -2,107 +2,196 @@
 
 Audit metadata:
 
-- Evidence baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
-- Evidence scope: `docs/project-knowledge-base.md`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, `docs/testing/pipeline-smoke-tests.md`, `docs/roadmap/master-refactoring-roadmap.md`, `shuttle-tracking-backend/prisma/schema.prisma`, `shuttle-tracking-backend/prisma.config.ts`, `shuttle-tracking-backend/prisma/migrations/20260217070749_init/migration.sql`, `shuttle-tracking-backend/prisma/migrations/20260714155233_add_tracking_sources/migration.sql`, `shuttle-tracking-backend/prisma/migrations/20260716170000_operationalize_tracking_sources/migration.sql`, `shuttle-tracking-backend/prisma/migrations/20260722120000_transactional_trip_lifecycle/migration.sql`, `shuttle-tracking-backend/src/services/operations.service.ts`, `shuttle-tracking-backend/src/services/tracking.service.ts`, `shuttle-tracking-backend/src/controllers/devices.controller.ts`, `shuttle-tracking-backend/src/controllers/public.controller.ts`, `shuttle-tracking-backend/src/controllers/feedback.controller.ts`, `shuttle-tracking-backend/src/services/feedback.service.ts`, `shuttle-tracking-backend/test_t5_operations.js`, and `shuttle-tracking-backend/Dockerfile`.
-- Reviewed at: `2026-07-22T21:25:57+07:00`
+- Evidence baseline: `fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Evidence scope: `docs/project-knowledge-base.md`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, `docs/research/T7-owner-input-questionnaire.md`, `docs/tasks/T7-raw-research-observations.md`, `docs/testing/pipeline-smoke-tests.md`, `docs/roadmap/master-refactoring-roadmap.md`, `docs/audits/specialized/T7-data-lifecycle-access.md`, `docs/audits/specialized/T7-product-research-accuracy-protocol.md`, `shuttle-tracking-backend/prisma/schema.prisma`, `shuttle-tracking-backend/prisma.config.ts`, `shuttle-tracking-backend/prisma/migrations/`, `shuttle-tracking-backend/src/services/operations.service.ts`, `shuttle-tracking-backend/src/services/tracking.service.ts`, `shuttle-tracking-backend/src/controllers/public.controller.ts`, `shuttle-tracking-backend/tests/test_t5_operations.js`, `shuttle-tracking-backend/tests/test_t6_canonical_state.js`, and `shuttle-tracking-backend/tests/test_t6_realtime.js`
+- Reviewed at: `2026-07-29T11:08:56+07:00`
 - Validation state: **Validated**
-- Predecessor baselines: Discovery, Product, and Architecture, each `@ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`
-- Legacy report commit: `85fe892`
+- Predecessor baselines: Discovery and Product `@ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`; Architecture and Backend `@ fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`; Frontend `@ fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Previous report baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
 
 ## 1. Executive Summary
 
-The PostgreSQL/PostGIS schema is proportionate for the controlled demonstration. It has separate route, stop, route-stop, vehicle, trip, sampled GPS, tracking-source, feedback, and admin-user models; PostGIS geography supports the current coordinate storage; source and route-order indexes match current selection/read paths; and T5 adds database trip lifecycle/time checks while the partial unique active-trip index remains.
+The PostgreSQL/PostGIS design remains proportionate for the controlled MVP. Relational ownership,
+the T5 trip lifecycle constraints, source registry constraints, PostGIS coordinate storage, and
+current lookup indexes are present. The T6 backend now reaches the database through the transactional
+operations boundary for sampled canonical history; Redis still controls the approximately 60-second
+sampling admission and remains transient.
 
-T5 resolves the prior system-level lifecycle gap when used through `operations.service.ts`: concurrent starts/end operations are serialized and idempotent, and sampled history is transactionally tied to the active trip. The database is still not a research telemetry store. `gps_tracks` is sampled canonical history, not raw observation history; there are no event/receive timestamps, sequence/deduplication identity, payload version, transport/disposition, experiment/session, reported accuracy, or radio metadata fields. No retention, deletion, archive, partition, playback read, assignment-history, or bounded research-export model exists.
-
-Keep the current schema for D-001=A. D-002=B and D-004 require a bounded raw diagnostics design, but implementation must wait for explicit retention/deletion/access/clock/session parameters and the T6 canonical contract.
+The database is not yet a research telemetry store. `gps_tracks` is sampled canonical history, not
+an append-only raw observation ledger. It lacks producer/receive/process/selection timestamps,
+sequence and deduplication identity, experiment/session identity, transport/schema facts,
+validation/canonical disposition, reported-accuracy semantics, allowlisted radio metadata,
+assignment snapshots, retention execution, protected research reads, and export products. D-006 now
+resolves the previously ambiguous disposable-target and safer-export owner gate, but it does not
+implement these products or authorize a stateful run. The exact Redis image digest and complete
+disposable-run evidence are still required before T7 validation.
 
 ## 2. Scope, Freshness, and Predecessor Gate
 
-This review covers Prisma schema/migrations, PostGIS geography, foreign keys, unique/check constraints, indexes, trip/history writes, source identity/assignment, timestamp types, telemetry fidelity, retention posture, and migration/deployment evidence. It does not run migrations against a live target, inspect query plans at representative volume, or certify backup/restore/deployment rollback.
+The previous Database report was based at `847a18c...`. The required predecessor reports are now
+current: Discovery and Product remain validated at `847a18c...`, while Architecture and Backend are
+validated at `fa9441b...`; Frontend is also validated at `fa9441b...`. The predecessor gate therefore
+passes.
 
-Discovery, Product, and Architecture are Complete and Validated at the same baseline, so the Database predecessor gate passes. The current evidence includes the T5 lifecycle migration/service, source operationalization migrations, research scope, and current data-flow report. The current uncommitted changes are audit documentation only.
+The evidence comparison from the previous Database baseline to the current commit included the T5
+operations/history boundary, T6 public read and canonical-state changes, project knowledge and
+pipeline documentation, the roadmap, and the T5/T6 test artifacts. The current worktree also contains
+uncommitted D-006 owner/coordination documentation; it is treated as coordination evidence only and
+not as implemented database or runtime evidence. No schema/migration change was made in this
+re-audit.
+
+This review covers Prisma schema and migration integrity, PostGIS geography, foreign keys,
+constraints, indexes, trip/history writes, source identity, timestamp semantics, telemetry fidelity,
+retention, export/access boundaries, and T7 database readiness. It does not certify a live database,
+query plans at representative volume, backup/restore, deletion, deployment rollback, Redis version,
+provider behavior, or physical-device behavior.
 
 ## 3. Prior-Finding Revalidation
 
 | Prior finding | State | Current evidence and implication |
 |---|---|---|
-| Source identity/type/status were insufficiently constrained | **Resolved** | Tracking-source migrations constrain type, status, priority, credential version, active vehicle assignment, and active non-LoRaWAN credentials; supporting indexes exist. |
+| Tracking-source identity/type/status constraints were insufficient | **Resolved** | The source migrations constrain identifiers, type, lifecycle status, priority, credential version, active vehicle assignment, and active non-LoRaWAN credentials; the source-selection indexes remain present. |
 | One active trip per vehicle needed a database guard | **Resolved** | `unique_active_trip_per_vehicle` remains a partial unique index for `status = 'in_progress'`. |
-| Lifecycle remained non-idempotent around the database guard | **Resolved** | T5 service transactions, vehicle row locks, idempotent start/end behavior, and lifecycle/time checks close the prior system-level gap; direct future writers must still use the service. |
-| Stored GPS history was too sparse for high-fidelity playback | **Still Present** | Redis admission persists canonical history at most once per vehicle/trip sampling window of approximately 60 seconds; no raw/high-fidelity record exists. |
-| GPS retention, archive, and partition plan were absent | **Still Present** | No retention policy field, deletion job, archive table, partition migration, or operational lifecycle document is present. |
-| Playback index `(trip_id, recorded_at)` was absent | **Still Present** | Only the trip ID index and vehicle/source descending-time indexes exist; no playback endpoint currently justifies the composite index, so this remains a deferred capability rather than an immediate scale fix. |
-| Operational status/coordinate constraints were weak | **Partially Resolved** | T5 constrains trip status/time and source migrations add checks. Route/vehicle/stop statuses remain free-form, geography is nullable, and cross-row GPS trip/vehicle consistency is not database-enforced. |
-| Feedback workflow data was missing | **Still Present** | Feedback stores type, vehicle, message, IP, and creation time only; no status, assignee, resolution, deletion/retention marker, route/trip context, or response target exists. |
-| Tracking-source history was not durable | **Still Present** | `GPSTrack.sourceId` is nullable with `ON DELETE SET NULL`; source assignment changes have no effective-dated history or immutable assignment snapshot. |
-| Operational timestamps had no timezone/event-time contract | **Still Present** | Schema fields use PostgreSQL `TIMESTAMP(6)` rather than `timestamptz`, and GPS `recordedAt` is backend-derived canonical time with no separate producer/receive time. |
+| Trip lifecycle was non-idempotent around the database guard | **Resolved** | `operations.service.ts` locks the vehicle row, serializes start/end/history paths, reuses active trips, and makes repeated end deterministic. T5 test coverage passes statically; live integration still requires an approved disposable target. |
+| Stored GPS history was too sparse for high-fidelity playback | **Still Present** | `persistSampledHistory` admits at most one canonical sample per vehicle sampling window of about 60 seconds. No raw observation ledger or playback read path exists. |
+| GPS retention, archive, and partition plan were absent | **Still Present** | D-006 and the T7 briefs now define a 90-day raw receive-time policy, aggregate deletion, backup verification, and temporary-artifact cleanup, but no retention job, archive/partition migration, lifecycle run record, or deletion test exists. |
+| Playback index `(trip_id, recorded_at)` was absent | **Still Present** | Only the trip ID index and vehicle/source descending-time indexes exist. Add the composite index only with an approved bounded playback/research query and representative query-plan evidence. |
+| Operational status/coordinate constraints were weak | **Partially Resolved** | Trip status/time checks and source checks are validated in migrations. Route, vehicle, and stop statuses remain free-form; geography remains nullable; and the database does not enforce GPS trip/vehicle equality as a composite invariant. |
+| Feedback workflow data was missing | **Still Present** | Feedback has type, vehicle, message, IP, and creation time only. There is no status, owner, resolution, retention marker, or case-management relation. |
+| Tracking-source assignment history was not durable | **Still Present** | `TrackingSource.vehicleId` is a current pointer and `GPSTrack.sourceId` is nullable with `ON DELETE SET NULL`; assignment changes have no effective-dated history or immutable receipt snapshot. |
+| Operational timestamps lacked timezone/event-time contract | **Still Present** | Existing fields use PostgreSQL `TIMESTAMP(6)`. `GPSTrack.recordedAt` is canonical backend input time; producer event time and backend receive time are not separately durable. |
+| T7 retention/access/export parameters were incomplete | **Partially Resolved** | D-006 approves the isolated `t7-disposable` target, 90-day receive-time retention, safer bounded default exports, break-glass full export, fixed allowlists, streaming/backpressure, manifests, and seven-day temporary-artifact cleanup. The schema, role model, protected API, retention job, export, and verification implementation remain absent. |
 
 ## 4. Schema and Relationship Review
 
-| Model/product | Current assessment |
+| Product | Current assessment |
 |---|---|
-| User | Unique username and password hash support current admin login. There is no role/status/action-audit relation. |
-| Route / Stop | Durable master data with free-form status; Stop geography is nullable and public reads assume usable coordinates. |
+| User | Unique username and password hash support the current admin login. There is no role/status/action-audit relation, so T7 `DEV`/`SUPER_ADMIN` authorization cannot yet be represented by the current model. |
+| Route / Stop | Durable master data with nullable PostGIS stop geography and free-form status. Public reads still depend on usable coordinates. |
 | RouteStop | Ordered junction with unique `(routeId, stopOrder)` and route/stop foreign keys. Duplicate stop IDs on one route remain a product decision for loops. |
-| Vehicle | Optional assigned route and free-form status; no persisted active-trip pointer or source-health read model. |
-| Trip | Vehicle/route/start/end/status record. T5 migration restricts status to `in_progress`/`completed`, requires matching end-time presence, and prevents end before start. |
-| GPSTrack | BigInt sample ID, trip/vehicle, nullable geography, speed, heading, station, nullable source, and backend-derived recorded time. It cannot represent raw observation fidelity or a source-selection disposition. |
-| TrackingSource | Source type/status/priority/credential lifecycle/last-seen and optional vehicle assignment. Assignment history and raw producer metadata are absent. |
-| Feedback | Public capture record only; no case-management state. IP is stored as `inet` without a declared retention/deletion process. |
+| Vehicle | Current route assignment and status are durable; there is no persisted assignment history or active-trip pointer. |
+| Trip | Vehicle/route/start/end/status record. The T5 migration restricts status to `in_progress`/`completed`, requires matching end-time presence, and prevents end before start. |
+| GPSTrack | Sampled canonical point with trip/vehicle, optional geography, speed, heading, station, source, and canonical `recordedAt`. It must not be repurposed as T7 raw research storage. |
+| TrackingSource | Source type/status/priority/credential lifecycle/last-seen and optional current vehicle assignment. Historical assignment and raw producer facts are absent. |
+| Feedback | Public capture record only; no case workflow or retention/deletion lifecycle. IP storage has no documented deletion execution. |
 
-Foreign keys preserve core ownership: route-stop deletes cascade from routes and stop deletion is restricted; trip deletion cascades GPS samples; vehicle/trip relationships restrict deletion; source and feedback references use `SET NULL`. `GPSTrack.sourceId` therefore loses historical source attribution when a source is deleted. Source retirement is safer than deletion for current operations.
-
-The database does not enforce GPS trip/vehicle equality as a composite relationship. Current `recordCanonicalHistory` supplies matching values, but a future direct writer could create a contradictory sample. Add a database invariant only if more direct writers are approved; otherwise keep the service as the required write boundary.
+Foreign keys preserve core ownership: route-stop deletes cascade from routes and stop deletion is
+restricted; trip deletion cascades GPS samples; vehicle/trip relationships restrict vehicle deletion;
+and source/feedback references use `SET NULL`. Source retirement is safer than deleting a source when
+historical attribution matters. The database does not enforce that `GPSTrack.vehicleId` matches the
+referenced trip's vehicle; the T5 service validates this write boundary, but a future direct writer
+could bypass it.
 
 ## 5. Indexing and Query-Shape Review
 
-Current indexes support active vehicle/stop filters, vehicle route assignment, ordered route stops, active source selection `(vehicle_id, status, priority, id)`, source last-seen lookup, active-trip lookup/uniqueness, and sampled history by vehicle/source/time. `gps_tracks_trip_id_idx` supports a basic trip lookup but not ordered trip playback; add `(trip_id, recorded_at)` only with an approved history endpoint and observed query plan.
+Current indexes support active vehicle/stop filters, vehicle route assignment, ordered route stops,
+active source selection `(vehicle_id, status, priority, id)`, source last-seen lookup, active-trip
+lookup/uniqueness, and sampled history by vehicle/source/time. There is no composite trip playback
+index and no GiST index because current reads do not issue the bounded spatial research predicates
+described by the T7 brief.
 
-There is no GiST index because current reads extract coordinates and do not issue spatial predicates. Add spatial indexes only when route-conformance, checkpoint, bounding-region, or nearest-neighbor research queries are defined. Do not add indexes solely because columns can be filtered; write cost and migration impact must be justified by bounded read paths.
+T7 should begin with ordinary PostgreSQL tables and deterministic, batched queries. Required research
+indexes are `(session_id, received_at, id)`, source/vehicle receive-time filters, a partial
+deduplication key, and a receive-time deletion path; a PostGIS GiST index needs a representative
+fixture and `EXPLAIN (ANALYZE, BUFFERS)` evidence on the approved disposable target. Do not add
+indexes, partitioning, TimescaleDB, or a second analytics store without a measured bounded query or
+deletion need.
 
-At the current 60-second sampling rate, ten continuously active vehicles would create roughly 14,400 samples/day before index overhead. A one-second raw/canonical history would be roughly 864,000 rows/day, but this is a design illustration, not a measured load. Storage/retention planning must precede any fidelity increase.
+The existing sampling estimate is planning evidence only: ten continuously active vehicles at one
+sample per 60 seconds would create roughly 14,400 canonical samples/day before index overhead. The
+T7 specialist upper-bound estimate for raw observations is not a measured capacity result.
 
-## 6. T5 Integrity and Migration Review
+## 6. T5 Integrity and T6 History Boundary
 
-The lifecycle migration is additive and validates three checks: accepted trip status, status/end-time consistency, and `end_time >= start_time`. The existing raw partial unique index is not represented by Prisma schema and must be preserved in future migrations. `operations.service.ts` locks the vehicle row and performs lifecycle/history mutations in transactions; the T5 integration artifact checks concurrent start/end behavior, stale end behavior, ownership rejection, active-trip uniqueness, history insertion, and cleanup.
+The T5 migration is additive and preserves the existing partial active-trip index while adding trip
+status, status/end-time, and end-after-start checks. `operations.service.ts` uses a consistent vehicle
+row-lock order for explicit start, virtual-trip creation, end, and sampled canonical-history writes.
+When T6 selects a canonical observation, Redis admission controls the sampled write window and the
+transaction then validates or creates the active trip and inserts the canonical sample atomically.
 
-Migration history is coherent: initial PostGIS/core tables, additive GPS/feedback/source fields, source lifecycle checks/indexes, then T5 lifecycle checks. No destructive migration was observed. Actual deploy/rollback/backup evidence remains unverified; do not run migration or reset commands against a non-approved target.
+This boundary is a material improvement, but history persistence remains best effort relative to live
+canonical publication: a failed PostgreSQL transaction is logged and does not change the already
+published T6 state. The current design therefore does not prove durable capture of every observation,
+and Redis sampling admission is not a raw-diagnostic backup. A T7 raw write must remain a separate
+append-only operation with an explicit failure/disposition contract and must not alter T6 selection,
+state version, or public payloads.
 
-## 7. Telemetry, Retention, and Research Readiness
+Migration history is additive and coherent: PostGIS/core tables, GPS/source/feedback additions,
+source lifecycle constraints/indexes, and T5 lifecycle checks. Actual migration deployment,
+rollback, backup/restore, and constraint validation against representative data remain unverified.
+No migration, reset, or live target was run.
 
-The current durable products are master data, trips, sampled canonical GPS history, source registry, and feedback. Redis latest-source/canonical values and source-selection counters are transient. There is no durable raw observation table or event ledger.
+## 7. T7 Telemetry, Retention, and Research Readiness
 
-D-002=B and D-004 require research facts sufficient to compare Mobile, ESP32, and LoRaWAN. The schema currently lacks source/vehicle/trip assignment at receipt, experiment/session identity, producer event time, backend receive time, processing/selection time, sequence/deduplication identity, transport, payload version, accepted/rejected/canonical disposition, reported accuracy semantics, route-geometry version, or allowlisted battery/network/radio metadata. It also lacks retention windows, deletion ownership, anonymized export rules, aggregate reproducibility, and research roles.
+The current durable products are master data, trips, sampled canonical GPS history, source registry,
+and feedback. Redis latest-source snapshots, canonical state, freshness, selection counters, and
+sampling admission are transient runtime products. There is no durable raw observation table,
+session/run model, typed metric aggregate, lifecycle/backup manifest, protected research query, or
+CSV stream.
 
-The approved accuracy vocabulary must remain separate: route distance is route-conformance evidence, device accuracy is reported uncertainty, pairwise disagreement is source difference, and ground-truth error requires a surveyed or higher-quality synchronized reference. The schema must not silently map-snap raw research points or compare HDOP as meters.
+D-002=B and D-004 remain approved scope decisions. D-006 is now an approved implementation-target
+decision and supersedes the less restrictive export/temporary-artifact choices where they conflict:
+use synthetic/redacted fixtures, isolated non-ambient targets, server-authorized fixed-field CSV,
+session/time-scoped defaults, controlled break-glass full exports, backpressure, and minimal
+manifests. The exact Redis image/digest, credentials/data scope, expected mutations, cleanup, and
+rollback record must still be attached to the task evidence before stateful validation.
+
+The minimum T7 database products remain separate and additive:
+
+- a session/run and protocol/metric-version record;
+- append-only typed raw observations with source/vehicle/trip/session identity at receipt, producer
+  and backend receive times, sequence/deduplication facts, transport/schema, disposition, reported
+  accuracy semantics, route-geometry version, and allowlisted metadata;
+- typed reproducible aggregates with no raw coordinates or direct identifiers after raw retention;
+- a lifecycle run/backup verification manifest sufficient to fail closed before deletion.
+
+All raw retention must use backend `received_at`, not producer or display time. Route distance remains
+a route-conformance proxy; device-reported accuracy remains reported uncertainty; pairwise distance is
+source disagreement; and ground-truth error remains unavailable without surveyed/reference evidence.
+No raw point may be silently map-snapped or promoted to canonical state by being retained.
+
+Coordination note: D-006 is present in the Decision Queue and follow-up sections of the T7 task, but
+the task's earlier approved-decision summary does not yet list D-006. This documentation mismatch is
+a **New Finding** for the T7 handoff; synchronize the task metadata before Level 3 consumes it.
 
 ## 8. Actionable Recommendations
 
-| Capability | Measurable outcome | Owner | Acceptance signal | Privacy/data boundary | Stage |
-|---|---|---|---|---|---|
-| Preserve T5 database invariant | All lifecycle/history writes use the transactional service and keep status/time/active-trip constraints | Backend + Database | T5 concurrency/constraint integration test passes on an approved disposable target | No new public data | Complete foundation / protect in future migrations |
-| Define canonical/history products | Current state, sampled canonical history, and research raw facts have separate authority/retention statements | Database + Backend | Data-product contract reviewed against T6/T7 tests | Public canonical-only; research restricted | Phase 2 / T6/T7 |
-| Bounded raw diagnostics | Raw facts include source/vehicle/trip/session, event/receive times, sequence, transport, schema, disposition, and allowlisted metadata | Database + Backend + Research | Migration, bounded query/export, duplicate/order, and deletion tests pass | Research role, redaction, retention/deletion owner | Phase 2/5 / T7/T15 |
-| Durable source assignment meaning | Historical queries can explain which source was assigned to a vehicle at receipt | Database + Device owner | Effective-dated assignment or immutable snapshot test | Device identity retained per approved policy | Before comparison/accountable operations |
-| History read path | Staff can query trips/samples by bounded vehicle/trip/time filters with ordered results | Database + Backend + Dashboard | Pagination, time-bound, index/query-plan, and auth tests pass | Admin role and retention policy | Phase 3 / T11 |
-| Timestamp contract | Stored timestamps distinguish producer event, backend receive, processing, and canonical selection semantics with explicit timezone | Database + Backend + Device owner | Clock-skew/order tests and schema precision checks pass | No extra personal data | Phase 2 / T6/T7 |
+| Capability | Measurable outcome | Owner | Acceptance signal | Stage |
+|---|---|---|---|---|
+| Protect T5 database boundary | All lifecycle/history writes retain the service lock order and T5 invariants | Backend + Database | Prisma validation and T5 tests pass; disposable integration race test passes when target is approved | Foundation / complete protection |
+| Add T7 additive research schema | Raw, session, aggregate, and lifecycle products have typed fields and timezone-aware new timestamps without changing `GPSTrack` | Database + Backend + Research | Additive migration, schema inspection, and rollback/restore checks pass on `t7-disposable` | T7 |
+| Preserve historical source meaning | Each raw row carries receipt-time assignment snapshot or effective-dated assignment reference | Database + Device owner | Assignment-change fixture reconstructs source/vehicle identity at receipt | T7 |
+| Implement protected research reads/export | Server enforces `DEV`/`SUPER_ADMIN`, fixed fields, session/time scope, streamed CSV, backpressure, and manifest | Backend + Security + Research | 403 boundary, CSV injection, deterministic ordering, disconnect, and memory/backpressure tests pass | T7 |
+| Implement retention safely | Raw rows expire from backend receive time only after backup/restore/hash/count verification; aggregate deletion is explicit | Database + Operations | Stable cutoff, fail-closed deletion, restart/idempotency, and seven-day artifact cleanup evidence | T7 |
+| Add bounded history/playback query only when needed | Ordered trip/time reads have a measured plan and pagination/time bounds | Database + Backend | `EXPLAIN (ANALYZE, BUFFERS)` on disposable representative fixture | T11 / research follow-up |
 
-These are audit handoffs, not implementation authorization. No Level 2 consultation is required unless an owner requests a focused retention, clock, assignment, or research-access decision.
+These are audit handoffs, not implementation authorization. No new owner decision is proposed.
 
 ## 9. Roadmap and Decision Impact
 
-This audit revalidates Database inputs for T5, T6, T7, T8, T11, T13, and T15. T5 is complete and should be protected from direct-writer bypass. T6 must define canonical state before raw/research schema work; T7 must wait for approved retention/deletion/access parameters. T10–T12 remain deferred under D-001=A. D-002=B and D-004 remain approved scope decisions, not complete database implementation.
+This re-audit validates the Database inputs for T5, T6, T7, T8, T11, T13, and T15. T5 remains
+complete and must be protected from direct-writer bypass. T6's canonical contract is accepted and
+does not turn sampled `GPSTrack` into raw research history. T7's owner parameters and disposable
+target recommendation are now documented by D-006, but T7 implementation remains gated on the
+remaining exact-target evidence, all required Level 1 freshness, and final roadmap revalidation.
 
-No new owner decision is proposed. Existing D-001 through D-004 remain the source of truth.
+No migration or application-code change is authorized by this report. Existing D-001 through D-006
+remain the source of truth.
 
 ## 10. Assumptions, Unknowns, and Confidence
 
-- No live migration, backup/restore, query plan, retention job, or production database target was observed.
-- PostgreSQL timestamp behavior, deployment timezone, physical source clocks, and future research volume are not validated in runtime.
-- The current sample-volume estimate is a planning calculation, not a capacity measurement.
-- Confidence is **high** for schema/migration-visible relationships and constraints, **medium** for runtime transaction/deployment behavior, and **low** for future research volume and physical telemetry fidelity.
+- No live migration, backup/restore, query plan, retention job, or deletion run was observed.
+- PostgreSQL timezone behavior in deployment, physical source clocks, Redis server version, and
+  future research volume are not validated in runtime.
+- Sampling and raw-volume estimates are planning calculations, not capacity measurements.
+- Confidence is **high** for schema/migration-visible relationships, constraints, and static service
+  boundaries; **medium** for transaction/runtime behavior; and **low** for deployment, provider,
+  physical-device, clock, and research-fidelity outcomes.
 
 ## 11. Audit Limitations and Handoff
 
-No schema or migration changes are authorized by this report. Database is now Complete and Validated. Infrastructure & Device is now eligible because Backend, Frontend, and Database have current validated predecessor reports; Dashboard & UX remains gated by Product, Frontend, and Infrastructure & Device.
+Database is **Complete / Validated** at the current evidence baseline. Infrastructure & Device is the
+next sequential profile because Backend, Frontend, and Database now have current validated
+predecessors. Dashboard & UX, Security/DevOps/Observability, Production Readiness, and Roadmap must
+continue to consume only revalidated reports. T7 remains an implementation handoff, not an approved
+stateful execution.

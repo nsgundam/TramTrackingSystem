@@ -29,8 +29,9 @@ accuracy, device/network latency, ESP32 results, production readiness, or an ove
 - Owner parameters: recorded in `docs/research/T7-owner-input-questionnaire.md` on 2026-07-29.
 - Current audit register: predecessor rows affected by T6 are still marked `Needs Re-audit`; Level 3
   implementation must not begin until Level 1 confirms the required audit-freshness gate is satisfied.
-- Stateful validation: blocked until the `t7-disposable` PostgreSQL/Redis target is explicitly
-  approved with credentials/data scope, expected mutations, cleanup, and rollback plan.
+- Stateful validation: target recommendation is owner-approved by `D-006`; execution still requires
+  the exact Redis image/digest, credentials/data scope, expected mutations, cleanup, and rollback
+  record to be attached to the task evidence.
 - Dedicated Research UI is an external consumer of the protected backend contract; this task does
   not add frontend UI or public raw-telemetry presentation.
 
@@ -150,9 +151,10 @@ No other path is implicitly authorized. The task must stop before expanding this
   header, cookie, credential, IP address, MAC/IMEI/advertising ID, driver identity, or secret enters
   the research data or CSV response.
 - Research reads/exports are server-authorized for `DEV` and `SUPER_ADMIN` only. UI hiding is not an
-  authorization mechanism. Current owner choice of no read/export audit logging and unrestricted
-  bounds must be retained as an explicit risk; streaming, field allowlists, backpressure, and
-  operational concurrency controls are still mandatory.
+  authorization mechanism. The owner approved the Level 2 safer alternative: default exports are
+  bounded to explicit session/time scope and fixed fields; a full export is a controlled break-glass
+  action, still streamed and allowlisted, with a minimal export manifest. T7 does not add a raw
+  read-content audit trail.
 - The migration is additive. Preserve T5 constraints, the partial active-trip index, existing
   `GPSTrack` semantics, source ownership, and existing transport authentication/validation.
 - No dependency, architecture split, time-series extension, broker, public endpoint, or frontend
@@ -182,8 +184,9 @@ No other path is implicitly authorized. The task must stop before expanding this
    public DTOs. Do not implement the Research UI in this task.
 7. Implement CSV-only export with fixed schema version/header, UTC timestamps, null semantics,
    deterministic ordering, field allowlist, formula-injection handling, streaming/backpressure,
-   disconnect/partial-artifact handling, and no full-result in-memory buffering. Preserve the owner’s
-   no-hard-bound choice but never permit arbitrary SQL or unrestricted columns.
+   disconnect/partial-artifact handling, minimal export manifest, and no full-result in-memory
+   buffering. Default exports must be bounded to explicit session/time scope; full export is a
+   controlled break-glass action for the approved roles, never arbitrary SQL or unrestricted columns.
 8. Implement raw retention from backend receive time, aggregate manual deletion, hybrid anonymization/
    hard-delete, and fail-closed backup/deletion verification. Use stable cutoff batches, lifecycle
    manifests, counts/hashes, idempotent restart behavior, and cleanup of temporary raw backup/export
@@ -213,7 +216,9 @@ No other path is implicitly authorized. The task must stop before expanding this
   no data enumeration; secrets, direct identifiers, raw payloads, and credentials never appear in
   research responses or CSV.
 - CSV export is UTF-8, fixed-schema, correctly quoted, streamed, formula-safe, deterministic, and
-  protected against full-result memory buffering and partial-artifact mislabeling.
+  protected against full-result memory buffering and partial-artifact mislabeling. Default export is
+  session/time-scoped; break-glass full export requires the approved roles, fixed allowlist, and a
+  minimal export manifest.
 - Raw rows older than 90 days by backend receive time are deleted only after backup/restore/hash/count
   verification succeeds. Failed verification keeps rows intact and marks lifecycle failure.
 - Aggregate deletion is explicit/manual, anonymizes direct identifiers, and cannot cascade into T6
@@ -252,20 +257,22 @@ report unavailable checks as skipped, never passed.
 
 ## Rollout and Migration Limits
 
-- Use a fresh isolated Compose project named `t7-disposable`, never the ambient `shuttle-*` stack.
+- Use a fresh isolated Compose project named `t7-disposable`, never the ambient `shuttle-*` stack;
+  this target recommendation is approved by `D-006`.
 - Use `postgis/postgis:16-3.4-alpine`; pin and record the exact Redis server image/digest before
   stateful validation because the repository currently uses floating `redis:alpine`.
 - Use non-ambient ports such as PostgreSQL `15433`, Redis `16380`, and backend `13002`.
 - Use a separate empty `t7-backup-restore-disposable` database/volume for restore checks. Do not use
   live data, production credentials, ambient volumes, or provider credentials in fixtures.
 - No migration, seed, reset, deployment, recovery drill, destructive deletion, backup restore, or
-  runtime/provider/hardware test may run before target approval, expected mutation, cleanup, and
-  rollback are confirmed.
+  runtime/provider/hardware test may run before the exact Redis digest, expected mutation, cleanup,
+  rollback, credentials/data scope, and Level 1 re-audit gate are recorded.
 - Enable raw capture only behind an explicit research-session flag. Do not backfill Redis or sampled
   `gps_tracks` data as raw observations.
 - Do not enable scheduled/manual deletion until aggregates are finalized and backup verification passes.
 - Do not promote to production/public operation until Level 1 validates evidence, affected audits are
-  re-audited as required, and the owner accepts the explicit no-audit-log/unrestricted-export risks.
+  re-audited as required, and the owner accepts the residual risk of no raw read-content audit trail
+  and controlled break-glass full exports.
 - If physical field testing occurs later, keep it supervised and record that provider/device/clock/
   ground-truth evidence is separate from repository contract tests.
 
@@ -274,7 +281,8 @@ report unavailable checks as skipped, never passed.
 - Stop if any required write path is outside this allowlist or if the two specialist handoffs require
   a third incompatible schema/service/migration design.
 - Stop before implementation if Level 1 has not cleared the stale predecessor-audit gate or if the
-  exact disposable PostgreSQL/Redis target is not explicitly approved.
+  exact Redis digest, credentials/data scope, expected mutations, cleanup, and rollback record is
+  missing from the `D-006` disposable target approval.
 - Stop if a migration would be destructive, rewrite existing timestamps, alter T6 canonical state,
   change public DTO authority, bypass T5 operations, or introduce a second public/raw broadcast path.
 - Stop if server-side `DEV`/`SUPER_ADMIN` authorization cannot be enforced without relying on UI
@@ -285,8 +293,7 @@ report unavailable checks as skipped, never passed.
   lifecycle run failed.
 - Stop if a failed research write changes canonical state, publishes raw fields, exposes a secret or
   direct identifier, or makes a rejected/duplicate/late observation canonical.
-- Stop before promotion if the owner/Level 1 has not accepted the documented risk of no read/export
-  audit logging and unrestricted export bounds.
+- Stop before promotion if the owner/Level 1 has not accepted the documented residual risk of no raw
+  read-content audit trail and controlled break-glass full exports.
 - Stop rather than changing architecture, adding dependencies, enabling a time-series store, or
   expanding to a frontend/public research dashboard within this task.
-

@@ -148,6 +148,38 @@ stale/silent active-Trip exceptions and a protected explicit close workflow when
 gate is opened. A concrete auto-close timeout remains a future decision rather than an implicit
 implementation default.
 
+## D-006 — T7 disposable validation target and safer research export controls
+
+Related artifacts: `docs/tasks/T7-raw-research-observations.md`,
+`docs/audits/specialized/T7-data-lifecycle-access.md`,
+`docs/audits/specialized/T7-product-research-accuracy-protocol.md`
+
+Owner decision: Approved on **2026-07-29**. Use the Level 2 safer alternatives where the original
+owner answers were less restrictive:
+
+- Use a fresh isolated Compose project named `t7-disposable`, never the ambient `shuttle-*` stack.
+- Use `postgis/postgis:16-3.4-alpine`, non-ambient PostgreSQL/Redis/backend ports `15433`, `16380`,
+  and `13002`, and pin/record the exact Redis server image and digest before stateful validation.
+- Use synthetic/redacted fixtures only and a separate empty `t7-backup-restore-disposable` target for
+  restore verification. No production credentials, live data, or ambient volumes are permitted.
+- Keep raw retention at 90 days from backend receive time and destroy temporary raw backup/export
+  artifacts within seven days after successful verification unless a later owner decision changes it.
+- Default research exports are server-side, session/time-scoped, fixed-field, CSV-only, streamed, and
+  protected by backpressure/concurrency controls. A full export is a controlled break-glass action
+  for `DEV`/`SUPER_ADMIN`, not an unrestricted arbitrary query or public endpoint.
+- Record a minimal export manifest (actor role, scope, timestamp, result status, row/count/hash where
+  available) for accountability. This is not a raw payload/read-content audit log; no raw read audit
+  trail is added by T7 unless separately approved.
+
+The target is approved for disposable schema/migration, query-plan, retention/deletion,
+backup/restore, Redis-failure, and T7 contract testing only. It does not authorize production,
+provider, hardware, public-dashboard, or absolute-accuracy claims. Numeric default export limits and
+the exact Redis digest must be recorded in the task evidence before stateful validation.
+
+Roadmap effect: resolves the T7 disposable-target gate and supersedes the less restrictive owner
+export/temporary-artifact choices for T7 implementation. Re-audit freshness and Level 1 evidence
+validation remain required before implementation promotion.
+
 ## Postponed
 
 ## Rejected
