@@ -1,18 +1,19 @@
 # Master Refactoring Roadmap
 
 Audit metadata:
-- Evidence baseline: `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
-- Evidence scope: `docs/project-knowledge-base.md`, all current domain audits under `docs/audits/`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, and this roadmap.
-- Reviewed at: `2026-07-29T14:33:30+07:00`
+- Evidence baseline: `4d5a456a6d73ef5a58d674426ba889f43102a9d2`
+- Evidence scope: `docs/project-knowledge-base.md`, `docs/audits/README.md`, `docs/audits/lead-audit-summary.md`, `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`, `docs/audits/frontend-audit.md`, `docs/audits/database-audit.md`, `docs/audits/infrastructure-device-audit.md`, `docs/audits/dashboard-ux-audit.md`, `docs/audits/security-devops-observability-audit.md`, `docs/audits/production-readiness-audit.md`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, `docs/tasks/T8-truthful-map-live-count.md`, `shuttle-tracking-web/hooks/useShuttleTracker.ts`, `shuttle-tracking-web/hooks/useVehicleTracking.ts`, and `docs/roadmap/master-refactoring-roadmap.md`.
+- Reviewed at: `2026-07-29T19:11:00+07:00`
 - Validation state: **Validated**
-- Predecessor baselines: every validated domain report and Production Readiness `@ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`; approved decisions D-001 through D-006.
+- Predecessor baselines: Discovery, Product, Architecture, Backend, Database, Infrastructure & Device, and Security/DevOps/Observability `@ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`; Frontend, Dashboard & UX, and Production Readiness `@ 4d5a456a6d73ef5a58d674426ba889f43102a9d2`; approved decisions D-001 through D-006.
 
 Last reviewed: 2026-07-29
 
-Validation state: **Validated**. The Level 1 freshness gate passed at `d94abb3...`. T1–T7 are
+Validation state: **Validated**. The Level 1 freshness gate passed at `4d5a456...`. T1–T7 are
 complete within their stated scopes; T7's research capability remains non-production and does not
-change the public/canonical contract. T8 is the next eligible Level 3 handoff for the public
-live-count expiry and truthful-map behavior; its route-mutation/cache portion remains deferred to T10.
+change the public/canonical contract. T8's corrective route-switch guard is implemented, but T8
+remains Partially Complete pending focused/runtime evidence and Frontend, Dashboard & UX, and
+Production Readiness re-audits. Its route-mutation/cache portion remains deferred to T10.
 
 ## 1. Executive Summary
 
@@ -36,8 +37,9 @@ The production determination remains No-Go. D-001 reduces the immediate product 
 |---|---:|---|---|
 | Knowledge Base | 2026-07-29 | Complete / Validated | Discovery is current at `d94abb3...`; external deployment/device facts remain unknown. |
 | Product | 2026-07-29 | Complete / Validated | Product is current at `d94abb3...`; D-001=A controlled demonstration is current. |
-| Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps/Observability audits | 2026-07-29 | Complete / Validated | T7's canonical-boundary, protected access, data lifecycle, and residual-risk findings were revalidated at `d94abb3...`. |
-| Production Readiness Audit | 2026-07-29 | Complete / Validated | Controlled demo remains Conditional Go under D-001=A; research field/public operation remains No-Go for external evidence gaps. |
+| Architecture, Backend, Database, Infrastructure & Device, Security/DevOps/Observability audits | 2026-07-29 | Complete / Validated | These profiles remain at `d94abb3...`; T8's public client-side corrective slice does not change their trusted backend, data, device, topology, or security evidence. |
+| Frontend and Dashboard & UX audits | 2026-07-29 | Needs Re-audit | T8's corrective route-switch guard changes public Marker visibility; re-audit canonical live/non-live/expiry behavior before accepting the slice. |
+| Production Readiness Audit | 2026-07-29 | Needs Re-audit | Re-evaluate the truthful-map release condition after the Frontend and Dashboard & UX re-audits. |
 | Decision Queue and T7 owner/task evidence | 2026-07-29 | Approved; disposable execution complete | D-001–D-006 are recorded, the T7 task metadata and D-006 target record are synchronized, Owner/Level 1 approval was recorded, and the approved stateful evidence is attached to the task spec. |
 
 Level 1 has revalidated the T7-affected profiles. Hosting, TLS, production recovery, browser/runtime
@@ -74,9 +76,9 @@ Every Critical/High finding is represented. T10–T12 are carried forward becaus
 | T3 | Complete | Simulator fixtures and repeatable pipeline evidence validated; no physical-device claim. |
 | T4 | Complete | CI checks and redacted process-local signals validated; no production alerting claim. |
 | T5 | Complete | Transactional/idempotent Operations/Trip owner and migration evidence validated. |
-| T6 | Complete | Re-audited at the current baseline: canonical REST/Socket parity, version/route/freshness semantics, frontend guards, admin state surface, and public neutral presentation are current; a public live-count expiry gap is carried into T8/T6 follow-up. |
+| T6 | Complete | Re-audited canonical REST/Socket parity, version/route/freshness semantics, frontend guards, admin state surface, and public neutral presentation remain current; T8 repairs local-expiry count projection and now guards route-switch Marker restoration, pending focused evidence and re-audit. |
 | T7 | Complete for approved disposable scope | Additive implementation, migration, protected export/lifecycle checks, Redis failure/recovery, retention, backup/restore, canonical-boundary, and query-plan evidence passed on 2026-07-29 using the exact D-006 target. Do not promote research capability to production/public operation without the still-missing external operational evidence. |
-| T8 | Partially Complete — bounded public-state slice | Local expiry now updates marker/live-count/ETA together, and stale hides only the vehicle Marker. Route-mutation cache invalidation remains dependent on T10 and re-audit is required before further T8 work. |
+| T8 | Partially Complete — corrective public-state slice implemented | Local expiry continues to update Marker/live-count/ETA together and non-live updates remove only the vehicle Marker. Route switching now requires current canonical `live`, authoritative route match, and no local expiry before adding a Marker; focused/runtime evidence and re-audits remain required. Route-mutation cache invalidation remains dependent on T10. |
 | T9 | Blocked | D-003 ordering is approved, but hosting, domain, TLS, Redis/DB placement, and operations-owner facts are missing. |
 | T10 | Deferred | Requires T8 and D-001 upgrade from controlled demo to B/C. |
 | T11 | Deferred | Requires T5, T6, supported sender/operator choice, and D-001=B/C. |
@@ -525,10 +527,12 @@ count and absence of public connection/source-health labels. Owner-confirmed dir
 verification on 2026-07-24 passed for the latest public rendering and live versus non-live ETA
 behavior. T6 frontend lint retained seven non-blocking warnings.
 
-The 2026-07-29 Frontend and Dashboard & UX re-audits revalidated the canonical consumers at the
-current baseline. They found one remaining handoff: local public freshness expiry removes a marker
-and recalculates ETA without recomputing the live-only Active Trams count. This does not invalidate
-the T6 contract, but it keeps the related truthful-map work pending.
+The T8 re-audits at `4d5a456...` confirmed that local public freshness expiry updates Marker,
+live-only Active Trams count, and ETA together, then identified a route-switch path that could re-add
+a stored stale/expired Marker. The corrective slice now gates route-switch Marker addition on the
+latest accepted canonical `live` state, its authoritative route, and the local-expiry flag. This does
+not invalidate T6, but T8's truthful-map acceptance remains pending focused/runtime evidence and
+re-audit.
 
 ### T7 — Implement D-002=B bounded raw diagnostics for research
 
@@ -668,23 +672,31 @@ Public tracker/cards, admin LiveMap/dashboard, realtime/public API types, route 
 
 An R02 event remains R02 even while R01 is selected; admin state meaning remains visible and public
 marker behavior stays truthful without exposing operational labels; local expiry changes marker/count/
-ETA consistently; ETA is not current when stale; cache updates after route revision. Run lint,
-production build, and browser/socket interruption checks.
+ETA consistently; stale or locally expired Markers are not restored by route selection and return only
+after a newer canonical `live` event; ETA is not current when stale; cache updates after route
+revision. Run lint, production build, focused state-transition checks, and browser/socket interruption
+checks.
 
 ### Status
 
-Partially Complete — the bounded public-state slice now updates local expiry marker/live-count/ETA
-together and hides a `stale` vehicle Marker without removing route or stop layers. Frontend,
-Dashboard & UX, and Production Readiness require re-audit. The route-mutation portion remains
-blocked on T10 and is excluded from this handoff.
+Partially Complete — the corrective `handleRouteChange` guard now adds a vehicle Marker only for the
+latest accepted canonical `live` state whose authoritative route matches the selected route and which
+has not locally expired. It removes only the vehicle Marker for stale/no-service/unknown, locally
+expired, missing, or unknown-route state, preserving route and stop layers. The existing epoch/version
+guard remains the only path by which a newer canonical `live` event can restore the Marker. Frontend,
+Dashboard & UX, and Production Readiness now require re-audit; focused/runtime evidence is unavailable,
+so T8 cannot close. The route-mutation portion remains blocked on T10 and is excluded from this handoff.
 
 ### Evidence
 
-The 2026-07-29 implementation updates `useShuttleTracker.ts` and `useVehicleTracking.ts` so local
-expiry removes a vehicle from marker/live-count/ETA together, while a canonical `stale` transition
-removes only the vehicle Marker and preserves route and stop layers. Frontend lint/build, repository
-CI, workflow validation, and diff checks passed; the lint warnings in `app/layout.tsx` and
-`utils/IconHelpers.ts` predate this task. Browser/socket interruption evidence was not available.
+The 2026-07-29 corrective implementation updates `useShuttleTracker.ts` so `handleRouteChange`
+consults the latest accepted canonical state before adding a stored Marker. It requires `live`, known
+authoritative route equality, and no local-expiry flag; otherwise it removes only that vehicle Marker.
+The existing local-expiry Marker/live-count/ETA transition, non-live Marker removal, epoch/version
+rejection, route layers, and stop layers are unchanged. Frontend lint/build and repository CI passed;
+lint retains the pre-existing warnings in `app/layout.tsx` and `utils/IconHelpers.ts`, and build emits
+Node's `DEP0205` deprecation warning. Browser/socket interruption and focused timer/route-switch
+evidence were unavailable, so T8 remains Partially Complete and the affected audits require re-audit.
 
 ### T9 — Define topology/origin contract, then align configuration
 

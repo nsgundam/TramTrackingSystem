@@ -353,7 +353,14 @@ export function useShuttleTracker() {
 
     Object.keys(vehiclesRef.current).forEach((id) => {
       const marker = vehiclesRef.current[id];
-      if (vehicleRouteMapRef.current[id] === routeId) {
+      const state = vehicleStatesRef.current[id];
+      const canDisplayMarker =
+        state?.serviceState === "live" &&
+        state.routeAuthority !== "unknown" &&
+        state.routeId === routeId &&
+        !expiredVehiclesRef.current[id];
+
+      if (canDisplayMarker) {
         if (!mapRef.current?.hasLayer(marker)) marker.addTo(mapRef.current!);
       } else {
         if (mapRef.current?.hasLayer(marker)) mapRef.current.removeLayer(marker);
@@ -373,7 +380,7 @@ export function useShuttleTracker() {
     isTrackingRef.current = false;
 
     calculateETA();
-  }, [mapRef, routeGeometry, calculateETA, vehiclesRef, vehicleRouteMapRef, activeStopMarkerRef]);
+  }, [mapRef, routeGeometry, calculateETA, vehiclesRef, activeStopMarkerRef]);
 
   const handleLocateUser = useCallback(() => {
     if (userLoc) {

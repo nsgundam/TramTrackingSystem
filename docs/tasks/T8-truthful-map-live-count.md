@@ -5,12 +5,15 @@
 - Roadmap task: `T8`
 - Approved decisions: `D-001=A`, `D-005=A`; no new decision required
 - Specialist briefs: `None`
-- Status: **Level 3 implementation ready for this bounded first slice only**
+- Status: **Partially Complete — corrective route-switch guard implemented; focused/runtime evidence
+  and the required re-audits remain pending.**
 
 ## Allowed Writes
 
 - `shuttle-tracking-web/hooks/useShuttleTracker.ts`
-- `shuttle-tracking-web/hooks/useVehicleTracking.ts`
+- `docs/tasks/T8-truthful-map-live-count.md`
+- `docs/roadmap/master-refactoring-roadmap.md`
+- `docs/audits/README.md`
 
 ## Read-only Context
 
@@ -42,6 +45,10 @@
 4. When a canonical vehicle changes to `stale`, remove only its vehicle Marker from the public map.
    Preserve the route and stop layers, and restore the Marker only after a newer canonical `live`
    event.
+5. In `handleRouteChange`, add a vehicle Marker only when the latest accepted canonical state is
+   `live`, its authoritative route matches the selected route, and the vehicle is not locally
+   expired. For `stale`, `no_service`, `unknown`, locally expired, missing, or unknown-route state,
+   remove only that vehicle Marker if present; never remove route or stop layers.
 
 ## Acceptance Criteria
 
@@ -51,6 +58,9 @@
 - A newer canonical `live` event restores the marker/count path; stale/no-service/unknown events do
   not inflate the count.
 - A `stale` state hides its vehicle Marker without removing the selected route or its stop markers.
+- Switching away from and back to a route cannot restore a stale, locally expired, `no_service`,
+  `unknown`, missing-state, or unknown-route vehicle Marker; only a newer accepted canonical `live`
+  state restores it.
 - Route authority and state epoch/version rejection behavior are unchanged.
 
 ## Validation Commands
@@ -58,6 +68,8 @@
 - `npm run lint` (working directory: `shuttle-tracking-web`)
 - `npm run build` (working directory: `shuttle-tracking-web`)
 - `bash scripts/ci-checks.sh` (repository root)
+- `git diff --check` (repository root)
+- `node scripts/validate-agent-workflow.js` (repository root)
 
 ## Rollout and Migration Limits
 
@@ -76,17 +88,25 @@
 
 ## Execution Record
 
-- Status: **Partially Complete — bounded public-state slice implemented on 2026-07-29.** The
-  route-mutation/local-geometry-cache portion remains blocked on T10 and D-001=B/C.
-- Changed files: `shuttle-tracking-web/hooks/useShuttleTracker.ts` and
-  `shuttle-tracking-web/hooks/useVehicleTracking.ts`.
-- Behavior: local expiry now removes a live vehicle from the public live count as well as its Marker
-  and ETA; canonical `stale` now removes only the vehicle Marker while retaining route and stop
-  layers. A newer canonical `live` event restores the normal Marker/count path.
-- Verification: `npm run lint`, `npm run build`, `bash scripts/ci-checks.sh`,
-  `node scripts/validate-agent-workflow.js`, and `git diff --check` passed. Lint retains two
-  pre-existing warnings in `app/layout.tsx` and `utils/IconHelpers.ts`.
-- Unavailable evidence: no local browser/socket interruption session was run; this task did not
-  start a runtime environment.
-- Next handoff: Level 1 re-audit of Frontend, Dashboard & UX, and Production Readiness before any
-  remaining T8 work is considered eligible.
+- Status: **Partially Complete — corrective route-switch slice implemented on 2026-07-29.** The
+  route-mutation/local-geometry-cache portion remains blocked on T10 and D-001=B/C; this task cannot
+  be marked Complete without focused/runtime acceptance evidence and re-audit.
+- Changed files for this corrective slice: `shuttle-tracking-web/hooks/useShuttleTracker.ts`, this
+  task record, `docs/roadmap/master-refactoring-roadmap.md`, and `docs/audits/README.md`.
+- Behavior: local expiry continues to remove a live vehicle from the public live count, Marker, and
+  ETA in one transition; canonical non-live updates remove only their vehicle Marker. On route
+  change, the hook now adds a stored Marker only for the latest accepted canonical `live` state whose
+  authoritative route matches the selected route and which is not locally expired. Every other
+  current/missing state removes only that vehicle Marker, leaving route and stop layers intact. A
+  stale/expired Marker can therefore return only after a newer canonical `live` event is accepted by
+  the existing epoch/version guard.
+- Verification: `npm run lint` passed with two pre-existing warnings in `app/layout.tsx` and
+  `utils/IconHelpers.ts`; `npm run build` and `bash scripts/ci-checks.sh` passed outside the sandbox
+  because Turbopack requires a local helper process/port. Build also emitted Node's
+  `DEP0205` deprecation warning. `git diff --check` and
+  `node scripts/validate-agent-workflow.js` passed after final state synchronization.
+- Unavailable evidence: no frontend test harness exists and none was added. No focused
+  live → expiry/stale → route switch → newer-live runtime test, browser/socket interruption session,
+  or deployment test was run.
+- Next handoff: Level 1 must re-audit Frontend → Dashboard & UX → Production Readiness for the
+  route-switch Marker visibility change before any T8 closure claim.
