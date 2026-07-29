@@ -2,11 +2,20 @@
 
 Audit metadata:
 
-- Evidence baseline: `fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Evidence baseline: `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
 - Evidence scope: `docs/project-knowledge-base.md`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, `docs/research/T7-owner-input-questionnaire.md`, `docs/tasks/T7-raw-research-observations.md`, `docs/testing/pipeline-smoke-tests.md`, `docs/audits/product-audit.md`, `docs/audits/frontend-audit.md`, `docs/audits/infrastructure-device-audit.md`, `shuttle-tracking-web/app/page.tsx`, `shuttle-tracking-web/app/admin/dashboard/page.tsx`, `shuttle-tracking-web/app/admin/layout.tsx`, `shuttle-tracking-web/app/admin/login/page.tsx`, `shuttle-tracking-web/app/admin/routes/page.tsx`, `shuttle-tracking-web/app/admin/stops/page.tsx`, `shuttle-tracking-web/app/admin/vehicles/page.tsx`, `shuttle-tracking-web/components/public/ShuttleTracker.tsx`, `shuttle-tracking-web/components/public/AppTour.tsx`, `shuttle-tracking-web/components/public/AvailabilityCard.tsx`, `shuttle-tracking-web/components/public/StopInfoCard.tsx`, `shuttle-tracking-web/components/public/VehicleInfoCard.tsx`, `shuttle-tracking-web/components/public/FeedbackModal.tsx`, `shuttle-tracking-web/components/admin/LiveMap.tsx`, `shuttle-tracking-web/components/admin/Sidebar.tsx`, `shuttle-tracking-web/contexts/AuthContext.tsx`, `shuttle-tracking-web/hooks/useShuttleTracker.ts`, `shuttle-tracking-web/hooks/useSocketConnection.ts`, `shuttle-tracking-web/hooks/useVehicleTracking.ts`, `shuttle-tracking-web/hooks/useRouteGeometry.ts`, `shuttle-tracking-web/services/publicApi.ts`, `shuttle-tracking-web/types/canonical-state.ts`, and `shuttle-tracking-web/proxy.ts`
-- Reviewed at: `2026-07-29T11:15:14+07:00`
+- Reviewed at: `2026-07-29T14:33:30+07:00`
 - Validation state: **Validated**
-- Predecessor baselines: Product `@ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`; Frontend and Infrastructure & Device `@ fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`; Architecture and Backend `@ fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Predecessor baselines: Product, Frontend, Infrastructure & Device, Architecture, and Backend `@ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
+
+## T7 Re-audit Addendum — 2026-07-29
+
+T7 makes protected research data available to a future developer surface, but it deliberately adds no
+dashboard or public UX. The public tracker remains canonical-only, and the authenticated admin map
+remains the only repository-visible operational surface. The missing Dev Dashboard with reproducible
+session/source/time filters, metric definitions, uncertainty labels, and bounded export feedback is
+**Still Present**. The public live-count expiry inconsistency is **Still Present** and remains T8's
+first acceptance target; no new UI claim or usability result is inferred from API-only research reads.
 - Previous report baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
 
 ## 1. Executive Summary

@@ -1,11 +1,21 @@
 # Product Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
+- Evidence baseline: `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
 - Evidence scope: `docs/project-knowledge-base.md`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, `docs/testing/pipeline-smoke-tests.md`, `README.md`, `shuttle-tracking-web/app/`, `shuttle-tracking-web/components/`, `shuttle-tracking-web/services/`, `shuttle-tracking-web/contexts/`, `shuttle-tracking-web/simulate.js`, `shuttle-tracking-web/simulate-manual.js`, `shuttle-tracking-backend/src/routes/`, `shuttle-tracking-backend/src/controllers/`, `shuttle-tracking-backend/src/services/`, `shuttle-tracking-backend/prisma/`, `shuttle-tracking-backend/simulate-ttn.js`, `shuttle-tracking-backend/test_pipeline.js`, and `shuttle-tracking-backend/test_t5_operations.js`
-- Reviewed at: `2026-07-22T20:49:38+07:00`
+- Reviewed at: `2026-07-29T14:33:30+07:00`
 - Validation state: `Validated`
-- Predecessor baselines: `docs/project-knowledge-base.md @ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`
+- Predecessor baselines: `docs/project-knowledge-base.md @ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
+
+## T7 Re-audit Addendum — 2026-07-29
+
+T7 resolves the prior absence of a protected research-data capability for the D-002=B controlled
+research scope: DEV/SUPER_ADMIN users can read session-scoped diagnostics and bounded CSV exports.
+It does not add a Dev Dashboard UI, physical-device evidence, public raw telemetry, operational roles,
+or a customer-facing accuracy promise. The controlled-demo scope D-001=A remains **Still Present**;
+the research capability is **Partially Resolved** because its approved backend surface exists but the
+three-device experiment, researcher UI, and measured outcomes remain unverified. No owner decision is
+newly required for T8.
 
 ## 1. Executive Summary
 

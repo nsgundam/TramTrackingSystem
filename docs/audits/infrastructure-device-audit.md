@@ -2,11 +2,21 @@
 
 Audit metadata:
 
-- Evidence baseline: `fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Evidence baseline: `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
 - Evidence scope: `docs/project-knowledge-base.md`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, `docs/research/T7-owner-input-questionnaire.md`, `docs/tasks/T7-raw-research-observations.md`, `docs/testing/pipeline-smoke-tests.md`, `docs/testing/ci-checks.md`, `docs/roadmap/master-refactoring-roadmap.md`, `README.md`, `AGENTS.md`, `env.example`, `docker-compose.yml`, `docker-compose.prod.yml`, `docker/init-postgis.sh`, `shuttle-tracking-backend/Dockerfile`, `shuttle-tracking-backend/docker-entrypoint.sh`, `shuttle-tracking-backend/prisma/seed.js`, `shuttle-tracking-backend/src/server.ts`, `shuttle-tracking-backend/src/routes/ingest.route.ts`, `shuttle-tracking-backend/src/config/redis.ts`, `shuttle-tracking-backend/src/services/tracking.service.ts`, `shuttle-tracking-backend/simulate-ttn.js`, `shuttle-tracking-backend/tests/test_pipeline.js`, `shuttle-tracking-web/Dockerfile`, `shuttle-tracking-web/simulate.js`, `shuttle-tracking-web/simulate-manual.js`, and `shuttle-tracking-web/next.config.ts`
-- Reviewed at: `2026-07-29T11:12:14+07:00`
+- Reviewed at: `2026-07-29T14:33:30+07:00`
 - Validation state: **Validated**
-- Predecessor baselines: Backend, Frontend, and Database `@ fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`; Discovery and Product `@ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`; Architecture `@ fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Predecessor baselines: Discovery, Product, Architecture, Backend, Frontend, and Database `@ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
+
+## T7 Re-audit Addendum — 2026-07-29
+
+The recorded isolated `t7-disposable` Compose target used non-ambient ports/volumes, synthetic data,
+a pinned Redis image digest, and a separate empty restore target. Disposable migration, Redis
+failure/recovery, retention, and backup/restore evidence is **Resolved** for the approved test target.
+It is not deployment evidence. No mobile app, ESP32 firmware, GPS module, LoRaWAN device/gateway,
+TTN account, provider delivery, field route, mounting, power, coverage, or real cadence evidence was
+observed, so all physical/device claims remain **Unable to Verify**. The three prescribed transport
+boundaries remain distinct; simulators remain test tools only.
 - Previous report baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
 
 ## 1. Executive Summary

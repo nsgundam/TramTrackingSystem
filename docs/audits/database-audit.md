@@ -2,11 +2,21 @@
 
 Audit metadata:
 
-- Evidence baseline: `fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Evidence baseline: `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
 - Evidence scope: `docs/project-knowledge-base.md`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, `docs/research/T7-owner-input-questionnaire.md`, `docs/tasks/T7-raw-research-observations.md`, `docs/testing/pipeline-smoke-tests.md`, `docs/roadmap/master-refactoring-roadmap.md`, `docs/audits/specialized/T7-data-lifecycle-access.md`, `docs/audits/specialized/T7-product-research-accuracy-protocol.md`, `shuttle-tracking-backend/prisma/schema.prisma`, `shuttle-tracking-backend/prisma.config.ts`, `shuttle-tracking-backend/prisma/migrations/`, `shuttle-tracking-backend/src/services/operations.service.ts`, `shuttle-tracking-backend/src/services/tracking.service.ts`, `shuttle-tracking-backend/src/controllers/public.controller.ts`, `shuttle-tracking-backend/tests/test_t5_operations.js`, `shuttle-tracking-backend/tests/test_t6_canonical_state.js`, and `shuttle-tracking-backend/tests/test_t6_realtime.js`
-- Reviewed at: `2026-07-29T11:08:56+07:00`
+- Reviewed at: `2026-07-29T14:33:30+07:00`
 - Validation state: **Validated**
-- Predecessor baselines: Discovery and Product `@ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`; Architecture and Backend `@ fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`; Frontend `@ fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Predecessor baselines: Discovery, Product, Architecture, Backend, and Frontend `@ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
+
+## T7 Re-audit Addendum — 2026-07-29
+
+The additive migration introduces `research_sessions`, append-only `research_raw_observations`,
+metric aggregates, and lifecycle manifests with session/source/receive-time, dedupe, and PostGIS
+indexes. Receive time governs the approved 90-day raw-retention process; canonical `Trip` and
+`GPSTrack` records are not mutated by the research model. Recorded D-006 disposable evidence covers
+migration, representative query plans, retention/deletion, and backup/restore using synthetic data.
+This resolves the prior bounded-raw-storage finding; production backup, retention scheduling, and
+restoration remain **Unable to Verify** outside the disposable target. Prisma validation passed.
 - Previous report baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
 
 ## 1. Executive Summary

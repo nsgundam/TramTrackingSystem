@@ -84,6 +84,21 @@ export function useVehicleTracking({
       const newPos: [number, number] = [rawLat, rawLng];
       vehicleRouteMapRef.current[id] = routeId;
 
+      if (data.serviceState !== "live" || expiredVehiclesRef.current[id]) {
+        const marker = vehiclesRef.current[id];
+        if (marker && mapRef.current.hasLayer(marker)) mapRef.current.removeLayer(marker);
+        const unavailableInfo: ActiveVehicleInfo = {
+          prev: "ไม่พร้อมให้บริการ",
+          next: "ไม่พร้อมให้บริการ",
+          eta: null,
+          nextStopId: null,
+        };
+        vehicleStopsStatusRef.current[id] = unavailableInfo;
+        onVehicleUpdate(id, unavailableInfo);
+        updateAvailableCount();
+        return;
+      }
+
       const backendBearing = Number(stateLocation.heading ?? 0);
 
       // 1. Calculate polyline index for ETA
@@ -122,7 +137,7 @@ export function useVehicleTracking({
         });
         vehiclesRef.current[id] = marker;
         prevPositionsRef.current[id] = newPos;
-        marker.setOpacity(data.serviceState === "stale" ? 0.55 : 1);
+        marker.setOpacity(1);
 
         marker.on("click", (e) => {
           L.DomEvent.stopPropagation(e);
@@ -138,7 +153,7 @@ export function useVehicleTracking({
 
       // 3. Update existing marker
       const marker = vehiclesRef.current[id];
-      marker.setOpacity(data.serviceState === "stale" ? 0.55 : 1);
+      marker.setOpacity(1);
       if (vehicleRouteMapRef.current[id] === selectedRouteRef.current) {
         if (!mapRef.current.hasLayer(marker)) marker.addTo(mapRef.current);
       } else {

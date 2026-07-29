@@ -2,13 +2,22 @@
 
 Last updated: 2026-07-29
 
-Coordination status: **All domain profiles and Production Readiness have been re-audited and validated** at the current evidence
-baseline `fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`. Discovery and Product remain the recorded
-validated predecessors at `847a18cce9bc27c82b2622dbc176b3a89bc4d037`. Roadmap is the next sequential
-Level 1 profile and must synthesize the current audit state without treating repository CI or Compose
-templates as deployment proof.
+Coordination status: **All domain profiles, Production Readiness, and Roadmap are re-audited and
+validated** at `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`. Repository CI and disposable Compose
+evidence are not treated as deployment, provider, or physical-device proof.
 
-## 1. Re-audit result
+## Current coordination update — 2026-07-29
+
+This update supersedes the historical baseline statements below. Discovery, Product, Architecture,
+Backend, Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps/Observability,
+and Production Readiness are **Complete / Validated** at
+`d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`. T7 is complete only for its D-006-approved disposable
+scope: it adds bounded raw diagnostics and protected research reads without changing the T6 canonical
+or public-state boundary. The controlled demo remains Conditional Go; research field trials, daily
+operations, and public service remain No-Go. The next eligible implementation is T8's bounded
+truthful-map work; final route-mutation cache invalidation remains dependent on T10 and D-001=B/C.
+
+## Historical T6 snapshot — superseded by the current coordination update
 
 T6 establishes a backend-owned `CanonicalVehicleStateV1` envelope with:
 

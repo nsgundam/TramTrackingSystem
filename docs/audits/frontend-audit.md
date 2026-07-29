@@ -2,11 +2,21 @@
 
 Audit metadata:
 
-- Evidence baseline: `fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Evidence baseline: `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
 - Evidence scope: `docs/project-knowledge-base.md`, `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`, `docs/audits/README.md`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, `docs/research/T7-owner-input-questionnaire.md`, `docs/testing/pipeline-smoke-tests.md`, `docs/roadmap/master-refactoring-roadmap.md`, `docs/tasks/T6-canonical-vehicle-state.md`, `shuttle-tracking-web/package.json`, `shuttle-tracking-web/next.config.ts`, `shuttle-tracking-web/proxy.ts`, `shuttle-tracking-web/contexts/AuthContext.tsx`, `shuttle-tracking-web/services/api.ts`, `shuttle-tracking-web/services/publicApi.ts`, `shuttle-tracking-web/app/`, `shuttle-tracking-web/components/`, `shuttle-tracking-web/hooks/`, `shuttle-tracking-web/types/`, `shuttle-tracking-web/utils/`, `shuttle-tracking-web/constants/`, and the checked-in simulator files.
-- Reviewed at: `2026-07-29T11:07:14+07:00`
+- Reviewed at: `2026-07-29T14:33:30+07:00`
 - Validation state: `Validated`
-- Predecessor baselines: `docs/project-knowledge-base.md @ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`; `docs/audits/product-audit.md @ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`; `docs/audits/architecture-audit.md @ fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`; `docs/audits/backend-audit.md @ fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Predecessor baselines: Discovery, Product, Architecture, and Backend `@ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
+
+## T7 Re-audit Addendum — 2026-07-29
+
+T7 adds no frontend application surface and its protected backend research routes are not consumed by
+the public tracker or admin UI. The prior public/admin canonical-state findings are therefore
+**Still Present**: public consumers remain canonical-only and neutral, while the admin surface retains
+operational state. The material live-count expiry finding is **Still Present**: local expiry removes
+or dims a marker and recalculates ETA, but does not recompute the public live count. This is the
+direct, bounded T8 implementation target. The absence of Dev Dashboard UI is **Still Present** and
+is not a reason to expose raw telemetry to riders.
 - Previous report evidence baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
 - Legacy report commit: `e566cca`
 

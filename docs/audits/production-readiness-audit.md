@@ -2,11 +2,21 @@
 
 Audit metadata:
 
-- Evidence baseline: `fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Evidence baseline: `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
 - Evidence scope: `docs/project-knowledge-base.md`, `docs/audits/README.md`, `docs/audits/lead-audit-summary.md`, `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`, `docs/audits/frontend-audit.md`, `docs/audits/database-audit.md`, `docs/audits/infrastructure-device-audit.md`, `docs/audits/dashboard-ux-audit.md`, `docs/audits/security-devops-observability-audit.md`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, `docs/research/T7-owner-input-questionnaire.md`, `docs/tasks/T7-raw-research-observations.md`, `docs/audits/specialized/T7-data-lifecycle-access.md`, `docs/audits/specialized/T7-product-research-accuracy-protocol.md`, and `docs/roadmap/master-refactoring-roadmap.md`
-- Reviewed at: `2026-07-29T11:21:10+07:00`
+- Reviewed at: `2026-07-29T14:33:30+07:00`
 - Validation state: **Validated**
-- Predecessor baselines: all required domain reports and `docs/project-knowledge-base.md`; Discovery/Product `@ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`, Architecture/Backend/Frontend/Database/Infrastructure & Device/Dashboard & UX/Security, DevOps & Observability `@ fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Predecessor baselines: every required domain report and `docs/project-knowledge-base.md` `@ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
+
+## T7 Re-audit Addendum — 2026-07-29
+
+All required domain reports were revalidated at the current baseline before this synthesis. T7's
+disposable migration, backup/restore, retention, Redis recovery, canonical-boundary, contract, and
+query-plan evidence supports a **Conditional Go** only for the approved synthetic disposable research
+validation scope. The controlled demonstration remains **Conditional Go** under D-001=A; research
+field trials, internal daily operations, and public rider service remain **No-Go**. Missing physical
+sender/provider evidence, deployment/TLS/topology, monitoring/alerts, operational ownership, and the
+T8 public live-count truthfulness gap are release blockers outside the narrow disposable target.
 - Previous report baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
 
 Execution: **Run Next** synthesized the current validated predecessor reports. This profile does not
@@ -31,8 +41,8 @@ blockers:
 
 - operators cannot run the complete daily workflow or investigate route/source/trip/feedback
   exceptions;
-- T7 raw research storage/access/export/retention is not implemented, and no physical/provider field
-  evidence exists;
+- T7 raw research storage/access/export/retention is implemented only for the approved disposable
+  scope, and no physical/provider field evidence exists;
 - production network isolation, session policy, legacy admin-write protection, deployment topology,
   backup/restore, durable monitoring, and incident ownership are not evidenced;
 - the public live-count expiry path can remain stale, while public ETA remains a client estimate and
@@ -47,9 +57,9 @@ blockers:
 | Discovery | Complete / Validated | Repository boundaries and external unknowns are current. |
 | Product | Complete / Validated | D-001=A controlled demonstration remains the approved scope; daily/public workflows are incomplete. |
 | Architecture | Complete / Validated | T5 lifecycle and T6 canonical boundaries are current; transient Redis state, source-health coordination, route-stop ownership, and scale evidence remain open. |
-| Backend | Complete / Validated | Sender/TTN boundaries, T5, T6 canonical publication, and public projection are current; raw research/read APIs, timestamp/order semantics, and legacy writes remain open. |
+| Backend | Complete / Validated | Sender/TTN boundaries, T5/T6 canonical publication, and protected T7 research APIs are current; physical timestamp quality and legacy writes remain open. |
 | Frontend | Complete / Validated | T6 hydration/version/route/freshness/ETA guards are current; public live-count expiry and lifecycle/UI recovery gaps remain. |
-| Database | Complete / Validated | Active-trip and T5 constraints are current; sampled history is not raw research data and retention/read/export products remain absent. |
+| Database | Complete / Validated | Active-trip and T5 constraints are current; T7 adds bounded raw research data with disposable retention/read/export evidence, not production lifecycle proof. |
 | Infrastructure & Device | Complete / Validated | Compose/startup and simulator boundaries are evidenced; deployment, recovery, provider, firmware, and physical runtime are unavailable. |
 | Dashboard & UX | Complete / Validated | Controlled-demo rider flow and admin canonical state summary exist; truthful exception, triage, and research views remain open. |
 | Security, DevOps & Observability | Complete / Validated | Sender/TTN auth, redaction, bounded inputs, rate limits, and CI exist; isolation, session policy, durable monitoring, roles, and external security evidence remain open. |
@@ -82,8 +92,8 @@ research result.
 | PR-06 | Real device/provider lifecycle is not evidenced: no mobile app, ESP32 firmware, TTN account/provider runtime, provisioning, field coverage, reconnect, power-cycle, or recovery test. | **Unable to Verify** | Critical for real-device claims | Research, internal, public |
 | PR-07 | Public/admin UI has improved canonical state handling, but public live-count expiry can remain stale, public ETA remains a client estimate, and admin readiness/retry/exception context is incomplete. | **Partially Resolved** | High / misleading-accuracy risk | Research, internal, public |
 | PR-08 | CI and allowlisted signals exist, but there is no durable metrics/log sink, alert routing, error tracking, deployment approval, incident owner, runbook, or recovery drill. | **Still Present** | High | Internal, public |
-| PR-09 | D-002/D-004 research dashboard and comparable raw evidence are not implemented or independently reproducible; no research role/export/retention implementation is evidenced. | **Still Present** | High for research claims | Research |
-| PR-10 | D-006 resolves the safer disposable-target/export decision ambiguity, but exact Redis digest, expected mutations, cleanup, rollback, and stateful evidence are still absent. | **Partially Resolved** | High for T7 validation | Research |
+| PR-09 | The D-004 Dev Dashboard and physical comparison evidence are not implemented or independently reproducible. T7 provides protected backend diagnostics, not a research result. | **Partially Resolved** | High for research claims | Research |
+| PR-10 | D-006's exact Redis digest, isolated target, expected mutations, cleanup constraints, and stateful evidence are recorded for the disposable target; production rollback/lifecycle operations remain absent. | **Partially Resolved** | High for production research validation | Research |
 
 ### Stop-release conditions
 

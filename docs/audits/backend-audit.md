@@ -2,11 +2,22 @@
 
 Audit metadata:
 
-- Evidence baseline: `fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Evidence baseline: `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
 - Evidence scope: `docs/project-knowledge-base.md`, `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`, `docs/audits/README.md`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, `docs/research/T7-owner-input-questionnaire.md`, `docs/testing/pipeline-smoke-tests.md`, `docs/roadmap/master-refactoring-roadmap.md`, `docs/tasks/T6-canonical-vehicle-state.md`, `docs/tasks/T7-raw-research-observations.md`, `shuttle-tracking-backend/package.json`, `shuttle-tracking-backend/src/server.ts`, `shuttle-tracking-backend/src/middleware/auth.ts`, `shuttle-tracking-backend/src/middleware/validation.ts`, `shuttle-tracking-backend/src/middleware/rate-limit.ts`, `shuttle-tracking-backend/src/middleware/boundary-errors.ts`, `shuttle-tracking-backend/src/routes/auth.route.ts`, `shuttle-tracking-backend/src/routes/trips.route.ts`, `shuttle-tracking-backend/src/routes/ingest.route.ts`, `shuttle-tracking-backend/src/routes/devices.route.ts`, `shuttle-tracking-backend/src/routes/public.route.ts`, `shuttle-tracking-backend/src/controllers/auth.controller.ts`, `shuttle-tracking-backend/src/controllers/trips.controller.ts`, `shuttle-tracking-backend/src/controllers/feedback.controller.ts`, `shuttle-tracking-backend/src/controllers/routeStops.controller.ts`, `shuttle-tracking-backend/src/controllers/public.controller.ts`, `shuttle-tracking-backend/src/services/canonical-state.service.ts`, `shuttle-tracking-backend/src/services/tracking.service.ts`, `shuttle-tracking-backend/src/services/operations.service.ts`, `shuttle-tracking-backend/src/services/cache.service.ts`, `shuttle-tracking-backend/src/services/operational-signals.ts`, `shuttle-tracking-backend/src/config/redis.ts`, `shuttle-tracking-backend/prisma/schema.prisma`, `shuttle-tracking-backend/tests/`, and `scripts/ci-checks.sh`.
-- Reviewed at: `2026-07-29T11:01:56+07:00`
+- Reviewed at: `2026-07-29T14:33:30+07:00`
 - Validation state: `Validated`
-- Predecessor baselines: `docs/project-knowledge-base.md @ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`; `docs/audits/product-audit.md @ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`; `docs/audits/architecture-audit.md @ fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Predecessor baselines: Discovery, Product, and Architecture `@ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
+
+## T7 Re-audit Addendum — 2026-07-29
+
+The re-audit confirms that HTTP, Socket.IO, and TTN observations record typed research metadata after
+their existing validation/authentication boundaries and before/alongside canonical processing, without
+letting research persistence change public canonical outputs. The new role-gated routes use fixed
+fields, session/time scope, pagination/row caps, streamed CSV, and lifecycle manifests. Repository CI
+passed backend TypeScript/build, boundary checks, and Prisma validation. The raw-diagnostics absence is
+**Resolved** for approved scope; no external runtime, source failure, provider, or physical-sender
+claim is inferred. The 2026-07-29 empty-station validation fix is covered by the boundary test and is
+**Resolved**. T8's public/admin canonical behavior remains an open frontend task, not a T7 regression.
 - Previous report evidence baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
 - Legacy report commit: `565c58c`
 

@@ -110,6 +110,21 @@ export function useShuttleTracker() {
     if (marker && mapRef.current?.hasLayer(marker)) mapRef.current.removeLayer(marker);
   }, [mapRef]);
 
+  const refreshVehicleStateCounts = useCallback(() => {
+    const counts = Object.values(vehicleStatesRef.current).reduce<Record<CanonicalServiceState, number>>(
+      (next, vehicleState) => {
+        const displayState = vehicleState.serviceState === "live" && expiredVehiclesRef.current[vehicleState.vehicleId]
+          ? "stale"
+          : vehicleState.serviceState;
+        next[displayState] += 1;
+        return next;
+      },
+      { live: 0, stale: 0, no_service: 0, unknown: 0 },
+    );
+    setVehicleStateCounts(counts);
+    setAvailableCount(counts.live);
+  }, []);
+
   const scheduleLocalExpiry = useCallback((state: CanonicalVehicleStateV1) => {
     const id = state.vehicleId;
     const previousTimer = expiryTimersRef.current[id];
@@ -129,11 +144,12 @@ export function useShuttleTracker() {
         current.serviceState === "live"
       ) {
         expiredVehiclesRef.current[id] = true;
+        refreshVehicleStateCounts();
         removeVehicleMarker(id);
         calculateETARef.current();
       }
     }, expiresInMs);
-  }, [removeVehicleMarker]);
+  }, [refreshVehicleStateCounts, removeVehicleMarker]);
 
   const acceptCanonicalState = useCallback((state: LocationUpdateData): boolean => {
     if (
@@ -150,19 +166,10 @@ export function useShuttleTracker() {
       stateVersion: state.stateVersion,
     };
     vehicleStatesRef.current[state.vehicleId] = state;
-
-    const counts = Object.values(vehicleStatesRef.current).reduce<Record<CanonicalServiceState, number>>(
-      (next, vehicleState) => {
-        next[vehicleState.serviceState] += 1;
-        return next;
-      },
-      { live: 0, stale: 0, no_service: 0, unknown: 0 },
-    );
-    setVehicleStateCounts(counts);
-    setAvailableCount(counts.live);
     scheduleLocalExpiry(state);
+    refreshVehicleStateCounts();
     return true;
-  }, [scheduleLocalExpiry]);
+  }, [refreshVehicleStateCounts, scheduleLocalExpiry]);
 
   // === Stop Select callback ===
   const onStopSelect = useCallback((stop: Stop, marker: L.Marker) => {
@@ -232,12 +239,9 @@ export function useShuttleTracker() {
       }
     }, [mapRef]),
     updateAvailableCount: useCallback(() => {
-      const count = Object.entries(vehicleStatesRef.current).filter(([id, state]) =>
-        state.serviceState === "live" && !expiredVehiclesRef.current[id]
-      ).length;
-      setAvailableCount(count);
+      refreshVehicleStateCounts();
       calculateETARef.current();
-    }, []),
+    }, [refreshVehicleStateCounts]),
     vehiclesRef,
     prevPositionsRef,
     vehicleSpeedHistoryRef,

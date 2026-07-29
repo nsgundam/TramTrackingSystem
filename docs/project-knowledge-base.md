@@ -1,9 +1,9 @@
 # Tram Tracking System Project Knowledge Base
 
 Audit metadata:
-- Evidence baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
-- Evidence scope: `README.md`, `AGENTS.md`, `env.example`, `docker-compose.yml`, `docker-compose.prod.yml`, `docker/`, `scripts/`, `shuttle-tracking-backend/`, `shuttle-tracking-web/`, `docs/testing/`, `docs/research/`, and `docs/audits/README.md`
-- Reviewed at: `2026-07-22T16:13:25+07:00`
+- Evidence baseline: `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
+- Evidence scope: `README.md`, `AGENTS.md`, Compose/configuration and scripts, `shuttle-tracking-backend/`, `shuttle-tracking-web/`, `docs/testing/`, `docs/research/`, `docs/tasks/`, `docs/decision-queue.md`, and `docs/audits/README.md`
+- Reviewed at: `2026-07-29T14:33:30+07:00`
 - Validation state: `Validated`
 - Predecessor baselines: `None` (Discovery has no required predecessor)
 
@@ -11,6 +11,19 @@ Evidence status: **Validated**. This discovery refresh re-baselines the reposito
 records the current evidence contract. Use `docs/audits/README.md` as the coordination authority.
 
 Discovery refresh: 2026-07-22
+
+## T7 Re-audit Addendum — 2026-07-29
+
+The inventory was revalidated from `847a18c...` through `d94abb3...`. T7 adds an additive
+Postgres/PostGIS research schema, session-scoped raw-observation capture, metric/lifecycle services,
+and authenticated research-read/export routes. Mobile Socket.IO, ESP32+GPS over Wi-Fi/HTTP, and the
+separate LoRaWAN/Gateway/TTN/Webhook path remain distinct source boundaries; the implemented first
+campaign fixtures cover mobile and LoRaWAN and do not evidence physical-device or provider behavior.
+Raw diagnostics are separate from T6 canonical state and public DTOs. The previous finding that raw
+observations were absent is **Resolved** for D-002=B's bounded research scope; production topology,
+physical senders, TTN console state, and ground-truth accuracy remain **Unable to Verify**. CI evidence
+was rerun from the repository; the earlier findings about unavailable external runtime evidence remain
+**Still Present**.
 
 This document describes the current repository state from source code, configuration, schema,
 migrations, seed data, tests, and repository documentation. It is the Level 1 Discovery profile

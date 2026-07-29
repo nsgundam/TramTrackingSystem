@@ -2,11 +2,22 @@
 
 Audit metadata:
 
-- Evidence baseline: `fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Evidence baseline: `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
 - Evidence scope: `shuttle-tracking-backend/src/server.ts`, `shuttle-tracking-backend/src/middleware/`, `shuttle-tracking-backend/src/config/`, `shuttle-tracking-backend/src/controllers/auth.controller.ts`, `shuttle-tracking-backend/src/controllers/feedback.controller.ts`, `shuttle-tracking-backend/src/routes/`, `shuttle-tracking-backend/src/services/operational-signals.ts`, `shuttle-tracking-web/contexts/AuthContext.tsx`, `shuttle-tracking-web/proxy.ts`, `docker-compose.yml`, `docker-compose.prod.yml`, `shuttle-tracking-backend/docker-entrypoint.sh`, `env.example`, `.github/workflows/ci.yml`, `scripts/ci-checks.sh`, `docs/testing/ci-checks.md`, `docs/testing/pipeline-smoke-tests.md`, `docs/decision-queue.md`, `docs/research/T7-owner-input-questionnaire.md`, `docs/tasks/T7-raw-research-observations.md`, `docs/audits/specialized/T7-data-lifecycle-access.md`, and the current predecessor audit reports
-- Reviewed at: `2026-07-29T11:19:01+07:00`
+- Reviewed at: `2026-07-29T14:33:30+07:00`
 - Validation state: **Validated**
-- Predecessor baselines: Backend, Frontend, Database, Infrastructure & Device, and Dashboard & UX `@ fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`; Discovery, Product, and Architecture also validated (`Discovery/Product @ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`, Architecture `@ fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`)
+- Predecessor baselines: all required Discovery, Product, Architecture, Backend, Frontend, Database, Infrastructure & Device, and Dashboard & UX reports `@ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
+
+## T7 Re-audit Addendum — 2026-07-29
+
+T7 introduces a distinct researcher trust boundary: authentication remains server-side and
+`requireResearchAccess` rechecks the persisted DEV/SUPER_ADMIN role. Research reads/exports are
+session/time bounded, fixed-field, CSV streamed, capped, and record a minimum lifecycle/export
+manifest; raw telemetry is not added to public DTOs. This is **Partially Resolved** for least-privilege
+research access and bounded export abuse. It does not prove TLS/origin deployment, alert routing,
+secret scanning, provider/firmware security, production audit-log operations, or a production
+retention/deletion run; those findings remain **Unable to Verify**. CI rerun passed backend boundaries
+and Prisma validation; frontend lint had two pre-existing non-blocking warnings and no errors.
 - Previous report baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
 
 Execution: **Run Next** selected the only eligible profile after the current Dashboard & UX report.

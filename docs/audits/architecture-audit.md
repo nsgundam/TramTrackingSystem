@@ -2,11 +2,22 @@
 
 Audit metadata:
 
-- Evidence baseline: `fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd`
+- Evidence baseline: `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
 - Evidence scope: `docs/project-knowledge-base.md`, `docs/audits/README.md`, `docs/audits/product-audit.md`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, `docs/research/T7-owner-input-questionnaire.md`, `docs/testing/pipeline-smoke-tests.md`, `docs/roadmap/master-refactoring-roadmap.md`, `docs/tasks/T6-canonical-vehicle-state.md`, `docs/audits/specialized/T6-backend-realtime-canonical-vehicle-state.md`, `README.md`, `docker-compose.yml`, `docker-compose.prod.yml`, `shuttle-tracking-backend/src/server.ts`, `shuttle-tracking-backend/src/routes/ingest.route.ts`, `shuttle-tracking-backend/src/controllers/public.controller.ts`, `shuttle-tracking-backend/src/controllers/routeStops.controller.ts`, `shuttle-tracking-backend/src/services/canonical-state.service.ts`, `shuttle-tracking-backend/src/services/tracking.service.ts`, `shuttle-tracking-backend/src/services/operations.service.ts`, `shuttle-tracking-backend/src/services/cache.service.ts`, `shuttle-tracking-backend/src/services/operational-signals.ts`, `shuttle-tracking-backend/src/config/redis.ts`, `shuttle-tracking-backend/prisma/schema.prisma`, `shuttle-tracking-backend/tests/test_t5_operations.js`, `shuttle-tracking-backend/tests/test_t6_canonical_state.js`, `shuttle-tracking-backend/tests/test_t6_realtime.js`, `shuttle-tracking-backend/tests/test_pipeline.js`, `shuttle-tracking-backend/tests/test_socket_boundary.js`, `shuttle-tracking-web/types/canonical-state.ts`, `shuttle-tracking-web/types/index.ts`, `shuttle-tracking-web/services/publicApi.ts`, `shuttle-tracking-web/components/public/ShuttleTracker.tsx`, `shuttle-tracking-web/hooks/useShuttleTracker.ts`, `shuttle-tracking-web/hooks/useSocketConnection.ts`, `shuttle-tracking-web/hooks/useVehicleTracking.ts`, `shuttle-tracking-web/components/admin/LiveMap.tsx`, `shuttle-tracking-web/utils/ShuttleHelpers.ts`, and the related frontend layout/style files changed by T6.
-- Reviewed at: `2026-07-29T10:48:53+07:00`
+- Reviewed at: `2026-07-29T14:33:30+07:00`
 - Validation state: `Validated`
-- Predecessor baselines: `docs/project-knowledge-base.md @ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`; `docs/audits/product-audit.md @ 847a18cce9bc27c82b2622dbc176b3a89bc4d037`
+- Predecessor baselines: `docs/project-knowledge-base.md @ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`; `docs/audits/product-audit.md @ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
+
+## T7 Re-audit Addendum — 2026-07-29
+
+T7 preserves the T6 authority boundary: every accepted transport still reaches canonical selection
+through the existing tracking boundary, while a typed append-only research capture records diagnostics
+without becoming a public/realtime state source. Research reads sit behind authenticated role checks
+and separate `/api/research` routes; public projections and canonical epoch/version state remain
+unchanged. The prior “raw/event-time diagnostics absent” finding is **Resolved** within D-002=B;
+transient Redis canonical state, process-local health, route-stop cache ownership, global fan-out, and
+all deployment/provider/device claims are **Still Present** or **Unable to Verify**. T8's canonical
+state precondition remains valid and no architecture gate was introduced.
 - Previous report evidence baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
 - Legacy report commit: `f0bd2e7`
 
@@ -81,7 +92,7 @@ Validation performed during this re-audit:
 | Frontend owned route and ETA intelligence | **Partially Resolved** | Route identity and authority now come from the backend and the selected UI route cannot assign a vehicle. Geometry, route-position inference, next-stop calculation, and ETA remain frontend presentation logic. |
 | Trip lifecycle lacked one owner | **Resolved** | T5 `operations.service.ts` still owns explicit/virtual start, active-trip validation, idempotent end, vehicle-state repair, and sampled history transaction behavior. T6 preserves this boundary. |
 | Route-stop architecture was incomplete | **Still Present** | Ordered route-stop data and APIs exist, but route-stop create/delete still do not invoke the shared public-cache invalidation service, and the public route-stop query does not enforce active route status. |
-| Raw observations and event ordering were unspecified | **Partially Resolved** | Canonical public events now use `(stateEpoch, stateVersion)` ordering and reject older client state. Raw observations still overwrite a Redis latest snapshot; `observedAt` is nullable, producer event time/sequence/deduplication/disposition/session identity are not durable, and T7 is not implemented. |
+| Raw observations and event ordering were unspecified | **Partially Resolved** | Canonical public events use `(stateEpoch, stateVersion)` ordering and reject older client state. T7 now records bounded typed raw observations with receive/event-time, sequence, dedupe, disposition, and session identity; Redis remains only the latest transient source snapshot and the physical/event-clock quality is not independently verified. |
 | Redis degradation was not an explicit state transition | **Partially Resolved** | `unknown` and `DEPENDENCY_UNAVAILABLE` exist for state evaluation failures, but Redis is required to allocate/store canonical state and no durable degraded-live/reconciliation path is evidenced when Redis itself fails. |
 
 ## 4. Current Architecture and Ownership
