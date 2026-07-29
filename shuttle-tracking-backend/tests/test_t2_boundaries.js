@@ -39,6 +39,17 @@ assert.deepEqual(parseObservation({
   bearing: 90,
 });
 
+assert.deepEqual(parseObservation({
+  sourceId: 'TS_MOB_01',
+  lat: 13.964139,
+  lng: 100.58752,
+  station: '',
+}), {
+  sourceId: 'TS_MOB_01',
+  lat: 13.964139,
+  lng: 100.58752,
+});
+
 for (const payload of [
   {},
   { sourceId: 'TS_MOB_01', lat: '13.9oops', lng: 100.5 },

@@ -281,7 +281,7 @@ export const parseObservation = (value: unknown): ObservationInput => {
     ...(optionalNumberField(input.accuracy, 'accuracy', { min: 0, max: 100000 }) === undefined
       ? {}
       : { accuracy: optionalNumberField(input.accuracy, 'accuracy', { min: 0, max: 100000 }) }),
-    ...(input.station === undefined || input.station === null
+    ...(input.station === undefined || input.station === null || (typeof input.station === 'string' && input.station.trim().length === 0)
       ? {}
       : { station: stringField(input.station, 'station', { max: 255 }) }),
   };
