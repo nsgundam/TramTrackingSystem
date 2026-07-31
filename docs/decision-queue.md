@@ -162,18 +162,40 @@ device, or power failure as a confirmed operational end.
 | B — Auto-close after a separate grace period | Reduces forgotten active Trips and can preserve an auditable close reason. | May close a Trip during a prolonged outage; requires timeout, clock, recovery, notification, and override rules. | Medium-High | Owner selects a concrete grace period and accepts false-close risk. |
 | C — Hybrid confirmation then hard-cap auto-close | Gives operators a recovery window while preventing indefinite active Trips. | Most complex policy and state machine; still has false-close risk at the hard cap. | High | Formal daily-service operations with an accountable on-call owner. |
 
-Recommendation: A for the current controlled MVP. Keep freshness and Trip closure independent;
-provide a protected stale/in-progress exception and explicit/manual close path in the next
-operations task. Do not implement an automatic close from the 30-second freshness threshold.
+Pre-decision recommendation: A for the former controlled MVP. Keep freshness and Trip closure
+independent and do not close from the 30-second stale threshold. D-001=C and the owner decision below
+now supersede the no-auto-close release assumption.
 
-Owner decision: Approved A on 2026-07-24 — `stale`, `no_service`, and `unknown` are observability
-states, not Trip completion commands. Any future automatic closure must use a separately approved
-grace period, close reason, audit record, recovery/override behavior, and notification policy.
+Owner decision: **Approved B on 2026-08-01 — auto-close an active Trip after 10 consecutive minutes
+without new GPS tracking input.** This supersedes Approved A from 2026-07-24. The 30-second
+`stale`/`no_service`/`unknown` transition remains only an observability change and must not close the
+Trip. The owner accepts a separate 10-minute grace period for forgotten/disconnected senders and
+confirms that it applies uniformly to Mobile, ESP32, and LoRaWAN sources.
 
-Roadmap effect: T6 remains a canonical-state task and does not auto-close Trips. T11 must include
-stale/silent active-Trip exceptions and a protected explicit close workflow when its D-001 scope
-gate is opened. A concrete auto-close timeout remains a future decision rather than an implicit
-implementation default.
+Confirmed close semantics: `closeReason = gps_timeout`, `endTime = lastAcceptedAt`, and `closedAt`
+is the time the timeout is detected. A later GPS observation must not reopen the closed Trip; the
+sender must start a new Trip. The Mobile App also locks driver/profile/vehicle switching until its
+active Trip has ended, and the Backend must enforce the equivalent state transition rather than
+trusting only the client.
+
+Confirmed clock: `lastAcceptedAt` is the Backend receive time of the latest GPS observation accepted
+for the active Trip. It is not device event time and is not derived from persisted sampled
+`GPSTrack`, because sampling may intentionally omit valid accepted observations. Rejected, replayed,
+wrong-claim, wrong-vehicle, or post-close observations must not advance the clock.
+
+Emergency handling is also approved: `ADMIN` or higher may atomically force-close an active Mobile
+Trip and release its claim when the enrolled shared phone is lost or broken. This uses the distinct
+`admin_force_close` reason, Backend execution time for `endTime`/`closedAt`, preserves
+`lastAcceptedAt`, invalidates the old claim/token, requires an explicit reason and immutable actor
+audit, and does not delete Trip or telemetry evidence.
+
+Remaining implementation gate: re-audit and specify notification, durable restart/idempotency,
+atomic late-packet and concurrent timeout/Admin handling, schema/constraint placement, and external
+Android acceptance evidence. The owner policy is complete, but it is not implementation
+authorization until those evidence and exact-handoff gates pass.
+
+Roadmap effect: T6 remains a canonical-state task. T11 owns the supervised auto-close lifecycle,
+stale/silent exception UI, Android/IoT recovery behavior, and protected manual handling.
 
 ## D-006 — T7 disposable validation target and safer research export controls
 
@@ -228,19 +250,34 @@ authority order: `DEV`, `SUPER_ADMIN`, and `ADMIN`, with hierarchical permission
   higher roles may create device Sender identities/credentials through the Admin UI; this is device
   credential provisioning, not administrative user/role creation. The Driver/GPS Sender runtime is
   a separately built Mobile Application that uses its provisioned Sender credential to transmit GPS
-  observations to the Backend; it is not embedded in the Admin Web UI.
+  observations to the Backend; it is not embedded in the Admin Web UI. For shared Mobile phones,
+  `ADMIN` or higher may also disable/revoke an installation, issue a replacement one-time
+  enrollment, and emergency-force-close its active Trip plus release its Mobile claim with an
+  explicit reason and immutable audit.
 - No application role, including `DEV`, may create or remove a `DEV` account through the product UI
   or API. Only the project owner/creator or an explicitly authorized project-creator team member may
   provision or deprovision `DEV` out of band through a separately controlled bootstrap/operations
   procedure.
 
 Security gate before implementation: define who may provision, promote, demote, disable, or remove
-`SUPER_ADMIN` and `ADMIN`; Sender credential display/rotation/revocation; approval,
+`SUPER_ADMIN` and `ADMIN`; general/non-Mobile Sender credential display/rotation/revocation beyond
+the approved T11 shared-phone recovery path; approval,
 re-authentication, reason, and audit requirements for privileged deletion/backup/export; backup-
 before-delete and restore/rollback behavior; and the owner/team-member allowlist plus recovery
-procedure for out-of-band `DEV` provisioning. Until that matrix is approved and migrated, the repository's current
-`OPERATOR`/`DEV`/`SUPER_ADMIN` checks and D-006 export contract remain evidence of current behavior,
-not proof of the new hierarchy.
+procedure for out-of-band `DEV` provisioning. Until that matrix is approved and migrated, the
+repository's current `OPERATOR`/`DEV`/`SUPER_ADMIN` checks and D-006 export contract remain evidence
+of current behavior, not proof of the new hierarchy.
+
+T11 refinement: the owner selects shared university phones enrolled once as the Mobile identity.
+Routine vehicle changes use a static, non-secret QR selector on each vehicle and an exclusive
+Backend-issued claim, without contacting an Admin or entering human-facing `SOURCE_ID`. A short
+printed vehicle code may expose the same non-secret selector as a camera/damaged-QR fallback;
+neither form authenticates a Sender. One vehicle may have at most one active Mobile claim.
+`SOURCE_ID` remains an internal stable provenance/revocation identifier rather than being removed
+from research or canonical evidence. `ADMIN` or higher owns lost/replaced-phone disable, revoke,
+re-enrollment, and audited emergency `admin_force_close` plus claim release. The binding technical
+constraints are recorded in
+`docs/audits/specialized/T11-identity-mobile-sender-enrollment.md`.
 
 Roadmap effect: the next roadmap re-audit must add an explicit RBAC/migration handoff before or with
 T10–T12 and preserve separation between the T15 Dev research surface and ordinary operations UI.

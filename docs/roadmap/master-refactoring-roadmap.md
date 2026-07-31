@@ -5,13 +5,13 @@ Audit metadata:
 - Evidence scope: `docs/project-knowledge-base.md`, `docs/audits/README.md`, `docs/audits/lead-audit-summary.md`, validated domain and production-readiness audits, `docs/decision-queue.md`, `docs/tasks/T8-truthful-map-live-count.md`, `shuttle-tracking-web/hooks/useShuttleTracker.ts`, `shuttle-tracking-web/utils/canonical-public-state.ts`, `shuttle-tracking-web/tests/t8-public-state.test.ts`, `shuttle-tracking-web/tests/t8-local-server.mjs`, `shuttle-tracking-web/tests/t8-route-switch.spec.ts`, `shuttle-tracking-web/playwright.config.ts`, `shuttle-tracking-web/package.json`, and `docs/roadmap/master-refactoring-roadmap.md`.
 - Reviewed at: `2026-08-01T00:58:40+07:00`
 - Validation state: **Needs Re-audit**
-- Predecessor baselines: the formerly validated Product-through-Production-Readiness inputs are stale after D-001 changed from A to C and D-007/D-008 introduced new role and hosting assumptions; D-001 through D-007 are approved at their stated scope and D-008 remains pending.
+- Predecessor baselines: the formerly validated Product-through-Production-Readiness inputs are stale after D-001 changed from A to C, D-005 changed from A to B/10 minutes, and D-007/D-008 introduced new role and hosting assumptions; D-001 through D-007 are approved at their stated scope and D-008 remains pending.
 
 Last reviewed: 2026-08-01
 
 Validation state: **Needs Re-audit**. The previously accepted T1–T8 evidence remains recorded, but
-the roadmap cannot be revalidated until the domain profiles reassess D-001=C, the D-007 role model,
-D-008 hosting direction, and the requested Dashboard redesign. The task-state edits below are an
+the roadmap cannot be revalidated until the domain profiles reassess D-001=C, D-005=B/10-minute
+auto-close, the D-007 role model, D-008 hosting direction, and the requested Dashboard redesign. The task-state edits below are an
 owner-direction synchronization, not implementation authorization or a production-readiness claim.
 
 ## 1. Executive Summary
@@ -24,8 +24,11 @@ This roadmap supersedes the earlier task list. It uses all completed re-audits a
 - D-003 = A: define the deployment topology and origin contract first, then align REST and Socket configuration.
 - D-004: compare separate Mobile/Socket.IO, ESP32+GPS/Wi-Fi/HTTP, and
   LoRaWAN/Gateway/TTN/Webhook sources in an authenticated Dev Dashboard.
-- D-005 = A: keep stale observability separate from Trip closure and use an explicit/manual close
-  path for the controlled MVP; any future auto-close needs a separate policy decision.
+- D-005 = B: keep the 30-second stale state separate from lifecycle, then auto-close an active Trip
+  after a distinct 10-minute no-GPS grace period for Mobile, ESP32, and LoRaWAN. Close with
+  `gps_timeout`, end at `lastAcceptedAt`, record detection separately, never reopen, and require a
+  new Trip. `lastAcceptedAt` is the Backend receipt time of the latest accepted GPS observation;
+  remaining audit/recovery controls remain open.
 - D-006: use the isolated `t7-disposable` target and safer bounded research export controls; record
   the exact Redis image/digest and target execution evidence before and during stateful validation.
 - D-007: adopt hierarchical `DEV` > `SUPER_ADMIN` > `ADMIN` tiers; `DEV` can perform every action,
@@ -66,7 +69,7 @@ behavior, physical devices, and TTN console state remain external unknowns.
 | T8 | Truthful maps: canonical state, stale/no-service UI, correct route, cache safety | High | Production 3.2, 3.7; Frontend 4, 7, 9; Dashboard 5, 10 | Phase 2 |
 | T9 | Topology/origin contract, then deployment configuration alignment | High | Production 3.5; Infrastructure 4–5, 12; Security 7, 9–11; D-003 | Phase 2 |
 | T10 | Route-stop operations and cache invalidation | Critical for daily operations | Production 3.1, 3.7; Product 7; Frontend 4, 13; Backend 9, 12 | Phase 3; D-001 gate opened, re-audit/task handoff pending |
-| T11 | Supported sender operations, trip history, and exception view | Critical/High for daily operations | Production 3.1, 3.3; Product 7–9; Dashboard 7, 10 | Phase 3; Admin provisioning + separate Mobile GPS Sender selected, client/credential/recovery controls pending |
+| T11 | Supported sender operations, trip history, and exception view | Critical/High for daily operations | Production 3.1, 3.3; Product 7–9; Dashboard 7, 10 | Phase 3; Mobile enrollment/claim/timeout/Admin-recovery policy selected, re-audit and exact handoff pending |
 | T12 | Feedback triage and device/source operations views | High for broad public support | Product 7, 11; Frontend 12; Dashboard 10; Database 12 | Phase 3; feedback owner/privacy/retention pending |
 | T13 | Production deployment/recovery drill and monitoring | High before production | Production 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16 | Phase 4 |
 | T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4 |
@@ -89,7 +92,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T8 | Complete for approved truthful public-state scope | Local expiry updates Marker/live-count/ETA together and non-live updates remove only the vehicle Marker. Native and isolated Playwright tests cover local expiry, route switching, and a newer canonical `live` restore; D-001=C opens T10's separately scoped route-mutation/cache work after re-audit. |
 | T9 | Blocked | D-008 confirms candidate hosting families and domain sequencing; exact host/topology/TLS/data placement and operations owners are missing. |
 | T10 | Pending re-audit/task handoff | T8 and D-001=C satisfy the prior gates; fresh domain evidence and exact-path implementation scope remain required. |
-| T11 | Pending client/security details/re-audit | T5/T6, D-001=C, Admin-side Sender provisioning, a separate Mobile GPS Sender Application, `ADMIN` Sender creation, and out-of-band owner/team `DEV` provisioning are confirmed; platform, credential/recovery, and manual-close controls remain open. |
+| T11 | Owner policy complete; pending re-audit/task handoff | T5/T6, D-001=C, Android Native/internal distribution, one-time shared-phone enrollment, Admin-side Sender provisioning/revocation/re-enrollment, separate Mobile GPS Sender runtime, non-secret QR vehicle selection without driver-facing `SOURCE_ID`, one active Mobile claim per vehicle, pre-switch Trip closure, offline discard, locked-screen sending, accepted Backend receipt-time timeout clock, all-source D-005 close fields/no-reopen, and audited Admin emergency `admin_force_close` plus claim release are confirmed. Fresh audits, technical parameters, external Android evidence contract, and exact-path handoff remain. |
 | T12 | Pending decisions/re-audit | D-001=C is satisfied; feedback ownership, privacy, retention, and exact role permissions remain open. |
 | T13 | Pending | Requires T4/T5 plus T6 and T9, then deployment/recovery/alert evidence. |
 | T14 | Pending re-audit/task handoff | T8 is complete for approved scope; Dashboard redesign direction is recorded, but exact screens/data priority and visual acceptance need the Dashboard & UX re-audit. |
@@ -861,12 +864,37 @@ T5, T6, D-001=C.
 ### Decision Gates
 
 D-001=C is approved. `ADMIN` or higher provisions device Sender identities/credentials in the Admin
-UI. A separately built Mobile GPS Sender Application uses its assigned credential to perform the
-driver start/send/reconnect/end runtime against the Backend; it is not an Admin Web page. No
-application role may create or remove `DEV`; owner/authorized creator-team provisioning is out of
-band. The Mobile platform/distribution, Sender credential delivery/display/rotation/revocation and
-recovery flow, `SUPER_ADMIN`/`ADMIN` account lifecycle, trip-history access, manual-close authority,
-and audit/re-authentication behavior still require confirmation.
+UI. A separately built Android Native GPS Sender Application, installed internally at the
+university, performs the driver start/send/reconnect/end runtime against the Backend. One phone may
+switch among multiple vehicles, but the driver must end the active Trip before changing profile or
+vehicle. Routine vehicle changes must not require Admin contact or driver entry of `SOURCE_ID`; the
+owner selects scanning the chosen vehicle's non-secret QR. A printed code or NFC selector remains an
+optional later fallback rather than approved T11 scope. Mobile drivers start their own Trips, while
+Admin controls Trip start for LoRaWAN/IoT sources. Offline GPS
+observations are discarded, and an active Trip continues sending through a location foreground/
+background path while the screen is locked. No application role may create or remove `DEV`;
+owner/authorized creator-team provisioning is out of band.
+
+D-005=B selects a distinct 10-minute no-GPS auto-close grace period for Mobile, ESP32, and LoRaWAN.
+The confirmed transition sets `closeReason=gps_timeout`, `endTime=lastAcceptedAt`, and `closedAt` to
+detection time; later GPS never reopens the Trip, and operation resumes only through a new Trip.
+`lastAcceptedAt` is Backend receipt time of the latest GPS observation accepted for the active Trip,
+not device time or sampled `GPSTrack` persistence.
+
+The selected Mobile identity is a shared university phone enrolled once. Routine vehicle changes use
+an authenticated installation session plus a static non-secret vehicle QR; one vehicle may have at
+most one active Mobile claim. The Backend also enforces one active vehicle claim per installation to
+match the pre-switch Trip-end rule. `ADMIN` or higher may disable/revoke and re-enroll a lost or
+replaced shared phone. When it cannot end an active Trip normally, `ADMIN` or higher may atomically
+emergency-force-close it with `closeReason=admin_force_close`, Backend execution-time
+`endTime`/`closedAt`, preserved `lastAcceptedAt`, explicit reason/actor audit, old-token invalidation,
+and claim release. This is lifecycle recovery, not deletion.
+
+Refresh/rotation parameters, supported Android OS/target SDK, notification/restart/late-packet and
+concurrent timeout/Admin handling, `SUPER_ADMIN`/`ADMIN` account lifecycle outside Mobile Sender
+management, global re-authentication rules, and exact schema/API placement still require re-audit.
+The binding Level 2 brief is
+`docs/audits/specialized/T11-identity-mobile-sender-enrollment.md`.
 
 ### Blocks
 
@@ -890,33 +918,67 @@ Codex + Specialist.
 
 ### Task Brief
 
-Build Admin-side Sender identity/credential provisioning for `ADMIN` and higher without granting
-user-role creation. Build the separate Mobile GPS Sender Application for the driver's
-start/send/reconnect/end workflow against the existing authenticated Socket.IO boundary. Continue
-to provision ESP32/Wi-Fi/HTTP and LoRaWAN/TTN/webhook identities through their respective backend
-contracts rather than pretending they run the Mobile UI. Add protected trip history list/detail and
-a compact exception view for stale/silent vehicles, no active trip, and source freshness. Do not add
-playback.
+Build Admin-side Sender identity/credential provisioning and one-time shared-phone enrollment for
+`ADMIN` and higher without granting user-role creation. Add an authenticated installation session
+and exclusive, short-lived
+vehicle-claim contract: the vehicle QR contains only a versioned non-secret selector, the Backend
+binds a server-generated internal source/installation identity to the vehicle/claim/Trip, and no
+routine switch requires typing `SOURCE_ID` or exposing a reusable Sender secret. Deliver a versioned
+interface specification to the separate Android Native Mobile team for its driver start/send/
+reconnect/end workflow against the
+existing authenticated Socket.IO boundary. Continue to provision ESP32/Wi-Fi/HTTP and LoRaWAN/TTN/
+webhook identities through their respective Backend contracts rather than pretending they run the
+Mobile UI. Discard offline location observations and send a newly sampled point after reconnect;
+keep start/end control operations idempotent. Add the D-005=B 10-minute auto-close lifecycle with
+the approved close fields/no-reopen rule, protected trip history list/detail, and a compact
+exception view for stale/silent vehicles, no active trip, auto-closed Trip, and source freshness.
+Do not add playback.
+
+Add Admin Mobile installation disable/revoke/re-enrollment and one atomic emergency operation that
+force-closes the active Mobile Trip, releases the claim, invalidates the old credential/claim
+version, and records the actor/reason without deleting evidence. Keep this separate from normal
+Trip end and `gps_timeout`.
 
 ### Related Files
 
-Trip/history APIs, admin navigation/pages, sender client/external contract, canonical-state reads.
+Trip/history APIs, Admin Sender/shared-phone installation provisioning, vehicle QR/claim contracts,
+canonical-state reads, Android external-team interface/evidence, and
+`docs/audits/specialized/T11-identity-mobile-sender-enrollment.md`.
 
 ### Acceptance Criteria and Verification
 
-An `ADMIN` can create a Sender without developer tooling; the issued secret is delivered to the
-separate Mobile GPS Sender Application under the approved one-time-display/enrollment/rotation
-policy and cannot create or elevate a user. A driver can use that app to start, send GPS, recover
-from interruption, and end a Trip. Admins can find active/completed trips; exceptions use canonical
-state. Run role/authorization, credential enrollment/lifecycle, mobile interruption/recovery, Trip
-lifecycle, frontend, and operator acceptance checks.
+An `ADMIN` can create a Sender and enroll a shared phone once without developer tooling or elevating
+an administrative user. An enrolled phone can scan a non-secret vehicle QR and receive an
+exclusive, short-lived Backend claim without entering `SOURCE_ID` or a reusable Sender secret. One
+phone can switch authorized vehicles only after its active Trip has ended, without cross-vehicle
+writes or two active publishing claims. A Mobile driver can start, send current GPS while locked,
+discard offline points, reconnect with a newly
+sampled point, and end a Trip; Admin can start the approved LoRaWAN/IoT Trip workflow. A 30-second
+stale transition does not close the Trip, while the approved 10-minute trigger closes every source
+type exactly once with `gps_timeout`, `endTime=lastAcceptedAt`, detection-time `closedAt`, and no
+reopen; `lastAcceptedAt` advances only from Backend receipt of an accepted GPS observation, and
+later data requires a new Trip. Admins can find active/completed/auto-closed Trips;
+exceptions use canonical state. Run role/authorization, QR-copy/claim race/takeover, credential
+enrollment/lifecycle, external Android locked-screen/interruption/recovery, auto-close clock/restart/
+race tests, Trip lifecycle, frontend, and operator acceptance checks.
+
+An `ADMIN` can disable/revoke and re-enroll a lost/replaced phone. Emergency recovery closes once
+with `admin_force_close`, Backend execution-time `endTime`/`closedAt`, preserved `lastAcceptedAt`,
+actor/reason audit, released claim, and invalid old credentials; it never deletes Trip or telemetry
+evidence. Concurrent old-phone GPS, normal end, timeout, and repeated Admin requests produce one
+terminal state.
 
 ### Status
 
-Pending client/security details/re-audit — T5/T6, D-001=C, Admin-side `ADMIN` Sender provisioning,
-and a separate Mobile GPS Sender Application are confirmed. Platform/distribution, enrollment and
-credential lifecycle, interruption recovery, remaining account/role and manual-close controls,
-fresh audits, and an exact-path handoff remain required.
+Pending client/lifecycle/security details and re-audit — Android Native/internal distribution,
+Admin provisioning, one-time shared-phone enrollment, Mobile self-start, Admin-controlled IoT/
+LoRaWAN start, non-secret QR vehicle selection without driver-facing `SOURCE_ID`, one active Mobile
+claim per vehicle, pre-switch Trip closure, offline discard, locked-screen sending, accepted Backend
+receipt-time timeout clock, all-source D-005=B/10 minutes, and close fields/no-reopen are confirmed.
+Admin lost/replaced-phone disable/revoke/re-enrollment and audited atomic emergency
+`admin_force_close` plus claim release are also confirmed. No focused T11 owner choice remains. The
+v4 Level 2 decision still needs fresh audits, technical parameters, an external Android evidence
+contract, and an exact-path handoff.
 
 ### Evidence
 
@@ -1232,13 +1294,13 @@ These are recorded residual risks, not accepted exceptions for the selected C re
 
 ## 12. Blocking Decisions Required From User
 
-The owner directions are recorded; D-008 and the detailed D-007/T11/T12 parameters remain open:
+The owner directions are recorded; D-008 and the remaining detailed D-007/T12 parameters remain
+open. T11 has technical/evidence gates but no focused owner-policy blocker:
 
 | Needed information | Blocks | Reason |
 |---|---|---|
 | Exact host/provider, service/data placement, TLS/certificate, secret/log/alert destination, backup/recovery/migration/incident owners, and eventual domain | T9, T13 | D-008 narrows candidates and sequence but does not define an operable topology. |
 | `SUPER_ADMIN`/`ADMIN` account provisioning and demotion; Sender display/rotation/revocation; privileged-operation re-authentication/reason/audit; backup-before-delete and restore rules; out-of-band `DEV` allowlist/recovery | T10–T12, T15 | D-007 now fixes inheritance, `DEV` out-of-band ownership, `ADMIN` Sender creation, and `SUPER_ADMIN` deletion to Trip/GPSTrack/Feedback; the remaining safeguards must be explicit. |
-| Mobile GPS Sender platform/distribution plus Admin-to-app enrollment, reconnect/recovery, credential rotation/revocation, and manual Trip close behavior | T11 | Admin provisioning and the separate Mobile Application are selected; their trust boundary and lifecycle must be bounded and acceptance-tested. |
 | TTN application/device IDs; physical device/module models; firmware/provisioning; clock/reference and field protocol | T15 | D-004 fixes transport roles and dashboard scope, but repository evidence cannot establish physical behavior or absolute accuracy. |
 | Feedback triage owner, escalation/SLA, privacy notice/access, and retention/deletion policy | T12 | Required by the selected C scope. |
 | Admin Dashboard target screens and priority questions/actions | T14 | Public-theme direction is approved, but the information hierarchy must be bounded before styling. |
@@ -1273,7 +1335,9 @@ Validate each completed task against its originating audit finding before advanc
 
 **Roadmap impact:** D-001=C makes T10–T12 required for the selected release target; D-002=B creates T7
 research diagnostics; D-003=A removes the configuration cycle by sequencing T9 before alignment;
-D-005 keeps stale observability separate from Trip closure; D-006 resolves T7's safer target/export
+D-005=B keeps the 30-second stale state separate but adds an all-source 10-minute no-GPS auto-close
+with fixed close fields/no-reopen to T11;
+D-006 resolves T7's safer target/export
 policy; D-007 introduces a three-tier role direction; and D-008 narrows hosting candidates/domain
 sequencing. T14 now includes admin Dashboard information hierarchy and public-theme visual polish.
 The affected audits and roadmap remain stale until revalidated.
@@ -1285,7 +1349,7 @@ unapproved role permission is assumed.
 **Confidence:** High for the recorded owner directions. Medium for provisional task/gate mapping and
 low for later execution until the re-audits, role matrix, topology, and external device facts exist.
 
-**Deferred decisions:** exact topology/ownership, remaining D-007 safeguards and Sender credential/
-recovery behavior, feedback ownership/privacy/retention, Dashboard priority screens, physical
+**Deferred decisions:** exact topology/ownership, remaining D-007 safeguards outside the selected
+T11 Mobile recovery policy, feedback ownership/privacy/retention, Dashboard priority screens, physical
 sender/provider facts, playback/report scope, and scale-triggered features. D-006 retention/access/
 export parameters and T7 disposable evidence remain documented.

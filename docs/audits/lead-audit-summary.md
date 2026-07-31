@@ -3,7 +3,7 @@
 Last updated: 2026-08-01
 
 Coordination status: **Needs Re-audit from Product through Roadmap**. On 2026-08-01 the owner changed
-D-001 from A to C, approved the base D-007 role direction, narrowed D-008 hosting candidates/domain
+D-001 from A to C, changed D-005 from A to B with a 10-minute grace period, approved the base D-007 role direction, narrowed D-008 hosting candidates/domain
 sequencing, and requested a public-theme Dashboard redesign. The previously validated T8 evidence
 remains recorded, but those new inputs change product, security, topology, UX, production-readiness,
 and roadmap assumptions. Repository CI and Compose evidence are not deployment, provider, or
@@ -81,8 +81,26 @@ with `DEV` able to perform every action. T11 permits `ADMIN` or higher to provis
 credentials in the Admin UI, while a separate Mobile GPS Sender Application performs the driver GPS
 runtime against the Backend; only the owner/authorized creator team may provision or remove `DEV`
 out of band. `SUPER_ADMIN` privileged deletion is limited to Trip, GPSTrack, and Feedback. Remaining
-mobile enrollment/recovery, account and credential lifecycle, re-authentication/audit,
-backup-before-delete, and restore controls remain implementation gates.
+non-Mobile account/credential lifecycle, re-authentication/audit, backup-before-delete, and restore
+controls remain implementation gates. For T11, `ADMIN` or higher may disable/revoke and re-enroll a
+lost/replaced shared phone and atomically emergency-force-close its active Trip plus release the
+claim with an explicit reason and immutable audit; this lifecycle action does not delete evidence.
+
+D-005 is superseded from A to B: an active Trip auto-closes after a separate 10-minute no-GPS grace
+period, not from the 30-second stale transition, for Mobile, ESP32, and LoRaWAN alike. The owner
+confirms `closeReason=gps_timeout`, `endTime=lastAcceptedAt`, `closedAt` at detection, no reopening,
+and a required new Trip. Mobile profile/vehicle switching is locked until the active Trip ends. The
+owner confirms `lastAcceptedAt` as Backend receipt time of the latest GPS observation accepted for
+the active Trip, independent of sampled `GPSTrack`. Audit/notification, restart/idempotency,
+late-packet, and concurrent recovery implementation controls remain gates. T11 is Android Native,
+internally distributed, uses a shared phone enrolled once, supports QR selection among vehicles,
+Mobile self-start, Admin-controlled LoRaWAN/IoT start, locked-screen sending, and offline GPS
+discard. Driver-facing `SOURCE_ID` entry is removed from the direction; a non-secret vehicle QR is
+the primary selector and a printed short code may provide the same authenticated-session-only
+fallback, while internal source provenance remains required. The current focused identity decision
+is `docs/audits/specialized/T11-identity-mobile-sender-enrollment.md`. The focused T11 owner
+policy is complete; stale predecessor re-audits, exact implementation parameters/handoff, and
+external Android acceptance evidence remain required.
 D-008 records university infrastructure/AWS/VPS and post-server domain sequencing but remains pending
 for exact topology, TLS, data placement, and operational owners. The next eligible work is the Product
 re-audit; the Level 1 freshness gate does not permit implementation from stale predecessors.
