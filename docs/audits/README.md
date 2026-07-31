@@ -1,20 +1,20 @@
 # Audit Register
 
-Last updated: 2026-07-29
+Last updated: 2026-08-01
 
 | Phase | Status | Report / evidence | Legacy report commit | Last reviewed | Notes |
 |---|---|---|---|---|---|
 | Discovery | Complete | `docs/project-knowledge-base.md` | `f651da5` | 2026-07-29 | Validated at `d94abb3...`; inventory now distinguishes T7 bounded raw diagnostics from canonical/public state. |
-| Product | Complete | `docs/audits/product-audit.md` | `59a996f` | 2026-07-29 | Validated at `d94abb3...`; controlled-demo scope remains D-001=A and research is backend-only. |
-| Architecture | Complete | `docs/audits/architecture-audit.md` | `f0bd2e7` | 2026-07-29 | Validated at `d94abb3...`; T7 preserves the T6 canonical authority boundary. |
-| Backend | Complete | `docs/audits/backend-audit.md` | `565c58c` | 2026-07-29 | Validated at `d94abb3...`; protected capture/read/export boundaries and T6 preservation rechecked. |
-| Frontend | Needs Re-audit | `docs/audits/frontend-audit.md` | `e566cca` | 2026-07-29 | T8 corrective slice changes public Marker visibility during route switching; re-audit canonical live, non-live, expiry, and newer-live restoration behavior. |
-| Database | Complete | `docs/audits/database-audit.md` | `85fe892` | 2026-07-29 | Validated at `d94abb3...`; additive raw schema and disposable lifecycle evidence rechecked. |
-| Infrastructure & Device | Complete | `docs/audits/infrastructure-device-audit.md` | `565c58c` | 2026-07-29 | Validated at `d94abb3...`; disposable target evidence is bounded and device/provider facts remain unknown. |
-| Dashboard & UX | Needs Re-audit | `docs/audits/dashboard-ux-audit.md` | `b3682fc` | 2026-07-29 | T8 corrective slice changes public Marker visibility during route switching; re-audit rider map/count/ETA truthfulness and neutral presentation. |
-| Security, DevOps & Observability | Complete | `docs/audits/security-devops-observability-audit.md` | current baseline `847a18c` | 2026-07-29 | Validated at `d94abb3...`; research role/export boundary is partial evidence, not production proof. |
-| Production Readiness | Needs Re-audit | `docs/audits/production-readiness-audit.md` | current baseline `847a18c` | 2026-07-29 | T8 corrective slice changes public Marker visibility during route switching; re-evaluate the truthful-map release condition after Frontend and Dashboard & UX. |
-| Roadmap | Complete | `docs/roadmap/master-refactoring-roadmap.md` | current baseline `847a18c` | 2026-07-29 | Validated at `4d5a456...`; T8 remains Partially Complete with an exact route-switch corrective acceptance gap and no new owner decision. |
+| Product | Needs Re-audit | `docs/audits/product-audit.md` | `59a996f` | 2026-07-29 | D-001 changed from A to C and D-007 adds a three-tier role direction; revalidate release journeys, ownership, and policy gaps first. |
+| Architecture | Needs Re-audit | `docs/audits/architecture-audit.md` | `f0bd2e7` | 2026-07-29 | Revalidate boundaries and task placement for C-scope operations, RBAC, deletion, backup/export, and dashboard separation after Product. |
+| Backend | Needs Re-audit | `docs/audits/backend-audit.md` | `565c58c` | 2026-07-29 | Revalidate C-scope APIs, role enforcement, sender workflow, feedback triage, and privileged data operations after Architecture. |
+| Frontend | Needs Re-audit | `docs/audits/frontend-audit.md` | `e566cca` | 2026-08-01 | T8 evidence remains valid, but D-001=C and the requested public-theme Dashboard redesign change required frontend scope. |
+| Database | Needs Re-audit | `docs/audits/database-audit.md` | `85fe892` | 2026-07-29 | Revalidate feedback/trip reads, role migration, deletion scope, backup/export, retention, and audit evidence. |
+| Infrastructure & Device | Needs Re-audit | `docs/audits/infrastructure-device-audit.md` | `565c58c` | 2026-07-29 | D-008 narrows hosting candidates but exact production topology/provider/device facts remain missing. |
+| Dashboard & UX | Needs Re-audit | `docs/audits/dashboard-ux-audit.md` | `b3682fc` | 2026-08-01 | Re-scope admin/research information hierarchy and public-theme visual system for D-001=C and D-007 roles. |
+| Security, DevOps & Observability | Needs Re-audit | `docs/audits/security-devops-observability-audit.md` | current baseline `847a18c` | 2026-07-29 | Revalidate the role matrix, destructive-data controls, export/backup audit, public-release topology, alerts, and ownership. |
+| Production Readiness | Needs Re-audit | `docs/audits/production-readiness-audit.md` | current baseline `847a18c` | 2026-08-01 | D-001=C supersedes the controlled-demo release assumption; reassess only after every domain predecessor is validated. |
+| Roadmap | Needs Re-audit | `docs/roadmap/master-refactoring-roadmap.md` | current baseline `847a18c` | 2026-08-01 | Owner directions are recorded provisionally; resynthesize ordering/RBAC and T10–T15 gates after validated predecessors. |
 
 `Legacy report commit` records the last commit that changed the existing artifact; it is not a
 substitute for the full evidence-baseline metadata required on the next re-audit.

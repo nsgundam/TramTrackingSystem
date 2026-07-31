@@ -14,7 +14,6 @@ import {
   RouteData,
   ActiveVehicleInfo,
   ActiveVehicleState,
-  CanonicalServiceState,
   CanonicalVehicleStateV1,
   isCanonicalStateNewer,
 } from "@/types";
@@ -22,6 +21,11 @@ import { DEFAULT_STOP_ICON, ACTIVE_STOP_ICON } from "@/constants/shuttle";
 import { useRouteGeometry } from "@/hooks/useRouteGeometry";
 import { useVehicleTracking } from "@/hooks/useVehicleTracking";
 import { getActiveVehicles } from "@/services/publicApi";
+import {
+  canDisplayCanonicalVehicleMarker,
+  CanonicalVehicleStateCounts,
+  projectCanonicalVehicleStateCounts,
+} from "@/utils/canonical-public-state";
 
 export function useShuttleTracker() {
   const { mapRef, LRef } = useLeafletMap();
@@ -37,7 +41,7 @@ export function useShuttleTracker() {
   const routeMenuRef = useRef<HTMLDivElement>(null);
 
   const [availableCount, setAvailableCount] = useState<number>(0);
-  const [vehicleStateCounts, setVehicleStateCounts] = useState<Record<CanonicalServiceState, number>>({
+  const [vehicleStateCounts, setVehicleStateCounts] = useState<CanonicalVehicleStateCounts>({
     live: 0,
     stale: 0,
     no_service: 0,
@@ -111,15 +115,9 @@ export function useShuttleTracker() {
   }, [mapRef]);
 
   const refreshVehicleStateCounts = useCallback(() => {
-    const counts = Object.values(vehicleStatesRef.current).reduce<Record<CanonicalServiceState, number>>(
-      (next, vehicleState) => {
-        const displayState = vehicleState.serviceState === "live" && expiredVehiclesRef.current[vehicleState.vehicleId]
-          ? "stale"
-          : vehicleState.serviceState;
-        next[displayState] += 1;
-        return next;
-      },
-      { live: 0, stale: 0, no_service: 0, unknown: 0 },
+    const counts = projectCanonicalVehicleStateCounts(
+      vehicleStatesRef.current,
+      expiredVehiclesRef.current,
     );
     setVehicleStateCounts(counts);
     setAvailableCount(counts.live);
@@ -354,11 +352,11 @@ export function useShuttleTracker() {
     Object.keys(vehiclesRef.current).forEach((id) => {
       const marker = vehiclesRef.current[id];
       const state = vehicleStatesRef.current[id];
-      const canDisplayMarker =
-        state?.serviceState === "live" &&
-        state.routeAuthority !== "unknown" &&
-        state.routeId === routeId &&
-        !expiredVehiclesRef.current[id];
+      const canDisplayMarker = canDisplayCanonicalVehicleMarker(
+        state,
+        routeId,
+        Boolean(expiredVehiclesRef.current[id]),
+      );
 
       if (canDisplayMarker) {
         if (!mapRef.current?.hasLayer(marker)) marker.addTo(mapRef.current!);

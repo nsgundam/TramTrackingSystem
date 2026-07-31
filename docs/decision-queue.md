@@ -2,6 +2,27 @@
 
 ## Pending
 
+## D-008 — Production hosting topology and operational ownership
+
+Related reports: `docs/audits/infrastructure-device-audit.md`,
+`docs/audits/security-devops-observability-audit.md`,
+`docs/audits/production-readiness-audit.md`,
+`docs/roadmap/master-refactoring-roadmap.md`
+
+Owner direction recorded on **2026-08-01**: keep frontend/backend/data hosting separated as required
+by the final topology; the production server will be either university-operated infrastructure,
+AWS, or a VPS. Register and bind the public domain only after the selected server deployment is
+working.
+
+Still pending before T9 can close: select the actual provider/host and region/network boundary;
+name the frontend, backend, PostgreSQL, and Redis placement; choose the TLS terminator and certificate
+owner; identify the secret source, log/alert destination, backup/restore owner, migration/rollback
+owner, and incident/on-call owner. The post-deploy domain sequence does not authorize an IP-only
+public release or plaintext production traffic.
+
+Roadmap effect: narrows the T9 hosting direction but leaves T9 and T13 blocked on exact topology,
+security, and operational-owner facts.
+
 ## Approved
 
 ## D-001 — Operational MVP release scope
@@ -26,13 +47,19 @@ as interchangeable.
 | B — Balanced daily campus operations | Adds route-stop operations, supported sender workflow, trip history, and service freshness for accountable daily use. | More cross-domain implementation and validation before operation. | Medium | Operational workflow, history, and freshness design. | Public launch, multiple operators, or reliance on feedback. |
 | C — Wider public rider release | Adds B plus feedback triage and clearer public no-service/stale-service communication. | Requires support ownership, privacy/retention choices, and stronger operational readiness. | Medium-High | Service operations and rider support. | Higher rider volume or formal service commitments. |
 
-Recommendation: A — keep the current release limited to a controlled demonstration or pilot until
-the owner explicitly chooses B or C. This matches the repository evidence without presenting
-API-only or external-client workflows as daily operational capability.
+Pre-decision recommendation: A — keep the current release limited to a controlled demonstration or
+pilot until the owner explicitly chooses B or C. This matched the repository evidence before the
+2026-08-01 scope upgrade.
 
-Owner decision: Approved A — Minimal controlled demonstration (Develop MVP scope for pilot testing prior to potential future expansions)
+Owner decision: **Approved C on 2026-08-01 — Wider public rider release.** This supersedes the
+earlier A decision. B-level route/stop operations, supported sender/trip history and exceptions,
+plus accountable feedback triage and public-service readiness are now required before claiming the
+selected release scope.
 
-Roadmap effect: Governs MVP release scope; focus remains on controlled demonstration.
+Roadmap effect: Opens the product-scope gate for T10–T12, but does not make them implementation-ready
+by itself. The affected Product-through-Production-Readiness evidence and the roadmap require
+re-audit against C; T9/T13 hosting and recovery gates, T11 sender workflow, T12 feedback policy, and
+the role/access matrix remain independent blockers.
 
 ## D-002 — Telemetry retention and canonical-history fidelity
 
@@ -179,6 +206,44 @@ the exact Redis digest must be recorded in the task evidence before stateful val
 Roadmap effect: resolves the T7 disposable-target gate and supersedes the less restrictive owner
 export/temporary-artifact choices for T7 implementation. Re-audit freshness and Level 1 evidence
 validation remain required before implementation promotion.
+
+## D-007 — Administrative role tiers and sensitive data authority
+
+Related reports: `docs/audits/product-audit.md`, `docs/audits/database-audit.md`,
+`docs/audits/dashboard-ux-audit.md`, `docs/audits/security-devops-observability-audit.md`,
+`docs/roadmap/master-refactoring-roadmap.md`
+
+Owner decision: **Approved on 2026-08-01.** Use three named administrative roles in descending
+authority order: `DEV`, `SUPER_ADMIN`, and `ADMIN`, with hierarchical permission inheritance.
+
+- `DEV` is the highest role and may perform every `DEV`, `SUPER_ADMIN`, and `ADMIN` action. It owns
+  research data collection and the protected developer/research surface and retains the bounded
+  backup/export authority approved by D-006.
+- `SUPER_ADMIN` may perform ordinary `ADMIN` operations plus privileged deletion of
+  `Trip`, `GPSTrack`, and `Feedback` records and controlled backup/export operations. It cannot
+  delete raw-research observations, research aggregates, lifecycle/audit records, users, routes,
+  stops, vehicles, or other data under this decision.
+- `ADMIN` manages ordinary operational resources, but cannot create, edit, delete, assign, or
+  otherwise manage accounts/roles at the higher `SUPER_ADMIN` or `DEV` tiers. `ADMIN` and both
+  higher roles may create device Sender identities/credentials through the Admin UI; this is device
+  credential provisioning, not administrative user/role creation. The Driver/GPS Sender runtime is
+  a separately built Mobile Application that uses its provisioned Sender credential to transmit GPS
+  observations to the Backend; it is not embedded in the Admin Web UI.
+- No application role, including `DEV`, may create or remove a `DEV` account through the product UI
+  or API. Only the project owner/creator or an explicitly authorized project-creator team member may
+  provision or deprovision `DEV` out of band through a separately controlled bootstrap/operations
+  procedure.
+
+Security gate before implementation: define who may provision, promote, demote, disable, or remove
+`SUPER_ADMIN` and `ADMIN`; Sender credential display/rotation/revocation; approval,
+re-authentication, reason, and audit requirements for privileged deletion/backup/export; backup-
+before-delete and restore/rollback behavior; and the owner/team-member allowlist plus recovery
+procedure for out-of-band `DEV` provisioning. Until that matrix is approved and migrated, the repository's current
+`OPERATOR`/`DEV`/`SUPER_ADMIN` checks and D-006 export contract remain evidence of current behavior,
+not proof of the new hierarchy.
+
+Roadmap effect: the next roadmap re-audit must add an explicit RBAC/migration handoff before or with
+T10–T12 and preserve separation between the T15 Dev research surface and ordinary operations UI.
 
 ## Postponed
 

@@ -2,11 +2,41 @@
 
 Audit metadata:
 
-- Evidence baseline: `4d5a456a6d73ef5a58d674426ba889f43102a9d2`
-- Evidence scope: `docs/project-knowledge-base.md`, `docs/audits/README.md`, `docs/audits/lead-audit-summary.md`, `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`, `docs/audits/frontend-audit.md`, `docs/audits/database-audit.md`, `docs/audits/infrastructure-device-audit.md`, `docs/audits/dashboard-ux-audit.md`, `docs/audits/security-devops-observability-audit.md`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, `docs/research/T7-owner-input-questionnaire.md`, `docs/tasks/T7-raw-research-observations.md`, `docs/tasks/T8-truthful-map-live-count.md`, `docs/audits/specialized/T7-data-lifecycle-access.md`, `docs/audits/specialized/T7-product-research-accuracy-protocol.md`, `docs/roadmap/master-refactoring-roadmap.md`, `scripts/ci-checks.sh`, `shuttle-tracking-web/components/public/ShuttleTracker.tsx`, `shuttle-tracking-web/components/public/AvailabilityCard.tsx`, `shuttle-tracking-web/hooks/useShuttleTracker.ts`, `shuttle-tracking-web/hooks/useVehicleTracking.ts`, and `shuttle-tracking-web/types/canonical-state.ts`.
-- Reviewed at: `2026-07-29T19:11:00+07:00`
+- Evidence baseline: `9b7ff7325169a8bfa67d29ced94588edd3dbf28a`
+- Evidence scope: `docs/project-knowledge-base.md`, validated domain audits, `docs/audits/README.md`, `docs/audits/lead-audit-summary.md`, `docs/decision-queue.md`, `docs/tasks/T8-truthful-map-live-count.md`, `docs/roadmap/master-refactoring-roadmap.md`, `scripts/ci-checks.sh`, `shuttle-tracking-web/package.json`, `shuttle-tracking-web/playwright.config.ts`, `shuttle-tracking-web/hooks/useShuttleTracker.ts`, `shuttle-tracking-web/utils/canonical-public-state.ts`, `shuttle-tracking-web/tests/t8-public-state.test.ts`, `shuttle-tracking-web/tests/t8-local-server.mjs`, and `shuttle-tracking-web/tests/t8-route-switch.spec.ts`.
+- Reviewed at: `2026-08-01T00:49:55+07:00`
 - Validation state: **Validated**
-- Predecessor baselines: Discovery, Product, Architecture, Backend, Database, Infrastructure & Device, and Security/DevOps/Observability `@ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`; Frontend and Dashboard & UX `@ 4d5a456a6d73ef5a58d674426ba889f43102a9d2`
+- Predecessor baselines: Discovery, Product, Architecture, Backend, Database, Infrastructure & Device, and Security/DevOps/Observability `@ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`; Frontend and Dashboard & UX `@ 9b7ff7325169a8bfa67d29ced94588edd3dbf28a` plus their 2026-08-01 local T8 evidence refresh
+
+## T8 Automated Evidence Re-audit — 2026-08-01
+
+The public truthful-map acceptance now has deterministic and browser evidence: a synthetic
+localhost-only Playwright run verifies live → local expiry → route switch → newer live restoration,
+and CI passes with that test. This resolves PR-07's T8 route-switch/runtime-evidence portion for the
+approved controlled-demo public-state scope. It does not affect the Conditional Go for D-001=A or the
+No-Go determinations for research field trials, daily operations, and public service: topology,
+operations, security, device/provider, field, retention, and recovery evidence remain unchanged.
+
+## T8 Corrective Re-audit — 2026-07-31
+
+All required domain predecessors are Validated at their recorded baselines. The evidence comparison
+from `4d5a456a6d73ef5a58d674426ba889f43102a9d2` to
+`9b7ff7325169a8bfa67d29ced94588edd3dbf28a` has one application behavior change:
+`shuttle-tracking-web/hooks/useShuttleTracker.ts`. It corrects the public route-switch projection
+without changing backend, schema, device, deployment, security, raw-research, or owner-decision
+evidence. `bash scripts/ci-checks.sh` passes, with only the two documented frontend lint warnings.
+
+The Frontend and Dashboard & UX re-audits establish that a stored Marker returns on route selection
+only when the latest accepted canonical state is `live`, has a known authoritative matching route, and
+is not locally expired. The former stale/expired route-switch recurrence is **Resolved** by source
+inspection. Public Marker/count/ETA presentation remains canonical-only and neutral; no raw source or
+operational wording is exposed.
+
+T8 remains **Partially Resolved** because the repository still has no focused timer/route-switch
+fixture or browser/Socket.IO-interruption evidence. This narrows the controlled-demo truthful-map
+condition from a known source defect to a runtime-evidence gap; it does not alter the Conditional Go
+for D-001=A or any existing No-Go decision for research field trials, internal operations, or public
+rider service. No new owner decision is proposed.
 
 ## T7 Re-audit Addendum — 2026-07-29
 
@@ -72,10 +102,10 @@ blockers:
 | Product | Complete / Validated | D-001=A controlled demonstration remains the approved scope; daily/public workflows are incomplete. |
 | Architecture | Complete / Validated | T5 lifecycle and T6 canonical boundaries are current; transient Redis state, source-health coordination, route-stop ownership, and scale evidence remain open. |
 | Backend | Complete / Validated | Sender/TTN boundaries, T5/T6 canonical publication, and protected T7 research APIs are current; physical timestamp quality and legacy writes remain open. |
-| Frontend | Complete / Validated | T8 now aligns local-expiry Marker/count/ETA projection, but stale/expired Marker restoration on route change and runtime evidence remain open. |
+| Frontend | Complete / Validated | T8 source inspection confirms local-expiry Marker/count/ETA alignment and route-switch suppression for non-live/expired state; focused runtime evidence remains open. |
 | Database | Complete / Validated | Active-trip and T5 constraints are current; T7 adds bounded raw research data with disposable retention/read/export evidence, not production lifecycle proof. |
 | Infrastructure & Device | Complete / Validated | Compose/startup and simulator boundaries are evidenced; deployment, recovery, provider, firmware, and physical runtime are unavailable. |
-| Dashboard & UX | Complete / Validated | The public surface remains canonical-only and neutral; T8 route-switch Marker truthfulness, exception, triage, and research views remain open. |
+| Dashboard & UX | Complete / Validated | The public surface remains canonical-only and neutral; the route-switch source finding is resolved, while runtime evidence, exception, triage, and research views remain open. |
 | Security, DevOps & Observability | Complete / Validated | Sender/TTN auth, redaction, bounded inputs, rate limits, and CI exist; isolation, session policy, durable monitoring, roles, and external security evidence remain open. |
 
 Coverage is sufficient for a repository-based release decision. Confidence is lower for live
@@ -104,7 +134,7 @@ research result.
 | PR-04 | Production Compose publishes PostgreSQL/Redis ports without evidenced private networking, firewall, Redis auth/TLS, backup/restore, or owner-operated topology. | **Still Present** | High security/recovery risk | Internal, public |
 | PR-05 | Legacy vehicle/route/stop writes remain outside shared typed validation, rate limits, and safe error handling; admin session lifetime/cookie policy is not aligned with configuration. | **Still Present** | High | Internal, public |
 | PR-06 | Real device/provider lifecycle is not evidenced: no mobile app, ESP32 firmware, TTN account/provider runtime, provisioning, field coverage, reconnect, power-cycle, or recovery test. | **Unable to Verify** | Critical for real-device claims | Research, internal, public |
-| PR-07 | T8 now reprojects the public live count on local expiry, but route switching can restore a stale/expired Marker before a newer canonical `live` state; public ETA remains a client estimate and admin readiness/retry/exception context is incomplete. | **Partially Resolved** | High / misleading-accuracy risk | Research, internal, public |
+| PR-07 | T8 reprojects the public live count on local expiry and source inspection confirms that route selection cannot restore a stale/expired Marker before a newer canonical `live` state. Public ETA remains a client estimate, admin readiness/retry/exception context is incomplete, and focused runtime evidence is absent. | **Partially Resolved** | High / misleading-accuracy risk | Research, internal, public |
 | PR-08 | CI and allowlisted signals exist, but there is no durable metrics/log sink, alert routing, error tracking, deployment approval, incident owner, runbook, or recovery drill. | **Still Present** | High | Internal, public |
 | PR-09 | The D-004 Dev Dashboard and physical comparison evidence are not implemented or independently reproducible. T7 provides protected backend diagnostics, not a research result. | **Partially Resolved** | High for research claims | Research |
 | PR-10 | D-006's exact Redis digest, isolated target, expected mutations, cleanup constraints, and stateful evidence are recorded for the disposable target; production rollback/lifecycle operations remain absent. | **Partially Resolved** | High for production research validation | Research |
@@ -124,12 +154,12 @@ failure.
 | Product completeness | **Not Ready** | Core rider demo exists, but daily operational workflows, exception handling, triage, and research surfaces are absent. |
 | Architecture | **Partially Ready** | Monolith, T5, and T6 fit the controlled MVP; Redis/transient health, route-stop ownership, and scale/recovery evidence remain open. |
 | Backend reliability | **Partially Ready** | Sender/TTN boundaries, T5, and T6 canonical publication are credible; raw reads, complete disposition/order semantics, and legacy write consistency remain open. |
-| Frontend reliability | **Partially Ready** | Canonical hydration/version/route/freshness guards and local-expiry count projection exist; non-live Marker restoration on route change, lifecycle retry, and browser evidence remain open. |
+| Frontend reliability | **Partially Ready** | Canonical hydration/version/route/freshness guards, local-expiry count projection, and source-visible route-switch suppression exist; lifecycle retry and focused browser/runtime evidence remain open. |
 | Data layer | **Partially Ready** | PostGIS, constraints, and sampled history support MVP; raw evidence, retention, timestamps, access, and read workflows remain unresolved. |
 | Infrastructure/device | **Not Ready** | Production images and simulators exist; operated deployment and real sender/provider/device evidence do not. |
 | Security | **Partially Ready** | Direct secret-hash/Redis-log exposure is resolved; production isolation, session policy, legacy writes, roles, and external controls remain open. |
 | Operability | **Not Ready** | CI, readiness, request IDs, and redacted signals exist without durable monitoring, alerts, recovery, or ownership. |
-| User experience | **Not Ready** | Rider feedback and canonical marker behavior exist, but stale/expired Marker restoration, error, and exception truth are incomplete. |
+| User experience | **Not Ready** | Rider feedback and source-verified canonical marker behavior exist, but error/retry, exception truth, accessibility, and runtime evidence are incomplete. |
 
 ## 6. Minimum Bar Before Broader Release
 
@@ -185,7 +215,7 @@ and effort, and **low** for external runtime/device/provider behavior.
 ## 9. Handoff and Roadmap Impact
 
 Production Readiness is **Complete / Validated** at
-`4d5a456a6d73ef5a58d674426ba889f43102a9d2`. This validates the release synthesis, not T8 closure:
-the next implementation must repair and verify the route-switch Marker recurrence within T8's approved
-public-state scope before any dependent task claims eligibility. This report does not implement code,
-modify the roadmap, or change an owner decision.
+`9b7ff7325169a8bfa67d29ced94588edd3dbf28a`. This validates the release synthesis, not T8 closure:
+the route-switch source recurrence is resolved, but focused/runtime evidence remains required before
+any dependent task claims eligibility. This report does not implement code, modify the roadmap, or
+change an owner decision.

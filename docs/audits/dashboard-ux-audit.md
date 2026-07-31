@@ -2,11 +2,42 @@
 
 Audit metadata:
 
-- Evidence baseline: `4d5a456a6d73ef5a58d674426ba889f43102a9d2`
-- Evidence scope: `docs/project-knowledge-base.md`, `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`, `docs/audits/frontend-audit.md`, `docs/audits/infrastructure-device-audit.md`, `docs/audits/README.md`, `docs/audits/lead-audit-summary.md`, `docs/decision-queue.md`, `docs/roadmap/master-refactoring-roadmap.md`, `docs/tasks/T8-truthful-map-live-count.md`, `scripts/ci-checks.sh`, `shuttle-tracking-web/components/public/ShuttleTracker.tsx`, `shuttle-tracking-web/components/public/AvailabilityCard.tsx`, `shuttle-tracking-web/hooks/useShuttleTracker.ts`, `shuttle-tracking-web/hooks/useVehicleTracking.ts`, `shuttle-tracking-web/hooks/useRouteGeometry.ts`, and `shuttle-tracking-web/types/canonical-state.ts`.
-- Reviewed at: `2026-07-29T19:11:00+07:00`
+- Evidence baseline: `9b7ff7325169a8bfa67d29ced94588edd3dbf28a`
+- Evidence scope: `docs/project-knowledge-base.md`, `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`, `docs/audits/frontend-audit.md`, `docs/audits/infrastructure-device-audit.md`, `docs/audits/README.md`, `docs/audits/lead-audit-summary.md`, `docs/decision-queue.md`, `docs/roadmap/master-refactoring-roadmap.md`, `docs/tasks/T8-truthful-map-live-count.md`, `scripts/ci-checks.sh`, `shuttle-tracking-web/package.json`, `shuttle-tracking-web/playwright.config.ts`, `shuttle-tracking-web/components/public/ShuttleTracker.tsx`, `shuttle-tracking-web/components/public/AvailabilityCard.tsx`, `shuttle-tracking-web/hooks/useShuttleTracker.ts`, `shuttle-tracking-web/hooks/useVehicleTracking.ts`, `shuttle-tracking-web/hooks/useRouteGeometry.ts`, `shuttle-tracking-web/types/canonical-state.ts`, `shuttle-tracking-web/utils/canonical-public-state.ts`, `shuttle-tracking-web/tests/t8-local-server.mjs`, and `shuttle-tracking-web/tests/t8-route-switch.spec.ts`.
+- Reviewed at: `2026-08-01T00:49:55+07:00`
 - Validation state: **Validated**
-- Predecessor baselines: Product, Infrastructure & Device, Architecture, and Backend `@ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`; Frontend `@ 4d5a456a6d73ef5a58d674426ba889f43102a9d2`
+- Predecessor baselines: Product, Infrastructure & Device, Architecture, and Backend `@ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`; Frontend `@ 9b7ff7325169a8bfa67d29ced94588edd3dbf28a` plus its 2026-08-01 local T8 evidence refresh
+
+## T8 Automated Evidence Re-audit — 2026-08-01
+
+The isolated Playwright run verifies the actual rider page against synthetic localhost route, stop,
+canonical REST, and Socket.IO data. It observes the neutral `Active Trams` count and Marker disappear
+on local expiry, remain absent when the rider changes from R01 to R02 and back, then return only on a
+newer canonical live event. No raw source, connection, or operational terminology is added to the
+public UX. The prior T8 route-switch **New Finding** and runtime-evidence gap are **Resolved** for
+this bounded public journey. Accessibility, error/retry, operations, and research-dashboard findings
+remain unchanged.
+
+## T8 Corrective Re-audit — 2026-07-31
+
+This update supersedes the 2026-07-29 route-switch conclusions. The current comparison from
+`4d5a456a6d73ef5a58d674426ba889f43102a9d2` contains one UI application change,
+`shuttle-tracking-web/hooks/useShuttleTracker.ts`; it neither changes public vocabulary nor adds raw
+source, research, connection, or operational information to the rider surface. The revalidated
+Frontend predecessor is Validated at this report's baseline.
+
+The route selector now consults the latest accepted canonical state and local-expiry registry before
+adding a stored Marker. It presents a Marker only for a current `live` state on its known authoritative
+selected route. All non-live, locally expired, missing, unknown-route, and route-mismatch states
+remove only that vehicle Marker. The earlier **New Finding** that route selection could make a
+stale/expired public Marker recur is **Resolved** by source inspection. Marker/count/ETA remain
+canonical-only and neutral, and the route/stop layers remain intact.
+
+This is not runtime closure: no focused timer/route-switch fixture, browser, Socket.IO-interruption,
+accessibility, or rider-session evidence exists. `bash scripts/ci-checks.sh` passes with the two
+documented frontend lint warnings. T8 is still **Partially Resolved** because source-visible behavior
+is not independently exercised; existing UX, operations, accessibility, and research-dashboard gaps
+remain **Still Present** or **Partially Resolved** as recorded below. No owner decision is proposed.
 
 ## T7 Re-audit Addendum — 2026-07-29
 
@@ -75,8 +106,8 @@ interaction evidence.
 | Prior finding | State | Current evidence and implication |
 |---|---|---|
 | Live data had no user-visible freshness model | **Partially Resolved** | Admin `LiveMap` exposes connection state and live/stale/no-service/unknown counts; public marker and ETA behavior follows canonical freshness but intentionally hides operational labels under D-005. Public has no last-update age or retry panel. |
-| Public local expiry could leave `Active Trams` high | **Partially Resolved** | The public count now excludes the locally expired canonical vehicle as its Marker and ETA are removed. However, a route switch can re-add the stored stale/expired Marker before a newer canonical `live` event. |
-| Non-live public Markers must not recur before a newer live state | **New Finding** | Route selection re-adds stored Markers by canonical route alone. It must also require current `live` state and no local expiry. |
+| Public local expiry could leave `Active Trams` high | **Partially Resolved** | The public count excludes the locally expired canonical vehicle as its Marker and ETA are removed. The source-visible route selector also excludes non-live/expired state; focused runtime evidence remains absent. |
+| Non-live public Markers must not recur before a newer live state | **Resolved** | Route selection now requires current canonical `live`, a known authoritative matching route, and no local expiry before adding the stored Marker. Only that vehicle Marker is removed otherwise. |
 | Admin dashboard was not an operations dashboard | **Still Present** | The live map has canonical state summaries, but the dashboard retains database count cards and a static “Live System Active” badge; it has no readiness/error state, source exceptions, trip exceptions, feedback queue, or actionable retry. |
 | Public route selection/ETA could overstate certainty | **Partially Resolved** | Backend route authority now controls marker visibility and unknown route removes the marker; non-live ETA is suppressed. Live ETA is still a browser estimate with no visible data age/confidence or service guarantee. |
 | Public no-vehicle/no-data state was unclear | **Partially Resolved** | Canonical `no_service`/`unknown` states remove markers and null ETA; public copy still collapses null ETA into “ยังไม่มีรถในสายนี้” and does not distinguish zero service, stale, dependency failure, or unavailable route. This neutral behavior is intentional but not fully explanatory. |
@@ -231,7 +262,7 @@ No new owner decision is proposed. Existing D-001 through D-006 remain the sourc
 ## 13. Audit Limitations and Handoff
 
 No dashboard or UX code change is authorized by this report. Dashboard & UX is **Complete / Validated**
-at `4d5a456a6d73ef5a58d674426ba889f43102a9d2` as an audit profile. Security's trust-boundary evidence
+at `9b7ff7325169a8bfa67d29ced94588edd3dbf28a` as an audit profile. Security's trust-boundary evidence
 is unaffected by this public rendering-only change and remains current. Production Readiness is the
-next eligible profile; it must carry forward the T8 Partially Resolved and New Finding states rather
-than treat this re-audit as T8 closure.
+next eligible profile; it must carry forward T8's Partially Resolved runtime-evidence gap, not the
+now-resolved route-switch recurrence, and must not treat this re-audit as T8 closure.
