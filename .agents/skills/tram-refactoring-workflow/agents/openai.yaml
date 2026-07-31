@@ -1,4 +1,4 @@
 interface:
   display_name: "Tram Refactoring Workflow"
-  short_description: "Implement and verify bounded roadmap tasks safely"
-  default_prompt: "Implement the selected roadmap task with exact scope, isolated execution, and verification."
+  short_description: "Supervise roadmap or maintenance implementation"
+  default_prompt: "Use $tram-refactoring-workflow to implement an approved Roadmap or Maintenance work unit, repair failed checks, and verify every acceptance criterion."

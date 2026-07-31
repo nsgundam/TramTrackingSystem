@@ -398,6 +398,59 @@ forward-test files or external systems were modified.
 
 ---
 
+### AC-014
+
+Agent: Main-agent supervision and bounded implementation intake
+Files: `AGENTS.md`, `agents/level-3-refactor/AGENT.md`,
+`.agents/skills/tram-refactoring-workflow/SKILL.md`,
+`.agents/skills/tram-refactoring-workflow/agents/openai.yaml`,
+`docs/tasks/task-spec-template.md`, `scripts/agy-worker.sh`, and
+`scripts/validate-agent-workflow.js`
+
+Problem/evidence:
+The three-level architecture routes audits, specialist decisions, and roadmap implementation, but
+no contract makes the repository Main Agent accountable for selecting the lane, supervising
+delegated work, repairing failed acceptance checks, and synchronizing final state. Level 3 also
+rejects every task outside the current roadmap, so explicitly requested maintenance or corrective
+work either needs manual prompt-by-prompt coordination or falls outside the governed workflow.
+Repository-wide engineering expectations such as strict boundary typing, avoiding `any`,
+behavior-preserving clean-code refactoring, production safety, and research-data provenance are not
+defined as one stable completion baseline.
+
+Exact approved change:
+Keep exactly three specialist levels and make root `AGENTS.md` the Main Agent supervisor contract.
+Add explicit autonomy modes and a bounded supervise/inspect/verify/repair loop; route work through a
+Roadmap lane or an explicitly user-authorized Maintenance lane; use sortable
+`M-YYYYMMDD-NN` work IDs and exact-path task specs for maintenance; extend Level 3, its skill,
+worker isolation, and task template to both lanes; make the Main Agent retain acceptance and
+shared-state ownership; define one repository engineering baseline for clean boundaries, pragmatic
+OOP/composition, strict TypeScript without `any` escape hatches, production operability, and
+reproducible research evidence; and enforce the critical contract tokens in the workflow validator.
+
+Expected benefit:
+The user can give one outcome or an approved batch and let the Main Agent coordinate the smallest
+necessary levels until acceptance passes or a genuine authority/evidence blocker is reached.
+Urgent non-roadmap work remains bounded and traceable without silently rewriting the roadmap, while
+roadmap tasks, production changes, and research outputs share the same engineering and verification
+quality gates.
+
+Priority: Critical
+Audit-blocking status: Cleared — required before unattended supervised implementation
+Owner decision: Approved explicitly in the 2026-07-31 request to tune the agents and skills, make
+the Main Agent supervise the whole workflow, support work outside the roadmap, and retain
+production/clean-code/research quality
+Proposal date: 2026-07-31
+Approval date: 2026-07-31
+Applied date: 2026-07-31
+Verification: All three project skills passed `quick_validate.py`; the workflow validator passed
+exactly 3 agents, 3 skills, and 15 roadmap tasks; `bash -n scripts/agy-worker.sh
+scripts/ci-checks.sh` and `git diff --check` passed; and `bash scripts/ci-checks.sh` passed backend
+build/boundary tests, Prisma validation, frontend lint/production build, Compose validation,
+redaction checks, and workflow validation outside the sandbox required by Turbopack. Frontend lint
+reported two pre-existing warnings and zero errors.
+
+---
+
 ## Rejected Changes
 
 ## Postponed Changes

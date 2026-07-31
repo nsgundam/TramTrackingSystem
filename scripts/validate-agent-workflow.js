@@ -118,6 +118,42 @@ for (const relativePath of ["AGENTS.md", ...agentPaths]) {
   }
 }
 
+const supervisionContractTokens = {
+  "AGENTS.md": [
+    "## Main Agent supervisor",
+    "`Run Approved Batch`",
+    "`M-YYYYMMDD-NN`",
+    "### Supervision loop",
+    "## Engineering completion baseline",
+    "Do not introduce explicit or implicit `any`",
+  ],
+  "agents/level-3-refactor/AGENT.md": [
+    "Roadmap or Maintenance",
+    "`M-YYYYMMDD-NN`",
+    "Repair in-scope defects",
+    "Main Agent acceptance",
+  ],
+  ".agents/skills/tram-refactoring-workflow/SKILL.md": [
+    "### Roadmap",
+    "### Maintenance",
+    "`M-YYYYMMDD-NN`",
+    "## Repair loop",
+    "Do not stop merely because the first implementation or",
+  ],
+  "docs/tasks/task-spec-template.md": [
+    "Work ID: `T<number>` or `M-YYYYMMDD-NN`",
+    "Lane: `Roadmap` or `Maintenance`",
+    "## Impact Triage",
+    "## Completion Evidence",
+  ],
+};
+for (const [relativePath, tokens] of Object.entries(supervisionContractTokens)) {
+  const content = read(relativePath);
+  for (const token of tokens) {
+    if (!content.includes(token)) fail(`Supervision contract token missing in ${relativePath}: ${token}`);
+  }
+}
+
 const activeArchitectureFiles = [
   "AGENTS.md",
   "README.md",
@@ -171,7 +207,12 @@ for (let index = 0; index < taskMatches.length; index += 1) {
 }
 
 const worker = read("scripts/agy-worker.sh");
-for (const token of ["worktree add --detach", "--sandbox", "apply --check"]) {
+for (const token of [
+  "worktree add --detach",
+  "--sandbox",
+  "apply --check",
+  "M-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9]-*.md",
+]) {
   if (!worker.includes(token)) fail(`Worker isolation token missing: ${token}`);
 }
 if (/revert unauthorized/i.test(read(".agents/skills/tram-refactoring-workflow/SKILL.md"))) {

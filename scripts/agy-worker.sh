@@ -11,9 +11,10 @@ repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 task_spec="$1"
 
 case "$task_spec" in
-  docs/tasks/T[0-9]*-*.md) ;;
+  docs/tasks/T[0-9]*-*.md|\
+  docs/tasks/M-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9]-*.md) ;;
   *)
-    echo "Task spec must match docs/tasks/T<number>-<topic>.md." >&2
+    echo "Task spec must match docs/tasks/T<number>-<topic>.md or docs/tasks/M-YYYYMMDD-NN-<topic>.md." >&2
     exit 1
     ;;
 esac

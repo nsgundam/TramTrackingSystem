@@ -5,8 +5,8 @@ import fs from 'fs';
 import path from 'path';
 dotenv.config();
 
-const API_URL = 'http://localhost:3001/api';
-const SOCKET_URL = 'http://localhost:3001';
+const API_URL = 'https://tramtrackingsystem.onrender.com/api';
+const SOCKET_URL = 'https://tramtrackingsystem.onrender.com';
 const VEHICLE_ID = 'VH001';
 const SOURCE_ID = 'TS_MOB_01';
 
