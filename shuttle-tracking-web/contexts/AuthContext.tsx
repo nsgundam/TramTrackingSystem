@@ -5,16 +5,21 @@ import { setCookie, deleteCookie, getCookie } from "cookies-next";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import api from "@/services/api";
+
+export type AdminRole = "ADMIN" | "SUPER_ADMIN" | "DEV";
 
 interface User {
   id: string;
   username: string;
+  role: AdminRole;
 }
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (token: string, userData: User) => void;
+  reauthenticate: (password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -24,6 +29,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   token: null,
   login: () => {},
+  reauthenticate: async () => {},
   logout: () => {},
   isAuthenticated: false,
   isLoading: true,
@@ -43,8 +49,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     router.push("/admin/login");
   }, [router]);
 
+  const setSession = useCallback((newToken: string, userData: User) => {
+    setCookie("admin_token", newToken, { maxAge: 60 * 60 * 24 });
+    setToken(newToken);
+    setUser(userData);
+    axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+  }, []);
+
   useEffect(() => {
     const storedToken = getCookie("admin_token") as string;
+    let active = true;
     
     if (storedToken) {
       try {
@@ -52,25 +66,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (decoded.exp * 1000 < Date.now()) {
           setTimeout(() => logout(), 0);
         } else {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setToken(storedToken);
-          setUser({ id: decoded.userId, username: decoded.username });
           axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+          void api.get("auth/me")
+            .then((response) => {
+              if (active) {
+                setToken(storedToken);
+                setUser(response.data.user as User);
+              }
+            })
+            .catch(() => {
+              if (active) logout();
+            })
+            .finally(() => {
+              if (active) setIsLoading(false);
+            });
+          return () => {
+            active = false;
+          };
         }
       } catch (error) {
         console.error("Invalid token", error);
         setTimeout(() => logout(), 0);
       }
     }
-    setIsLoading(false);
+    const loadingTimer = window.setTimeout(() => {
+      if (active) setIsLoading(false);
+    }, 0);
+    return () => {
+      active = false;
+      window.clearTimeout(loadingTimer);
+    };
   }, [logout]);
 
   const login = (newToken: string, userData: User) => {
-    setCookie("admin_token", newToken, { maxAge: 60 * 60 * 24 });
-    setToken(newToken);
-    setUser(userData);
-    axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+    setSession(newToken, userData);
     router.push("/admin/dashboard");
+  };
+
+  const reauthenticate = async (password: string): Promise<void> => {
+    const response = await api.post("auth/reauthenticate", { password });
+    setSession(response.data.token as string, response.data.user as User);
   };
 
   return (
@@ -79,6 +114,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         user,
         token,
         login,
+        reauthenticate,
         logout,
         isAuthenticated: !!token,
         isLoading,

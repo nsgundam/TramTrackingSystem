@@ -4,6 +4,7 @@ import { redisClient } from '../config/redis.js';
 import bcrypt from 'bcrypt';
 import {
   toDeviceMutationResponse,
+  toDeviceHealthResponse,
   toDeviceResponse,
 } from '../types/device.js';
 import {
@@ -45,6 +46,20 @@ export const getDeviceById = async (req: Request, res: Response) => {
   } catch (error) {
     logBoundaryFailure('Device read', error);
     sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to fetch device'));
+  }
+};
+
+// T12 read-only, allowlisted source-health view. Management DTOs and all mutation paths remain separate.
+export const getDeviceHealth = async (req: Request, res: Response) => {
+  try {
+    const devices = await prisma.trackingSource.findMany({
+      include: { vehicle: true },
+      orderBy: { id: 'asc' },
+    });
+    res.json(devices.map((device) => toDeviceHealthResponse(device)));
+  } catch (error) {
+    logBoundaryFailure('Device health list', error);
+    sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to fetch device health'));
   }
 };
 

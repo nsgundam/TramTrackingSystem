@@ -25,6 +25,26 @@ security, and operational-owner facts.
 
 ## Approved
 
+## D-010 — Legacy administrative-role migration mapping
+
+Related reports: `docs/audits/security-devops-observability-audit.md`,
+`docs/audits/database-audit.md`, `docs/audits/specialized/T12-identity-feedback-triage-policy.md`,
+and `docs/roadmap/master-refactoring-roadmap.md`.
+
+Current evidence: `users.role` is a free string whose default and existing ordinary role are
+`OPERATOR`; current admin JWTs contain only identity. D-007 instead names the target hierarchy
+`DEV` > `SUPER_ADMIN` > `ADMIN`. T12 cannot safely grant the approved read-only device view or
+restrict feedback deletion/re-authentication until the existing ordinary accounts have a defined,
+least-privilege transition.
+
+Owner decision: **Approved A on 2026-08-01.** Convert every existing `OPERATOR` role to `ADMIN`;
+make the ordinary-user default `ADMIN`; retain `SUPER_ADMIN` and `DEV`; reject unknown roles at every
+server authorization boundary. Do not silently elevate any legacy account to `SUPER_ADMIN` or `DEV`.
+
+Roadmap effect: resolves the T12 role-migration policy gate. The implementation must use an additive,
+reviewed migration plus deterministic role/re-authentication tests; it does not change T9, T11, T13,
+or D-009's feedback policy.
+
 ## D-001 — Operational MVP release scope
 
 Related reports: `docs/audits/product-audit.md`, `docs/audits/backend-audit.md`,
@@ -279,8 +299,43 @@ re-enrollment, and audited emergency `admin_force_close` plus claim release. The
 constraints are recorded in
 `docs/audits/specialized/T11-identity-mobile-sender-enrollment.md`.
 
+T11 acceptance refinement (2026-08-01): the owner requires broad-device intent rather than a fixed
+Android model/OS promise, confirms locked-screen sending was tested in the field, accepts the
+existing 15-minute access JWT with a revocable refresh credential, and selects authenticated
+Admin-log-only visibility for `gps_timeout`. This does not claim universal Android compatibility:
+the Android team must provide the versioned, redacted device/OS acceptance artifact defined in
+`docs/audits/specialized/T11-identity-mobile-sender-enrollment-v2.md` before T11 completion.
+
 Roadmap effect: the next roadmap re-audit must add an explicit RBAC/migration handoff before or with
 T10–T12 and preserve separation between the T15 Dev research surface and ordinary operations UI.
+
+## D-009 — Anonymous feedback triage and safe source/device visibility
+
+Related artifacts: `docs/audits/specialized/T12-identity-feedback-triage-policy.md`,
+`docs/audits/product-audit.md`, `docs/audits/database-audit.md`,
+`docs/audits/security-devops-observability-audit.md`,
+`docs/audits/dashboard-ux-audit.md`, and `docs/roadmap/master-refactoring-roadmap.md`.
+
+Owner decision: **Approved on 2026-08-01.** `SUPER_ADMIN` owns the anonymous, one-way feedback
+inbox during business days. The case lifecycle is `new → acknowledged → investigating → resolved`,
+with `duplicate` and `rejected` terminal. Do not collect rider contact information or promise a
+reply; display a clear non-emergency/business-day privacy notice.
+
+Retain feedback message, type, vehicle reference, case metadata, and action audit for 180 days from
+creation. Retain raw client IP only for rate limiting for at most 30 days, then remove it; it is not
+triage, analytics, or rider-identification data. `SUPER_ADMIN` and `DEV` may soft-delete feedback
+only after re-authentication within 15 minutes, an explicit reason, immutable actor/action audit,
+and a 30-day restore window; the later purge retains only non-content action evidence.
+
+`ADMIN`, `SUPER_ADMIN`, and `DEV` may view only source type, assigned vehicle, freshness, last-seen,
+status, and allowlisted error category. The view is read-only and must exclude credentials,
+credential hashes, tokens, activation/QR values, raw payloads, IP, raw/historical location, research
+observations, and arbitrary internal errors. T11 retains shared-phone recovery actions; T12 must not
+add device/source writes.
+
+Roadmap effect: resolves T12's feedback/privacy/retention/deletion/SLA and device action policy gate.
+It does not bypass the required re-audits, server-side role/re-authentication enforcement, an exact
+T12 handoff, retention/deletion verification, or T9/T13 production gates.
 
 ## Postponed
 

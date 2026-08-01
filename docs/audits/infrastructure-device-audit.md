@@ -1,11 +1,11 @@
 # Infrastructure & Device Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 671b71209ad3ba3341de78f836b6ec057813280c
+- Evidence baseline: 6697acbd62c740039722769588b1c464231e5ce1 plus approved D-009/D-010:A and the current T12 implementation working tree
 - Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend/Frontend/Database audits, docs/decision-queue.md, docs/research/, docs/testing/, roadmap/task records, README.md, env.example, docker-compose.yml, docker-compose.prod.yml, docker/, shuttle-tracking-backend Docker/startup/config/simulator/test files, and shuttle-tracking-web Docker/config/simulator files
-- Reviewed at: 2026-08-01T13:30:00+07:00
+- Reviewed at: 2026-08-01T14:45:45+07:00
 - Validation state: Validated
-- Predecessor baselines: Discovery, Product, Architecture, Backend, Frontend, and Database @ 671b71209ad3ba3341de78f836b6ec057813280c
+- Predecessor baselines: Discovery, Product, Architecture, Backend, Frontend, and Database @ 6697acbd62c740039722769588b1c464231e5ce1 plus their T12 implementation re-audit addenda
 
 ## 1. Executive Summary
 
@@ -19,7 +19,10 @@ The three device boundaries remain fixed: Mobile phone GPS through authenticated
 
 This profile reviews Compose, Docker, startup, environment templates, simulators, test documentation, and declared transport boundaries. It does not certify host security, cloud/provider behavior, TLS, deployment, devices, radio/network, runtime recovery, backups, or field performance.
 
-All required predecessors are validated at 671b712. The infrastructure source did not change after the prior code baseline; re-audit is required because D-001=C, D-005=B, D-007, and D-008 make operations ownership and real sender lifecycle more consequential. Decisions and simulators are not runtime proof.
+All required predecessors are validated at 6697acb plus the D-009 working copy. T10 adds no
+infrastructure configuration, migration, browser/runtime target, or device behavior. The owner's
+reported locked-screen test and the T11 acceptance contract are external evidence requirements, not
+a repository Mobile runtime result. Decisions and simulators are not runtime proof.
 
 ## 3. Prior-Finding Revalidation
 
@@ -54,10 +57,23 @@ Mobile must provide phone/OS/app version, permission/background/lock-screen beha
 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
-T9 is blocked by D-008 facts. T10 has no infrastructure dependency beyond ordinary safe verification. T11 can implement backend/web structures only after its remaining gates; it may not claim an Android or physical sender result. T12 remains owner-policy blocked. Infrastructure & Device does not propose a new owner decision: D-008 captures the missing facts.
+T9 is blocked by D-008 facts. T10 is complete for exact scope and has no infrastructure dependency
+beyond ordinary safe verification. T11 can implement backend/web structures only after its remaining
+gates; it may not claim an Android or physical sender result. T12 is complete for exact scope, but
+its read-only source view must not be treated as device/provider evidence. Infrastructure & Device
+does not propose a new owner decision: D-008 captures the missing facts.
 
 Confidence is High for checked-in templates and server-boundary facts, Medium for production-mode static behavior, and Low for deployment, TLS, provider, physical device, radio, field performance, recovery and operations.
 
 ## 8. Handoff
 
 Dashboard & UX is now eligible with current Product, Frontend, and Infrastructure & Device evidence. Security, DevOps & Observability waits for Dashboard & UX as well.
+
+## 9. T12 Implementation Re-audit — 2026-08-01
+
+T12 adds no Compose, environment, device firmware, provider, gateway, deployment, or physical-source
+behavior. Its process-local feedback retention sweep is source code that starts only after the current
+backend start sequence; it is not a scheduled-job ownership, multi-instance, backup, or deployment
+result. The read-only health page uses existing stored status/last-seen facts and must not be treated
+as Android/ESP32/LoRaWAN field or availability evidence. All T9/D-008, T11 Android, and physical
+device findings remain **Still Present** or **Unable to Verify** as recorded above.

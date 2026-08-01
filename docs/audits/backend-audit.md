@@ -1,11 +1,11 @@
 # Backend Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 671b71209ad3ba3341de78f836b6ec057813280c
+- Evidence baseline: 6697acbd62c740039722769588b1c464231e5ce1 plus approved D-009/D-010:A and the current T12 implementation working tree
 - Evidence scope: docs/project-knowledge-base.md, Product and Architecture audits, docs/decision-queue.md, docs/research/, roadmap/task records, shuttle-tracking-backend/package.json, shuttle-tracking-backend/src/, shuttle-tracking-backend/prisma/, shuttle-tracking-backend/tests/, and scripts/ci-checks.sh
-- Reviewed at: 2026-08-01T12:45:00+07:00
+- Reviewed at: 2026-08-01T14:45:45+07:00
 - Validation state: Validated
-- Predecessor baselines: Discovery, Product, and Architecture @ 671b71209ad3ba3341de78f836b6ec057813280c
+- Predecessor baselines: Discovery, Product, and Architecture @ 6697acbd62c740039722769588b1c464231e5ce1 plus their T12 implementation re-audit addenda
 
 ## 1. Executive Summary
 
@@ -13,13 +13,20 @@ The backend has coherent bounded ingestion for Mobile Socket.IO, ESP32 HTTP, and
 
 T5/T6/T7 remain distinct: Operations owns transactional trip lifecycle and sampled canonical history; canonical-state owns versioned transient public/realtime state; research services record and query bounded raw diagnostic evidence. T8 changes only the frontend consumer, so it leaves these backend authorities unchanged.
 
-D-001=C makes T10/T11/T12 product requirements but does not add their server capabilities. Current admin authentication validates a user identifier only; it does not enforce the D-007 role hierarchy. Current Trip and TrackingSource models lack Mobile installation/claim state, receipt-time lastAcceptedAt, close reason/closed-at, force-close audit, protected history reads, or feedback triage. These are separate implementation and owner-policy gates.
+D-001=C makes T10/T11/T12 product requirements. T10 now supplies its bounded server command:
+authenticated replacement validates active stop membership, assigns contiguous order, replaces the
+sequence transactionally, and invalidates public cache after success. Current admin authentication
+still validates a user identifier only; it does not enforce the D-007 hierarchy. Trip and
+TrackingSource lack Mobile installation/claim state, receipt-time lastAcceptedAt, close reason/closed-at,
+force-close audit, protected history reads, or feedback triage. These remain separate gates.
 
 ## 2. Scope and Freshness
 
 This profile reviews routes, controllers, middleware, Socket.IO, validation, canonical/operations/research services, schema, errors, rate limits, and backend tests. It is not a running-service, penetration, provider, hardware, Android, or production topology test.
 
-Architecture is validated at 671b712. There is no backend source change after the previous code baseline; the current re-audit is required because D-001=C, D-005=B, D-007, D-008, T11 constraints, and T8 consumer evidence change the required capability and acceptance interpretation. No policy document is counted as a code implementation.
+Architecture is validated at 6697acb plus approved D-009/D-010:A and the T12 working tree. T10 changes
+validation, route-stop controller/routes, a pure ordering service, the backend test command, and
+deterministic tests. T12 adds server enforcement/migration source/test evidence, but not runtime proof.
 
 ## 3. Prior-Finding Revalidation
 
@@ -30,11 +37,11 @@ Architecture is validated at 671b712. There is no backend source change after th
 | Trip lifecycle had competing writers | Resolved | Operations owns start, virtual start, active-trip validation, end, vehicle repair, and sampled history transactions. |
 | Raw research diagnostics were absent | Resolved | T7 stores bounded raw observations and exposes protected research/metric/export/lifecycle services separately from canonical public state. |
 | Public state could be stale/consumer-owned | Partially Resolved | Canonical state has server receive-time freshness and explicit service states; T8 corrects frontend expiry projection. A C-scope public service-state explanation and operational exception surface remain absent. |
-| Route-stop mutation does not invalidate public cache | Still Present | The shared cache invalidator covers route-stop keys, but route-stop create/delete do not call it and there is no validated reorder transaction. T10 owns the repair. |
-| Role and least-privilege enforcement existed | Still Present | authenticateToken checks a non-sender userId; routes/controllers do not enforce the D-007 DEV, SUPER_ADMIN, ADMIN hierarchy. |
+| Route-stop mutation does not invalidate public cache | Resolved | T10's bounded PUT replacement validates active membership, deletes/creates the full sequence inside `prisma.$transaction`, then invalidates public cache; create/delete now do the same after success. Pure validation/order tests and repository CI passed, but no stateful DB/cache runtime was run. |
+| Role and least-privilege enforcement existed | Resolved for D-007/D-010:A scope | authenticateToken re-fetches an allowlisted persisted role on every admin request; role and fresh-auth middleware protect the T12 routes. General account lifecycle remains out of scope. |
 | Protected trip history and exception reads existed | Still Present | No route/controller offers filtered trip list/detail, timeout exception, or source freshness operations views. |
 | Mobile enrollment/claim and D-005 lifecycle existed | Still Present | No installation identity, claim, receipt-time lastAcceptedAt, timeout scheduler/worker, close reason, closedAt, atomic force-close, or audit records exist. |
-| Feedback triage lifecycle existed | Still Present | Public feedback capture has no authenticated list, assignment, status, resolution, retention, privacy notice, or deletion-control boundary. |
+| Feedback triage lifecycle existed | Partially Resolved | T12 adds public receipt, Super Admin/Dev list/update/delete/restore boundaries, exact status transitions, content-free audit, retention sweep, and safe source health. No target migration or retention execution is evidenced. |
 | TTN duplicate/identity compatibility is verified | Unable to Verify | The webhook handles documented payload shapes and secret validation; provider aliases, duplicate delivery, gateway behavior, and field delivery remain unavailable. |
 
 ## 4. Boundary Assessment
@@ -50,9 +57,9 @@ Architecture is validated at 671b712. There is no backend source change after th
 ## 5. Required Task Placement
 
 - T9 is blocked: do not change origins, proxy trust, CORS, Socket.IO, secrets, or production readiness without D-008 topology/ownership facts.
-- T10 should add a validated ordered route-stop command and invalidate public cache after the successful transaction. It must test the next public read and rejected invalid order.
+- T10 is complete for its exact backend scope. A future approved disposable target is required to test an actual cache/DB public read; no controller must rely on cache TTL instead.
 - T11 must extend Operations and schema atomically. Timeout, sender observation, normal end, and emergency force-close must share lock/order and idempotency rules; only accepted observations may update backend receipt-time lastAcceptedAt. Existing sender routes cannot be relabelled as the approved Mobile product.
-- T12 is blocked pending feedback/support/privacy/deletion and device-action policy. Its future endpoint authorization must use the approved role matrix and keep raw research data isolated.
+- T12's endpoints enforce role/re-authentication server-side, implement retention/deletion audit rules, and keep raw research data isolated. Runtime scheduling and migration execution remain separate release evidence.
 
 ## 6. Reliability, Security, and Observability
 
@@ -60,10 +67,33 @@ Canonical state and latest source snapshots remain Redis-backed and transient. S
 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
-T9 remains blocked by D-008. T10 has a bounded backend implementation path after the exact-path task contract. T11 needs its technical lifecycle parameters, fresh affected audits, external Android acceptance evidence, and any role-policy constraints that touch its paths; it is not implementation-ready from this audit alone. T12 remains owner-policy blocked. No new owner decision is proposed.
+T9 remains blocked by D-008. T10/T12 are complete for their bounded handoffs. T11 needs technical
+lifecycle parameters, external Android acceptance evidence, and an exact handoff. T12 runtime
+migration/retention/concurrency evidence remains separate; no new owner decision is proposed.
 
 Confidence is High for code-visible backend boundaries and missing server models, Medium for checked-in test evidence, and Low for running infrastructure, concurrency under load, Redis recovery, devices, TTN, Android, and production operations.
 
 ## 8. Handoff
 
 Backend is validated at 671b712. Frontend and Database remain independently eligible re-audits; Infrastructure & Device must wait until all three are validated.
+
+## 9. T12 Implementation Re-audit — 2026-08-01
+
+**Finding: admin JWTs supplied identity but no server role enforcement — Resolved for the approved
+three-role scope.** `authenticateToken` now rejects sender/invalid tokens, loads the persisted user
+on every request, and rejects missing or unknown roles. `requireMinimumRole` uses `DEV` >
+`SUPER_ADMIN` > `ADMIN`; the feedback router requires Super Admin authority and the safe-health GET
+requires Admin authority. Login and `POST /api/auth/reauthenticate` issue signed freshness claims;
+delete/restore requires a current claim no older than 15 minutes.
+
+**Finding: feedback capture had no accountable server lifecycle/privacy controls — Partially
+Resolved.** Public capture returns only a receipt, creates a content-free audit event, and keeps IP
+out of all staff responses. The case service enforces the exact transition graph and blocks deleted or
+terminal-case mutation. Its retention sweep clears IP after 30 days and purges case content after 180
+days or an expired restore window. Deterministic boundary tests, TypeScript, Prisma validation, and
+CI pass; no database migration/retention execution or concurrent production run was authorized.
+
+**Finding: safe source data was coupled to device management — Resolved for the new endpoint.**
+`GET /api/admin/devices/health` uses a dedicated allowlist DTO and no write route. It omits source ID,
+credential metadata, secret material, priority, payload/location/IP, research data, and arbitrary
+errors. The pre-existing device-management API is unchanged and is not the T12 read-only view.

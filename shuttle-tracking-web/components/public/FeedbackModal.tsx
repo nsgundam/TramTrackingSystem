@@ -148,7 +148,7 @@ function FeedbackModal({
             <CheckCircle2 className="text-green-500 mb-4 animate-pulse-dot" size={64} />
             <h4 className="text-xl font-bold text-slate-800 mb-2">ส่งข้อมูลสำเร็จ!</h4>
             <p className="text-slate-500 text-sm">
-              ขอบคุณสำหรับข้อเสนอแนะของคุณ ระบบได้บันทึกข้อมูลเรียบร้อยแล้ว
+              ระบบได้รับข้อมูลแล้ว ทีมงานตรวจสอบในวันทำการ แต่ไม่สามารถตอบกลับรายบุคคลได้
             </p>
           </div>
         ) : (
@@ -158,6 +158,10 @@ function FeedbackModal({
                 ⚠️ {errorMsg}
               </div>
             )}
+
+            <aside className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-xs leading-5 text-blue-900">
+              แบบฟอร์มนี้เป็นการแจ้งแบบไม่ระบุตัวตนและไม่ใช่ช่องทางฉุกเฉิน โปรดอย่าใส่ข้อมูลส่วนบุคคลหรือข้อมูลเร่งด่วน ระบบเก็บข้อความและข้อมูลเคสไม่เกิน 180 วัน; IP ใช้จำกัดการใช้งานเท่านั้นและลบภายใน 30 วัน ทีมงานตรวจสอบในวันทำการและไม่สามารถตอบกลับรายบุคคลได้
+            </aside>
 
             {/* Selection for Type with Emojis */}
             <div>

@@ -1,23 +1,30 @@
 # Database Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 671b71209ad3ba3341de78f836b6ec057813280c
+- Evidence baseline: 6697acbd62c740039722769588b1c464231e5ce1 plus approved D-009/D-010:A and the current T12 implementation working tree
 - Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend/Frontend audits, docs/decision-queue.md, docs/research/, roadmap/task records, shuttle-tracking-backend/prisma/, shuttle-tracking-backend/src/services/, shuttle-tracking-backend/src/middleware/research-access.ts, shuttle-tracking-backend/src/routes/research.route.ts, and shuttle-tracking-backend/tests/
-- Reviewed at: 2026-08-01T13:15:00+07:00
+- Reviewed at: 2026-08-01T14:45:45+07:00
 - Validation state: Validated
-- Predecessor baselines: Discovery, Product, Architecture, Backend, and Frontend @ 671b71209ad3ba3341de78f836b6ec057813280c
+- Predecessor baselines: Discovery, Product, Architecture, Backend, and Frontend @ 6697acbd62c740039722769588b1c464231e5ce1 plus their T12 implementation re-audit addenda
 
 ## 1. Executive Summary
 
 PostgreSQL/PostGIS remains the durable system of record for master data, Trips, sampled canonical GPSTrack history, Feedback, TrackingSource registry, and T7 research records. Redis remains transient for latest source/canonical state and sampling admission. The additive T7 schema correctly keeps bounded research sessions, raw observations, aggregates, and lifecycle manifests distinct from public canonical state and sampled operational history.
 
-D-001=C does not make the schema ready for T10-T12. RouteStop has unique route/order but no atomic ordered replacement model. Trip lacks receipt-time lastAcceptedAt, close reason, closed-at, Mobile installation/claim linkage, and force-close audit. Feedback lacks case state, ownership, resolution, privacy/retention/deletion controls. The User role column and T7 research role check do not constitute the approved D-007 role/account lifecycle or privileged-action model.
+D-001=C does not make the schema ready for T11. T10 uses the existing RouteStop relation for
+active-membership-validated transactional delete/create replacement and assigns contiguous order in
+the application boundary; it adds no schema migration. Trip lacks receipt-time lastAcceptedAt, close
+reason, closed-at, Mobile installation/claim linkage, and force-close audit. T12 adds Feedback case
+state, ownership, resolution, privacy/retention/deletion controls and the D-010:A ordinary-role
+migration/default. General role/account lifecycle remains outside the approved scope.
 
 ## 2. Scope and Freshness
 
 This profile reviews schema, migrations, constraints, indexes, data lifecycle/retention code, and database-facing services/tests. It does not certify a live migration, query plan, backup/restore, deletion, rollback, provider, hardware, or production database.
 
-All predecessors are validated at 671b712. The earlier code baseline already includes T7 research diagnostics; this re-audit is required because D-001=C, D-005=B, D-007, D-008, and T11 policy constraints alter the required future data boundaries. No decision document is treated as a migration or runtime proof.
+All predecessors are validated at 6697acb plus the D-009 working copy. T10 changes the application
+transaction boundary but not Prisma schema/migrations. D-009 defines future Feedback retention and
+deletion policy but is not a migration, scheduled retention run, or database proof.
 
 ## 3. Prior-Finding Revalidation
 
@@ -28,9 +35,9 @@ All predecessors are validated at 671b712. The earlier code baseline already inc
 | Bounded raw research storage was absent | Resolved | T7 adds ResearchSession, append-only ResearchRawObservation, aggregates and lifecycle run records with session/source/transport/time/dedupe/disposition/index fields. |
 | Raw retention had no safe boundary | Partially Resolved | The 90-day backend-receive-time service requires a matching verified backup manifest and writes a lifecycle record. It is not a scheduled or statefully re-run production retention proof. |
 | Sampled GPSTrack was raw/high-fidelity history | Still Present | GPSTrack remains throttled canonical samples. It must not be used for raw comparison, event replay, or D-005 receipt-time truth. |
-| Route-stop ordering/invalidation safely supported publishing | Still Present | Unique route/order prevents duplicate order but cannot validate/order-replace as one business command; cache invalidation is outside the transaction. T10 owns this. |
-| Feedback supported accountable C-scope triage | Still Present | Feedback only has type, vehicle, message, IP address and created time; no case status, assignment, SLA, resolution, retention/deletion marker, or audit relation. |
-| D-007 role/account lifecycle was represented | Still Present | User role allows legacy OPERATOR, DEV, SUPER_ADMIN and research middleware checks only the latter two. ADMIN hierarchy, provisioning/promotion/demotion/re-authentication/audit and privileged deletion model are absent. |
+| Route-stop ordering/invalidation safely supported publishing | Resolved | T10 validates active membership, makes the route's delete/create replacement inside one transaction, assigns contiguous order, and invalidates cache after success. No schema migration or stateful DB/cache proof was required for the exact scope. |
+| Feedback supported accountable C-scope triage | Partially Resolved | T12 adds lifecycle/owner/deletion/restore/audit fields and deterministic 30/180-day retention code. No migration or purge execution is evidenced. |
+| D-007 role/account lifecycle was represented | Partially Resolved | D-010:A migration/default plus runtime ADMIN/SUPER_ADMIN/DEV enforcement and fresh-auth support exist. Provisioning/promotion/demotion and general account lifecycle remain outside scope. |
 | T11 timeout/claim/emergency recovery facts were durable | Still Present | No Installation/claim/audit tables or Trip fields for lastAcceptedAt, closeReason, closedAt, admin actor/reason or no-reopen transition exist. |
 | Physical/source accuracy claims were ground truth | No Longer Relevant | T7 stores labels/proxies with route/version provenance; the audit retains the rule that route conformance and reported accuracy are not absolute error. |
 
@@ -38,18 +45,18 @@ All predecessors are validated at 671b712. The earlier code baseline already inc
 
 | Product | Durable authority | Invariant |
 |---|---|---|
-| Master data and RouteStop | PostgreSQL | Route/order uniqueness exists; T10 must add validated ordered mutation and public-cache invalidation. |
+| Master data and RouteStop | PostgreSQL | Route/order uniqueness plus T10 application-level active-membership validation and transactional contiguous replacement; cache invalidation occurs after the committed transaction. |
 | Operational Trip and GPSTrack | PostgreSQL/PostGIS via Operations | One active trip, transactional lifecycle and sampled canonical history; no raw/event/timeout state. |
 | Latest/canonical live state | Redis | Transient only; never a durable research or history substitute. |
 | Research diagnostics | T7 PostgreSQL tables | Session/protocol/metric provenance, receive-time lifecycle, bounded research access; no public state authority. |
-| Feedback | PostgreSQL Feedback | Capture-only personal-data-bearing record; T12 needs approved lifecycle and deletion/restore controls. |
+| Feedback | PostgreSQL Feedback | Capture-only personal-data-bearing record; D-009 supplies the required lifecycle/deletion policy, which T12 must model and enforce. |
 
 ## 5. Required Task Placement
 
 - T9 remains blocked. No production database/Redis placement, backup/restore ownership, migration/rollback target, or topology may be inferred from the current Compose/migrations.
-- T10 needs a narrow migration only if an atomic order-replacement representation requires one; first define and test the transactional command, membership/order constraints, and cache/public-read behavior. Do not add unrelated role or feedback schema.
+- T10 is complete without a schema migration: its constrained transaction uses the existing RouteStop model. Do not add unrelated role or feedback schema to it.
 - T11 needs an approved exact schema/interface contract for Mobile installation/claim, lifecycle fields, actor/reason audit, receipt-time update, timeout/no-reopen and concurrent recovery. The existing T5 invariant is the baseline to extend, not bypass.
-- T12 is blocked by feedback privacy/retention/deletion/restore and device action policies. It needs only the approved triage/device data model and authorization/audit fields once decided.
+- T12 has D-009 policy. It needs an additive triage/retention/deletion/audit model and server authorization/re-authentication evidence; no source/device write model belongs in this task.
 
 ## 6. Integrity and Operational Risks
 
@@ -57,10 +64,29 @@ Direct database writes could bypass service-level GPSTrack/trip vehicle matching
 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
-T9 is blocked by D-008. T10 may become eligible once downstream re-audits and an exact task contract resolve its data paths. T11 needs fresh downstream evidence, a complete technical schema/API contract, and external Android acceptance evidence; its general role-policy coupling remains an owner gate. T12 remains owner-policy blocked. No new owner decision is proposed.
+T9 is blocked by D-008. T10 is complete for exact scope. T11 needs a complete technical schema/API
+contract and external Android acceptance evidence. T12's owner policy is resolved; its exact schema,
+authorization, deletion/restore, retention, and migration verification handoff remains required.
+No new owner decision is proposed.
 
 Confidence is High for schema/migration-visible data boundaries, Medium for unit/contract lifecycle evidence, and Low for migration/rollback, retention execution, query plans, backup/restore, volume, hardware, and production operations.
 
 ## 8. Handoff
 
 Database is validated at 671b712. Infrastructure & Device is now eligible because Backend, Frontend, and Database predecessor reports are current.
+
+## 9. T12 Implementation Re-audit — 2026-08-01
+
+**Finding: Feedback lacked triage, privacy lifecycle, deletion/restore, and audit structure —
+Partially Resolved.** The reviewed additive migration adds case status/timestamps/responsible actor,
+bounded internal note, soft-delete/recovery fields, indexes, and independent content-free audit rows.
+The retention service makes the 30-day IP and 180-day content cutoffs deterministic and also expires
+the 30-day restore window. The migration intentionally maps only `OPERATOR` to `ADMIN`, changes the
+default, retains `SUPER_ADMIN`/`DEV`, and leaves any unexpected historical role for server fail-closed
+handling. Prisma validation and tests pass; no target migration, rollback, retention deletion, backup,
+or query-plan evidence was run.
+
+**Finding: Feedback audit would retain rider content after purge — Resolved by design/source test.**
+Audit rows have no feedback foreign key or message/IP fields; the purge records only a unique stable
+retention action before deleting the Feedback row. This is static/deterministic proof, not a live data
+purge result.

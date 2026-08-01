@@ -1,12 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../config/prisma.js';
+import { hasMinimumRole, isAdminRole, type AdminRole } from '../services/admin-role.service.js';
 
 export interface SenderContext {
   sourceId: string;
   vehicleId: string;
   credentialVersion: number;
 }
+
+export interface AdminPrincipal {
+  id: string;
+  username: string;
+  role: AdminRole;
+  reauthenticatedAt: number;
+}
+
+export const RECENT_REAUTHENTICATION_WINDOW_SECONDS = 15 * 60;
 
 export class SenderAuthDependencyError extends Error {
   constructor(message = 'Sender authentication dependency unavailable') {
@@ -105,10 +115,28 @@ export const isAdminClaims = (
   return claims.kind !== 'sender' && typeof claims.userId === 'string' && claims.userId.length > 0;
 };
 
-export const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
+const reauthenticatedAtFromClaims = (claims: jwt.JwtPayload): number | null => {
+  const value = claims.reauthenticatedAt;
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0
+    ? value
+    : null;
+};
 
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+export const isRecentReauthentication = (
+  reauthenticatedAt: number,
+  nowSeconds = Math.floor(Date.now() / 1000),
+): boolean =>
+  Number.isSafeInteger(reauthenticatedAt)
+  && reauthenticatedAt > 0
+  && reauthenticatedAt <= nowSeconds
+  && nowSeconds - reauthenticatedAt <= RECENT_REAUTHENTICATION_WINDOW_SECONDS;
+
+export const authenticateToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  const token = extractBearerToken(req.headers.authorization);
 
   if (!token) {
     res.status(401).json({ code: 'AUTHENTICATION_FAILED', error: 'Authentication required' });
@@ -119,15 +147,77 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
     return;
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err || !isAdminClaims(user)) {
+  let claims: jwt.JwtPayload;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!isAdminClaims(decoded)) {
+      throw new Error('Invalid administrative token');
+    }
+    claims = decoded;
+  } catch {
+    res.status(401).json({ code: 'AUTHENTICATION_FAILED', error: 'Invalid authentication' });
+    return;
+  }
+
+  const reauthenticatedAt = reauthenticatedAtFromClaims(claims);
+  if (!reauthenticatedAt) {
+    res.status(401).json({ code: 'AUTHENTICATION_FAILED', error: 'Invalid authentication' });
+    return;
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: claims.userId },
+      select: { id: true, username: true, role: true },
+    });
+
+    if (!user) {
       res.status(401).json({ code: 'AUTHENTICATION_FAILED', error: 'Invalid authentication' });
       return;
     }
+    if (!isAdminRole(user.role)) {
+      res.status(403).json({ code: 'AUTHORIZATION_FAILED', error: 'Authorization denied' });
+      return;
+    }
 
-    req.user = user;
+    req.user = claims;
+    req.admin = {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      reauthenticatedAt,
+    };
     next();
-  });
+  } catch {
+    res.status(503).json({ code: 'DEPENDENCY_UNAVAILABLE', error: 'Authentication is temporarily unavailable' });
+  }
+};
+
+export const requireMinimumRole = (minimum: AdminRole) => (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
+  if (!req.admin || !hasMinimumRole(req.admin.role, minimum)) {
+    res.status(403).json({ code: 'AUTHORIZATION_FAILED', error: 'Authorization denied' });
+    return;
+  }
+  next();
+};
+
+export const requireRecentReauthentication = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
+  if (!req.admin || !isRecentReauthentication(req.admin.reauthenticatedAt)) {
+    res.status(403).json({
+      code: 'RECENT_REAUTHENTICATION_REQUIRED',
+      error: 'Recent authentication is required',
+    });
+    return;
+  }
+  next();
 };
 
 export const authenticateSenderToken = async (

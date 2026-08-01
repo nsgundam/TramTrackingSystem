@@ -2,17 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   LayoutDashboard, 
   Bus, 
   Map as MapIcon, 
   MapPin, 
+  MessageSquare,
+  Radio,
   LogOut,
   X
 } from "lucide-react";
 
-const menuItems = [
+interface MenuItem {
+  title: string;
+  path: string;
+  icon: ReactNode;
+  minimumRole?: "ADMIN" | "SUPER_ADMIN";
+}
+
+const menuItems: MenuItem[] = [
   {
     title: "Dashboard",
     path: "/admin/dashboard",
@@ -33,6 +43,18 @@ const menuItems = [
     path: "/admin/stops",
     icon: <MapPin size={20} />,
   },
+  {
+    title: "Source Health",
+    path: "/admin/devices",
+    icon: <Radio size={20} />,
+    minimumRole: "ADMIN",
+  },
+  {
+    title: "Feedback Inbox",
+    path: "/admin/feedback",
+    icon: <MessageSquare size={20} />,
+    minimumRole: "SUPER_ADMIN",
+  },
 ];
 
 interface SidebarProps {
@@ -42,7 +64,10 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const roleRank = { ADMIN: 1, SUPER_ADMIN: 2, DEV: 3 } as const;
+  const canAccess = (minimumRole?: "ADMIN" | "SUPER_ADMIN") =>
+    !minimumRole || (user && roleRank[user.role] >= roleRank[minimumRole]);
 
   return (
     <aside 
@@ -68,7 +93,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       {/* 2. Menu Items */}
       <nav className="flex-1 p-4 space-y-2">
-        {menuItems.map((item) => {
+        {menuItems.filter((item) => canAccess(item.minimumRole)).map((item) => {
           const isActive = pathname.startsWith(item.path);
           return (
             <Link

@@ -1,11 +1,11 @@
 # Architecture Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 671b71209ad3ba3341de78f836b6ec057813280c
+- Evidence baseline: 6697acbd62c740039722769588b1c464231e5ce1 plus approved D-009/D-010:A and the current T12 implementation working tree
 - Evidence scope: docs/project-knowledge-base.md, docs/audits/product-audit.md, docs/decision-queue.md, docs/research/, docs/roadmap/master-refactoring-roadmap.md, docs/tasks/, README.md, Compose/configuration, shuttle-tracking-backend/src/, shuttle-tracking-backend/prisma/, shuttle-tracking-backend/tests/, shuttle-tracking-web/hooks/, shuttle-tracking-web/utils/, shuttle-tracking-web/types/, shuttle-tracking-web/services/, shuttle-tracking-web/components/, and shuttle-tracking-web/tests/
-- Reviewed at: 2026-08-01T12:30:00+07:00
+- Reviewed at: 2026-08-01T14:45:45+07:00
 - Validation state: Validated
-- Predecessor baselines: docs/project-knowledge-base.md @ 671b71209ad3ba3341de78f836b6ec057813280c; docs/audits/product-audit.md @ 671b71209ad3ba3341de78f836b6ec057813280c
+- Predecessor baselines: Discovery and Product @ 6697acbd62c740039722769588b1c464231e5ce1 plus their T12 implementation re-audit addenda
 
 ## 1. Executive Summary
 
@@ -13,13 +13,19 @@ The current monolith remains an appropriate implementation shape, but D-001=C ra
 
 T6/T8 give public consumers one versioned canonical projection: only an authoritative, unexpired live state displays a Marker, contributes to active count, or supplies ETA. This is a local truthfulness correction, not public service-state or operations accountability. T7 adds bounded raw research records, distinct from canonical state and sampled GPSTrack, so raw diagnostics must not leak into public/admin operational projections.
 
-The C-scope architecture still lacks a role-enforcement boundary, route-stop mutation transaction and invalidation boundary, protected history/exception/read models, feedback-triage data model, Mobile installation/claim/timeout state machine, and declared production topology. These are task placements and gates, not reasons to merge unrelated concerns into one service.
+The C-scope architecture still lacks a role-enforcement boundary, protected history/exception/read
+models, feedback-triage data model, Mobile installation/claim/timeout state machine, and declared
+production topology. T10 now supplies a bounded route-stop mutation transaction and invalidation
+boundary. These are task placements and gates, not reasons to merge unrelated concerns into one service.
 
 ## 2. Scope and Freshness
 
 This profile covers boundaries, authority, data products, temporal semantics, cache/realtime behavior, and task placement. It does not certify deployment, physical devices, provider behavior, browser runtime, load, or an Android client.
 
-Discovery and Product have both been revalidated at 671b712. The relevant evidence changed from the preceding baseline in T8 public hooks/utilities/tests and in D-001=C, D-005=B, D-007, D-008, and T11's focused technical constraints. T8 does not alter backend data ownership; the decisions change what future task boundaries must support. Static source/test evidence is used only for repository claims.
+Discovery and Product have both been revalidated at 6697acb plus the current D-009 working copy.
+T10 adds a source-visible transactional route-stop command, shared cache invalidation, and admin
+composition UI; D-009 supplies a bounded T12 data/access policy. Neither proves runtime cache
+behavior, role enforcement, retention execution, deployment, or Android behavior.
 
 ## 3. Prior-Finding Revalidation
 
@@ -30,7 +36,7 @@ Discovery and Product have both been revalidated at 671b712. The relevant eviden
 | Canonical current state was untyped/consumer-owned | Resolved | canonical-state.service.ts owns the V1 envelope, route authority, freshness, epoch/version, REST projection, and Socket.IO publication; T8 consumes that contract and rejects older state. |
 | Raw diagnostics and temporal semantics were absent | Partially Resolved | T7 records bounded raw research observations with session, source, transport, receive/process/event-time, sequence/deduplication and disposition fields. Physical producer-clock quality and operational high-fidelity replay remain unverified/out of scope. |
 | Redis current state is durable truth | Still Present | Redis current state/version allocation remains transient. PostgreSQL holds sampled canonical history and separate research evidence, not durable recovery/replay for public live state. |
-| Route-stop cache ownership is incomplete | Still Present | Public route-stop reads cache for five minutes; route-stop create/delete do not use the shared invalidation service, and there is no atomic ordered replacement/reorder contract. T10 is the correct owner. |
+| Route-stop cache ownership is incomplete | Resolved | T10 provides bounded active-membership validation, contiguous ordered replacement in one Prisma transaction, and post-success shared public-cache invalidation; legacy create/delete use the same invalidator. Deterministic tests/CI cover the pure boundary, not a stateful cache/DB runtime. |
 | Realtime fan-out/scaling is proven | Unable to Verify | The Redis adapter exists, but publication is global and no rooms, replay, load threshold, or fan-out measurement is evidenced. |
 | Public/admin service-state behavior is an operational contract | Partially Resolved | Canonical state distinguishes live, stale, no_service, and unknown; T8 keeps public projection coherent. C-scope user-facing wording, history, exception handling, and ownership are not implemented. |
 
@@ -42,30 +48,48 @@ Discovery and Product have both been revalidated at 671b712. The relevant eviden
 | Canonical current vehicle state | Redis versioned canonical envelope | Only public/admin realtime/initial-state projection; server receive time is freshness clock. |
 | Canonical trip history | PostgreSQL/PostGIS GPSTrack through Operations | Sampled operational history; does not become raw research replay. |
 | Bounded raw diagnostics and aggregates | T7 PostgreSQL research schema/services | Authenticated research-only surface, session/protocol/versioned; never public projection. |
-| Route/stop data | PostgreSQL plus public Redis caches | Ordered data must be mutated and invalidated atomically by T10. |
-| Feedback and future triage | PostgreSQL Feedback currently capture-only | T12 needs an approved lifecycle/retention/access model before adding operations views. |
+| Route/stop data | PostgreSQL plus public Redis caches | T10 mutates ordered data transactionally and invalidates public cache after success. |
+| Feedback triage | PostgreSQL Feedback plus content-free audit events | T12 implements the D-009 lifecycle/retention/access policy at a server-authorized boundary; runtime execution remains unverified. |
 
 ## 5. Required C-scope Placement
 
 - T9: configuration only after the owner names topology and operations responsibilities. One topology/origin record must govern REST and Socket.IO; do not infer a provider or expose plaintext/IP production service.
-- T10: add one route-stop composition command that validates membership/order, writes an ordered replacement or safe equivalent transaction, and invalidates route/public geometry projections. The public read must consume the changed authoritative sequence.
+- T10: complete for its exact composition/invalidation scope. A future audit must retain the invariant that the public read consumes the changed authoritative sequence rather than treating cache invalidation as a production proof.
 - T11: extend the Operations/lifecycle authority and supporting schema/auth boundaries for receipt-time lastAcceptedAt, 10-minute timeout, no-reopen, Mobile installation/claim, revocation, audit, protected history, and exceptions. A separate Android client remains an external consumer of a versioned contract. General D-007 account-lifecycle policy is not authorized to be invented here.
-- T12: must wait for feedback privacy/retention/triage/deletion and device action-matrix decisions. Its feedback and source/device views must be separate from raw research data and privileged actions.
+- T12: D-009 resolves feedback privacy/retention/triage/deletion and read-only device-view policy. Its feedback and source/device views must remain separate from raw research data and privileged actions, with server role/re-authentication enforcement.
 
 ## 6. Risks and Recommendations
 
 1. Define Redis-loss/degraded and recovery behavior before a production claim; the current model cannot recreate a durable current-state/version stream from PostgreSQL.
 2. Keep timeout execution serialized with sender observations and administrative recovery in the same lifecycle transaction/locking order. Rejected/post-close observations must not advance lastAcceptedAt.
 3. Implement hierarchy enforcement at a reusable server authorization boundary after remaining owner policy is approved; current authenticateToken proves identity but has no role authorization.
-4. Keep T10 cache invalidation explicit and test the next public read, rather than depending on TTL.
+4. Preserve T10's explicit cache invalidation and add its stateful public-read proof only on an approved disposable target; do not fall back to TTL semantics.
 5. Preserve the no-raw-public invariant; research data requires distinct authentication and provenance/retention semantics.
 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
-T9 is blocked by D-008. T10 has an architecturally narrow path once affected audits and a task handoff are current. T11 needs focused technical and external Android evidence plus any necessary approved role-policy constraints; T12 remains owner-policy blocked. No new owner decision is proposed: the unresolved topology, feedback/privacy, account lifecycle, destructive action, and external-device facts are already in the decision queue.
+T9 is blocked by D-008. T10/T12 are complete for their bounded handoffs. T11 needs focused technical
+and external Android evidence. General account lifecycle, production operations, runtime retention,
+and external-device facts remain open; no new owner decision is proposed.
 
 Confidence is High for code-visible authority and missing boundaries, Medium for T8 local projection because deterministic and isolated-browser tests exist, and Low for distributed recovery, deployment, load, hardware, provider, Android, and real operations outcomes.
 
 ## 8. Handoff
 
 Backend, Frontend, and Database are now independently eligible for re-audit using this Architecture baseline. Their reports must cover the C-scope placement above without treating a policy direction or simulator as implementation/runtime evidence.
+
+## 9. T12 Implementation Re-audit — 2026-08-01
+
+**Finding: administrative identity had no role/re-authentication boundary — Partially Resolved.** A
+single typed role module now forms the D-007 hierarchy. The administrative authentication middleware
+verifies a non-sender token, obtains the current User role, rejects unknown/deleted accounts, and
+attaches a typed principal. Sensitive Feedback delete/restore adds a 15-minute signed fresh-auth
+boundary. This avoids token-role staleness and does not create a parallel identity system; general
+account lifecycle/password management remains intentionally outside T12.
+
+**Finding: feedback had no isolated lifecycle/data product — Resolved for the bounded T12 design.**
+Feedback case state, responsible actor, deletion/restore fields, and independent content-free audit
+events are additive operational records. Retention is a separate idempotent service; it does not
+affect canonical, sampled trip, raw research, or public location data. The code has no external
+scheduler owner/topology proof, so runtime scheduling remains an operations constraint rather than an
+architecture completion claim.

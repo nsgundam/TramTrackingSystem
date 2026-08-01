@@ -2,32 +2,29 @@
 
 Last updated: 2026-08-01
 
-Coordination status: **Roadmap validated; T10 exact-path handoff is next eligible work.** On 2026-08-01 the owner changed
-D-001 from A to C, changed D-005 from A to B with a 10-minute grace period, approved the base D-007 role direction, narrowed D-008 hosting candidates/domain
-sequencing, and requested a public-theme Dashboard redesign. The previously validated T8 evidence
-remains recorded, but those new inputs change product, security, topology, UX, production-readiness,
-and roadmap assumptions. Repository CI and Compose evidence are not deployment, provider, or
-physical-device proof.
+Coordination status: **Roadmap revalidated; T12 is complete for its exact source/test scope.** T10 is
+also complete for its exact bounded scope. T9 remains D-008 topology blocked and T11 remains blocked
+on its external Android acceptance artifact and exact lifecycle handoff. Repository CI and Compose
+evidence are not deployment, provider, or physical-device proof.
 
 ## Current coordination update — 2026-08-01
 
-This update supersedes the historical baseline statements below. T7 is complete only for its
-D-006-approved disposable scope: it adds bounded raw diagnostics and protected research reads without
-changing the T6 canonical or public-state boundary. T8 now makes local expiry update public
-Marker/live-count/ETA together and removes non-live vehicle Markers without removing route or stop
-layers. The corrective guard now also requires a current canonical `live` state, known authoritative
-route match, and no local expiry before route selection can restore a Marker; the earlier recurrence
-finding is resolved by source inspection. Native and isolated Playwright tests now validate local
-expiry, route switching, and newer-live restoration, so T8 is **Complete for its approved truthful
-public-state scope**. The controlled demo remains Conditional Go; research field trials, daily
-operations, and public service remain No-Go. Final route-mutation cache invalidation remains dependent
-on T10. D-001=C now opens T10–T12's product-scope gate but does not satisfy their remaining policy,
-role, topology, operator-workflow, re-audit, or exact-task-handoff gates.
+This update supersedes the historical baseline statements below. Discovery through Roadmap have been
+re-audited at committed baseline `6697acb...` plus the current D-009/D-010 decision working copy.
+T10 is **Complete for its exact handoff scope**: authenticated route-stop replacement validates active
+membership, assigns contiguous order, writes transactionally, invalidates public cache, and is surfaced
+in the Admin Routes page. Backend check, frontend lint/build, and repository CI passed; no ambient
+database/browser/cache workflow was authorized.
 
-Product, Architecture, Backend, Frontend, Database, and Infrastructure & Device were revalidated at
-`671b712...`. Dashboard & UX, Security, DevOps & Observability, Production Readiness, and Roadmap are validated.
-T10 is the only T9–T12 task eligible to enter an exact-path Level 3 handoff: T9 remains topology-blocked,
-T11 needs technical/external Android evidence, T12 needs owner policy, and SEC-01 remains separate corrective maintenance.
+D-009/D-010:A are now implemented for T12's exact scope: the reviewed migration maps legacy
+`OPERATOR` to `ADMIN` and sets the future default; server middleware rechecks current allowlisted
+roles and requires 15-minute fresh authentication for privileged Feedback delete/restore; the public
+notice, accountable inbox, safe source-health view, lifecycle/audit/retention code, and deterministic
+tests are present. `bash scripts/ci-checks.sh` passes. No database migration, retention run, or
+role/feedback browser acceptance was authorized. SEC-01 remains a separate corrective maintenance
+blocker.
+The controlled demo remains Conditional Go; research field trials, daily operations, and public service
+remain No-Go.
 
 ## Historical T6 snapshot — superseded by the current coordination update
 
@@ -50,29 +47,28 @@ now supersedes that release assumption without changing the already-tested T6 co
 
 ## 2. Current profile status
 
-- Discovery: **Complete / Validated** at `671b712...`; it now includes T8 public-state inventory evidence.
-- Product: **Complete / Validated** at `671b712...`; C-scope capability and unresolved owner-policy gates are recorded.
-- Architecture: **Complete / Validated** at `671b712...`; it assigns C-scope boundaries without inferring unresolved policy or deployment facts.
-- Backend: **Complete / Validated** at `671b712...`; T10/T11/T12 server boundaries and their remaining policy/evidence gates are recorded.
-- Frontend: **Complete / Validated** at `671b712...`; T8 remains resolved and C-scope UI/task gates are recorded without absorbing the later T14 redesign scope.
-- Database: **Complete / Validated** at `671b712...`; it preserves T5/T7 boundaries and records the exact missing T10/T11/T12 data gates.
-- Infrastructure & Device: **Complete / Validated** at `671b712...`; D-008 exact deployment/operations and all physical/provider facts remain unavailable.
-- Dashboard & UX: **Complete / Validated** at `671b712...`; public/operations/research boundaries and the later T14 design-hierarchy gate are recorded.
-- Security, DevOps & Observability: **Complete / Validated** at `671b712...`; D-007/D-008/T12 controls remain gated and new SEC-01 sensitive Socket.IO payload logging blocks production readiness.
-- Production Readiness: **Complete / Validated** at `671b712...`; No-Go for D-001=C and production stages, with SEC-01 and the remaining policy/topology/operations/device gates carried forward.
-- Roadmap: **Complete / Validated** at `671b712...`; T10 may proceed only after exact-path handoff and all other T9–T12 gates remain explicit.
+- Discovery: **Complete / Validated** at `6697acb...` plus current T12 working-tree evidence and external-evidence limits.
+- Product: **Complete / Validated**; T10/T12 exact journeys are implemented, without human acceptance evidence.
+- Architecture: **Complete / Validated**; persisted RBAC/fresh-auth and Feedback/safe-DTO boundaries are current.
+- Backend: **Complete / Validated**; T12 server models, role enforcement, deterministic tests, and CI are current.
+- Frontend: **Complete / Validated**; public notice, inbox, and read-only health UI build, but no ambient browser role workflow ran.
+- Database: **Complete / Validated**; T12's reviewed additive migration/lifecycle/audit/retention design is current but unexecuted.
+- Infrastructure & Device: **Complete / Validated**; D-008 and all physical/provider evidence remain unavailable.
+- Dashboard & UX: **Complete / Validated**; T12 inbox/health journeys are present; dashboard/accessibility evidence remains open.
+- Security, DevOps & Observability: **Complete / Validated**; D-007/D-009/D-010:A enforcement is current; SEC-01/runtime operations remain release blockers.
+- Production Readiness: **Complete / Validated / No-Go**; SEC-01, D-008, T11, and field/runtime evidence remain blockers.
+- Roadmap: **Complete / Validated**; T10/T12 are complete for exact scopes; T9/T11 remain blocked.
 
 ## 3. Evidence and validation
 
-The corrective re-audits compared changed evidence from
-`4d5a456a6d73ef5a58d674426ba889f43102a9d2` to `9b7ff7325169a8bfa67d29ced94588edd3dbf28a`.
-`bash scripts/ci-checks.sh` passed: backend build/boundary tests, Prisma validation, frontend
-lint/build, development/production Compose parsing, dynamic-log check, and workflow validation.
-Frontend lint retains two pre-existing warnings in `app/layout.tsx` and `utils/IconHelpers.ts`.
-Source inspection plus native and isolated Playwright evidence verifies the live-count repair and the
-route-switch Marker guard.
-No focused timer/route-switch fixture, browser, Socket.IO interruption, deployment, provider,
-hardware, or ambient stateful check was run.
+The T12 re-audit compares the committed `6697acb...` baseline plus approved D-009/D-010:A against
+the current implementation working tree. `bash scripts/ci-checks.sh` passed: backend build/boundary
+tests (including T12 role/fresh-auth/retention/safe-DTO coverage), Prisma validation, frontend
+lint/build, development/production Compose parsing, dynamic-log check, workflow validation, and the
+isolated Playwright T8 route-switch fixture. Frontend lint retains two pre-existing warnings in
+`app/layout.tsx` and `utils/IconHelpers.ts`.
+No T12 database migration, retention purge, role/feedback browser acceptance, Socket.IO interruption,
+deployment, provider, hardware, or ambient stateful check was run.
 
 ## 4. Decisions and next action
 
@@ -102,9 +98,10 @@ is `docs/audits/specialized/T11-identity-mobile-sender-enrollment.md`. The focus
 policy is complete; stale predecessor re-audits, exact implementation parameters/handoff, and
 external Android acceptance evidence remain required.
 D-008 records university infrastructure/AWS/VPS and post-server domain sequencing but remains pending
-for exact topology, TLS, data placement, and operational owners. The next eligible work is the T10
-exact-path Level 3 handoff; the Level 1 freshness gate has been passed, while T9, T11, and T12 retain
-their independent blockers.
+for exact topology, TLS, data placement, and operational owners. There is no further eligible task in
+the user-approved T9–T12 batch: T9 remains D-008 blocked, T11 remains blocked on the external Android
+artifact/exact lifecycle handoff, and T12 is complete for exact scope. A later approved disposable or
+staging rollout may supply T12 runtime evidence but does not bypass T9/T11 or grant deployment scope.
 
 Confidence is **High** for the recorded owner directions and repository-visible T8 state path,
 **Medium** for the provisional T9–T15 gate mapping, and **Low** for deployment, provider,

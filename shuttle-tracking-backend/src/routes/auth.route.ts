@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { getme, login } from '../controllers/auth.controller.js';
+import { getme, login, reauthenticate } from '../controllers/auth.controller.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { loginVehicle } from '../controllers/auth.controller.js';
 import { RATE_LIMITS, clientAddress, rateLimit } from '../middleware/rate-limit.js';
-import { parseAdminLogin, parseSenderLogin, validateBody } from '../middleware/validation.js';
+import { parseAdminLogin, parseAdminReauthentication, parseSenderLogin, validateBody } from '../middleware/validation.js';
 
 const router = Router();
 
@@ -13,6 +13,14 @@ router.post(
   validateBody(parseAdminLogin),
   rateLimit({ scope: 'auth:admin', ...RATE_LIMITS.auth, key: clientAddress }),
   login,
+);
+
+router.post(
+  '/reauthenticate',
+  authenticateToken,
+  validateBody(parseAdminReauthentication),
+  rateLimit({ scope: 'auth:admin-reauthenticate', ...RATE_LIMITS.auth, key: clientAddress }),
+  reauthenticate,
 );
 router.post(
   '/vehicle-login',

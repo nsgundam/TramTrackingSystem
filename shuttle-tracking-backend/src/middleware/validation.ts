@@ -14,6 +14,10 @@ export interface AdminLoginInput {
   password: string;
 }
 
+export interface AdminReauthenticationInput {
+  password: string;
+}
+
 export interface SenderLoginInput {
   sourceId: string;
   secret: string;
@@ -24,6 +28,24 @@ export interface FeedbackInput {
   type: string;
   vehicleId: string;
   message: string;
+}
+
+export type FeedbackCaseStatus = 'acknowledged' | 'investigating' | 'resolved' | 'duplicate' | 'rejected';
+
+export interface FeedbackCaseUpdateInput {
+  status?: FeedbackCaseStatus;
+  internalNote?: string;
+}
+
+export type FeedbackDeleteReason =
+  | 'privacy_request'
+  | 'duplicate_submission'
+  | 'abusive_content'
+  | 'policy_violation'
+  | 'administrative_error';
+
+export interface FeedbackDeleteInput {
+  reason: FeedbackDeleteReason;
 }
 
 export interface DeviceCreateInput {
@@ -185,6 +207,11 @@ export const parseAdminLogin = (value: unknown): AdminLoginInput => {
   };
 };
 
+export const parseAdminReauthentication = (value: unknown): AdminReauthenticationInput => {
+  const input = record(value);
+  return { password: ensureNoSecretFields(input.password, 'password') };
+};
+
 export const parseSenderLogin = (value: unknown): SenderLoginInput => {
   const input = record(value);
   const vehicleId = optionalStringField(input.vehicleId, 'vehicleId');
@@ -203,6 +230,38 @@ export const parseFeedback = (value: unknown): FeedbackInput => {
     message: stringField(input.message, 'message', { max: 2000 }),
   };
 };
+
+export const parseFeedbackCaseUpdate = (value: unknown): FeedbackCaseUpdateInput => {
+  const input = record(value);
+  const output: FeedbackCaseUpdateInput = {};
+  if (Object.hasOwn(input, 'status')) {
+    output.status = enumField(
+      input.status,
+      'status',
+      ['acknowledged', 'investigating', 'resolved', 'duplicate', 'rejected'] as const,
+    );
+  }
+  if (Object.hasOwn(input, 'internalNote')) {
+    output.internalNote = stringField(input.internalNote, 'internalNote', { max: 2000 });
+  }
+  if (Object.keys(output).length === 0) {
+    throw invalidRequest('At least one feedback case field is required');
+  }
+  return output;
+};
+
+export const parseFeedbackDelete = (value: unknown): FeedbackDeleteInput => {
+  const input = record(value);
+  return {
+    reason: enumField(
+      input.reason,
+      'reason',
+      ['privacy_request', 'duplicate_submission', 'abusive_content', 'policy_violation', 'administrative_error'] as const,
+    ),
+  };
+};
+
+export const parseFeedbackId = (value: unknown): string => parseTripId(value, 'id');
 
 export const parseDeviceCreate = (value: unknown): DeviceCreateInput => {
   const input = record(value);

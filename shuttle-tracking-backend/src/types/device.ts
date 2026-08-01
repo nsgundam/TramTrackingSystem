@@ -1,4 +1,5 @@
 import type { Prisma } from '@prisma/client';
+import { getSourceHealth, type SourceHealth } from '../services/tracking.service.js';
 
 export type DeviceRecord = Prisma.TrackingSourceGetPayload<{
   include: { vehicle: true };
@@ -33,6 +34,34 @@ export type CredentialAction = {
 
 export type DeviceMutationResponse = DeviceResponse & {
   credentialAction: CredentialAction;
+};
+
+export type DeviceHealthResponse = {
+  sourceType: string;
+  vehicle: { id: string; name: string } | null;
+  freshness: SourceHealth;
+  lastSeenAt: Date | null;
+  status: string;
+  errorCategory: 'none' | 'never_seen' | 'stale' | 'disabled';
+};
+
+const errorCategoryForHealth = (
+  freshness: SourceHealth,
+): DeviceHealthResponse['errorCategory'] => freshness === 'online' ? 'none' : freshness;
+
+export const toDeviceHealthResponse = (
+  device: DeviceRecord,
+  now = Date.now(),
+): DeviceHealthResponse => {
+  const freshness = getSourceHealth(device, now);
+  return {
+    sourceType: device.type,
+    vehicle: device.vehicle ? { id: device.vehicle.id, name: device.vehicle.name } : null,
+    freshness,
+    lastSeenAt: device.lastSeenAt,
+    status: device.status,
+    errorCategory: errorCategoryForHealth(freshness),
+  };
 };
 
 export const toDeviceResponse = (device: DeviceRecord): DeviceResponse => ({

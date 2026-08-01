@@ -1,9 +1,9 @@
 # Tram Tracking System Project Knowledge Base
 
 Audit metadata:
-- Evidence baseline: `671b71209ad3ba3341de78f836b6ec057813280c`
-- Evidence scope: `README.md`, `AGENTS.md`, Compose/configuration and scripts, `shuttle-tracking-backend/`, `shuttle-tracking-web/`, `docs/testing/`, `docs/research/`, `docs/tasks/`, `docs/decision-queue.md`, and `docs/audits/README.md`
-- Reviewed at: `2026-08-01T12:15:00+07:00`
+- Evidence baseline: `6697acbd62c740039722769588b1c464231e5ce1`
+- Evidence scope: `README.md`, `AGENTS.md`, Compose/configuration and scripts, `shuttle-tracking-backend/`, `shuttle-tracking-web/`, `docs/testing/`, `docs/research/`, `docs/tasks/`, `docs/decision-queue.md`, `docs/audits/specialized/`, and `docs/audits/README.md`
+- Reviewed at: `2026-08-01T09:45:45+07:00`
 - Validation state: `Validated`
 - Predecessor baselines: `None` (Discovery has no required predecessor)
 
@@ -40,6 +40,24 @@ capabilities before a public-service claim, timeout is a separate 10-minute rece
 rule, administrative authority is intended to be `DEV` > `SUPER_ADMIN` > `ADMIN`, and production
 topology/operations ownership is still unconfirmed. These are decision facts, not implementation
 evidence for the missing C-scope surfaces.
+
+## T10 / D-009 Re-audit Addendum — 2026-08-01
+
+The inventory was revalidated through committed baseline `6697acbd62c740039722769588b1c464231e5ce1`
+and the current owner-decision working copy. T10 adds a bounded authenticated admin replacement
+command for a route's full stop list, active-stop membership validation, contiguous server-assigned
+ordering, an atomic Prisma replacement transaction, and post-success public-cache invalidation.
+Legacy create/delete route-stop mutations now invoke that invalidator too. The Admin Routes page now
+has a route-stop modal for loading, adding, removing, reordering, and publishing the full sequence.
+The deterministic replacement test and repository CI are source/test evidence; no database mutation,
+ambient browser session, deployment, provider, or hardware result is implied.
+
+D-009 records anonymous one-way feedback with a `SUPER_ADMIN` business-day triage owner, 180-day
+feedback/case retention, 30-day rate-limit-only IP retention, protected soft deletion/restore, and
+read-only safe source/device fields. The decision does not create an inbox, a privacy notice, a
+retention job, server RBAC, or a role hierarchy implementation. Android locked-screen functionality
+is owner-reported field evidence only; the required versioned Android acceptance artifact remains
+external and unavailable in this repository.
 
 This document describes the current repository state from source code, configuration, schema,
 migrations, seed data, tests, and repository documentation. It is the Level 1 Discovery profile
@@ -178,8 +196,8 @@ broadcasts that canonical result, and periodically persists canonical history to
 - Vehicle list, create, edit, delete, status display, and route assignment.
 - Route list, create, edit, delete, color, and status management.
 - Stop list, create, edit, delete, bilingual names, coordinates, image URL, and status management.
-- Backend route-stop list/create/delete API, with no route-stop management page found in the
-  frontend source.
+- Backend route-stop list/create/delete API plus authenticated full-sequence replacement. The Admin
+  Routes page exposes a route-stop management modal; source/device operations remain absent.
 - Backend tracking-source/device CRUD API and source-selection analytics API. No admin device page
   was found in the current frontend source.
 
@@ -443,8 +461,9 @@ indexes.
 4. Admin pages call protected CRUD APIs for vehicles, routes, and stops.
 5. Admin device APIs maintain `TrackingSource` registration, source assignment, priority, status,
    and secret rotation.
-6. Route, stop, and vehicle mutations call public cache invalidation; route-stop mutations do not
-   call that invalidation helper; device mutations are handled through the device controller.
+6. Route, stop, vehicle, and route-stop mutations call public cache invalidation after success;
+   route-stop replacement is transactional and assigns contiguous server-side ordering. Device
+   mutations are handled through the device controller.
 
 ### Feedback Flow
 
@@ -592,6 +611,7 @@ These endpoints list and maintain vehicles, including optional route assignment 
 - `GET /api/admin/route-stops`
 - `GET /api/admin/route-stops/:routeId`
 - `POST /api/admin/route-stops`
+- `PUT /api/admin/route-stops/:routeId` (replace the complete ordered stop list)
 - `DELETE /api/admin/route-stops/:id`
 
 ### Admin Device / Tracking-Source REST
@@ -755,9 +775,9 @@ These are repository-state descriptions, not quality or security findings.
 - Source freshness is represented by a 30-second helper/classifier and selection check. The backend
   source-health sweep emits redacted stale/recovery signals, but no dedicated health REST response,
   public/admin freshness UI, or device-health dashboard was found.
-- Route-stop writes are available through authenticated APIs but do not invalidate the cached public
-  route-stop responses, so a route-stop mutation can remain stale until the five-minute cache TTL
-  expires or another invalidation clears it.
+- Route-stop replacement validates active membership and invalidates public route-stop cache after
+  a successful transaction. The existing create/delete writes now use the same invalidator; no
+  stateful cache/DB runtime smoke was run for this source-level evidence.
 - No trip-history, playback, reporting, notification, or alert route/page was found.
 - No OpenAPI/Swagger contract was found.
 - Test artifacts exist for sender claims, Socket.IO boundary, and an integration pipeline; the
@@ -880,7 +900,7 @@ an implemented permission model.
 ### Features
 
 - Public live map, route selection, stops, vehicles, ETA, geolocation, nearest stop, and feedback.
-- Admin login, dashboard, live map, vehicle CRUD, route CRUD, and stop CRUD.
+- Admin login, dashboard, live map, vehicle CRUD, route CRUD, stop CRUD, and route-stop management.
 - Backend route-stop and tracking-source/device CRUD.
 - Sender JWT authentication and credential-version validation.
 - Authenticated trip start/end.
@@ -953,3 +973,15 @@ See “Known Limitations From Available Evidence” and “Missing Information�
 ## Handoff Recommendation
 
 Next recommended profile: Architecture Audit.
+
+## T12 Implementation Re-audit Addendum — 2026-08-01
+
+Current working-tree evidence extends `6697acbd62c740039722769588b1c464231e5ce1` with D-010:A,
+the reviewed `20260801110000_feedback_triage_roles` migration, and the bounded T12 source/UI/tests.
+`OPERATOR` is migrated to the ordinary `ADMIN` role; only `ADMIN`, `SUPER_ADMIN`, and `DEV` pass the
+new persisted server-role allowlist. Login and explicit re-authentication issue signed freshness
+claims; current-role lookup occurs on every administrative request. The public feedback form now
+states its anonymous/no-reply/non-emergency/business-day and 180-day/30-day IP policy. Super Admin
+and Dev have a dedicated feedback inbox; all three roles receive only the separate read-only source
+health view. No account-provisioning UI, Android runtime, device/source write action, deployment,
+database migration execution, or physical/provider evidence was observed.
