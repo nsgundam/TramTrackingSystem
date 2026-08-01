@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import api from "@/services/api";
-import { Plus, Pencil, Trash2, RefreshCw } from "lucide-react";
+import { Plus, Pencil, Trash2, RefreshCw, ListOrdered } from "lucide-react";
 import { Route } from "@/types/route";
 import RouteModal from "@/components/admin/RouteModal";
+import RouteStopsModal from "@/components/admin/RouteStopsModal";
 
 export default function RoutesPage() {
   const [routes, setRoutes] = useState<Route[]>([]);
@@ -12,6 +13,7 @@ export default function RoutesPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
+  const [managingStopsFor, setManagingStopsFor] = useState<Route | null>(null);
 
   const fetchData = async () => {
     try {
@@ -138,6 +140,14 @@ export default function RoutesPage() {
 
                     <div className="flex items-center gap-2">
                       <button
+                        onClick={() => setManagingStopsFor(route)}
+                        className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors inline-flex items-center justify-center border border-indigo-200/40"
+                        title="Manage route stops"
+                        aria-label={`Manage stops for ${route.name}`}
+                      >
+                        <ListOrdered size={18} />
+                      </button>
+                      <button
                         onClick={() => openEditModal(route)}
                         className="p-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors inline-flex items-center justify-center border border-blue-200/40"
                         title="Edit Route"
@@ -203,6 +213,14 @@ export default function RoutesPage() {
                       </td>
                       <td className="p-4 text-right space-x-2 whitespace-nowrap">
                         <button
+                          onClick={() => setManagingStopsFor(route)}
+                          className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 inline-flex items-center justify-center shadow-xs transition-colors hover:scale-105"
+                          title="Manage route stops"
+                          aria-label={`Manage stops for ${route.name}`}
+                        >
+                          <ListOrdered size={16} />
+                        </button>
+                        <button
                           onClick={() => openEditModal(route)}
                           className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-flex items-center justify-center shadow-xs transition-colors hover:scale-105"
                         >
@@ -239,6 +257,11 @@ export default function RoutesPage() {
         }}
         onSubmit={handleSave}
         initialData={editingRoute}
+      />
+      <RouteStopsModal
+        route={managingStopsFor}
+        onClose={() => setManagingStopsFor(null)}
+        onSaved={fetchData}
       />
     </div>
   );

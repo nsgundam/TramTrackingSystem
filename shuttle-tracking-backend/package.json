@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npm run build && npm run test:boundaries",
-    "test:boundaries": "node tests/test_auth_boundary.js && node tests/test_t2_boundaries.js && node tests/test_devices_boundary.js && node tests/test_redis_logging.js && node tests/test_operational_signals.js && node tests/test_t6_canonical_state.js && node tests/test_t6_realtime.js",
+    "test:boundaries": "node tests/test_auth_boundary.js && node tests/test_t2_boundaries.js && node tests/test_devices_boundary.js && node tests/test_t10_route_stops.js && node tests/test_redis_logging.js && node tests/test_operational_signals.js && node tests/test_t6_canonical_state.js && node tests/test_t6_realtime.js",
     "test:operations": "npm run build && node tests/test_t5_operations.js",
     "test:socket": "node tests/test_socket_boundary.js",
     "test:t6": "npm run build && node tests/test_t6_canonical_state.js && node tests/test_t6_realtime.js",

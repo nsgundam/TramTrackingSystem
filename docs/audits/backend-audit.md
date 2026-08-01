@@ -1,237 +1,69 @@
 # Backend Audit: Tram Tracking System
 
 Audit metadata:
-
-- Evidence baseline: `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
-- Evidence scope: `docs/project-knowledge-base.md`, `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`, `docs/audits/README.md`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, `docs/research/T7-owner-input-questionnaire.md`, `docs/testing/pipeline-smoke-tests.md`, `docs/roadmap/master-refactoring-roadmap.md`, `docs/tasks/T6-canonical-vehicle-state.md`, `docs/tasks/T7-raw-research-observations.md`, `shuttle-tracking-backend/package.json`, `shuttle-tracking-backend/src/server.ts`, `shuttle-tracking-backend/src/middleware/auth.ts`, `shuttle-tracking-backend/src/middleware/validation.ts`, `shuttle-tracking-backend/src/middleware/rate-limit.ts`, `shuttle-tracking-backend/src/middleware/boundary-errors.ts`, `shuttle-tracking-backend/src/routes/auth.route.ts`, `shuttle-tracking-backend/src/routes/trips.route.ts`, `shuttle-tracking-backend/src/routes/ingest.route.ts`, `shuttle-tracking-backend/src/routes/devices.route.ts`, `shuttle-tracking-backend/src/routes/public.route.ts`, `shuttle-tracking-backend/src/controllers/auth.controller.ts`, `shuttle-tracking-backend/src/controllers/trips.controller.ts`, `shuttle-tracking-backend/src/controllers/feedback.controller.ts`, `shuttle-tracking-backend/src/controllers/routeStops.controller.ts`, `shuttle-tracking-backend/src/controllers/public.controller.ts`, `shuttle-tracking-backend/src/services/canonical-state.service.ts`, `shuttle-tracking-backend/src/services/tracking.service.ts`, `shuttle-tracking-backend/src/services/operations.service.ts`, `shuttle-tracking-backend/src/services/cache.service.ts`, `shuttle-tracking-backend/src/services/operational-signals.ts`, `shuttle-tracking-backend/src/config/redis.ts`, `shuttle-tracking-backend/prisma/schema.prisma`, `shuttle-tracking-backend/tests/`, and `scripts/ci-checks.sh`.
-- Reviewed at: `2026-07-29T14:33:30+07:00`
-- Validation state: `Validated`
-- Predecessor baselines: Discovery, Product, and Architecture `@ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
-
-## T7 Re-audit Addendum — 2026-07-29
-
-The re-audit confirms that HTTP, Socket.IO, and TTN observations record typed research metadata after
-their existing validation/authentication boundaries and before/alongside canonical processing, without
-letting research persistence change public canonical outputs. The new role-gated routes use fixed
-fields, session/time scope, pagination/row caps, streamed CSV, and lifecycle manifests. Repository CI
-passed backend TypeScript/build, boundary checks, and Prisma validation. The raw-diagnostics absence is
-**Resolved** for approved scope; no external runtime, source failure, provider, or physical-sender
-claim is inferred. The 2026-07-29 empty-station validation fix is covered by the boundary test and is
-**Resolved**. T8's public/admin canonical behavior remains an open frontend task, not a T7 regression.
-- Previous report evidence baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
-- Legacy report commit: `565c58c`
+- Evidence baseline: 671b71209ad3ba3341de78f836b6ec057813280c
+- Evidence scope: docs/project-knowledge-base.md, Product and Architecture audits, docs/decision-queue.md, docs/research/, roadmap/task records, shuttle-tracking-backend/package.json, shuttle-tracking-backend/src/, shuttle-tracking-backend/prisma/, shuttle-tracking-backend/tests/, and scripts/ci-checks.sh
+- Reviewed at: 2026-08-01T12:45:00+07:00
+- Validation state: Validated
+- Predecessor baselines: Discovery, Product, and Architecture @ 671b71209ad3ba3341de78f836b6ec057813280c
 
 ## 1. Executive Summary
 
-The backend is a coherent controlled-MVP boundary for D-001=A. Mobile Socket.IO, ESP32 HTTP,
-and LoRaWAN/TTN inputs retain transport-specific authentication and converge on one source-aware
-observation path. T5 still gives trip start, virtual-trip creation, active-trip validation, end,
-vehicle-state repair, and sampled-history writes one transactional Operations/Trip owner.
+The backend has coherent bounded ingestion for Mobile Socket.IO, ESP32 HTTP, and LoRaWAN/TTN webhook traffic. Each retains its own authentication boundary and converges on validation, source ownership, canonical selection, and Operations/Trip services. Sender JWTs bind source, vehicle, and credential version; Socket.IO revalidates writes. The public projection omits internal source identity.
 
-T6 is now incorporated: canonical state has a backend-owned versioned envelope, route authority,
-freshness/service states, a single publication boundary, public projection redaction, and REST/
-Socket.IO parity. Lower-priority or rejected writes do not become canonical merely because they are
-received, and sampled history remains best-effort after live publication.
+T5/T6/T7 remain distinct: Operations owns transactional trip lifecycle and sampled canonical history; canonical-state owns versioned transient public/realtime state; research services record and query bounded raw diagnostic evidence. T8 changes only the frontend consumer, so it leaves these backend authorities unchanged.
 
-The backend is not an operations-grade or research-grade telemetry service. It has no durable raw
-observation/disposition record, producer event time, sequence/idempotency contract, research-session
-API, protected history query, or bounded export. Source selection is duplicated between ingestion
-and freshness refresh, source health uses process-local state and a database last-seen clock, and
-legacy admin CRUD/cache behavior remains uneven. T7 may use the T6 boundary only after the remaining
-affected audits and task gates are current.
+D-001=C makes T10/T11/T12 product requirements but does not add their server capabilities. Current admin authentication validates a user identifier only; it does not enforce the D-007 role hierarchy. Current Trip and TrackingSource models lack Mobile installation/claim state, receipt-time lastAcceptedAt, close reason/closed-at, force-close audit, protected history reads, or feedback triage. These are separate implementation and owner-policy gates.
 
-## 2. Scope, Freshness, and Predecessor Gate
+## 2. Scope and Freshness
 
-This re-audit covers Express routes/controllers/middleware, sender and TTN trust boundaries,
-Socket.IO acknowledgements, observation validation, canonical selection, Redis use, Operations/Trip
-integration, errors/rate limits, operational signals, T6 publication/read behavior, and backend
-test evidence. It is a source and test review, not a live-service, penetration, load, provider, or
-physical-device test.
+This profile reviews routes, controllers, middleware, Socket.IO, validation, canonical/operations/research services, schema, errors, rate limits, and backend tests. It is not a running-service, penetration, provider, hardware, Android, or production topology test.
 
-Discovery and Product are accepted at `847a18c...`; Architecture is current and validated at
-`fa9441b...`, so the Backend predecessor gate passes. The previous Backend report was stale because
-T6 changed `canonical-state.service.ts`, `tracking.service.ts`, `server.ts`, `routes/ingest.route.ts`,
-`public.controller.ts`, the backend test layout, and the public canonical contract.
-
-The freshness comparison from `847a18cce9bc27c82b2622dbc176b3a89bc4d037..HEAD` identified the T6
-backend services/boundaries/tests and related task, roadmap, research, and decision documents as
-relevant changed evidence. The owner-approved D-006 changes are present as uncommitted coordination
-evidence; they narrow the T7 disposable/export boundary but do not alter current backend behavior or
-count as T7 implementation evidence.
-
-Validation performed:
-
-- In `shuttle-tracking-backend`: `npm run check` — passed, including build, boundary suite, T6
-  contract/realtime checks, and `npx prisma validate`.
-- The focused T6 tests verify version ordering, public `sourceId` omission, one publication boundary,
-  REST/Socket projection parity, stale transitions, frontend-facing contract guards, and no direct
-  transport emission.
-- No ambient database/Redis migration, seed, runtime smoke, provider, or hardware check was run.
-  The isolated T6 runtime evidence remains bounded documented evidence only.
+Architecture is validated at 671b712. There is no backend source change after the previous code baseline; the current re-audit is required because D-001=C, D-005=B, D-007, D-008, T11 constraints, and T8 consumer evidence change the required capability and acceptance interpretation. No policy document is counted as a code implementation.
 
 ## 3. Prior-Finding Revalidation
 
 | Prior material finding | State | Current evidence and implication |
 |---|---|---|
-| Trip and Socket.IO sender identity was weak | **Resolved** | Sender JWT claims bind source, vehicle, and credential version; HTTP/trip routes authenticate the sender; Socket.IO revalidates token, source status, vehicle binding, and credential version for every write. |
-| Tracking-source/device abstraction was incomplete | **Resolved** | `TrackingSource` retains type, status, priority, credential lifecycle, assignment, and last-seen fields; canonical selection is source-aware and deterministic. |
-| Trip lifecycle was only partially protected | **Resolved** | `operations.service.ts` owns start/virtual start/end/history invariants with vehicle row locks and idempotent behavior; T5 constraints and transaction checks remain in place. |
-| REST/GPS validation and safe errors were inconsistent | **Partially Resolved** | Ingest, sender, feedback, trip, device, route-stop, and TTN boundaries use shared parsers/error codes. Legacy vehicle/route/stop CRUD still has untyped bodies and uneven error mapping. |
-| Tracking-source ingestion needed authentication/rotation | **Resolved** | Active non-LoRaWAN sources require credentials; token claims carry credential version; rotation, reassignment, and deactivation invalidate old sender credentials. TTN uses a separate webhook secret. |
-| Route-stop cache invalidation was missing | **Still Present** | `cache.service.ts` can delete route-stop keys, but route-stop create/delete controllers still do not call it. |
-| Realtime broadcast could report an invalid result | **Resolved** | HTTP, Socket.IO, and TTN return the canonical envelope only when the shared process returns one; canonical socket emission is centralized and public projection omits `sourceId`. |
-| Admin trip history/GPS playback reads were missing | **Still Present** | No protected trip/history/GPS-track read endpoint or bounded history query is mounted. |
-| Automated backend tests were missing | **Partially Resolved** | Build, boundary, JWT, validation, device projection, Redis redaction, operational-signal, T5, and T6 artifacts exist. Repeatable service/controller integration, failure-injection, duplicate, stale, and provider-compatibility coverage remains limited. |
-| Device responses exposed credential hashes | **Resolved** | Device projections omit `secretHash`, and the device boundary test verifies the redaction. |
-| Observation ordering and retention semantics were undefined | **Partially Resolved** | T6 canonical events now use `(stateEpoch,stateVersion)` ordering and freshness states. Raw observations still use a backend timestamp, have no producer event time/sequence/idempotency/disposition/session identity, and have no retention implementation. |
-| TTN source identity compatibility was uncertain | **Still Present** | The parser requires `end_device_ids.device_id`; no current adapter/test establishes compatibility with payloads identified only by another TTN identifier such as `dev_eui`. |
-| Operational signals and CI gates were missing | **Partially Resolved** | CI, request IDs, allowlisted signals, source-health sweep, suppression, and redaction tests exist. Signals remain best-effort process logs, and malformed/oversized requests can fail before route-level ingestion context is registered. |
-| Versioned canonical state and public freshness were incomplete | **Resolved** | T6 provides `CanonicalVehicleStateV1`, epoch/version allocation, route authority, explicit service states, stale refresh, one publisher, and REST/Socket projections. Redis remains transient and runtime failure behavior is still bounded. |
+| Sender/trip identity was weak | Resolved | Sender claims bind source, vehicle, and credential version; HTTP/trip routes authenticate sender and Socket.IO revalidates on each write. |
+| Three transports had divergent canonical paths | Resolved | Mobile Socket.IO, ESP32 HTTP, and TTN webhook enter transport-specific validation then shared observation/canonical processing. |
+| Trip lifecycle had competing writers | Resolved | Operations owns start, virtual start, active-trip validation, end, vehicle repair, and sampled history transactions. |
+| Raw research diagnostics were absent | Resolved | T7 stores bounded raw observations and exposes protected research/metric/export/lifecycle services separately from canonical public state. |
+| Public state could be stale/consumer-owned | Partially Resolved | Canonical state has server receive-time freshness and explicit service states; T8 corrects frontend expiry projection. A C-scope public service-state explanation and operational exception surface remain absent. |
+| Route-stop mutation does not invalidate public cache | Still Present | The shared cache invalidator covers route-stop keys, but route-stop create/delete do not call it and there is no validated reorder transaction. T10 owns the repair. |
+| Role and least-privilege enforcement existed | Still Present | authenticateToken checks a non-sender userId; routes/controllers do not enforce the D-007 DEV, SUPER_ADMIN, ADMIN hierarchy. |
+| Protected trip history and exception reads existed | Still Present | No route/controller offers filtered trip list/detail, timeout exception, or source freshness operations views. |
+| Mobile enrollment/claim and D-005 lifecycle existed | Still Present | No installation identity, claim, receipt-time lastAcceptedAt, timeout scheduler/worker, close reason, closedAt, atomic force-close, or audit records exist. |
+| Feedback triage lifecycle existed | Still Present | Public feedback capture has no authenticated list, assignment, status, resolution, retention, privacy notice, or deletion-control boundary. |
+| TTN duplicate/identity compatibility is verified | Unable to Verify | The webhook handles documented payload shapes and secret validation; provider aliases, duplicate delivery, gateway behavior, and field delivery remain unavailable. |
 
-## 4. Transport and Trust-Boundary Review
+## 4. Boundary Assessment
 
-| Boundary | Authentication and validation | Current result |
+| Boundary | Current controls | Remaining C-scope requirement |
 |---|---|---|
-| Mobile / sender Socket.IO | Anonymous viewer connection is allowed; sender must have a JWT at handshake and is revalidated before every `send-location` write. Payload source/vehicle must match claims, rate limiting applies, and the sender receives an acknowledgement/error code. | Strong controlled-MVP boundary; no producer sequence, duplicate, stale-event, or reconnect replay contract. |
-| ESP32 / sender HTTP | `/api/ingest/http` requires a source JWT, validates source ownership and coordinate range, applies sender rate limiting, and shares `processObservation`. | Appropriate convergence; retry/idempotency and physical client behavior are unverified. |
-| LoRaWAN / TTN webhook | `/api/ingest/ttn` requires a configured bearer secret with timing-safe comparison, rate-limits IP and source, decodes accepted coordinate shapes, and enforces `lorawan` source type. | Correct server-side boundary; provider identity aliases and duplicate delivery semantics remain unverified. |
-| Admin REST | JWT is required for mounted admin routes; the current claim model does not evidence separate operator/research roles. | Authentication boundary exists, but role/least-privilege policy and legacy CRUD validation remain incomplete. |
+| Mobile Socket.IO | JWT handshake, per-write source/vehicle/version revalidation, acknowledgement and rate limit. | Separate Android acceptance contract, installation session/claim, reconnect/no-offline semantics, new lifecycle fields. |
+| ESP32 HTTP | Sender JWT, parser, ownership and coordinate validation, shared processing. | Physical firmware/provisioning evidence and D-005 timeout behavior. |
+| LoRaWAN/TTN webhook | Bearer secret, source-type check, decoded-payload parsing, shared processing. | Provider delivery/duplicate evidence and owner-controlled operations path. |
+| Admin REST | JWT identity check, newer parsers/rate limits on selected routes. | Reusable D-007 authorization; approved account/credential/deletion/re-authentication policy before enforcement. |
+| Research reads/export | Research access middleware, bounded/session-scoped fixed-field API and lifecycle records. | Preserve research-only access; do not reuse as public/admin operations views. |
 
-Coordinate validation bounds latitude/longitude and numeric speed, bearing, and accuracy, but
-accuracy units and semantic kind are not preserved. `processObservation` verifies active source,
-sender ownership/version, optional active-trip ownership, writes a latest source snapshot, selects
-canonical state, and admits sampled history. Rejected observations do not overwrite canonical state;
-lower-priority source snapshots remain source-local and only become canonical if selection later
-allows them.
+## 5. Required Task Placement
 
-## 5. Canonical and Trip Processing
+- T9 is blocked: do not change origins, proxy trust, CORS, Socket.IO, secrets, or production readiness without D-008 topology/ownership facts.
+- T10 should add a validated ordered route-stop command and invalidate public cache after the successful transaction. It must test the next public read and rejected invalid order.
+- T11 must extend Operations and schema atomically. Timeout, sender observation, normal end, and emergency force-close must share lock/order and idempotency rules; only accepted observations may update backend receipt-time lastAcceptedAt. Existing sender routes cannot be relabelled as the approved Mobile product.
+- T12 is blocked pending feedback/support/privacy/deletion and device-action policy. Its future endpoint authorization must use the approved role matrix and keep raw research data isolated.
 
-The current path is:
+## 6. Reliability, Security, and Observability
 
-1. Parse/validate transport input and authenticate the sender or TTN webhook.
-2. Load the active `TrackingSource` and verify source type, credential binding, vehicle binding, and
-   optional active trip.
-3. Store one latest source snapshot in Redis with a backend-generated timestamp and source type.
-4. Read active sources in priority/id order and select the first snapshot no older than 30 seconds.
-5. Normalize station state, attach vehicle/source/recorded time, invoke the canonical service, allocate
-   an epoch/version atomically, and publish only if the stored state is still the latest version.
-6. Use a 60-second Redis admission key before calling the transactional Operations/Trip service to
-   create/reuse the active trip and insert a PostGIS canonical sample.
-7. Return the canonical envelope to the sender and publish its public projection globally through the
-   configured Socket.IO publisher.
+Canonical state and latest source snapshots remain Redis-backed and transient. Source-health and canonical freshness use related but distinct stored facts; process-local sweeps and global Socket.IO publication lack distributed ownership, replay, and capacity evidence. Boundary errors are typed in key paths, rate limits cover key sender/admin/feedback routes, and logs are designed to avoid secrets/continuous coordinates. Legacy CRUD validation/error consistency remains uneven. No conclusion about proxy address trust, TLS, backups, Redis recovery, external alerts, or production incidents is possible before T9/D-008.
 
-T6 correctly places live publication before sampled-history persistence. A failed history transaction
-is logged and signaled while live state remains available, which is acceptable for the controlled
-MVP but must not be described as durable research evidence.
+## 7. Roadmap Impact, Unknowns, and Confidence
 
-The canonical service also has a refresh path used by source-health and public reads. It repeats the
-Redis snapshot selection logic rather than consuming one shared selection fact. The two paths use the
-same current priority/id and freshness rules, but malformed snapshot handling and future event-time
-semantics can drift; this is a new maintainability/reliability risk.
+T9 remains blocked by D-008. T10 has a bounded backend implementation path after the exact-path task contract. T11 needs its technical lifecycle parameters, fresh affected audits, external Android acceptance evidence, and any role-policy constraints that touch its paths; it is not implementation-ready from this audit alone. T12 remains owner-policy blocked. No new owner decision is proposed.
 
-## 6. API, Error, and Abuse-Control Review
+Confidence is High for code-visible backend boundaries and missing server models, Medium for checked-in test evidence, and Low for running infrastructure, concurrency under load, Redis recovery, devices, TTN, Android, and production operations.
 
-Shared parsers cover auth, feedback, device, route-stop, trip, ingest, and TTN payloads. They provide
-bounded strings, UUID checks, coordinate ranges, numeric bounds, and explicit boundary error codes.
-The global JSON body limit and Socket.IO buffer limit are bounded to at most 1 MiB by configuration
-rules. Rate limits cover admin/sender login, feedback, sender observations/trips, admin device/
-route-stop writes, and TTN IP/source traffic.
+## 8. Handoff
 
-`BoundaryError`/`mapBoundaryError` provide safe response codes and redact error details from logs.
-Prisma conflict/not-found/input errors are mapped in the common layer, but legacy vehicle/route/stop
-controllers still often catch and map failures to generic 500 responses rather than using typed
-request schemas. `clientAddress` intentionally does not trust forwarded headers until topology is
-approved; proxy-aware rate-limit identity remains a deployment concern.
-
-The backend still exposes no protected trip-history, source-health, raw-observation, research-session,
-or bounded export API. Device analytics returns Redis selection counters under the authenticated admin
-device router, but has no time window, pagination, experiment identity, or durable aggregation.
-
-## 7. Reliability and Realtime Review
-
-- `/ready` checks PostgreSQL and Redis; startup attaches the Redis Socket.IO adapter and starts the
-  source-health sweep.
-- Source health uses active status and database `lastSeenAt` with `never_seen`, `online`, `stale`, and
-  `disabled` internal states. Canonical freshness uses Redis snapshot timestamps. A failed throttled
-  `lastSeenAt` update can therefore make the health sweep stale while a Redis snapshot is still fresh;
-  the two clocks are not one authoritative source-health fact.
-- Source-health maps are process-local. Multiple backend processes can independently sweep and emit a
-  transition; the Redis adapter does not provide distributed sweep ownership or deduplication.
-- All-stale selection now produces a canonical `stale`/`no_service` state through the refresh path,
-  rather than returning an old live public location. Redis loss itself cannot allocate/store the
-  fallback state and has no durable reconciliation path.
-- HTTP, Socket.IO, and TTN use the global `location-update` publisher. The Redis adapter supports
-  multi-process fan-out but not durable replay, sequence ordering, rooms, or per-viewer filtering.
-- There is no backend contract for duplicate TTN webhook delivery, raw late/out-of-order disposition,
-  reconnect snapshot replay, or queryable persistence-failure outcomes.
-- Operational logs intentionally exclude coordinates, request bodies, secrets, and arbitrary exception
-  messages. This protects privacy but leaves no bounded evidence for explaining source disputes.
-
-## 8. Current Backend Findings and Recommendations
-
-### High — T7 raw diagnostics and protected research reads are absent
-
-The latest source snapshot overwrites earlier observations. There is no durable producer event time,
-sequence/idempotency key, raw disposition, experiment/session identity, research role middleware,
-retention job, metric query, or CSV export. D-002/B, D-004, owner parameters, specialist briefs, and
-D-006 define the future bounded design but do not constitute implementation evidence. T7 must remain
-separate from T6 canonical state and must not alter public/realtime authority.
-
-### Medium — Canonical selection is duplicated
-
-Ingest selection lives in `tracking.service.ts`; public/source-health refresh selection lives in
-`canonical-state.service.ts`. Consolidate the selector or formally expose one tested selection fact
-before adding T7 raw dispositions, so accepted/fallback/stale semantics cannot diverge.
-
-### Medium — Source-health and canonical freshness have different clocks
-
-`lastSeenAt` is throttled and persisted to PostgreSQL, while canonical freshness uses a Redis snapshot
-timestamp. Define one operational contract for a failed database last-seen update, Redis snapshot TTL,
-and recovery before daily operations or failover claims.
-
-### Medium — Legacy admin boundaries remain uneven
-
-Vehicle/route/stop CRUD still lacks the newer typed validation and consistent cache/error behavior.
-Keep these out of T7's raw-research allowlist; address them through the bounded route/cache/security
-tasks rather than silently broadening T7.
-
-### Medium — Operational read surfaces are missing
-
-Protected trip/history, source-health, exception, and research reads are absent. T7 may add only the
-approved protected research routes in its exact task allowlist; it must not become a general admin
-operations/read-model task.
-
-### Low — TTN identity compatibility and duplicate delivery remain unverified
-
-Keep the current server-side TTN boundary and record provider/device identity facts separately. Do not
-infer gateway retries, `dev_eui` mapping, or provider delivery guarantees from the parser alone.
-
-## 9. Roadmap and Decision Impact
-
-T6 is revalidated at the backend boundary. T7 remains the next research implementation candidate,
-but its Level 3 intake must wait for the remaining affected/cited audit freshness gates and the exact
-D-006 disposable target record. T7 must preserve T6 state epochs/versions, `location-update`, T5
-history semantics, and public redaction. T8 remains a separate truthful-consumer task; route-stop
-cache work remains outside T7.
-
-Approved D-001 through D-006 remain unchanged. No new owner decision is proposed by this report.
-
-## 10. Assumptions, Unknowns, and Confidence
-
-- No running backend, PostgreSQL/Redis target, mobile app, ESP32 firmware, TTN account, gateway, or
-  production proxy was observed in this re-audit.
-- Simulator and checked-in integration artifacts validate repository paths, not field transport
-  behavior. Isolated T6 runtime evidence is documented but was not repeated against ambient state.
-- TTN identity aliases, webhook duplicate delivery, device clocks, sequence guarantees, retry policy,
-  Redis recovery, and multi-process sweep behavior remain unknown.
-- Confidence is **High** for repository-visible middleware, source ownership, service boundaries,
-  T6 contract, and test artifacts; **Medium** for runtime reliability and integration; **Low** for
-  provider/physical behavior.
-
-## 11. Audit Limitations and Handoff
-
-No application code, schema, deployment, retention policy, or owner decision was changed by this
-report. Backend is now **Complete / Validated** at `fa9441b9bd1a1a9dec6547e1d8f53b2ee974fefd` with
-Discovery, Product, and Architecture predecessor baselines recorded above. The next selected profile
-is **Frontend**; Database remains a separate required re-audit before Infrastructure & Device and T7
-can consume its report as current.
+Backend is validated at 671b712. Frontend and Database remain independently eligible re-audits; Infrastructure & Device must wait until all three are validated.

@@ -1,231 +1,107 @@
 # Product Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
-- Evidence scope: `docs/project-knowledge-base.md`, `docs/decision-queue.md`, `docs/research/device-comparison-scope.md`, `docs/testing/pipeline-smoke-tests.md`, `README.md`, `shuttle-tracking-web/app/`, `shuttle-tracking-web/components/`, `shuttle-tracking-web/services/`, `shuttle-tracking-web/contexts/`, `shuttle-tracking-web/simulate.js`, `shuttle-tracking-web/simulate-manual.js`, `shuttle-tracking-backend/src/routes/`, `shuttle-tracking-backend/src/controllers/`, `shuttle-tracking-backend/src/services/`, `shuttle-tracking-backend/prisma/`, `shuttle-tracking-backend/simulate-ttn.js`, `shuttle-tracking-backend/test_pipeline.js`, and `shuttle-tracking-backend/test_t5_operations.js`
-- Reviewed at: `2026-07-29T14:33:30+07:00`
+- Evidence baseline: `671b71209ad3ba3341de78f836b6ec057813280c`
+- Evidence scope: `docs/project-knowledge-base.md`, `docs/decision-queue.md`, `docs/research/`, `README.md`, `shuttle-tracking-web/app/`, `shuttle-tracking-web/components/`, `shuttle-tracking-web/services/`, `shuttle-tracking-web/contexts/`, `shuttle-tracking-web/hooks/`, `shuttle-tracking-web/utils/`, `shuttle-tracking-web/tests/`, `shuttle-tracking-web/package.json`, `shuttle-tracking-web/simulate.js`, `shuttle-tracking-web/simulate-manual.js`, `shuttle-tracking-backend/src/routes/`, `shuttle-tracking-backend/src/controllers/`, `shuttle-tracking-backend/src/services/`, `shuttle-tracking-backend/prisma/`, and `shuttle-tracking-backend/tests/`
+- Reviewed at: `2026-08-01T12:00:00+07:00`
 - Validation state: `Validated`
-- Predecessor baselines: `docs/project-knowledge-base.md @ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
-
-## T7 Re-audit Addendum — 2026-07-29
-
-T7 resolves the prior absence of a protected research-data capability for the D-002=B controlled
-research scope: DEV/SUPER_ADMIN users can read session-scoped diagnostics and bounded CSV exports.
-It does not add a Dev Dashboard UI, physical-device evidence, public raw telemetry, operational roles,
-or a customer-facing accuracy promise. The controlled-demo scope D-001=A remains **Still Present**;
-the research capability is **Partially Resolved** because its approved backend surface exists but the
-three-device experiment, researcher UI, and measured outcomes remain unverified. No owner decision is
-newly required for T8.
+- Predecessor baselines: `docs/project-knowledge-base.md @ 671b71209ad3ba3341de78f836b6ec057813280c`
 
 ## 1. Executive Summary
 
-The repository evidences a credible public tracking demonstration and controlled MVP. Riders can
-select active routes, inspect stops and live vehicle markers, use nearby-stop lookup and ETA-style
-information, and submit feedback. Administrators can authenticate, maintain vehicles/routes/stops,
-and view a Socket.IO live map. Sender APIs, T5 trip lifecycle logic, simulators, and backend source
-analytics support technical testing.
+The owner has selected D-001=C, a wider public rider release. This changes the product contract: the
+existing public tracker and feedback capture cannot be represented as an eligible public service until
+route-stop operations, supported sender/trip accountability, actionable exceptions, accountable feedback
+triage, and truthful public service states are delivered. D-005=B also makes the 10-minute backend
+receipt-time auto-close and its exception/recovery path a required operational outcome, not an optional
+enhancement. D-007 defines `DEV` > `SUPER_ADMIN` > `ADMIN`, but the user/account lifecycle and privileged
+action controls required to implement that hierarchy remain owner-controlled gaps.
 
-The product is not an operator-managed daily-service product. Route-stop composition, a supported
-driver/sender surface, trip history, feedback triage, source/device health, explicit stale/offline
-states, and the approved developer research dashboard are absent or incomplete. The current
-approved release scope is D-001=A: controlled demonstration or supervised pilot with a known
-operator and an externally supplied authenticated sender.
-
-The most important product truthfulness gap is that the UI can present live/active language without
-an explicit connection, freshness, or no-service contract. A backend source-health sweep exists,
-but its signals are not exposed as a public or admin product state.
+Repository evidence still shows a public map, route/stop/vehicle CRUD, authenticated technical sender
+contracts, simulators, raw-research APIs, and feedback submission. It does not show a route-stop UI,
+driver application, trip/history or exception UI, source/device operations UI, feedback inbox, privacy
+notice, public no-service explanation, or Dev Dashboard. The T8 public-map correction is retained as
+**Resolved for its limited truthful-local-state scope**; it does not supply the C-scope operational state
+model.
 
 ## 2. Scope and Freshness
 
-This profile assesses product value, roles, journeys, functional completeness, release scope, and
-roadmap impact. It does not sign off implementation quality, security, infrastructure, performance,
-deployment, physical devices, or external-provider behavior.
+This audit revalidates product roles, journeys, release promises, ownership, and roadmap impact. It does
+not establish deployment, provider, physical-device, browser-runtime, or field-performance behavior.
 
-The prior report at `59a996f` lacked the required metadata and predated the current Discovery
-baseline, T5 lifecycle boundary, approved D-001/D-002 decisions, and D-004 research scope. The
-current evidence diff includes public/admin UI, feedback, sender/trip/realtime boundaries,
-simulator/seed alignment, research scope, and test/documentation changes. The only uncommitted
-changes outside this report are Discovery/coordinator documents; they change audit state, not
-application product behavior, and were treated as coordination evidence.
-
-No browser session, running application, real rider/operator, mobile app, ESP32 firmware, TTN
-deployment, or physical research source was observed. Repository evidence therefore proves code
-surfaces and declared contracts, not successful real-world journeys.
+The prior Product report was based at `d94abb3...`. The evidence diff through `671b712...` changes the
+public tracker state handling and its deterministic/isolated-browser tests, and adds approved D-001=C,
+D-005=B, D-007, D-008, and the binding T11 mobile-enrollment constraints. Those changes affect release
+scope, journey ownership, and implementation gates, so the former controlled-demo conclusion is stale.
+No browser session, real rider/operator, native Android sender, ESP32 firmware, TTN deployment, or
+physical source was observed.
 
 ## 3. Prior-Finding Revalidation
 
 | Prior material finding | State | Current evidence |
 |---|---|---|
-| Route-stop management UI is missing | **Still Present** | Authenticated route-stop APIs exist, but `Sidebar.tsx` and `app/admin/` contain no route-stop management page. |
-| A real driver/mobile workflow is missing | **Partially Resolved** | Sender authentication, trip start/end, location ingestion, simulators, and T5 idempotent lifecycle logic exist; no driver/mobile application or supported non-developer workflow is present. |
-| Admin trip history is missing | **Still Present** | No trip/history REST read route, admin page, filter, or playback workflow is evidenced. |
-| Feedback workflow is missing | **Partially Resolved** | `FeedbackModal` and `POST /api/public/feedback` provide capture, loading, validation, success, and error states; no review, status, assignment, receipt, or closure workflow exists. |
-| Offline/stale operational visibility is missing | **Still Present** | `AvailabilityCard` shows a count and the admin dashboard says “Live System Active”; neither exposes Socket.IO connection or source freshness state. |
-| Reports and analytics are missing | **Still Present** | No user-facing product reports exist; device analytics is an authenticated backend selection-count endpoint only. |
-| Device operations are incomplete | **Partially Resolved** | Backend source CRUD, credential rotation, and selection analytics exist; no admin device/source page or operational health workflow exists. |
-| Public route choices were hard-coded to R01/R02 | **No Longer Relevant** | `ShuttleTracker` loads active routes from `/api/public/active-routes`; the development seed currently exposes R01/R02 and leaves R03 inactive. Geometry and route assignment truth remain separate gaps. |
-| Product decisions were still pending in the report | **No Longer Relevant** | D-001, D-002, and D-004 are approved in `docs/decision-queue.md`; exact retention, access, and experiment parameters remain open. |
+| Route-stop management UI is missing | **Still Present** | The API only lists, creates, and deletes route stops; `app/admin/` and `Sidebar.tsx` expose no composition or ordered-reorder journey. |
+| A supported driver/mobile workflow is missing | **Partially Resolved** | Sender/trip/HTTP/Socket.IO contracts and simulators exist. D-007/D-005 now constrain the separate Android workflow, but no application or its acceptance evidence is in this repository. |
+| Admin trip history is missing | **Still Present** | No protected list/detail controller, route, page, or exception surface is present. |
+| Feedback workflow lacks triage | **Still Present** | Public capture validates and stores feedback, but there is no inbox, assignment, status, resolution, receipt, privacy notice, or deletion-control journey. |
+| Stale/offline operational visibility is missing | **Partially Resolved** | T8 keeps public Marker/live-count/ETA projection internally coherent after local expiry and route change. Public/admin UI still lacks an accountable fresh/stale/no-service/recovery explanation or an operations exception view. |
+| Device operations are incomplete | **Still Present** | Backend device CRUD/credential rotation and selection analytics exist; no operator-visible source/device or claim/recovery surface exists. |
+| Hard-coded public route choice | **No Longer Relevant** | The tracker loads active routes from the public API. Route authority and cache invalidation remain a separate T10 concern. |
+| Controlled-demo scope was the release boundary | **No Longer Relevant** | D-001=C supersedes it; the required C-scope capabilities remain unimplemented and block a wider public-service claim. |
+| Raw research diagnostics were absent | **Resolved** | T7 provides bounded, protected diagnostics/metrics/export APIs for its approved research scope; it does not create a researcher dashboard or field evidence. |
 
-## 4. Product Scope and Roles
+## 4. Journey and Role Assessment
 
-### Public rider
-
-The public surface promises route selection, stops, live vehicle locations, ETA-style waiting time,
-nearby-stop lookup, and feedback. It is suitable for supervised demonstration, but it does not
-distinguish a fresh live service from a disconnected browser, a stale source, an inactive vehicle,
-or a route with no current service.
-
-### Administrator/operator
-
-The authenticated admin surface supports login, vehicle/route/stop CRUD, counts, and a live map.
-It does not provide the route-stop order required to publish a route, source/device health, active
-trip accountability, feedback triage, exceptions, history, or reports. The current single admin
-token shape also does not evidence separate operator, support, or research permissions.
-
-### Driver or sender operator
-
-The backend supports source login, trip start/end, HTTP ingestion, Socket.IO ingestion, token
-rotation, and safe acknowledgements. This is a technical contract and simulator path, not a
-supported driver journey with assignment confirmation, sending/reconnect state, or incident
-recovery.
-
-### Developer/researcher
-
-The repository has source-selection analytics and approved research definitions, but no authenticated
-Dev Dashboard for live/historical three-source comparison, freshness, latency, cadence, delivery
-quality, accuracy semantics, filters, or bounded export. The research sources remain three distinct
-boundaries: Mobile GPS/Socket.IO, ESP32+GPS/Wi-Fi/HTTP, and independent LoRaWAN/Gateway/TTN/Webhook.
-Simulators are test tools, not a fourth source.
-
-### External provider
-
-The TTN webhook and payload decoder contract are present. The TTN application/device registry,
-gateway coverage, provider configuration, and live delivery behavior are unavailable, so the
-external-provider journey cannot be marked complete.
-
-## 5. Journey Analysis
-
-| Journey | Product state | Evidence-based assessment |
+| Journey | State | Evidence-based assessment |
 |---|---|---|
-| Rider: open → choose route → inspect stops/vehicles → ETA/nearby stop | Partial | Route and stop data load through REST; Socket.IO markers and ETA logic exist. The UI has no explicit API/socket failure, stale timestamp, or offline state, and a vehicle can be locally associated with the currently selected route when its authoritative route is not in the event. |
-| Rider: submit feedback | Partial | The modal loads active vehicles, validates required fields, submits a typed message, and shows success/error states. API failure falls back to static vehicle options, feedback records capture IP, and there is no privacy notice, receipt, review, or response loop. |
-| Admin: login → monitor fleet → maintain master data | Partial | Login, loading, CRUD, empty states, and basic error alerts exist. The dashboard has counts and a live map, but no current-connection truth, source freshness, active-trip list, route-stop order, exceptions, or device controls in the UI. |
-| Driver/sender: authenticate → start → send → recover → end | Partial | The authenticated REST/Socket.IO contract and simulators cover the technical happy path and token expiry/rotation boundaries. No supported driver client or non-developer operational recovery journey is present. |
-| Researcher: compare Mobile/ESP32/LoRaWAN sources | Missing | D-004 defines an authenticated dashboard and metric vocabulary, but only backend source-selection counts and simulator evidence exist. No live/historical comparison or bounded export surface is implemented. |
-| TTN/provider: deliver → decode → observe health → recover | Unable to Verify | The webhook boundary and payload shapes are repository-visible; provider registry, gateway, delivery, and recovery behavior are external and unobserved. |
+| Rider: choose route, inspect stops/vehicles, use ETA | Partial | Public REST, canonical Socket.IO projection, map, stops, and ETA components exist. T8 prevents locally expired non-live vehicles from remaining visible, but riders do not receive a service-state/recovery explanation. |
+| Rider: submit feedback | Partial | `FeedbackModal` has validation/loading/success/error feedback and posts through a rate-limited public route. IP capture, notice, access, retention, triage, and response ownership are not defined. |
+| ADMIN: maintain routes/stops/vehicles | Partial | CRUD pages exist. Route-stop sequencing/publishing is unavailable in the UI and the existing API cannot reorder atomically. |
+| ADMIN: monitor/send/recover service | Missing | There is no device/source, active-trip, history, timeout exception, Mobile claim/revocation, or force-close user journey. |
+| Driver: select vehicle, start, send, reconnect, end | Missing | D-007/T11 define a native, internally installed application using an enrolled shared phone and non-secret vehicle QR. The repository contains only backend technical contracts/simulators, not that supported product. |
+| SUPER_ADMIN/DEV: privileged data/research operation | Missing | D-007 approves authority intent, while provision/promotion/deletion/re-authentication/audit/restore controls are still not approved or implemented. T7 research APIs are not a dashboard or account-lifecycle surface. |
+| Researcher: compare three physical sources | Partially Resolved | T7's protected research APIs and D-004 definitions exist. The Dev Dashboard, ESP32/TTN/mobile field evidence, and metric outcome evidence remain unavailable. |
 
-## 6. Truthful State Evaluation
+## 5. Product Requirements and Ownership Gaps
 
-The product has some local loading and empty/error states, but they do not form a complete service
-state model:
-
-- Public route/stop/vehicle loading failures are logged and the preloader has a five-second safety
-  timeout; no rider-facing failure or recovery message is rendered when route data or Socket.IO is
-  unavailable.
-- `StopInfoCard` can say no vehicle is available when ETA is null, but this does not distinguish no
-  scheduled service from stale data, disconnected realtime, missing geometry, or a backend failure.
-- `AvailabilityCard` counts visible Leaflet markers, not a server-declared freshness state. It can
-  therefore represent “received a marker” rather than “service is currently available.”
-- The admin dashboard's “Live System Active” label is static. `LiveMap` subscribes to
-  `location-update` but does not expose connection, stale, empty, reconnect, or last-update state.
-- The frontend route map assigns an incoming vehicle to the selected route if it has no local route
-  mapping. The canonical event does not include authoritative route identity, so route selection can
-  affect what riders see.
-- Feedback has explicit form loading/submitting/success/error states, but its fallback static vehicle
-  list can mask an active-vehicle API failure and its stored IP/retention behavior is not explained
-  to riders.
-
-## 7. Product Completeness
-
-| Capability | State | Release interpretation |
+| Required C-scope capability | Outcome/acceptance signal | Owner/policy state |
 |---|---|---|
-| Public live tracking and route/stop viewing | Implemented for controlled demo | Requires known backend/runtime and truthful limitations; not a daily-service guarantee. |
-| ETA and nearby-stop assistance | Partial | Useful demonstration signal; accuracy/latency are not measured ground truth and stale behavior is not communicated. |
-| Public feedback capture | Implemented | Capture works; support/triage, privacy, retention, and response ownership remain open. |
-| Vehicle, route, and stop master-data CRUD | Implemented | Basic admin maintenance exists. |
-| Route-stop composition and order | Missing from product surface | Required for operator-managed route changes. |
-| Sender/trip lifecycle | Partial | Backend contract is stronger after T5; supported driver product is absent. |
-| Trip history and playback | Missing | No read workflow; playback is constrained by sampled canonical history and D-002 policy. |
-| Device/source administration and health | Partial | API CRUD/analytics exist; no operator UI or health state. |
-| Feedback operations | Missing | No inbox, status, assignment, resolution, or retention workflow. |
-| Research/Dev Dashboard | Missing | Approved D-004 scope is not implemented. |
-| Reports, alerts, notifications, announcements | Missing | No product workflow is evidenced. |
+| Route-stop operations (T10) | Admin publishes valid ordered stops; next public read shows revised route data. | Product scope approved; affected audits and task handoff required. |
+| Sender, timeout, history, exceptions (T11) | Supported Android/IoT operating paths, protected history, clear timeout/admin recovery. | Mobile/timeout policy is approved; account lifecycle, technical concurrency/restart details, external Android acceptance, and fresh evidence remain gates. |
+| Feedback triage and device operations (T12) | Each feedback item has accountable handling; authorized staff can see source/device status. | Feedback owner, privacy/notice, retention/deletion, escalation/SLA, privileged deletion controls, and device action matrix are pending owner decisions. |
+| Public service-state communication | Riders distinguish fresh service, no service, stale/disconnected data, and recovery. | Required by D-001=C; precise public wording/operations ownership must be incorporated by the affected work. |
 
-## 8. Approved Release Boundary
+## 6. Roadmap Impact
 
-D-001 is approved as **A — Minimal controlled demonstration**. The current product may be described
-as a supervised pilot with a known operator and an externally supplied authenticated sender. It must
-not be described as daily campus operations or a broad public service.
+- T9 remains **Blocked**: D-008 does not name provider, topology, TLS, secrets, backup/restore,
+  migration/rollback, logging, or incident owner.
+- T10 may become eligible after the remaining dependent audit profiles are validated and a narrow
+  exact-path task handoff passes review. It must add ordered composition/invalidation rather than merely
+  exposing the existing create/delete API.
+- T11 remains gated by its downstream fresh audits, the unapproved general role/account-lifecycle
+  controls where its implementation touches them, technical lifecycle parameters, and external Android
+  acceptance evidence. Do not treat its policy brief as Android implementation evidence.
+- T12 remains **Blocked** on explicit feedback/support/privacy/deletion/device-operation policies.
+- Roadmap synthesis must preserve these separate gates; D-001=C alone does not authorize any task.
 
-D-002 approves bounded raw diagnostics for comparing Mobile, LoRaWAN, and ESP32 research sources,
-but retention duration, deletion owner, research role, event-time semantics, and experiment design
-remain unresolved. D-004 defines the separate authenticated Dev Dashboard scope and accuracy guardrails.
-Neither decision makes the dashboard or physical research evidence exist today.
+## 7. Assumptions, Unknowns, and Confidence
 
-## 9. Actionable Capability Recommendations
+The audit treats Mobile/Socket.IO, ESP32+GPS/Wi-Fi/HTTP, and LoRaWAN/Gateway/TTN/Webhook as separate
+research/operational boundaries; simulators are only test tools. Static source evidence gives **High**
+confidence for the missing product surfaces and approved policies, **Medium** confidence for local T8
+projection behavior because focused deterministic tests exist, and **Low** confidence for user,
+operator, mobile, hardware, provider, privacy, or production outcomes without runtime evidence.
 
-Each recommendation has an outcome, owner, acceptance signal, privacy boundary, and release stage:
+## 8. Proposed Owner Decisions
 
-| Capability | Measurable outcome | Owner | Acceptance signal | Privacy boundary | Release stage |
-|---|---|---|---|---|---|
-| Route-stop operations | An operator can add/remove/reorder a route and see the published stop sequence without developer/API help. | Transport operations | A disposable route test changes order and the public route reflects it after one controlled refresh. | Route/stop metadata only; audit who changed the route. | Future daily-operations scope (D-001 B/C), not current A. |
-| Supported sender workflow | A non-developer sender can authenticate, start, send, recover from expiry/disconnect, and end a trip. | Product + mobile/device owner | Happy path, token rotation, reconnect, and rejected-write tests pass through a documented client. | Sender identity and location access only for assigned vehicle; no public raw telemetry. | Required before daily operations. |
-| Service freshness contract | Rider and operator can distinguish fresh, stale, offline, and no scheduled service within the agreed threshold. | Backend + frontend + operations | Controlled source silence beyond 30 seconds produces the documented state and recovery transition. | No new personal data. | Required before daily operations; useful even in pilot testing. |
-| Trip history list | Staff can find completed trips by vehicle/date/route and see status/time without raw playback promises. | Transport operations + data owner | A completed T5 trip is queryable with the declared retention and access rules. | Authenticated operations access; retention and deletion owner required. | Future daily-operations scope. |
-| Feedback triage | Every submitted case is visible to an owner, assigned a status, and either resolved or escalated. | Transport support owner | Test feedback moves through intake → assigned → resolved with response target and audit trail. | IP/feedback retention, access, and rider notice must be approved. | Broader rider scope (D-001 C). |
-| Research Dev Dashboard | Researchers can compare the three approved sources using defined metrics and bounded redacted export. | Research owner + data owner | Metric definitions, access role, retention, reference evidence, and export bounds are accepted before field trials. | Separate authenticated research role; no public controls or unrestricted raw telemetry. | Approved research scope, implementation gated by exact parameters. |
+The following remain pending and are not inferred by this audit: feedback/support owner; rider privacy
+notice and IP/feedback retention/access/deletion timing; escalation/SLA; deletion re-authentication,
+audit, backup/restore controls; general `ADMIN`/`SUPER_ADMIN` provisioning and credential lifecycle;
+and the device/source action matrix. These decisions are binding gates for T12 and any related role
+implementation.
 
-## 10. Roadmap Impact
+## 9. Handoff
 
-The current roadmap should map these findings to its current task IDs only after Architecture and
-downstream domain audits revalidate the boundaries. The product-level order is:
-
-1. Preserve D-001=A controlled-demo claim and document its supported operator/sender dependency.
-2. Establish the canonical route/service/freshness contract before promising daily operations.
-3. Add route-stop operations, supported sender workflow, and trip-history access for a future daily
-   scope.
-4. Add feedback triage and public stale/no-service communication only when support ownership and
-   privacy/retention are approved.
-5. Implement D-004 research dashboard separately from public canonical tracking and ordinary admin
-   operations, after D-002 parameters are specified.
-
-This report does not edit the master roadmap or authorize implementation. Legacy references to
-superseded T10/T11/T14/T20/T28 numbering must not be copied into new task handoffs.
-
-## 11. Proposed Owner Decisions
-
-No new owner decision is required to retain the approved controlled-demo scope. Before upgrading to
-daily or wider public release, the owner must approve:
-
-- the supported sender/client dependency and operations owner;
-- feedback privacy notice, IP retention, access, response target, and deletion owner;
-- trip-history retention/access and whether sampled canonical history is sufficient; and
-- D-004 research access role, raw/aggregate retention, timestamp semantics, reference evidence, and
-  export bounds.
-
-These are pending owner choices, not inferred product requirements.
-
-## 12. Assumptions and Unknowns
-
-- “Admin,” “operator,” “driver,” and “researcher” are treated as separate product responsibilities;
-  the current application does not implement separate roles.
-- Backend APIs and simulators are not treated as evidence of a real mobile app, ESP32 firmware, TTN
-  deployment, or field performance.
-- ETA, route distance, and device-reported accuracy are product signals/proxies, not measured
-  ground-truth error.
-- Browser behavior, runtime recovery, scheduled service, feedback ownership, and deployment context
-  remain unobserved or owner-controlled.
-
-## 13. Confidence
-
-**High** for repository-visible product surfaces and missing UI/API workflows because the Discovery
-inventory, current components, routes, and schema agree. **Medium** for the static journey
-truthfulness assessment because no browser/runtime session was observed. **Low** for real rider,
-operator, device, provider, and production outcomes.
-
-## 14. Handoff
-
-Next eligible profile: **Architecture**. It must consume the validated Discovery and Product
-baselines and test whether the route/service/freshness contract, Operations/Trip boundary, public
-canonical state, sender dependency, and separate research surface fit the current topology without
-making owner decisions on their behalf.
+Architecture is now the next eligible audit profile. It must consume this Product baseline and revalidate
+where C-scope operations, role boundaries, route invalidation, Mobile lifecycle, protected history, and
+research isolation belong before Backend, Frontend, and Database are re-audited.

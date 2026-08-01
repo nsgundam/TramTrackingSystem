@@ -1,7 +1,20 @@
 import { Router } from "express";
-import { getAllRouteStops, getStopsByRoute, createRouteStop, deleteRouteStop } from "../controllers/routeStops.controller.js";
+import {
+  getAllRouteStops,
+  getStopsByRoute,
+  createRouteStop,
+  deleteRouteStop,
+  replaceRouteStops,
+} from "../controllers/routeStops.controller.js";
 import { RATE_LIMITS, clientAddress, rateLimit } from '../middleware/rate-limit.js';
-import { parseRouteStopCreate, parseTripId, validateBody, validateParam } from '../middleware/validation.js';
+import {
+  parseBoundedId,
+  parseRouteStopCreate,
+  parseRouteStopReplace,
+  parseTripId,
+  validateBody,
+  validateParam,
+} from '../middleware/validation.js';
 
 const router = Router();
 
@@ -15,6 +28,15 @@ router.get('/:routeId', getStopsByRoute);
 const adminWriteLimit = rateLimit({ scope: 'admin:route-stop-write', ...RATE_LIMITS.admin, key: clientAddress });
 
 router.post('/', adminWriteLimit, validateBody(parseRouteStopCreate), createRouteStop);
+
+// Replace one route's complete ordered stop sequence atomically.
+router.put(
+  '/:routeId',
+  adminWriteLimit,
+  validateParam('routeId', (value) => parseBoundedId(value, 'routeId')),
+  validateBody(parseRouteStopReplace),
+  replaceRouteStops,
+);
 
 // DELETE api/admin/route-stops/:id
 router.delete('/:id', adminWriteLimit, validateParam('id', (value) => parseTripId(value)), deleteRouteStop);

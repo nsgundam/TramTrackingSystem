@@ -1,18 +1,20 @@
 # Master Refactoring Roadmap
 
 Audit metadata:
-- Evidence baseline: `9b7ff7325169a8bfa67d29ced94588edd3dbf28a`
-- Evidence scope: `docs/project-knowledge-base.md`, `docs/audits/README.md`, `docs/audits/lead-audit-summary.md`, validated domain and production-readiness audits, `docs/decision-queue.md`, `docs/tasks/T8-truthful-map-live-count.md`, `shuttle-tracking-web/hooks/useShuttleTracker.ts`, `shuttle-tracking-web/utils/canonical-public-state.ts`, `shuttle-tracking-web/tests/t8-public-state.test.ts`, `shuttle-tracking-web/tests/t8-local-server.mjs`, `shuttle-tracking-web/tests/t8-route-switch.spec.ts`, `shuttle-tracking-web/playwright.config.ts`, `shuttle-tracking-web/package.json`, and `docs/roadmap/master-refactoring-roadmap.md`.
-- Reviewed at: `2026-08-01T00:58:40+07:00`
-- Validation state: **Needs Re-audit**
-- Predecessor baselines: the formerly validated Product-through-Production-Readiness inputs are stale after D-001 changed from A to C, D-005 changed from A to B/10 minutes, and D-007/D-008 introduced new role and hosting assumptions; D-001 through D-007 are approved at their stated scope and D-008 remains pending.
+- Evidence baseline: `671b71209ad3ba3341de78f836b6ec057813280c`
+- Evidence scope: `docs/project-knowledge-base.md`, `docs/audits/README.md`, `docs/audits/lead-audit-summary.md`, every validated domain and production-readiness audit, `docs/decision-queue.md`, `docs/tasks/`, the current roadmap, and the repository evidence cited by the revalidated reports.
+- Reviewed at: `2026-08-01T14:30:00+07:00`
+- Validation state: **Validated**
+- Predecessor baselines: Discovery, Product, Architecture, Backend, Frontend, Database, Infrastructure & Device, Dashboard & UX, Security/DevOps/Observability, and Production Readiness `@ 671b71209ad3ba3341de78f836b6ec057813280c`; D-001 through D-007 are approved at their stated scope and D-008 remains pending.
 
 Last reviewed: 2026-08-01
 
-Validation state: **Needs Re-audit**. The previously accepted T1–T8 evidence remains recorded, but
-the roadmap cannot be revalidated until the domain profiles reassess D-001=C, D-005=B/10-minute
-auto-close, the D-007 role model, D-008 hosting direction, and the requested Dashboard redesign. The task-state edits below are an
-owner-direction synchronization, not implementation authorization or a production-readiness claim.
+Validation state: **Validated**. The re-audited evidence confirms that D-001=C opens the product-scope
+gate for T10–T12 but does not resolve their independent decision/evidence gates. T9 remains topology
+blocked, T11 remains technical/external-evidence blocked, T12 remains owner-policy blocked, and T10 is
+the only task in the requested range that can proceed to an exact-path handoff. SEC-01, the sensitive
+Socket.IO raw-payload logging finding, is a separate corrective maintenance requirement and blocks
+production readiness; it does not silently expand the T9–T12 batch.
 
 ## 1. Executive Summary
 
@@ -45,11 +47,11 @@ a second ingestion pipeline, or unbounded operations/research access early.
 
 | Input | Date | Status | Use |
 |---|---:|---|---|
-| Knowledge Base | 2026-07-29 | Complete / Validated | Discovery is current at `d94abb3...`; external deployment/device facts remain unknown. |
-| Product | 2026-07-29 | Needs Re-audit | D-001=C and D-007 supersede the controlled-demo/role assumptions. |
-| Architecture, Backend, Database, Infrastructure & Device, Security/DevOps/Observability audits | 2026-07-29 | Needs Re-audit | C-scope operations, RBAC/destructive-data controls, and D-008 topology assumptions can affect their findings and task boundaries. |
-| Frontend and Dashboard & UX audits | 2026-08-01 | Needs Re-audit | T8 evidence remains recorded; admin/research hierarchy, data layout, and public-theme visual scope are new inputs. |
-| Production Readiness Audit | 2026-08-01 | Needs Re-audit | Reassess the C release target only after every domain predecessor is validated. |
+| Knowledge Base | 2026-08-01 | Complete / Validated | Discovery is current at `671b712...`; external deployment/device facts remain unknown. |
+| Product | 2026-08-01 | Complete / Validated | D-001=C requirements and independent owner-policy gates are current. |
+| Architecture, Backend, Database, Infrastructure & Device, Security/DevOps/Observability audits | 2026-08-01 | Complete / Validated | C-scope task placement is current; D-008, D-007 enforcement, SEC-01, and physical/deployment evidence remain gates. |
+| Frontend and Dashboard & UX audits | 2026-08-01 | Complete / Validated | T8 is resolved for approved projection; C-scope operations/research/design-hierarchy gaps are current. |
+| Production Readiness Audit | 2026-08-01 | Complete / Validated / No-Go | D-001=C is No-Go while security, topology, workflow, policy, and field evidence are unresolved. |
 | Decision Queue and owner/task evidence | 2026-08-01 | D-001–D-007 approved at stated scope; D-008 pending | D-001=C, the base three-role direction, hosting candidates/sequencing, and remaining gates are synchronized. |
 
 Level 1 has revalidated the T7-affected profiles. Hosting, TLS, production recovery, browser/runtime
@@ -68,7 +70,7 @@ behavior, physical devices, and TTN console state remain external unknowns.
 | T7 | D-002 bounded raw diagnostics and research reads | High for approved research | Production 3.3, 3.6; Database 4, 8–9; Architecture 5, 9 | Phase 2 |
 | T8 | Truthful maps: canonical state, stale/no-service UI, correct route, cache safety | High | Production 3.2, 3.7; Frontend 4, 7, 9; Dashboard 5, 10 | Phase 2 |
 | T9 | Topology/origin contract, then deployment configuration alignment | High | Production 3.5; Infrastructure 4–5, 12; Security 7, 9–11; D-003 | Phase 2 |
-| T10 | Route-stop operations and cache invalidation | Critical for daily operations | Production 3.1, 3.7; Product 7; Frontend 4, 13; Backend 9, 12 | Phase 3; D-001 gate opened, re-audit/task handoff pending |
+| T10 | Route-stop operations and cache invalidation | Critical for daily operations | Production 3.1, 3.7; Product 7; Frontend 4, 13; Backend 9, 12 | Phase 3; complete for the exact handoff scope; affected audits need re-audit |
 | T11 | Supported sender operations, trip history, and exception view | Critical/High for daily operations | Production 3.1, 3.3; Product 7–9; Dashboard 7, 10 | Phase 3; Mobile enrollment/claim/timeout/Admin-recovery policy selected, re-audit and exact handoff pending |
 | T12 | Feedback triage and device/source operations views | High for broad public support | Product 7, 11; Frontend 12; Dashboard 10; Database 12 | Phase 3; feedback owner/privacy/retention pending |
 | T13 | Production deployment/recovery drill and monitoring | High before production | Production 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16 | Phase 4 |
@@ -82,7 +84,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 
 | Task | Current state | Gate or evidence |
 |---|---|---|
-| T1 | Complete | Secret-hash/config URL exposure controls validated. |
+| T1 | Complete for its exact scope | Secret-hash/config URL exposure controls validated. SEC-01 raw Socket.IO payload logging is a separate newly discovered corrective maintenance requirement; do not treat T1's scoped completion as proof that every logging path is safe. |
 | T2 | Complete | Shared validation, safe errors, and main boundary abuse controls validated; legacy admin writes remain outside scope. |
 | T3 | Complete | Simulator fixtures and repeatable pipeline evidence validated; no physical-device claim. |
 | T4 | Complete | CI checks and redacted process-local signals validated; no production alerting claim. |
@@ -91,9 +93,9 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T7 | Complete for approved disposable scope | Additive implementation, migration, protected export/lifecycle checks, Redis failure/recovery, retention, backup/restore, canonical-boundary, and query-plan evidence passed on 2026-07-29 using the exact D-006 target. Do not promote research capability to production/public operation without the still-missing external operational evidence. |
 | T8 | Complete for approved truthful public-state scope | Local expiry updates Marker/live-count/ETA together and non-live updates remove only the vehicle Marker. Native and isolated Playwright tests cover local expiry, route switching, and a newer canonical `live` restore; D-001=C opens T10's separately scoped route-mutation/cache work after re-audit. |
 | T9 | Blocked | D-008 confirms candidate hosting families and domain sequencing; exact host/topology/TLS/data placement and operations owners are missing. |
-| T10 | Pending re-audit/task handoff | T8 and D-001=C satisfy the prior gates; fresh domain evidence and exact-path implementation scope remain required. |
-| T11 | Owner policy complete; pending re-audit/task handoff | T5/T6, D-001=C, Android Native/internal distribution, one-time shared-phone enrollment, Admin-side Sender provisioning/revocation/re-enrollment, separate Mobile GPS Sender runtime, non-secret QR vehicle selection without driver-facing `SOURCE_ID`, one active Mobile claim per vehicle, pre-switch Trip closure, offline discard, locked-screen sending, accepted Backend receipt-time timeout clock, all-source D-005 close fields/no-reopen, and audited Admin emergency `admin_force_close` plus claim release are confirmed. Fresh audits, technical parameters, external Android evidence contract, and exact-path handoff remain. |
-| T12 | Pending decisions/re-audit | D-001=C is satisfied; feedback ownership, privacy, retention, and exact role permissions remain open. |
+| T10 | Complete | The exact-path handoff delivered authenticated route-stop management, transactional replacement, and public-cache invalidation with deterministic backend and repository-CI evidence. No ambient browser/database smoke ran; the changed evidence downgraded affected audit rows. |
+| T11 | Blocked — technical/external evidence | The approved Mobile/timeout/recovery policy and fresh audits are current, but technical lifecycle parameters, D-007-sensitive account controls where touched, external Android acceptance evidence, and an exact-path handoff remain. |
+| T12 | Blocked — owner policy | D-001=C and fresh audits are current; feedback ownership/privacy/retention/SLA/deletion/restore controls and the device action matrix remain open. |
 | T13 | Pending | Requires T4/T5 plus T6 and T9, then deployment/recovery/alert evidence. |
 | T14 | Pending re-audit/task handoff | T8 is complete for approved scope; Dashboard redesign direction is recorded, but exact screens/data priority and visual acceptance need the Dashboard & UX re-audit. |
 | T15 | Deferred | T7 is complete for disposable scope; physical sender/provider/protocol facts and T13 remain open. |
@@ -194,6 +196,11 @@ Complete.
 ### Evidence
 
 `shuttle-tracking-backend`: `npm run build`, `npm test`, `node test_devices_boundary.js`, `node test_redis_logging.js`, and unsafe-output search passed on 2026-07-20.
+
+Roadmap re-audit note (2026-08-01): SEC-01 found later Socket.IO invalid-payload raw-data logging in
+`server.ts`. It is outside T1's exact device/Redis logging scope and must be handled as a bounded
+corrective maintenance work unit before production readiness; it does not authorize unrelated source
+changes in this completed task.
 
 ### T2 — Add validated, bounded public and sender write boundaries
 
@@ -782,8 +789,10 @@ VPS and domain binding after server deployment; the remaining exact facts are st
 
 ## 7. Phase 3 — Feature Completion
 
-**Entry criteria:** Phase 2 contracts are accepted, D-001=C is recorded, affected audits are fresh,
-and the D-007 role matrix is explicit for every endpoint/action in the selected task.
+**Entry criteria:** the selected task's direct dependencies and decision gates are accepted, D-001=C
+is recorded, affected audits are fresh, and the D-007 role/action matrix is explicit where the
+selected task changes authorization. T9 remains a deployment-specific Phase 2 blocker for T13/public
+deployment; it is not an implicit dependency of T10–T12 unless their own task gate says so.
 
 **Exit criteria:** operators can manage route stops, perform supported sender/trip workflows, inspect history, and see exceptions. Under C, public feedback has accountable triage.
 
@@ -840,12 +849,21 @@ Admins can publish ordered stops without manual/API work; invalid ordering fails
 
 ### Status
 
-Pending re-audit/task handoff — T8 and D-001=C satisfy the former gates, but the affected audits are
-stale and no exact-path T10 implementation contract has been accepted.
+Complete for the exact handoff scope — T2, T8, and D-001=C were complete when the approved
+exact-path task was started. The implementation adds authenticated route-stop management, validated
+transactional replacement, and public-cache invalidation without a schema migration or runtime target.
+Its changed backend and admin/public-route evidence downgrades the affected audit-register rows to
+`Needs Re-audit`; this does not unblock T11 or T12.
 
 ### Evidence
 
-None.
+The exact-path handoff is `docs/tasks/T10-route-stop-management-and-invalidation.md`. It adds a
+bounded `PUT /api/admin/route-stops/:routeId` path that verifies active stop membership, replaces the
+ordered rows in one transaction, and invalidates public cache after success; legacy create/delete now
+use the same invalidator. The authenticated Routes page opens a management modal for loading, adding,
+removing, and reordering active stops. `npm --prefix shuttle-tracking-backend run check`, frontend
+lint/build, and `bash scripts/ci-checks.sh` passed on 2026-08-01; the two frontend lint warnings are
+pre-existing. No ambient browser/database smoke was authorized or run.
 
 ### T11 — Add sender operations, trip history, and exceptions
 
@@ -970,15 +988,16 @@ terminal state.
 
 ### Status
 
-Pending client/lifecycle/security details and re-audit — Android Native/internal distribution,
+Blocked — Android Native/internal distribution,
 Admin provisioning, one-time shared-phone enrollment, Mobile self-start, Admin-controlled IoT/
 LoRaWAN start, non-secret QR vehicle selection without driver-facing `SOURCE_ID`, one active Mobile
 claim per vehicle, pre-switch Trip closure, offline discard, locked-screen sending, accepted Backend
 receipt-time timeout clock, all-source D-005=B/10 minutes, and close fields/no-reopen are confirmed.
 Admin lost/replaced-phone disable/revoke/re-enrollment and audited atomic emergency
-`admin_force_close` plus claim release are also confirmed. No focused T11 owner choice remains. The
-v4 Level 2 decision still needs fresh audits, technical parameters, an external Android evidence
-contract, and an exact-path handoff.
+`admin_force_close` plus claim release are also confirmed. No focused T11 owner choice remains and
+the affected audits are fresh. The v4 Level 2 decision still needs technical parameters, D-007
+sensitive-account controls where touched, an external Android evidence contract, and an exact-path
+handoff.
 
 ### Evidence
 
@@ -1039,9 +1058,9 @@ Staff can manage feedback under the agreed policy; device/source views reveal sa
 
 ### Status
 
-Pending policy/re-audit — D-001=C and privileged `Feedback` deletion scope are confirmed; feedback
-ownership/privacy/retention/SLA, deletion safeguards, fresh audits, and an exact-path handoff remain
-required.
+Blocked by owner policy — D-001=C, privileged `Feedback` deletion scope, and affected audit freshness
+are confirmed; feedback ownership/privacy/retention/SLA, deletion/re-authentication/audit/restore
+safeguards, and the device/source action matrix remain required before an exact-path handoff.
 
 ### Evidence
 

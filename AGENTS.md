@@ -69,6 +69,22 @@ exhausted, or a concrete blocker requires user authority or external evidence.
 Read the matching agent contract and skill before acting. Use Level 2 only when Level 1 or Level 3
 has a focused cross-domain uncertainty; it is not a mandatory extra layer for mechanical work.
 
+## UX/UI skill routing
+
+- Invoke `frontend-design` before creating a new UX/UI surface or refactoring an existing UX/UI
+  implementation while preserving its incumbent visual identity and product behavior.
+- Invoke `impeccable` with its `audit` command before a frontend UX/UI audit, including the Level 1
+  Frontend and Dashboard & UX profiles. Treat its findings as evidence; Level 1 retains audit and
+  shared-state ownership.
+- Use `impeccable` for a redesign that replaces the incumbent visual world or identity. Do not
+  classify a behavior-preserving code or component refactor as a redesign.
+- For a request that combines audit and implementation, run the `impeccable` audit first. Then use
+  `frontend-design` for the approved creation or identity-preserving refactor, or continue with
+  `impeccable` when the approved outcome is a redesign.
+
+These UI skills supplement the selected three-level workflow; they do not replace its gates,
+exact-path task contract, verification, acceptance, or state-synchronization ownership.
+
 ## Source-of-truth boundaries
 
 - `AGENTS.md`: stable repository-wide routing and safety rules.

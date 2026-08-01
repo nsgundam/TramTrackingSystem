@@ -1,13 +1,13 @@
 # Tram Tracking System Project Knowledge Base
 
 Audit metadata:
-- Evidence baseline: `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
+- Evidence baseline: `671b71209ad3ba3341de78f836b6ec057813280c`
 - Evidence scope: `README.md`, `AGENTS.md`, Compose/configuration and scripts, `shuttle-tracking-backend/`, `shuttle-tracking-web/`, `docs/testing/`, `docs/research/`, `docs/tasks/`, `docs/decision-queue.md`, and `docs/audits/README.md`
-- Reviewed at: `2026-07-29T14:33:30+07:00`
+- Reviewed at: `2026-08-01T12:15:00+07:00`
 - Validation state: `Validated`
 - Predecessor baselines: `None` (Discovery has no required predecessor)
 
-Evidence status: **Validated**. This discovery refresh re-baselines the repository after T5 and
+Evidence status: **Validated**. This discovery refresh re-baselines the repository after T8 and
 records the current evidence contract. Use `docs/audits/README.md` as the coordination authority.
 
 Discovery refresh: 2026-07-22
@@ -24,6 +24,22 @@ observations were absent is **Resolved** for D-002=B's bounded research scope; p
 physical senders, TTN console state, and ground-truth accuracy remain **Unable to Verify**. CI evidence
 was rerun from the repository; the earlier findings about unavailable external runtime evidence remain
 **Still Present**.
+
+## T8 Re-audit Addendum — 2026-08-01
+
+The inventory was revalidated from `d94abb3...` through `671b712...`. T8 changes only the public
+canonical-state projection and its deterministic/isolated Playwright evidence: an expired `live`
+state is projected locally as non-live for the Marker, active-count, and ETA; stale/no-service/unknown
+states do not display a Marker; and selecting another route cannot restore an expired Marker until a
+newer authoritative `live` state arrives. The public REST hydration and Socket.IO event remain the
+same canonical contract. The Playwright local server is a synthetic test fixture, not a production
+service or physical-device result.
+
+D-001=C, D-005=B, D-007, and D-008 now constrain downstream work: C requires operational
+capabilities before a public-service claim, timeout is a separate 10-minute receipt-time lifecycle
+rule, administrative authority is intended to be `DEV` > `SUPER_ADMIN` > `ADMIN`, and production
+topology/operations ownership is still unconfirmed. These are decision facts, not implementation
+evidence for the missing C-scope surfaces.
 
 This document describes the current repository state from source code, configuration, schema,
 migrations, seed data, tests, and repository documentation. It is the Level 1 Discovery profile
@@ -68,17 +84,18 @@ configuration are not present in this repository.
 
 ## Freshness and Validation Summary
 
-The legacy baseline was `f651da5`. Changed evidence was compared through `HEAD`; the refresh
-covered the T5 transaction/migration, sender and ingestion boundaries, simulator/seed fixtures,
-frontend map and origin handling, Compose/startup configuration, tests, and research/testing
-documentation. These changes could affect lifecycle, source identity, data flow, deployment, and
-research claims, so the full Discovery inventory was revalidated rather than selectively copied.
+The preceding baseline was `d94abb3...`. Changed evidence through `671b712...` includes public
+canonical-state hooks/utilities, synthetic test server/Playwright coverage, package scripts, and
+simulator alignment; the remaining changes are decisions, roadmap/audit records, and workflow
+governance. The public-state change can affect the frontend inventory and product claims, so the
+Discovery inventory was revalidated rather than treating a complete register row as proof of
+freshness.
 
-Static validation completed for this refresh: agent-workflow validation, backend build and boundary
-tests, Prisma schema validation, frontend lint, development/production Compose parsing, and
-`git diff --check`. No database/Redis migration or live device/provider/browser session was run in
-this refresh; the T5 integration test remains evidence that requires an explicitly configured
-disposable Postgres/Redis target.
+Static validation recorded for the T8 change: `node --test --experimental-strip-types
+tests/t8-public-state.test.ts`, the isolated T8 Playwright test, frontend lint/build, repository
+CI, workflow validation, and `git diff --check`. No database/Redis migration, deployment,
+provider/hardware, or ambient runtime check was run; the T5 integration test remains evidence that
+requires an explicitly configured disposable Postgres/Redis target.
 
 ### Prior-finding revalidation
 
@@ -87,8 +104,8 @@ disposable Postgres/Redis target.
 | Discovery metadata and baseline were incomplete | **Resolved** | This report now records the full baseline, scope, reviewed time, validation state, and predecessor baseline. |
 | Trip lifecycle had competing non-transactional writers | **Resolved** | `shuttle-tracking-backend/src/services/operations.service.ts`, the T5 migration, and `test_t5_operations.js` define one transactional/idempotent boundary; live integration was not rerun here. |
 | Simulator and seed source fixtures diverged | **Resolved** | `env.example`, `prisma/seed.js`, `shuttle-tracking-web/simulate.js`, `shuttle-tracking-backend/simulate-ttn.js`, and `docs/testing/pipeline-smoke-tests.md` use aligned source/vehicle mappings. |
-| Raw observations, event-time ordering, and high-fidelity history are absent | **Still Present** | Redis retains one latest snapshot per source and Postgres stores sampled canonical `gps_tracks`; no event-time/sequence/raw-observation model is present. |
-| Public/admin stale or offline truth is not exposed as a user-facing contract | **Still Present** | Backend source-health sweep emits operational signals, but no public/admin health endpoint or freshness UI is evidenced. |
+| Raw observations, event-time ordering, and high-fidelity history are absent | **Partially Resolved** | T7 records bounded research raw observations separately from sampled canonical `gps_tracks`; it does not add event-time/sequence semantics or general high-fidelity operational history. |
+| Public/admin stale or offline truth is not exposed as a user-facing contract | **Partially Resolved** | T8 keeps local public Marker/count/ETA projection internally truthful after expiry and route changes. No public/admin health endpoint, service-state explanation, or operations freshness UI is evidenced. |
 | Physical sender, firmware, TTN deployment, and production topology are unavailable | **Still Present** | Only backend contracts, simulators, Compose files, and documentation are in the repository. |
 
 ## Project Overview
@@ -138,7 +155,8 @@ broadcasts that canonical result, and periodically persists canonical history to
 - OSRM route geometry fallback when local route data or local cache is unavailable.
 - Live vehicle marker updates from Socket.IO `location-update`.
 - Vehicle movement animation and route-position calculations using Turf helpers.
-- Active vehicle availability count.
+- Canonical-state projected active vehicle count; local expiry removes a `live` Marker/count/ETA
+  until a newer canonical `live` state arrives.
 - Stop markers, stop selection, and stop information card.
 - Vehicle selection and vehicle information card.
 - Browser geolocation marker and nearest-stop lookup.
@@ -401,7 +419,9 @@ indexes.
 6. The highest-priority fresh source becomes the canonical vehicle location.
 7. The backend stores that canonical location in Redis and may sample it into `gps_tracks`.
 8. The ingestion boundary emits `location-update` to all connected Socket.IO clients.
-9. The public tracker and admin live map update the corresponding vehicle marker.
+9. The public tracker accepts newer canonical states, projects local expiry consistently across
+   Marker/count/ETA, and displays a Marker only for an unexpired authoritative `live` state on the
+   selected route; the admin live map consumes the same event independently.
 10. A sender can end the trip through `/api/trips/:id/end`; the Operations/Trip transaction marks
     the trip completed and vehicle inactive, while the controller clears the Redis sampling keys.
 
@@ -724,9 +744,9 @@ These are repository-state descriptions, not quality or security findings.
 - Route-stop CRUD exists only in backend APIs; no corresponding admin page is present.
 - Public feedback submission is implemented, but no feedback review/list/status API or admin page is
   present.
-- The current source pipeline retains only the latest observation per source in Redis. There is no
-  append-only raw-observation model containing separate receive-time, event-time, sequence, or
-  rejection records.
+- The operational pipeline retains only the latest observation per source in Redis. T7 adds bounded
+  research raw observations with separate lifecycle/metrics APIs; it does not establish event-time,
+  sequence, rejection, or high-fidelity operational-history semantics.
 - `GPSTrack` persistence is sampled canonical history at a 60-second Redis throttle, not a complete
   record of every input event.
 - The current canonical observation timestamp is generated when the backend receives/processes the
@@ -740,9 +760,9 @@ These are repository-state descriptions, not quality or security findings.
   expires or another invalidation clears it.
 - No trip-history, playback, reporting, notification, or alert route/page was found.
 - No OpenAPI/Swagger contract was found.
-- Test artifacts exist for sender claims, Socket.IO boundary, and an integration pipeline, but the
-  integration pipeline requires running infrastructure and configured secrets. No frontend test
-  script or implementation was found.
+- Test artifacts exist for sender claims, Socket.IO boundary, and an integration pipeline; the
+  integration pipeline requires running infrastructure and configured secrets. T8 adds a native
+  frontend canonical-state test and isolated Playwright route-switch/expiry coverage.
 - The root README still documents `admin`/`transport` with `admin123`, while the current seed code
   requires `SEED_ADMIN_PASSWORD` and has no built-in password. The intended credential setup needs
   confirmation.
@@ -778,9 +798,9 @@ fully compare intended behavior with implementation:
 
 ## Actionable Recommendations
 
-- Run the Product profile next. It can now consume this validated Discovery baseline and should test
-  rider, operator, sender, developer/researcher, and external-provider journeys against truthful
-  loading, empty, stale, failure, recovery, and permission states.
+- Run the Architecture profile next. It can consume this validated Discovery and Product baseline to
+  place C-scope operations, role boundaries, route invalidation, Mobile lifecycle, protected
+  history, and research isolation before the parallel Backend/Frontend/Database profiles.
 - Revalidate Architecture, Backend, and Database against the T5 Operations/Trip boundary before
   treating lifecycle integrity as a release capability; this Discovery report does not replace their
   domain findings or live integration evidence.
@@ -798,15 +818,15 @@ fully compare intended behavior with implementation:
 - T5 lifecycle facts are now part of the current baseline. Downstream audits must revalidate the
   transaction, partial active-trip index, status/time constraints, idempotent start/end behavior,
   and virtual-trip policy before confirming or closing related findings.
-- Existing approved decisions D-001 through D-004 remain applicable. The refresh adds no new owner
-  decision and does not authorize implementation of a roadmap task.
+- Approved decisions D-001 through D-008 remain applicable. The refresh adds no new owner decision
+  and does not authorize implementation of a roadmap task.
 
 ## Proposed Owner Decisions
 
-No new owner decision is proposed by Discovery. Existing decisions on controlled MVP scope, bounded
-raw diagnostics, topology/origin order, and three-device research scope should be carried forward;
-the unresolved parameters in “Missing Information” remain pending where they are not covered by an
-approved decision.
+No new owner decision is proposed by Discovery. Existing decisions on C-scope release, bounded raw
+diagnostics, topology/origin order, three-device research, timeout, role direction, and hosting
+sequencing should be carried forward; the unresolved parameters in “Missing Information” remain
+pending where they are not covered by an approved decision.
 
 ## Assumptions
 
@@ -824,8 +844,8 @@ No unsupported business or deployment assumptions are used as facts.
 
 ## Audit Readiness
 
-Validated and ready for Product Audit Agent. Product is the next eligible profile in the canonical
-predecessor order.
+Validated and ready for Architecture Audit Agent. Product is validated at `671b712...`; Architecture
+is the next eligible profile in the canonical predecessor order.
 
 The current repository behavior, multi-source tracking boundary, data model, APIs, frontend
 features, deployment files, simulators, tests, and open information gaps are documented from
@@ -853,8 +873,9 @@ vehicle management, multi-source location ingestion, and public rider feedback.
 - Admin user.
 - Sender/device identity bound to a tracking source and vehicle.
 
-No separate super-admin, developer, driver-account, or role-based permission model is evidenced in
-the current application code.
+The current code does not yet implement the D-007 `DEV` > `SUPER_ADMIN` > `ADMIN` hierarchy, separate
+driver accounts, or the approved account-lifecycle controls; the decision direction is not proof of
+an implemented permission model.
 
 ### Features
 
@@ -921,7 +942,8 @@ See “Known Limitations From Available Evidence” and “Missing Information�
 - Where is the real mobile/driver app and its formal contract?
 - What are the ESP32 and TTN device provisioning and payload contracts?
 - Which source IDs are authoritative for LoRaWAN fixtures and deployed devices?
-- What roles and permissions are intended beyond one admin token shape?
+- How will approved D-007 account provisioning, promotion/demotion, privileged deletion,
+  re-authentication/audit, backup/restore, and out-of-band `DEV` recovery be controlled?
 - What are the GPS event-time, update-rate, retention, and stale-state policies?
 - Is raw observation research history required, and if so, what fields and retention apply?
 - Who reviews public feedback and what statuses/workflow are required?
@@ -930,4 +952,4 @@ See “Known Limitations From Available Evidence” and “Missing Information�
 
 ## Handoff Recommendation
 
-Next recommended profile: Product Audit.
+Next recommended profile: Architecture Audit.

@@ -6,6 +6,43 @@
 
 ## Applied Changes
 
+### AC-015
+
+Agent: Repository-wide UX/UI skill routing
+Files: `AGENTS.md` and `scripts/validate-agent-workflow.js`
+
+Problem/evidence:
+The repository has no stable routing rule for the installed `frontend-design` and `impeccable`
+skills. Their trigger scopes overlap around reshaping existing interfaces, so an agent can select a
+different skill for a behavior-preserving refactor, a technical frontend audit, or a replacement
+visual redesign.
+
+Exact approved change:
+Make root `AGENTS.md` the single routing authority: use `frontend-design` for new UX/UI and
+behavior-preserving UX/UI refactors; use the `impeccable` `audit` command for frontend UX/UI audits;
+and use `impeccable` for redesigns that replace the incumbent visual world. Define audit-first
+sequencing for mixed audit/implementation requests and preserve the existing Level 1, Level 3, and
+Main Agent ownership contracts. Extend the workflow validator with the routing contract tokens.
+
+Expected benefit:
+Agents choose the same design workflow for equivalent requests, avoid treating refactor and
+redesign as synonyms, and retain evidence and acceptance ownership while using the specialized UI
+skills.
+
+Priority: High
+Audit-blocking status: Non-blocking — applies to future UI implementation and re-audit runs
+Owner decision: Approved explicitly in the 2026-08-01 user request
+Proposal date: 2026-08-01
+Approval date: 2026-08-01
+Applied date: 2026-08-01
+Verification: `node scripts/validate-agent-workflow.js` and `git diff --check` passed. The first
+sandboxed CI run reached the frontend E2E gate but could not bind `127.0.0.1:13001` (`EPERM`); the
+approved rerun outside the sandbox passed backend build/boundaries, Prisma validation, frontend
+unit/E2E tests, lint with two pre-existing warnings and zero errors, production build, Compose,
+redaction, and agent-workflow validation.
+
+---
+
 ### AC-002
 
 Agent: Product Audit Agent

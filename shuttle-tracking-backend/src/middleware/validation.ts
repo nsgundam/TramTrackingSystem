@@ -51,6 +51,10 @@ export interface RouteStopCreateInput {
   stopOrder: number;
 }
 
+export interface RouteStopReplaceInput {
+  stopIds: string[];
+}
+
 export interface TripStartInput {
   vehicleId: string;
 }
@@ -242,6 +246,22 @@ export const parseRouteStopCreate = (value: unknown): RouteStopCreateInput => {
     stopId: stringField(input.stopId, 'stopId'),
     stopOrder: integerField(input.stopOrder, 'stopOrder', { min: 1, max: 1000 }),
   };
+};
+
+export const parseRouteStopReplace = (value: unknown): RouteStopReplaceInput => {
+  const input = record(value);
+  if (!Array.isArray(input.stopIds) || input.stopIds.length > 1000) {
+    throw invalidRequest('Field "stopIds" is invalid');
+  }
+
+  const stopIds = input.stopIds.map((stopId, index) =>
+    stringField(stopId, `stopIds[${index}]`),
+  );
+  if (new Set(stopIds).size !== stopIds.length) {
+    throw invalidRequest('Field "stopIds" must not contain duplicates');
+  }
+
+  return { stopIds };
 };
 
 export const parseTripStart = (value: unknown): TripStartInput => {

@@ -2,7 +2,7 @@
 
 Last updated: 2026-08-01
 
-Coordination status: **Needs Re-audit from Product through Roadmap**. On 2026-08-01 the owner changed
+Coordination status: **Roadmap validated; T10 exact-path handoff is next eligible work.** On 2026-08-01 the owner changed
 D-001 from A to C, changed D-005 from A to B with a 10-minute grace period, approved the base D-007 role direction, narrowed D-008 hosting candidates/domain
 sequencing, and requested a public-theme Dashboard redesign. The previously validated T8 evidence
 remains recorded, but those new inputs change product, security, topology, UX, production-readiness,
@@ -24,10 +24,10 @@ operations, and public service remain No-Go. Final route-mutation cache invalida
 on T10. D-001=C now opens T10–T12's product-scope gate but does not satisfy their remaining policy,
 role, topology, operator-workflow, re-audit, or exact-task-handoff gates.
 
-The next eligible profile is Product, followed by Architecture; Backend, Frontend, and Database may
-then be re-audited when their predecessors are current. Infrastructure & Device, Dashboard & UX,
-Security/DevOps/Observability, Production Readiness, and Roadmap follow the repository predecessor
-order. No T9–T15 implementation is authorized by this coordination update.
+Product, Architecture, Backend, Frontend, Database, and Infrastructure & Device were revalidated at
+`671b712...`. Dashboard & UX, Security, DevOps & Observability, Production Readiness, and Roadmap are validated.
+T10 is the only T9–T12 task eligible to enter an exact-path Level 3 handoff: T9 remains topology-blocked,
+T11 needs technical/external Android evidence, T12 needs owner policy, and SEC-01 remains separate corrective maintenance.
 
 ## Historical T6 snapshot — superseded by the current coordination update
 
@@ -50,17 +50,17 @@ now supersedes that release assumption without changing the already-tested T6 co
 
 ## 2. Current profile status
 
-- Discovery: **Complete / Validated** at `d94abb3...`.
-- Product: **Needs Re-audit**; D-001=C and D-007 change roles, journeys, release scope, and ownership needs.
-- Architecture: **Needs Re-audit** after Product; re-bound RBAC, destructive-data, dashboard, and C-scope operations work.
-- Backend: **Needs Re-audit** after Architecture; current T5–T7 evidence remains recorded but new endpoint/role scope must be assessed.
-- Frontend: **Needs Re-audit** after Architecture; T8 acceptance remains recorded, while admin/research layout and role-specific navigation are new scope.
-- Database: **Needs Re-audit** after Architecture; deletion, backup/export, feedback/trip reads, role migration, and auditability require review.
-- Infrastructure & Device: **Needs Re-audit** after Backend/Frontend/Database; D-008 still lacks an exact deployment target and provider facts.
-- Dashboard & UX: **Needs Re-audit** after Product/Frontend/Infrastructure & Device; define information hierarchy/data layout before visual styling.
-- Security, DevOps & Observability: **Needs Re-audit** after all required domain predecessors; D-007/D-008 introduce trust and ownership decisions.
-- Production Readiness: **Needs Re-audit** after every domain profile; D-001=C invalidates the controlled-demo release assumption.
-- Roadmap: **Needs Re-audit** after approved decisions and validated audits; current T9–T15 edits are provisional synchronization only.
+- Discovery: **Complete / Validated** at `671b712...`; it now includes T8 public-state inventory evidence.
+- Product: **Complete / Validated** at `671b712...`; C-scope capability and unresolved owner-policy gates are recorded.
+- Architecture: **Complete / Validated** at `671b712...`; it assigns C-scope boundaries without inferring unresolved policy or deployment facts.
+- Backend: **Complete / Validated** at `671b712...`; T10/T11/T12 server boundaries and their remaining policy/evidence gates are recorded.
+- Frontend: **Complete / Validated** at `671b712...`; T8 remains resolved and C-scope UI/task gates are recorded without absorbing the later T14 redesign scope.
+- Database: **Complete / Validated** at `671b712...`; it preserves T5/T7 boundaries and records the exact missing T10/T11/T12 data gates.
+- Infrastructure & Device: **Complete / Validated** at `671b712...`; D-008 exact deployment/operations and all physical/provider facts remain unavailable.
+- Dashboard & UX: **Complete / Validated** at `671b712...`; public/operations/research boundaries and the later T14 design-hierarchy gate are recorded.
+- Security, DevOps & Observability: **Complete / Validated** at `671b712...`; D-007/D-008/T12 controls remain gated and new SEC-01 sensitive Socket.IO payload logging blocks production readiness.
+- Production Readiness: **Complete / Validated** at `671b712...`; No-Go for D-001=C and production stages, with SEC-01 and the remaining policy/topology/operations/device gates carried forward.
+- Roadmap: **Complete / Validated** at `671b712...`; T10 may proceed only after exact-path handoff and all other T9–T12 gates remain explicit.
 
 ## 3. Evidence and validation
 
@@ -102,8 +102,9 @@ is `docs/audits/specialized/T11-identity-mobile-sender-enrollment.md`. The focus
 policy is complete; stale predecessor re-audits, exact implementation parameters/handoff, and
 external Android acceptance evidence remain required.
 D-008 records university infrastructure/AWS/VPS and post-server domain sequencing but remains pending
-for exact topology, TLS, data placement, and operational owners. The next eligible work is the Product
-re-audit; the Level 1 freshness gate does not permit implementation from stale predecessors.
+for exact topology, TLS, data placement, and operational owners. The next eligible work is the T10
+exact-path Level 3 handoff; the Level 1 freshness gate has been passed, while T9, T11, and T12 retain
+their independent blockers.
 
 Confidence is **High** for the recorded owner directions and repository-visible T8 state path,
 **Medium** for the provisional T9–T15 gate mapping, and **Low** for deployment, provider,

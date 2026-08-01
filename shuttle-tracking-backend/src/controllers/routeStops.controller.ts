@@ -1,12 +1,17 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js';
 import {
-    BoundaryError,
-    logBoundaryFailure,
-    notFound,
-    sendBoundaryError,
+  BoundaryError,
+  logBoundaryFailure,
+  notFound,
+  sendBoundaryError,
 } from '../middleware/boundary-errors.js';
-import type { RouteStopCreateInput } from '../middleware/validation.js';
+import { invalidatePublicCache } from '../services/cache.service.js';
+import {
+  assertActiveRouteStopMembership,
+  buildOrderedRouteStops,
+} from '../services/route-stop-order.service.js';
+import type { RouteStopCreateInput, RouteStopReplaceInput } from '../middleware/validation.js';
 
 export const getAllRouteStops = async (req: Request, res: Response) => {
     try {
@@ -63,10 +68,47 @@ export const createRouteStop = async (req: Request, res: Response) => {
                 stopOrder,
             },
         });
+        await invalidatePublicCache();
         res.status(201).json(newRouteStop);
     } catch (error) {
         logBoundaryFailure('Route-stop create', error);
         sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to create route stop'));
+    }
+};
+
+export const replaceRouteStops = async (req: Request, res: Response) => {
+    try {
+        const routeId = req.params.routeId as string;
+        const { stopIds } = req.body as RouteStopReplaceInput;
+        const [route, activeStops] = await Promise.all([
+            prisma.route.findUnique({ where: { id: routeId }, select: { id: true } }),
+            stopIds.length === 0
+                ? Promise.resolve([])
+                : prisma.stop.findMany({
+                    where: { id: { in: stopIds }, status: 'active' },
+                    select: { id: true },
+                }),
+        ]);
+
+        if (!route) throw notFound('Route not found');
+        assertActiveRouteStopMembership(stopIds, activeStops.map((stop) => stop.id));
+
+        const orderedStops = buildOrderedRouteStops(routeId, stopIds);
+        await prisma.$transaction(async (tx) => {
+            await tx.routeStop.deleteMany({ where: { routeId } });
+            if (orderedStops.length > 0) {
+                await tx.routeStop.createMany({ data: orderedStops });
+            }
+        });
+
+        await invalidatePublicCache();
+        res.json({
+            routeId,
+            stopIds,
+        });
+    } catch (error) {
+        logBoundaryFailure('Route-stop replacement', error);
+        sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to replace route stops'));
     }
 };
 
@@ -76,6 +118,7 @@ export const deleteRouteStop = async (req: Request, res: Response) => {
         await prisma.routeStop.delete({
             where: { id },
         });
+        await invalidatePublicCache();
         res.status(204).send();
     } catch (error) {
         logBoundaryFailure('Route-stop delete', error);

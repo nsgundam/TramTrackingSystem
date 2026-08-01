@@ -1,306 +1,69 @@
 # Frontend Audit: Tram Tracking System
 
 Audit metadata:
-
-- Evidence baseline: `9b7ff7325169a8bfa67d29ced94588edd3dbf28a`
-- Evidence scope: `docs/project-knowledge-base.md`, `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`, `docs/audits/README.md`, `docs/audits/dashboard-ux-audit.md`, `docs/audits/production-readiness-audit.md`, `docs/audits/lead-audit-summary.md`, `docs/decision-queue.md`, `docs/roadmap/master-refactoring-roadmap.md`, `docs/tasks/T8-truthful-map-live-count.md`, `scripts/ci-checks.sh`, `shuttle-tracking-web/package.json`, `shuttle-tracking-web/package-lock.json`, `shuttle-tracking-web/playwright.config.ts`, `shuttle-tracking-web/components/public/ShuttleTracker.tsx`, `shuttle-tracking-web/hooks/useShuttleTracker.ts`, `shuttle-tracking-web/hooks/useVehicleTracking.ts`, `shuttle-tracking-web/types/canonical-state.ts`, `shuttle-tracking-web/utils/canonical-public-state.ts`, `shuttle-tracking-web/tests/t8-public-state.test.ts`, `shuttle-tracking-web/tests/t8-local-server.mjs`, and `shuttle-tracking-web/tests/t8-route-switch.spec.ts`.
-- Reviewed at: `2026-08-01T00:49:55+07:00`
-- Validation state: `Validated`
-- Predecessor baselines: Discovery, Product, Architecture, and Backend `@ d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`
-
-## T8 Automated Evidence Re-audit — 2026-08-01
-
-The current working-tree evidence adds one authoritative pure projection utility, native T8 tests,
-and an isolated Playwright test. The public page runs only against synthetic `127.0.0.1:13001`
-public API/Socket.IO responses; the test blocks `localhost:3001` fallback and verifies the Socket.IO
-request uses the mock. It proves initial `live` Marker/count, local expiry removal, R01 → R02 → R01
-non-restoration, and restoration only after a newer canonical `live` version. `npm run test:t8`,
-`npm run test:e2e:t8` (twice), and `bash scripts/ci-checks.sh` pass.
-
-The route-switch recurrence and the missing focused/runtime-evidence finding are **Resolved** for
-the approved public-state scope. The test does not evidence deployed origins, real Socket.IO failure
-behavior, browser accessibility, provider/device operation, or public-service readiness. T10's
-route-mutation/cache scope remains excluded. No owner decision changes are proposed.
-
-## T8 Corrective Re-audit — 2026-07-31
-
-This update supersedes the T8 route-switch conclusions in the 2026-07-29 addendum below. The
-comparison `4d5a456a6d73ef5a58d674426ba889f43102a9d2..9b7ff7325169a8bfa67d29ced94588edd3dbf28a`
-contains one frontend application change: `shuttle-tracking-web/hooks/useShuttleTracker.ts`. The
-remaining changed paths are the T8 handoff, roadmap/audit coordination records, and agent-workflow
-contracts; the latter do not alter the frontend application's canonical-state findings.
-
-`handleRouteChange` now reads the latest accepted canonical state for each stored Marker. It adds a
-Marker only if that state is `live`, has known authoritative route identity matching the selected
-route, and is not locally expired. It removes only the vehicle Marker for missing state, `stale`,
-`no_service`, `unknown`, unknown-route, route-mismatch, and locally expired state. Route and stop
-layers are owned by the route-geometry path and are not removed here. The prior route-switch Marker
-recurrence is therefore **Resolved** by source inspection; it can return only after the existing
-epoch/version guard accepts a newer canonical `live` state.
-
-The local-expiry count/Marker/ETA behavior remains **Partially Resolved** rather than fully runtime
-verified. `bash scripts/ci-checks.sh` passes (with the two documented frontend lint warnings), but
-the repository has no focused frontend test harness and no live → expiry/stale → route switch → newer
-live browser or Socket.IO-interruption evidence. This report validates the repository-visible
-contract, not a deployed or runtime claim. No owner decision changes are proposed.
-
-## T7 Re-audit Addendum — 2026-07-29
-
-T7 adds no frontend application surface and its protected backend research routes are not consumed by
-the public tracker or admin UI. The prior public/admin canonical-state findings are therefore
-**Still Present**: public consumers remain canonical-only and neutral, while the admin surface retains
-operational state. The material live-count expiry finding is **Still Present**: local expiry removes
-or dims a marker and recalculates ETA, but does not recompute the public live count. This is the
-direct, bounded T8 implementation target. The absence of Dev Dashboard UI is **Still Present** and
-is not a reason to expose raw telemetry to riders.
-- Previous report evidence baseline: `847a18cce9bc27c82b2622dbc176b3a89bc4d037`
-- Legacy report commit: `e566cca`
-
-## T8 Re-audit Addendum — 2026-07-29
-
-The `d94abb3..4d5a456` evidence comparison found one bounded application change: T8 modifies only
-`useShuttleTracker.ts` and `useVehicleTracking.ts`; its task record and coordinating audit documents
-changed alongside them. It does not change the canonical REST/Socket.IO schema, backend authority,
-route geometry/cache, raw-research paths, deployment, dependencies, or public vocabulary.
-
-The live-count expiry finding is **Partially Resolved**. `refreshVehicleStateCounts` now projects the
-canonical registry and treats a locally expired `live` vehicle as non-live before the
-`AvailabilityCard` receives `vehicleStateCounts.live`; the same timer removes its Marker and
-recalculates ETA. A newer accepted canonical event clears the expiry flag before the projection is
-refreshed. `useVehicleTracking` also removes the vehicle Marker and clears ETA for `stale`,
-`no_service`, `unknown`, and locally expired states without mutating route or stop layers.
-
-However, a **New Finding** prevents closing the bounded T8 acceptance: `handleRouteChange` adds a
-stored marker whenever its canonical route matches the newly selected route, without checking its
-latest `serviceState` or local-expiry flag. Switching away from and back to that route can therefore
-restore a stale or locally expired Marker before a newer canonical `live` event. This contradicts the
-T8 restoration invariant. There is no focused expiry/route-switch test or browser/socket-interruption
-evidence, so this source-visible path cannot be treated as runtime-verified.
+- Evidence baseline: 671b71209ad3ba3341de78f836b6ec057813280c
+- Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend audits, docs/decision-queue.md, docs/roadmap/master-refactoring-roadmap.md, docs/tasks/, shuttle-tracking-web/app/, shuttle-tracking-web/components/, shuttle-tracking-web/contexts/, shuttle-tracking-web/hooks/, shuttle-tracking-web/services/, shuttle-tracking-web/types/, shuttle-tracking-web/utils/, shuttle-tracking-web/package.json, and shuttle-tracking-web/tests/
+- Reviewed at: 2026-08-01T13:00:00+07:00
+- Validation state: Validated
+- Predecessor baselines: Discovery, Product, Architecture, and Backend @ 671b71209ad3ba3341de78f836b6ec057813280c
 
 ## 1. Executive Summary
 
-The Next.js frontend now consumes the T6 canonical state contract. Public and admin consumers seed
-from `GET /api/public/active-vehicles`, reject older `(stateEpoch,stateVersion)` pairs, use backend
-route authority, distinguish live/stale/no-service/unknown in marker behavior, suppress ETA for
-non-live state, and rehydrate after Socket.IO reconnect. Admin `LiveMap` additionally renders
-connection and service-state summaries. This is suitable for the supervised D-001=A presentation
-boundary.
+The public tracker consumes the canonical state contract and T8 is resolved for its approved projection: native and isolated Playwright tests cover an initial live Marker/count, local expiry removal, route switch non-restoration, and restoration only after a newer authoritative live state. Raw research data and credentials are not exposed to riders.
 
-The frontend is not an operations-grade or research surface. The public view intentionally exposes
-only a neutral live count and marker/ETA behavior; it does not show viewer connection or source-health
-labels. T8 now recomputes the public live-only count when local freshness expires, but route switching
-can re-add a stale or locally expired Marker before a newer canonical `live` event. Admin local expiry
-is not equivalent to the public local-expiry path, origin configuration is duplicated, admin auth
-protection begins with cookie presence, and the main public tracker still coordinates many concerns.
+D-001=C changes the release expectation, not the existing frontend behavior. There is still no public service-state/recovery explanation, route-stop management UI, sender/claim/trip-history/exception UI, feedback triage UI, source/device operations UI, or authenticated research dashboard. The current dashboard has useful Socket.IO connection and service-state summaries, but its static Live System Active label and master-data count do not make it an accountable operations surface.
 
-No raw research data, credentials, or device comparison is exposed publicly. D-006 affects T7 backend
-export/validation controls, not this frontend task. No browser session, accessibility audit, load
-profile, or device/provider runtime is inferred from source code.
+D-007 provides a future role direction, while the UI currently has a single admin token experience. UI hiding is not a substitute for server authorization. The requested public-theme Dashboard redesign belongs to the later T14 scope after Dashboard & UX produces its information hierarchy; it does not authorize broad styling work in T10-T12.
 
-## 2. Scope, Freshness, and Predecessor Gate
+## 2. Scope and Freshness
 
-This T8 re-audit is limited to the public canonical-state projection, local expiry, Marker visibility,
-ETA availability, route switching, and the live-only count. It does not certify browser/runtime,
-accessibility, load, deployment, physical-device behavior, or the T10 route-mutation/cache scope.
+This re-audit covers public/admin state ownership, REST/Socket lifecycle, loading/failure/permission behavior, configuration, route/geometry/ETA presentation, and relevant tests. It does not certify accessibility, load, browser/device/runtime, deployed origin, or provider behavior.
 
-Discovery, Product, Architecture, and Backend remain validated at
-`d94abb3a4d80c2174d87df4d006dfbe7c814a6bc`, so the Frontend predecessor gate passes. The previous
-Frontend report was stale because T8 changed the two public tracker hooks that own local freshness and
-Marker presentation.
-
-The freshness comparison from `d94abb3a4d80c2174d87df4d006dfbe7c814a6bc..HEAD` identified
-`useShuttleTracker.ts`, `useVehicleTracking.ts`, the exact T8 task handoff, and coordination reports.
-Only the two hooks affect this profile's application findings; the remaining changed paths are evidence
-records. No owner decision changes the T8 assumptions.
-
-Validation performed:
-
-- `bash scripts/ci-checks.sh` — passed: backend build/boundary tests and Prisma validation, frontend
-  lint/build, development and production Compose parsing, dynamic-log check, and workflow validation.
-  Frontend lint retains two pre-existing warnings in `app/layout.tsx` and `utils/IconHelpers.ts`.
-- `node scripts/validate-agent-workflow.js` — passed.
-- No focused expiry/route-switch test, browser, screen-reader, keyboard, Socket.IO interruption,
-  service-worker, deployed-origin, or ambient stateful check was run. The documented T6 browser
-  evidence remains bounded controlled-MVP evidence.
+The preceding Frontend report contains T8 evidence through 2e499df. The profile is revalidated against 671b712 because Product/Architecture/Backend conclusions and D-001=C, D-005=B, D-007, D-008, and T11 constraints alter future scope. No source change after T8 implements C-scope frontend capabilities.
 
 ## 3. Prior-Finding Revalidation
 
 | Prior material finding | State | Current evidence and implication |
 |---|---|---|
-| Realtime UI had no connection or stale-state model | **Partially Resolved** | Admin `LiveMap` now renders connected/reconnecting/disconnected and service-state counts; public `useSocketConnection` still does not expose transport state, and public source-health labels remain intentionally hidden under D-005. Canonical state guards are present. |
-| Route-geometry cache could be stale | **Resolved** | Route geometry cache uses a versioned stop signature containing stop order, IDs, and coordinates with a 24-hour TTL; backend route-stop invalidation remains a separate boundary. |
-| `ShuttleTracker` mixed too many responsibilities | **Still Present** | `useShuttleTracker` plus the public page still coordinate route/stop loading, geometry, Leaflet, realtime, ETA, geolocation, PWA, tour, feedback, and loading state. Supporting hooks reduce some coupling but do not make the map boundary independently testable. |
-| Admin route protection only checked cookie presence | **Still Present** | `proxy.ts` redirects based on `admin_token` presence; JWT expiry/shape is checked after client render in `AuthContext`, while backend validation remains authoritative. |
-| Route-stop management UI was missing | **Still Present** | Admin navigation still has Dashboard, Vehicles, Routes, and Stops only; route-stop composition/reordering is absent. |
-| Admin CRUD validation and mutation feedback were weak | **Still Present** | Pages have loading/empty states and alert/confirm feedback, but no consistent saving state, inline server-error model, or shared mutation feedback boundary. |
-| Socket origin configuration was inconsistent | **Partially Resolved** | Public/admin code strips `/api` when deriving Socket.IO origin and uses the configured backend origin, but origin fallback logic remains duplicated and the deployment topology/origin contract is not evidenced. |
-| Public feedback UI was missing | **Partially Resolved** | Loading, static fallback, validation, submit/error/success, and auto-close behavior exist; there is still no receipt, privacy/retention notice, or staff review/triage surface. |
-| Public route assignment came from the selected UI route | **Resolved** | `vehicleRouteMapRef` is populated from canonical `routeId` only when `routeAuthority` is known; the selected route remains a filter and cannot populate vehicle route authority. |
-| Public local expiry could leave `Active Trams` high | **Partially Resolved** | The local-expiry callback reprojects counts and the card consumes the live-only result; Marker removal and ETA recalculation occur in the same callback. The corrective route-switch guard no longer re-adds stale/expired Markers, but focused runtime evidence is still absent. |
-| Duplicate unused realtime map component existed | **No Longer Relevant** | The old unused artifact is not present in the current file inventory; the active public page uses the current tracker path. |
-| Public/admin clients lacked T6 state/version contract | **Resolved** | Shared canonical types, initial REST hydration, epoch/version guards, stale/no-service/unknown handling, local public expiry, and admin state summaries are present and covered by T6 source/boundary checks. |
+| Public canonical state/version ownership was missing | Resolved | Hydration and Socket.IO updates accept V1 canonical state with epoch/version ordering and backend route authority. |
+| Locally expired live state could leave a Marker/count/ETA visible | Resolved | T8 projects local expiry consistently and its deterministic plus isolated-browser tests cover expiry and newer-live restoration. |
+| Route switching could restore stale/expired Marker | Resolved | Marker eligibility requires current live state, known matching route authority, and no local expiry; T8 tests cover R01 to R02 to R01. |
+| Public connection/service failure is explained to riders | Still Present | The public socket hook silently reconnects/hydrates; route/API failure has no persistent rider recovery state or C-scope no-service explanation. |
+| Route-stop management UI existed | Still Present | Sidebar and admin pages expose only dashboard, vehicle, route, and stop master data; no ordered route-stop composition/reorder/publish view exists. |
+| Admin sender/trip/history/exception operations existed | Still Present | No pages/components exist for device/source status, Mobile claim/revocation, active/timeout trips, history, or force-close. |
+| Feedback had accountable triage | Still Present | The public form has local states but no staff inbox, status, assignment, resolution, privacy notice, receipt, or deletion controls. |
+| Admin role-specific UX enforced D-007 | Still Present | Cookie/token UI does not implement DEV, SUPER_ADMIN, ADMIN capability rendering; backend authorization must remain authoritative. |
+| Public/backend origin contract was settled | Partially Resolved | Hooks derive configured backend origin and strip API suffix, but duplicated localhost fallback remains until T9 topology/origin facts are approved. |
+| Research dashboard exposed raw diagnostic work appropriately | Still Present | No Dev Dashboard exists; this correctly avoids exposing raw telemetry but leaves D-004 research UI incomplete. |
 
-## 4. Current Frontend Boundaries
+## 4. Surface Assessment
 
-| Surface | Current behavior | Assessment |
+| Surface | Current behavior | C-scope gap |
 |---|---|---|
-| Public route/tracker | Fetches active routes/stops, obtains OSRM geometry with localStorage/bundled fallback, renders Leaflet map/cards, hydrates canonical vehicle state, and receives `location-update` | Suitable for controlled presentation; public connection/source-health wording is deliberately neutral and runtime failure behavior remains limited. |
-| Public feedback | Fetches active vehicles and posts feedback; falls back to static vehicle IDs if loading fails | Capture is usable for pilot testing; no receipt, privacy notice, or downstream case state. |
-| Admin shell | `proxy.ts` checks cookie presence; `AuthContext` decodes expiry client-side; Axios adds bearer token and redirects on 401/403 | Backend remains the security authority; UI protection can briefly render based on stale/present cookie state. |
-| Admin CRUD | Vehicles, routes, and stops pages fetch/mutate through Axios | Basic master-data workflow exists; route-stop composition and operational workflows are absent. |
-| Admin live map | Hydrates canonical state over REST, accepts the same Socket.IO envelope, guards versions, and renders connection/service summaries | Improved controlled-MVP diagnostic widget; local expiry and protected exception views remain incomplete. |
-| Developer/researcher | No authenticated Dev Dashboard, historical comparison, bounded metric filters, charts, or export | Missing by design until T7 backend contract and access controls exist. |
+| Public tracker | Canonical REST hydration, Socket.IO updates, route filtering, local expiry, Marker/count/ETA projection, route/stop map and feedback capture. | Explicit fresh/no-service/stale/recovery messaging and resilient retry states. |
+| Public feedback | Validation, submit/error/success and vehicle fallback. | Privacy/IP notice, receipt, accountability/triage status; T12 waits for policy. |
+| Admin shell/dashboard | Cookie-presence routing, API token, master-data counts, live map with connection/service-state summary. | Server-authorized role-specific navigation and accountable operations truth. |
+| Admin routes/stops | Basic CRUD UI. | Ordered route-stop management, invalid-order feedback, published-read confirmation; T10. |
+| Admin operations | None. | Device/source, claim, active/timeout exception, history and recovery paths; T11 and policy-gated T12. |
+| Research/Dev | None. | Separate authenticated comparison dashboard, reproducible filters and metric labels; not part of T9-T12 unless a future task says so. |
 
-## 5. Realtime and Canonical State Review
+## 5. Task Placement
 
-The public and admin clients now accept only schema version 1 canonical envelopes. Each vehicle has a
-local `(stateEpoch,stateVersion)` comparator; older same-epoch events are ignored and a new epoch is
-accepted as a namespace reset. Initial REST hydration occurs before the socket is processed, and a
-successful reconnect rehydrates the snapshot. This prevents the old delayed-event and route-fallback
-failure modes at the repository contract level.
+- T9 remains blocked by D-008. Do not consolidate origins or change production fallback behavior without the topology contract.
+- T10 needs a narrow route-detail composition UI connected to the new ordered server command. It must expose invalid order/membership failures and refresh the public route data after a successful save.
+- T11 needs an operations UI only after backend authorization/lifecycle APIs and the external Android acceptance contract are specified. It must not embed an Android driver runtime or expose sender secrets/source identifiers.
+- T12 is blocked by owner decisions. Future triage/device views require explicit role checks, privacy wording, retention/deletion controls, and action matrix rather than generic admin CRUD.
 
-`useVehicleTracking` uses `liveLocation` only for live state and `lastKnownLocation` only for stale
-state. T8 removes a stale vehicle Marker rather than rendering its last-known position, and clears the
-selected vehicle ETA; no-service/unknown and locally expired states follow the same no-Marker/no-ETA
-path. Route identity still comes from the backend, and unknown route authority cannot produce a
-route-specific ETA.
+## 6. Usability and Technical Risks
 
-The public hook's local expiry timer now marks the matching accepted live version expired, recomputes
-the canonical state counts, removes its Marker, and recalculates ETA. `ShuttleTracker` passes the
-resulting live-only count to `AvailabilityCard`, so the prior stale-count path is repaired at source
-level. Yet `handleRouteChange` only compares a stored Marker's route with the selected route; it does
-not reject stale or expired current state. A route toggle can restore a Marker that T8 removed, so the
-T8 marker-restoration acceptance remains incomplete.
+Public tracker state remains broadly coordinated in useShuttleTracker, though supporting hooks isolate map/realtime pieces. Admin and public Socket lifecycles are independently implemented, so they can drift. Admin cookie-presence protection and static dashboard language are UI resilience/truthfulness issues; they are not authorization evidence. OSRM, Leaflet, geolocation, reconnect timing, accessibility, responsive behavior, marker density, and external tiles are unverified runtime dependencies.
 
-`useSocketConnection` still does not expose connection/error state to the public tracker. Admin
-`LiveMap` has its own connection state and hydration logic rather than sharing one realtime hook, so
-public/admin lifecycle behavior can drift. Admin does not have a local expiry timer equivalent to the
-public path; it relies on server transitions for stale state while disconnected.
+## 7. Roadmap Impact, Unknowns, and Confidence
 
-## 6. Route, Geometry, and ETA Review
+T9 is blocked; T10 may proceed after all required dependent audits and its exact-path contract. T11 requires fresh downstream evidence, backend contract/role gates, and external Android acceptance evidence. T12 is owner-policy blocked. T14 owns the public-theme Dashboard redesign after its own re-audit/brief; this audit does not merge it into the requested T9-T12 batch.
 
-Active routes are selected dynamically from `/api/public/active-routes`; the initial `R01` value is
-replaced by the first active route when data arrives. Route stops are loaded per route. Geometry tries
-OSRM, then a localStorage cache keyed by a versioned stop signature, then bundled route data. The
-cache signature includes ordered stop IDs and coordinates, resolving the previous ID-only staleness
-finding.
+Confidence is High for source-visible canonical projection and missing UI surfaces, Medium for T8 synthetic test coverage, and Low for accessibility, production configuration, real Socket.IO failures, hardware, Android, and actual operator/rider outcomes.
 
-ETA and next-stop values remain presentation calculations based on route geometry, raw canonical
-position, recent client-observed speeds, an average-speed floor, and stop dwell assumptions. This is
-an estimate, not device latency or absolute GPS accuracy. Route-conformance distance, reported
-accuracy, pairwise disagreement, and ground-truth error remain distinct research metrics and are not
-shown as a single frontend score.
+## 8. Handoff
 
-The remaining route risk is data availability: if geometry fails, the preloader safety timeout can
-allow a partially initialized map without a persistent rider-facing recovery panel. The route cache
-also depends on backend route-stop mutation invalidation, which remains outside this profile.
-
-## 7. Loading, Failure, and Mutation UX
-
-- The five-second preloader safety timer prevents an infinite intro but can hide incomplete route or
-  vehicle data instead of explaining the failed dependency.
-- Public route/API attempts use configured and localhost fallback origins and catch failures, but no
-  persistent offline/retry panel is shown for route data or public Socket.IO failure.
-- Feedback has the strongest state model: vehicle loading, static fallback, validation, submitting,
-  server error, success, and close. It still lacks privacy/IP retention wording and a receipt.
-- Admin lists have loading and empty states. Mutations primarily use browser alerts/confirms and do
-  not share inline error or saving-state components.
-- No frontend surface exists for trip history, source health, device selection/failover, raw research
-  facts, bounded export, or feedback triage.
-
-## 8. Admin Authentication and Configuration
-
-The browser stores the admin JWT in `admin_token`, decodes expiry in `AuthContext`, and sends it
-through Axios. `proxy.ts` checks only cookie presence because it is not the API trust boundary. A
-stale or malformed cookie can cause a redirect/render cycle before the API corrects it; this remains
-a UX/resilience issue rather than a replacement for server authentication.
-
-Socket origin derivation is duplicated between public/admin components and the shared socket hook.
-It considers `NEXT_PUBLIC_BACKEND_URL`, strips `/api` from `NEXT_PUBLIC_API_BASE_URL`, and falls back
-to localhost. `next.config.ts` contains a development Socket.IO rewrite. D-003/T9 still needs a
-deployed topology/origin contract before production configuration is current.
-
-## 9. Performance, Privacy, and Research Readiness
-
-The public map maintains marker/layer refs and queues updates during zoom, which is reasonable for a
-small vehicle count. Each accepted location can trigger an OSRM nearest request, and Leaflet marker
-updates/DOM icon manipulation are not profiled at the target cadence. No browser profiling,
-connection-count test, marker-density test, or load evidence was observed.
-
-The public client receives canonical fields only and does not expose source comparison or raw payloads.
-The T7 research surface must remain separate, authenticated, bounded by vehicle/source/route/
-experiment/time, and explicit about each accuracy/arrival metric. No such surface currently exists.
-
-## 10. Current Findings and Recommendations
-
-### High — Route switching can restore a stale or expired public Marker
-
-T8 now synchronizes local-expiry marker removal, live count, and ETA. But `handleRouteChange` can add
-the stored Marker back whenever its canonical route matches the selected route, without checking the
-current non-live/expired projection. Gate route-change Marker addition by the latest accepted canonical
-state and expiry flag, and add a focused live → expired/stale → route switch → newer live test before
-closing T8.
-
-### Partially Resolved — Public live count after local expiry
-
-The card now receives a count reprojected from the canonical registry on local expiry, and a newer
-accepted live state clears the expiry flag before its count can return. This is source-verified and CI
-build-verified, but has no focused timer or browser/runtime fixture.
-
-### Medium — Public/admin realtime lifecycle implementations can drift
-
-The public hook has local expiry and silent connection handling; admin has connection labels and REST
-hydration but no equivalent local expiry. Consolidate the state/lifecycle contract or explicitly
-document the different public-neutral/admin-operational projections before daily operations.
-
-### Medium — Public failure semantics remain intentionally implicit
-
-Public stale/no-service/unknown behavior is expressed through marker/ETA behavior, not explicit
-labels, and socket/route failures have no persistent retry state. This is consistent with D-001=A and
-D-005 but is insufficient for daily operations without an owner-approved wording and exception flow.
-
-### Medium — Main tracker remains a broad maintenance boundary
-
-Keep the current controlled path stable, then split data/realtime/geometry/map responsibilities into
-testable units under the dedicated roadmap task. Do not add rooms, broker, or a second map path without
-measured scale evidence.
-
-### Medium — Admin authentication presentation is weaker than backend trust
-
-Keep backend JWT enforcement authoritative, but add a single recoverable auth state for malformed,
-expired, and missing tokens instead of relying on cookie-presence middleware plus client redirects.
-
-### Low — Origin and external routing fallbacks are duplicated
-
-Centralize API/socket origin derivation after T9 topology facts are approved. Do not infer the
-production origin from the development rewrite or localhost fallback.
-
-## 11. Roadmap and Decision Impact
-
-T6 remains revalidated for the frontend consumer boundary. T7 remains a backend/database research
-task; the frontend must not add raw research UI or alter public canonical payloads. T8's bounded
-live-count repair is **Partially Resolved**, but the stale/expired Marker route-switch path prevents
-closure; the T10-dependent route-mutation/cache scope remains excluded and blocked under D-001=A.
-T10–T12 remain deferred, and D-003 keeps topology/origin work ordered before configuration alignment.
-
-Approved D-001 through D-006 remain unchanged. No new owner decision is proposed by this report.
-
-## 12. Assumptions, Unknowns, and Confidence
-
-- No browser session, screen-reader/keyboard audit, deployed origin, service-worker runtime, or real
-  device was observed.
-- OSRM availability, browser geolocation, Socket.IO reconnect timing, timer/route-switch behavior,
-  and marker performance remain unverified at runtime. The documented T6 browser evidence is bounded
-  controlled-MVP evidence.
-- The controlled small-fleet target is a design assumption, not measured frontend capacity.
-- Confidence is **High** for source-visible component/API ownership and T6 guards; **Medium** for
-  user-facing resilience, accessibility, and runtime performance; **Low** for deployed/provider/device
-  outcomes.
-
-## 13. Audit Limitations and Handoff
-
-No frontend code, schema, deployment, retention policy, or owner decision was changed by this report.
-Frontend is **Complete / Validated** at `9b7ff7325169a8bfa67d29ced94588edd3dbf28a` as an audit
-profile. The route-switch source finding is resolved, while T8 remains Partially Complete until
-focused/runtime evidence is available. Dashboard & UX is the next eligible selected profile,
-followed by Production Readiness.
+Frontend is validated at 671b712. Database is the remaining peer profile before Infrastructure & Device; Dashboard & UX must wait for Frontend and Infrastructure & Device.
