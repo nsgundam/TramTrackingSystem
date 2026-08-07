@@ -2,6 +2,10 @@
 
 ## Pending
 
+None.
+
+## Approved
+
 ## D-008 — Production hosting topology and operational ownership
 
 Related reports: `docs/audits/infrastructure-device-audit.md`,
@@ -9,21 +13,36 @@ Related reports: `docs/audits/infrastructure-device-audit.md`,
 `docs/audits/production-readiness-audit.md`,
 `docs/roadmap/master-refactoring-roadmap.md`
 
-Owner direction recorded on **2026-08-01**: keep frontend/backend/data hosting separated as required
-by the final topology; the production server will be either university-operated infrastructure,
-AWS, or a VPS. Register and bind the public domain only after the selected server deployment is
-working.
+Owner decision: **Approved recommended handoff on 2026-08-07.** Production starts on one
+university-managed server behind one TLS reverse proxy at the preferred origin
+`https://tram-tracking.rsu.ac.th`: `/` routes to the frontend and `/api/*` plus `/socket.io/*` route
+to the backend. Only `443` and an HTTP-to-HTTPS redirect on `80` are public; administrative SSH is
+restricted, and application/PostgreSQL/Redis ports have no public host binding. The single host is
+an accepted zero-budget single point of failure, not high availability.
 
-Still pending before T9 can close: select the actual provider/host and region/network boundary;
-name the frontend, backend, PostgreSQL, and Redis placement; choose the TLS terminator and certificate
-owner; identify the secret source, log/alert destination, backup/restore owner, migration/rollback
-owner, and incident/on-call owner. The post-deploy domain sequence does not authorize an IP-only
-public release or plaintext production traffic.
+The application team owns versioned application artifacts, the non-secret environment schema,
+migration procedure, readiness contract, and deployment/rollback runbook. The University
+Server/Network Team is the designated operational owner for host/OS/network/firewall, DNS/TLS,
+production secret generation/storage/rotation, off-host backup/restore, log/metric retention,
+alerts, and incident response. Initial targets are maintenance outside vehicle-service hours, RPO
+at most 24 hours, and RTO before the next service period and at most 24 hours. An external VPS is a
+manual cold-recovery option only; Vercel/Render/Neon and any AWS learning environment are isolated
+non-production profiles with separate credentials, data, and sender registrations.
 
-Roadmap effect: narrows the T9 hosting direction but leaves T9 and T13 blocked on exact topology,
-security, and operational-owner facts.
+The application developer is not required to invent the final host values. Before a production
+claim, the University Server/Network Team must name primary/backup contacts and supply the actual
+host/resources, DNS/certificate, firewall, secret location, off-host backup/restore, log/alert,
+restart and capacity evidence. Ten vehicles and 10,000 concurrent public viewers are load-test
+targets, not an accepted capacity result. Precise locations, feedback/IP data and credentials remain
+sensitive even though external data placement is allowed.
 
-## Approved
+Binding specialist record:
+`docs/audits/specialized/D-008-observability-production-topology-handoff.md`.
+
+Roadmap effect: closes the owner-policy portion of D-008 and authorizes an exact repository-side T9
+handoff. It does not complete T9, establish the external team's acceptance, or prove deployment,
+TLS, private-port enforcement, restore, alert delivery, capacity, failover, or production readiness.
+T13 and public release remain gated on the recorded external checklist.
 
 ## D-010 — Legacy administrative-role migration mapping
 
