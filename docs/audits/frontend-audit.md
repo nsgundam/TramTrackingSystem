@@ -1,11 +1,18 @@
 # Frontend Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 82f4d97d8609d73f79aa74eea6efaadaa34238d9
-- Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend audits, docs/decision-queue.md, docs/tasks/, shuttle-tracking-web/app/, shuttle-tracking-web/components/, shuttle-tracking-web/contexts/, shuttle-tracking-web/hooks/, shuttle-tracking-web/services/, shuttle-tracking-web/types/, shuttle-tracking-web/utils/, shuttle-tracking-web/package.json, and shuttle-tracking-web/tests/
-- Reviewed at: 2026-08-07T16:40:54+07:00
+- Evidence baseline: cdedcc2fd82ab264e2176716ac23a74c948e1a28
+- Evidence scope: docs/project-knowledge-base.md, Product/Architecture audits, Backend audit as
+  cross-boundary context, docs/decision-queue.md, docs/tasks/,
+  shuttle-tracking-web/app/, shuttle-tracking-web/components/, shuttle-tracking-web/config/,
+  shuttle-tracking-web/contexts/, shuttle-tracking-web/hooks/, shuttle-tracking-web/services/,
+  shuttle-tracking-web/types/, shuttle-tracking-web/utils/, shuttle-tracking-web/package.json,
+  shuttle-tracking-web/tests/, full frontend check evidence, and the current Impeccable technical
+  audit/detector pass
+- Reviewed at: 2026-08-07T19:53:43+07:00
 - Validation state: Validated
-- Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md, docs/audits/architecture-audit.md, and docs/audits/backend-audit.md @ 6905fe4ceedc621ef16f6f1f3f32edcc58599f2f (atomic D-008 synchronization snapshot; later changes in this sealing pass are metadata-only)
+- Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md, and
+  docs/audits/architecture-audit.md @ cdedcc2fd82ab264e2176716ac23a74c948e1a28
 
 ## 1. Executive Summary
 
@@ -17,15 +24,35 @@ state/recovery explanation, sender/claim/trip-history/exception UI, or authentic
 The current dashboard has useful Socket.IO connection and service-state summaries, but its
 static Live System Active label and master-data count do not make it an accountable operations surface.
 
-D-007 provides a future role direction, while the UI currently has a single admin token experience. UI hiding is not a substitute for server authorization. The requested public-theme Dashboard redesign belongs to the later T14 scope after Dashboard & UX produces its information hierarchy; it does not authorize broad styling work in T10-T12.
+D-007 is implemented for the bounded T12 session/navigation surfaces: the client hydrates the
+server-provided role and hides the Feedback Inbox from `ADMIN`; server authorization remains
+authoritative. The requested public-theme Dashboard redesign belongs to the later T14 scope after
+Dashboard & UX and D-011 produce an exact information hierarchy; it does not authorize broad
+styling work here.
+
+T9 removes the per-consumer production fallback chains and routes public/admin REST and Socket.IO
+through one resolver. Production defaults to same-origin `/api` and current-origin Socket.IO; a
+safe explicit HTTPS origin is shared when configured. No DOM structure, copy, styling, role, or
+canonical-state behavior changed.
 
 ## 2. Scope and Freshness
 
-This re-audit covers public/admin state ownership, REST/Socket lifecycle, loading/failure/permission behavior, configuration, route/geometry/ETA presentation, and relevant tests. It does not certify accessibility, load, browser/device/runtime, deployed origin, or provider behavior.
+This re-audit covers public/admin state ownership, REST/Socket lifecycle, loading/failure/permission
+behavior, configuration, route/geometry/ETA presentation, and relevant tests. The Impeccable pass is
+a static technical audit, not accessibility certification or human usability evidence; this profile
+does not certify load, real devices, deployed origin, or provider behavior.
 
-D-008 changes the approved production origin and responsibility boundary, not current UI behavior.
-Existing T8/T10/T12 source/build/test evidence remains current, but no browser path through the
-university proxy or deployed origin was authorized.
+The preceding baseline was `82f4d97...`. Exact changed frontend evidence is
+`docs/tasks/T9-production-topology-origin-handoff.md`, `docs/decision-queue.md`,
+`shuttle-tracking-web/components/admin/LiveMap.tsx`,
+`shuttle-tracking-web/components/public/FeedbackModal.tsx`,
+`shuttle-tracking-web/config/backend.ts`, `shuttle-tracking-web/hooks/useShuttleTracker.ts`,
+`shuttle-tracking-web/hooks/useSocketConnection.ts`, `shuttle-tracking-web/package.json`,
+`shuttle-tracking-web/services/api.ts`, `shuttle-tracking-web/services/publicApi.ts`, and
+`shuttle-tracking-web/tests/t9-backend-origin.test.ts`. The current full frontend check passes:
+simulator tooling 4/4, T8 native tests 2/2, T9 origin tests 5/5, isolated Playwright 1/1,
+lint with two pre-existing warnings, and production build. No browser path through the university
+proxy or deployed origin was authorized.
 
 ## 3. Prior-Finding Revalidation
 
@@ -36,11 +63,12 @@ university proxy or deployed origin was authorized.
 | Route switching could restore stale/expired Marker | Resolved | Marker eligibility requires current live state, known matching route authority, and no local expiry; T8 tests cover R01 to R02 to R01. |
 | Public connection/service failure is explained to riders | Still Present | The public socket hook silently reconnects/hydrates; route/API failure has no persistent rider recovery state or C-scope no-service explanation. |
 | Route-stop management UI existed | Resolved | The authenticated Routes page launches `RouteStopsModal`, which loads current order and active stops, prevents duplicate local selection, supports add/remove/reorder, reports errors, and publishes the full list. Build/lint/CI passed; no ambient admin browser workflow was run. |
-| Admin sender/trip/history/exception operations existed | Still Present | No pages/components exist for device/source status, Mobile claim/revocation, active/timeout trips, history, or force-close. |
+| Admin sender/trip/history/exception operations existed | Partially Resolved | T12 adds a safe read-only source-health page. Mobile claim/revocation, credentials, active/timeout trips, history, and force-close remain absent. |
 | Feedback had accountable triage | Partially Resolved | T12 adds the notice/receipt, Super Admin/Dev inbox, case transitions, password-confirmed delete/restore, and safe health page. Browser staff/rider acceptance remains unavailable. |
 | Admin role-specific UX enforced D-007 | Partially Resolved | Session hydration receives the server role and navigation hides the feedback inbox from ADMIN. Backend authorization remains authoritative and general role management is out of scope. |
-| Public/backend origin contract was settled | Partially Resolved | D-008 approves one public origin and proxy paths; hooks derive a configured backend origin, but duplicated localhost fallbacks remain until T9 aligns the implementation. |
+| Public/backend origin contract was settled | Resolved | T9 centralizes every listed REST/Socket consumer, defaults production to same origin, rejects unsafe/conflicting overrides, and removes hidden localhost rewrites/fallback loops. Focused tests pass; deployed proxy behavior remains Unable to Verify. |
 | Research dashboard exposed raw diagnostic work appropriately | Still Present | No Dev Dashboard exists; this correctly avoids exposing raw telemetry but leaves D-004 research UI incomplete. |
+| Static frontend technical quality met a production release baseline | New Finding | The required Impeccable audit remains 9/20 (Poor): no P0, nine P1, ten P2, and one P3 across modal/focus/form accessibility, truthful service/feedback state, responsive targets, performance, and theming. T9 introduced none of these defects and resolves none. |
 
 ## 4. Surface Assessment
 
@@ -55,8 +83,9 @@ university proxy or deployed origin was authorized.
 
 ## 5. Task Placement
 
-- T9 may now consolidate REST/Socket origins and remove production fallback ambiguity through its
-  exact D-008 handoff. Browser/proxy acceptance still requires an approved external target.
+- T9 now consolidates REST/Socket origins and removes production fallback ambiguity through its
+  exact D-008 handoff. Preserve the resolver; browser/proxy acceptance still requires an approved
+  external target.
 - T10 is complete for its narrow route-detail composition UI; preserve server-side validation and record stateful published-read evidence only on an approved target.
 - T11 needs an operations UI only after backend authorization/lifecycle APIs and the external Android acceptance contract are specified. It must not embed an Android driver runtime or expose sender secrets/source identifiers.
 - T12 has D-009 policy. Future triage/device views require explicit server role checks, privacy wording, retention/deletion controls, and read-only safe DTOs rather than generic admin CRUD.
@@ -65,19 +94,41 @@ university proxy or deployed origin was authorized.
 
 Public tracker state remains broadly coordinated in useShuttleTracker, though supporting hooks isolate map/realtime pieces. Admin and public Socket lifecycles are independently implemented, so they can drift. Admin cookie-presence protection and static dashboard language are UI resilience/truthfulness issues; they are not authorization evidence. OSRM, Leaflet, geolocation, reconnect timing, accessibility, responsive behavior, marker density, and external tiles are unverified runtime dependencies.
 
+### Impeccable technical audit evidence
+
+| Dimension | Score | Current result |
+|---|---:|---|
+| Accessibility | 1/4 | Systemic dialog/focus/form naming, off-screen sidebar, live-region, language/zoom, and reduced-motion gaps remain. |
+| Performance | 2/4 | Code splitting/memoization exist; eager route geometry, uncancelled map animation, raw images, and broad transition/backdrop work remain. |
+| Responsive Design | 2/4 | Admin card/table breakpoints exist; small touch targets and narrow-screen overlay collisions remain. |
+| Theming | 2/4 | Public tokens exist; admin/legacy hard-coded palettes and forced light mode remain inconsistent. |
+| Implementation Integrity | 2/4 | Product-specific separation is clear, but service/dashboard and Feedback fallback states can mislead. |
+| **Total** | **9/20 — Poor** | **0 P0; 9 P1; 10 P2; 1 P3.** |
+
+The detector returned two mechanistic candidates. `app/globals.css:91-95` is a permitted map-surface
+grid and `components/admin/StopModal.tsx:146-147` is an empty element, so neither is an actionable
+contrast/design-pattern finding after context review. Manual verification retains the material
+findings above. Preserve the positive evidence: canonical expiry/route tests, code splitting,
+role-aware safe pages, explicit loading/error/empty text, RouteStopsModal semantics, and zero lint
+errors. Recommended T14 sequence remains `$impeccable harden`, `$impeccable adapt`,
+`$impeccable optimize`, `$impeccable document`, then `$impeccable polish`, followed by re-audit.
+
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
-T9 is eligible for an exact repository-side handoff; T10/T12 are complete for exact scopes. T11
+T9 is Partially Complete for its repository-side handoff; T10/T12 are complete for exact scopes. T11
 requires backend contract/role gates and external Android acceptance evidence. T12 browser role/
 accessibility acceptance is still unverified. T14 owns the public-theme Dashboard redesign after its
 own re-audit/brief.
 
 Confidence is High for source-visible canonical projection and missing UI surfaces, Medium for T8 synthetic test coverage, and Low for accessibility, production configuration, real Socket.IO failures, hardware, Android, and actual operator/rider outcomes.
 
-## 8. Handoff
+## 8. Proposed Owner Decisions and Handoff
 
-Frontend is validated at 82f4d97 for the D-008 decision impact. Database is the remaining peer
-profile before Infrastructure & Device; Dashboard & UX follows Frontend and Infrastructure & Device.
+No new owner decision is proposed. D-011 remains the binding choice for the first exact T14 slice;
+this audit evidence is not permission for an unbounded redesign.
+
+Frontend is validated at `cdedcc2...` for the T9 implementation impact. Database and every dependent
+profile through Roadmap have now completed their revalidations.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 

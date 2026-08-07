@@ -1,11 +1,24 @@
 # Security, DevOps & Observability Audit
 
 Audit metadata:
-- Evidence baseline: 82f4d97d8609d73f79aa74eea6efaadaa34238d9
-- Evidence scope: every validated predecessor report; docs/decision-queue.md; docs/research/; docs/testing/; docs/tasks/M-20260807-01-redact-socket-invalid-payload-logging.md; docs/tasks/M-20260807-02-secure-simulator-test-artifacts.md; docs/tasks/M-20260807-03-redact-manual-simulator-output.md; docker-compose.yml; docker-compose.prod.yml; env.example; shuttle-tracking-backend Docker/startup/config/middleware/controllers/routes/services/tests; shuttle-tracking-web authentication/proxy/client/simulator/test/ignore files; scripts/ci-checks.sh; and GitHub CI configuration
-- Reviewed at: 2026-08-07T16:40:54+07:00
+- Evidence baseline: cdedcc2fd82ab264e2176716ac23a74c948e1a28
+- Evidence scope: every validated predecessor report; docs/decision-queue.md; docs/research/;
+  docs/testing/; D-008 specialist briefs; docs/tasks/T9-production-topology-origin-handoff.md;
+  docs/tasks/M-20260807-01-redact-socket-invalid-payload-logging.md;
+  docs/tasks/M-20260807-02-secure-simulator-test-artifacts.md;
+  docs/tasks/M-20260807-03-redact-manual-simulator-output.md;
+  docs/operations/university-server-network-handoff.md; docker-compose.yml;
+  docker-compose.prod.yml; env.example; env.production.example; shuttle-tracking-backend
+  Docker/startup/config/middleware/controllers/routes/services/tests; shuttle-tracking-web
+  authentication/proxy/client/config/simulator/test/ignore files; scripts/ci-checks.sh;
+  scripts/test-production-topology.mjs; and GitHub CI configuration
+- Reviewed at: 2026-08-07T19:59:45+07:00
 - Validation state: Validated
-- Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md, docs/audits/architecture-audit.md, docs/audits/backend-audit.md, docs/audits/frontend-audit.md, docs/audits/database-audit.md, docs/audits/infrastructure-device-audit.md, and docs/audits/dashboard-ux-audit.md @ 6905fe4ceedc621ef16f6f1f3f32edcc58599f2f (atomic D-008 synchronization snapshot; later changes in this sealing pass are metadata-only)
+- Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md,
+  docs/audits/architecture-audit.md, docs/audits/backend-audit.md,
+  docs/audits/frontend-audit.md, docs/audits/database-audit.md,
+  docs/audits/infrastructure-device-audit.md, and docs/audits/dashboard-ux-audit.md @
+  cdedcc2fd82ab264e2176716ac23a74c948e1a28
 
 ## 1. Executive Summary
 
@@ -24,8 +37,10 @@ Playwright artifacts from Git/Docker context. These are static/test-tool results
 device, provider, or credential-rotation proof.
 
 D-001=C remains No-Go. D-008 now approves the university single-origin topology and responsibility
-boundary, but the repository and external target have not implemented or verified TLS, proxy/trusted-
-address behavior, secret rotation, data-service isolation, backup/restore, alerts or incidents. T11
+boundary. T9 implements the repository-side private/authenticated template, fail-closed runtime,
+exact CORS/origin/proxy/client-address controls, pre-migration validation, health ordering, and
+operations runbook. The external target has not verified TLS, forwarded-hop behavior, secret
+rotation, firewall, backup/restore, alerts or incidents. T11
 still lacks the exact lifecycle handoff and external Android evidence; T12 migration/retention/runtime
 acceptance is unverified; CI lacks broad security/release scanning; and the Dashboard & UX re-audit
 identifies unresolved truthful-state/accessibility release risks.
@@ -34,8 +49,12 @@ identifies unresolved truthful-state/accessibility release risks.
 
 This profile reviews trust boundaries, authorization, input/abuse controls, secrets, privacy, logging, CI, Compose/runtime and operational observability. It is static repository evidence only, not penetration testing, secret scanning, deployed TLS/proxy, provider/firmware, backup or incident validation.
 
-Every required predecessor is current at 82f4d97. Changed evidence is the approved D-008 decision
-and responsibility handoff only. No penetration test, authenticated invalid-payload runtime journey,
+Every required predecessor is current at `cdedcc2...`. The preceding baseline was `82f4d97...`.
+T9 changes production Compose/environment/static checks/runbook/task evidence; backend
+entrypoint/runtime/Prisma/Redis/server/rate-limit/tests/package/README; the central frontend
+connection resolver and listed consumers/tests/package; and predecessor/decision records. Current
+backend check, full frontend check, and static topology test pass. No penetration test,
+authenticated invalid-payload runtime journey,
 simulator target, credential rotation, secret/history scanner, deployed TLS/proxy, provider/firmware,
 backup, restore,
 or incident exercise was run.
@@ -53,8 +72,8 @@ or incident exercise was run.
 | Sensitive request payloads stayed out of logs | Resolved | M-20260807-01 removes the direct Socket.IO `rawData` console path while preserving safe rejection metadata/response. Focused source assertions and CI scanning guard regression; deployed log observation is Unable to Verify. |
 | Checked-in Mobile simulators failed closed and minimized output | Resolved | M-20260807-02/03 require the Mobile credential, make the automated target local/configurable, restore one-shot behavior, and keep token claims/raw responses/coordinates out of both tools. Four deterministic tests pass; no simulator target was contacted. |
 | Removed fallback credential validity and rotation were evidenced | Unable to Verify | A credential literal existed in Git history. Current tracked source and local ignored env inspection do not prove whether it was ever accepted externally or rotated; the authorized owner must assess/rotate any corresponding source before target use. |
-| Production data services had an evidenced private boundary | Still Present | D-008 requires private/authenticated DB/Redis, but production Compose still publishes both ports and no firewall/runtime control is evidenced. |
-| Production origin/TLS/proxy behavior was defined | Partially Resolved | D-008 defines one TLS proxy origin and owners; CORS still omits PUT/DELETE, localhost defaults remain, and no actual proxy/certificate/trusted-address result exists. |
+| Production data services had an evidenced private boundary | Partially Resolved | T9 removes DB/Redis host ports, uses an internal data network, requires Redis authentication, and validates non-local authenticated URLs. Actual firewall, secret placement, and runtime isolation remain Unable to Verify. |
+| Production origin/TLS/proxy behavior was defined | Partially Resolved | T9 implements exact production origin/CORS methods, same-origin REST/Socket defaults, safe HTTPS overrides, narrow proxy IP/CIDR trust, and `req.ip` client identity. Actual proxy hops, certificate, spoof resistance, and TLS remain Unable to Verify. |
 | Observability was durable and alertable | Still Present | Allowlisted stdout signals and ready endpoint exist, but no metric/log sink, alert route, on-call, durable audit log or recovery drill is evidenced. |
 | CI proved security/release readiness | Partially Resolved | CI checks builds, boundaries, Prisma, frontend, Compose, rawData logging, simulator config/output, and generated artifacts. It lacks dependency/secret-history/SAST/container scanning, live integration, migration target, deployment approval, rollback/restore, and promotion evidence. |
 
@@ -66,17 +85,18 @@ or incident exercise was run.
 | Mobile/ESP32 sender | Source-bound JWT, credential version, rate limit and boundary parser. | T11 installation/claim/recovery lifecycle and external app/device evidence. |
 | TTN webhook | Separate secret, parser, rate limit and source type. | Provider registration/dedup/network boundary evidence. |
 | Research DEV/SUPER_ADMIN | Persisted-role recheck and bounded routes/export. | Preserve it while resolving D-007 lifecycle/deletion/backup/export policy. |
-| PostgreSQL/Redis | Application credentials, ready checks, and an approved private-service owner contract. | Implement private access/auth/persistence and obtain actual backup/restore evidence. |
+| PostgreSQL/Redis | Required credentials, internal-only production network, authenticated Redis, fail-closed URL/auth parsing, ready checks, and an approved owner contract. | Obtain actual firewall/secret placement, persistence, off-host backup and restore evidence. |
 
 ## 5. Findings and Required Placement
 
 - SEC-01 High: **Resolved at source/test level by M-20260807-01.** Preserve the response/signal and both regression guards; runtime/deployed log observation remains unavailable.
-- SEC-02 High: D-008 resolves the logical boundary and assigns owners, but source-visible port/
-  origin gaps and every external TLS/secret/backup/alert/incident result remain unresolved. T9 may
-  implement only its exact repository handoff and must not guess runtime facts.
+- SEC-02 High: **Partially Resolved.** T9 closes the checked-in port/origin/authentication/health/
+  handoff gaps. Every external TLS/secret/firewall/backup/alert/incident result remains unresolved;
+  do not guess runtime facts.
 - SEC-03 High: D-007/D-010:A is implemented for the T12 authorization scope. T11 must reuse server middleware and must not authorize from UI state or broad identity-only admin tokens.
-- SEC-04 Medium: CORS methods omit PUT/DELETE and origin/proxy trust remain configuration gaps. The
-  approved D-008 matrix places them in T9.
+- SEC-04 Medium: **Resolved at source/test level.** T9 covers GET/HEAD/POST/PUT/PATCH/DELETE/OPTIONS,
+  exact origin/no-origin behavior, narrow proxy trust, and `req.ip`; actual forwarded-hop/spoof
+  behavior remains external.
 - SEC-05 Medium: T12 implements D-009's Feedback policy in source/test form. Target migration,
   retention/purge, backup, and human workflow evidence remain required before release.
 - SEC-06 Medium: legacy vehicle/route/stop write boundaries are less consistently parsed/rate-limited than newer admin endpoints; do not expand their authority during T10 without task-specific boundary tests.
@@ -90,13 +110,14 @@ Operational signals now consistently allowlist metadata and omit secrets, coordi
 bodies across the repaired Socket.IO/server and checked-in Mobile simulator paths. They remain
 process-local stdout without accepted/rejected/duplicate durable metrics, latency series,
 persistence/recovery visibility, dashboard/export failure monitoring, retention/access policy, or
-alert delivery. The ready endpoint tests only database/Redis dependency reachability and production
-Compose does not consume it as an application healthcheck. No deployment, provider, firmware,
+alert delivery. The ready endpoint tests database/Redis dependency reachability and production
+Compose now consumes it for backend health-gated frontend startup; this is not restart/alert proof.
+No deployment, provider, firmware,
 secret manager, firewall, backup/restore, or incident response exercise is evidenced.
 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
-T9 is eligible for an exact repository-side handoff under D-008; external origin, TLS, secret,
+T9 is Partially Complete for its exact repository-side handoff under D-008; external origin, TLS, secret,
 recovery, alert and capacity evidence remains gated. T10 is complete for bounded route operations. T11 needs lifecycle/Android
 evidence and server authorization/audit placement. T12 is complete for its RBAC/re-authentication/
 audit/retention source/test scope, while runtime rollout remains unverified. SEC-01 and the two
@@ -105,11 +126,14 @@ release gates.
 
 Confidence is High for code-visible controls and gaps, Medium for CI/static operational evidence, and Low for TLS, deployment, provider, physical device, attack resistance, backups and incident outcomes.
 
-## 8. Handoff
+## 8. Proposed Owner Decisions and Handoff
 
-Security, DevOps & Observability is validated at 82f4d97. Production Readiness and Roadmap follow:
-SEC-01 is absent from the active source blocker list and D-008 policy is resolved, while T9
-implementation/external acceptance, T11/device, runtime data lifecycle, operations, credential-
+No new owner decision is proposed. D-012 still gates general account/source lifecycle and recovery;
+the removed historical simulator credential still requires authorized external assessment before use.
+
+Security, DevOps & Observability is validated at `cdedcc2...`. Production Readiness and Roadmap have
+now consumed this baseline: SEC-01 is absent from the active source blocker list and D-008 policy is
+resolved, while T9 external acceptance, T11/device, runtime data lifecycle, operations, credential-
 rotation uncertainty, and Dashboard truthfulness/accessibility findings remain open.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01

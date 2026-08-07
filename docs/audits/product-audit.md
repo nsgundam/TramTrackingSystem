@@ -1,11 +1,21 @@
 # Product Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: `82f4d97d8609d73f79aa74eea6efaadaa34238d9`
-- Evidence scope: `docs/project-knowledge-base.md`, `docs/decision-queue.md`, `docs/research/`, `README.md`, `shuttle-tracking-web/app/`, `shuttle-tracking-web/components/`, `shuttle-tracking-web/services/`, `shuttle-tracking-web/contexts/`, `shuttle-tracking-web/hooks/`, `shuttle-tracking-web/utils/`, `shuttle-tracking-web/tests/`, `shuttle-tracking-web/package.json`, `shuttle-tracking-web/simulate.js`, `shuttle-tracking-web/simulate-manual.js`, `shuttle-tracking-backend/src/routes/`, `shuttle-tracking-backend/src/controllers/`, `shuttle-tracking-backend/src/services/`, `shuttle-tracking-backend/prisma/`, and `shuttle-tracking-backend/tests/`
-- Reviewed at: `2026-08-07T16:40:54+07:00`
+- Evidence baseline: `cdedcc2fd82ab264e2176716ac23a74c948e1a28`
+- Evidence scope: `docs/project-knowledge-base.md`, `docs/decision-queue.md`, `docs/research/`,
+  `docs/tasks/T9-production-topology-origin-handoff.md`,
+  `docs/operations/university-server-network-handoff.md`, `README.md`,
+  `shuttle-tracking-web/app/`, `shuttle-tracking-web/components/`,
+  `shuttle-tracking-web/config/`, `shuttle-tracking-web/services/`,
+  `shuttle-tracking-web/contexts/`, `shuttle-tracking-web/hooks/`,
+  `shuttle-tracking-web/utils/`, `shuttle-tracking-web/tests/`,
+  `shuttle-tracking-web/package.json`, `shuttle-tracking-web/simulate.js`,
+  `shuttle-tracking-web/simulate-manual.js`, `shuttle-tracking-backend/src/routes/`,
+  `shuttle-tracking-backend/src/controllers/`, `shuttle-tracking-backend/src/services/`,
+  `shuttle-tracking-backend/prisma/`, and `shuttle-tracking-backend/tests/`
+- Reviewed at: `2026-08-07T19:47:47+07:00`
 - Validation state: `Validated`
-- Predecessor baselines: `docs/project-knowledge-base.md @ 6905fe4ceedc621ef16f6f1f3f32edcc58599f2f` (atomic D-008 synchronization snapshot; later changes in this sealing pass are metadata-only)
+- Predecessor baselines: `docs/project-knowledge-base.md @ cdedcc2fd82ab264e2176716ac23a74c948e1a28`
 
 ## 1. Executive Summary
 
@@ -26,6 +36,11 @@ T8 public-map correction is retained as
 **Resolved for its limited truthful-local-state scope**; it does not supply the C-scope operational state
 model.
 
+T9 does not intentionally change a screen, role, or journey. It replaces the public/admin clients'
+multiple fallback origins with one production same-origin-capable REST/Socket authority and adds a
+checked-in university deployment handoff. This improves deterministic delivery of existing journeys
+but supplies no deployed or human acceptance evidence.
+
 ## 2. Scope and Freshness
 
 This audit revalidates product roles, journeys, release promises, ownership, and roadmap impact. It does
@@ -37,6 +52,21 @@ demo profiles, but it supplies no deployed rider/admin workflow or capacity evid
 session, real rider/operator, native Android sender, ESP32 firmware, TTN deployment, physical source,
 or university runtime was observed.
 
+The preceding evidence baseline was `82f4d97...`. Product-relevant changed paths are
+`docs/project-knowledge-base.md`, `docs/decision-queue.md`,
+`docs/tasks/T9-production-topology-origin-handoff.md`,
+`docs/operations/university-server-network-handoff.md`,
+`shuttle-tracking-backend/tests/test_t9_runtime_config.js`,
+`shuttle-tracking-web/components/admin/LiveMap.tsx`,
+`shuttle-tracking-web/components/public/FeedbackModal.tsx`,
+`shuttle-tracking-web/config/backend.ts`, `shuttle-tracking-web/hooks/useShuttleTracker.ts`,
+`shuttle-tracking-web/hooks/useSocketConnection.ts`, `shuttle-tracking-web/package.json`,
+`shuttle-tracking-web/services/api.ts`, `shuttle-tracking-web/services/publicApi.ts`, and
+`shuttle-tracking-web/tests/t9-backend-origin.test.ts`. The client changes can affect journey reachability,
+so they were inspected and the focused frontend T9 tests (5/5) were rerun. They preserve journey
+semantics while removing fallback ambiguity. Backend/runtime and handoff evidence affects delivery
+ownership only; no external target was operated.
+
 ## 3. Prior-Finding Revalidation
 
 | Prior material finding | State | Current evidence |
@@ -46,7 +76,7 @@ or university runtime was observed.
 | Admin trip history is missing | **Still Present** | No protected list/detail controller, route, page, or exception surface is present. |
 | Feedback workflow lacks triage | **Partially Resolved** | T12 implements the approved notice, receipt, Super Admin/Dev inbox, assignment/status flow, delete/restore, and source/test retention contract. No staff/rider acceptance, migration, or retention-run evidence exists. |
 | Stale/offline operational visibility is missing | **Partially Resolved** | T8 keeps public Marker/live-count/ETA projection internally coherent after local expiry and route change. Public/admin UI still lacks an accountable fresh/stale/no-service/recovery explanation or an operations exception view. |
-| Device operations are incomplete | **Still Present** | Backend device CRUD/credential rotation and selection analytics exist; no operator-visible source/device or claim/recovery surface exists. |
+| Device operations are incomplete | **Partially Resolved** | T12 provides an all-admin safe read-only source-health API/page. Credential, assignment, Mobile claim/recovery, revocation, and force-close operations remain absent from the supported UI. |
 | Hard-coded public route choice | **No Longer Relevant** | The tracker loads active routes from the public API. Route authority and cache invalidation remain a separate T10 concern. |
 | Controlled-demo scope was the release boundary | **No Longer Relevant** | D-001=C supersedes it; the required C-scope capabilities remain unimplemented and block a wider public-service claim. |
 | Raw research diagnostics were absent | **Resolved** | T7 provides bounded, protected diagnostics/metrics/export APIs for its approved research scope; it does not create a researcher dashboard or field evidence. |
@@ -58,9 +88,9 @@ or university runtime was observed.
 | Rider: choose route, inspect stops/vehicles, use ETA | Partial | Public REST, canonical Socket.IO projection, map, stops, and ETA components exist. T8 prevents locally expired non-live vehicles from remaining visible, but riders do not receive a service-state/recovery explanation. |
 | Rider: submit feedback | Partial | `FeedbackModal` has validation/loading/success/error plus the approved anonymous/no-reply/privacy/business-day notice. T12 adds the staff inbox, but no human acceptance or actual retention evidence exists. |
 | ADMIN: maintain routes/stops/vehicles | Partial | CRUD pages and an authenticated route-stop composition/reorder/publish journey exist. The expected public-cache transition has source/test evidence but no ambient browser/database workflow evidence. |
-| ADMIN: monitor/send/recover service | Missing | There is no device/source, active-trip, history, timeout exception, Mobile claim/revocation, or force-close user journey. |
+| ADMIN: monitor/send/recover service | Partial | The safe read-only Source Health page exposes bounded freshness/status fields. Active-trip history, timeout exception, Mobile claim/revocation, credential, and force-close journeys remain missing. |
 | Driver: select vehicle, start, send, reconnect, end | Missing | D-007/T11 define a native, internally installed application using an enrolled shared phone and non-secret vehicle QR. The repository contains only backend technical contracts/simulators, not that supported product. |
-| SUPER_ADMIN/DEV: privileged data/research operation | Missing | D-007 approves authority intent, while provision/promotion/deletion/re-authentication/audit/restore controls are still not approved or implemented. T7 research APIs are not a dashboard or account-lifecycle surface. |
+| SUPER_ADMIN/DEV: privileged data/research operation | Partial | Persisted hierarchy, current-role checks, feedback triage with recent-auth delete/restore, and protected T7 research reads/export are implemented. General account/source lifecycle, privileged Trip/GPSTrack controls, a research dashboard, and complete recovery remain gated. |
 | Researcher: compare three physical sources | Partially Resolved | T7's protected research APIs and D-004 definitions exist. The Dev Dashboard, ESP32/TTN/mobile field evidence, and metric outcome evidence remain unavailable. |
 
 ## 5. Product Requirements and Ownership Gaps
@@ -69,14 +99,23 @@ or university runtime was observed.
 |---|---|---|
 | Route-stop operations (T10) | Admin publishes valid ordered stops; next public read can obtain revised route data. | **Resolved for exact T10 handoff scope**; public cache invalidation is source/test-verified, while ambient runtime/browser evidence is unavailable. |
 | Sender, timeout, history, exceptions (T11) | Supported Android/IoT operating paths, protected history, clear timeout/admin recovery. | Mobile/timeout policy is approved; account lifecycle, technical concurrency/restart details, external Android acceptance, and fresh evidence remain gates. |
-| Feedback triage and device operations (T12) | Each feedback item has accountable handling; authorized staff can see source/device status. | D-009 approves owner, anonymous/no-reply scope, business-day status lifecycle, retention/deletion/restore, and read-only safe fields. Server enforcement and the actual journey remain required. |
+| Feedback triage and device operations (T12) | Each feedback item has accountable handling; authorized staff can see source/device status. | Complete for the exact source/test handoff: persisted role enforcement, feedback lifecycle/retention/audit code, notice/inbox, and safe health page exist. Migration, retention execution, and human acceptance remain unavailable. |
 | Public service-state communication | Riders distinguish fresh service, no service, stale/disconnected data, and recovery. | Required by D-001=C; precise public wording/operations ownership must be incorporated by the affected work. |
+
+### Actionable recommendations
+
+- Preserve the single T9 connection authority while later work adds truthful service/recovery
+  presentation; do not restore per-consumer fallback behavior.
+- Keep T11's Android/timeout/recovery acceptance and T12's runtime/human acceptance separate from
+  static product evidence.
+- Carry D-011 and D-012 as explicit owner gates; do not expand T14 or general account/source
+  lifecycle work inside another task.
 
 ## 6. Roadmap Impact
 
-- T9 is **Eligible for an exact repository-side handoff**: D-008 now fixes the logical university
-  topology, single origin and role boundary. T9 still cannot claim completion or deployment until
-  the University Server/Network acceptance checklist and an approved target are available.
+- T9 is **Partially Complete**: its repository-side topology/origin/runtime/runbook handoff passed
+  deterministic checks. It still cannot claim completion or deployment until the University
+  Server/Network acceptance checklist and an approved target are available.
 - T10 is complete for its exact handoff scope; changed evidence is now carried by this re-audit.
 - T11 remains gated by its downstream fresh audits, the unapproved general role/account-lifecycle
   controls where its implementation touches them, technical lifecycle parameters, and external Android
@@ -89,22 +128,23 @@ or university runtime was observed.
 
 The audit treats Mobile/Socket.IO, ESP32+GPS/Wi-Fi/HTTP, and LoRaWAN/Gateway/TTN/Webhook as separate
 research/operational boundaries; simulators are only test tools. Static source evidence gives **High**
-confidence for the missing product surfaces and approved policies, **Medium** confidence for local T8
-projection behavior because focused deterministic tests exist, and **Low** confidence for user,
+confidence for the missing product surfaces, approved policies, and T9 connection contract,
+**Medium** confidence for local T8 projection behavior because focused deterministic tests exist, and **Low** confidence for user,
 operator, mobile, hardware, provider, privacy, or production outcomes without runtime evidence.
 
 ## 8. Proposed Owner Decisions
 
-The following remain outside this product revalidation: general `ADMIN`/`SUPER_ADMIN` provisioning
+No new owner decision is proposed. The following remain outside this product revalidation: general `ADMIN`/`SUPER_ADMIN` provisioning
 and credential lifecycle, T11's remaining lifecycle contract, external Android acceptance evidence,
 and D-008's external Server/Network checklist. D-008 resolves the application-owner deployment
 policy; it does not fabricate an operational acceptance result.
 
 ## 9. Handoff
 
-Architecture is the next profile in the D-008 revalidation chain. It must preserve the selected
-monolith and public/data boundaries while separating repository configuration work from external
-deployment evidence.
+Architecture and every downstream profile have now consumed this Product baseline. The resulting
+Roadmap preserves the selected monolith and public/data boundaries, separates repository
+configuration from external deployment evidence, and exposes no currently eligible implementation
+unit.
 
 ## 10. T12 Implementation Re-audit — 2026-08-01
 

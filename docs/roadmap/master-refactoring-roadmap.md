@@ -1,23 +1,24 @@
 # Master Refactoring Roadmap
 
 Audit metadata:
-- Evidence baseline: `82f4d97d8609d73f79aa74eea6efaadaa34238d9`
+- Evidence baseline: `cdedcc2fd82ab264e2176716ac23a74c948e1a28`
 - Evidence scope: `docs/project-knowledge-base.md`, every validated domain and production-readiness audit, `docs/decision-queue.md`, `docs/tasks/`, and the repository evidence cited by the revalidated reports.
-- Reviewed at: `2026-08-07T16:40:54+07:00`
+- Reviewed at: `2026-08-07T20:05:29+07:00`
 - Validation state: **Validated**
-- Predecessor baselines: `docs/project-knowledge-base.md`, `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`, `docs/audits/frontend-audit.md`, `docs/audits/database-audit.md`, `docs/audits/infrastructure-device-audit.md`, `docs/audits/dashboard-ux-audit.md`, `docs/audits/security-devops-observability-audit.md`, `docs/audits/production-readiness-audit.md`, and `docs/decision-queue.md` @ `6905fe4ceedc621ef16f6f1f3f32edcc58599f2f` (atomic D-008 synchronization snapshot; later changes in this sealing pass are metadata-only); D-001 through D-010 are approved and D-011/D-012 are pending.
+- Predecessor baselines: `docs/project-knowledge-base.md`, `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`, `docs/audits/frontend-audit.md`, `docs/audits/database-audit.md`, `docs/audits/infrastructure-device-audit.md`, `docs/audits/dashboard-ux-audit.md`, `docs/audits/security-devops-observability-audit.md`, `docs/audits/production-readiness-audit.md`, and `docs/decision-queue.md` @ `cdedcc2fd82ab264e2176716ac23a74c948e1a28`; D-001 through D-010 are approved and D-011/D-012 are pending.
 
 Last reviewed: 2026-08-07
 
-Validation state: **Validated**. T10 and T12 are complete for their exact bounded source/test
-scopes. T12 applies D-009/D-010:A through a reviewed migration, persisted server RBAC/fresh-auth,
-feedback lifecycle/retention/audit code, a public notice, and safe read-only operations UI. D-008 now
-makes an exact repository-side T9 handoff eligible; T11 remains technical/external-Android-evidence
-blocked. M-20260807-01 resolves
-SEC-01 at source/test level; M-20260807-02/03 repair simulator credential/output and generated-artifact
-boundaries. These maintenance results do not establish deployment, credential rotation, provider,
-device, or field evidence. The current Dashboard & UX audit supplies T14 technical evidence, but the
-owner's exact screen/action priority and an exact-path task handoff remain required before implementation.
+Validation state: **Validated**. T9's repository handoff is independently revalidated and remains
+partially complete because its University Server/Network acceptance checklist has not been executed.
+T10 and T12 are complete for their exact bounded source/test scopes. T12 applies D-009/D-010:A
+through a reviewed migration, persisted server RBAC/fresh-auth, feedback lifecycle/retention/audit
+code, a public notice, and safe read-only operations UI. T11 remains blocked on additive lifecycle/
+schema/API placement and a versioned external Android artifact. T13 is blocked on T9 external
+acceptance and an approved production-mode target; T14 is blocked on pending D-011 and its exact-path
+handoff; T15 remains deferred behind T13 and physical/provider facts. D-012 continues to gate later
+general account and credential lifecycle work. Therefore no Roadmap implementation work unit is
+currently eligible for this approved batch.
 
 ## 1. Executive Summary
 
@@ -50,26 +51,31 @@ This roadmap supersedes the earlier task list. It uses all completed re-audits a
   `SUPER_ADMIN`/`DEV`, and reject unknown roles at every server authorization boundary.
 
 The production determination remains No-Go. Selecting C increases the required completion bar; it
-does not prove public readiness. T10/T12 are complete only for their exact source/test scopes; T9 is
-eligible only for its repository handoff, T11 retains its independent block, and runtime rollout
-still requires its own evidence. Do not add
+does not prove public readiness. T10/T12 are complete only for their exact source/test scopes; T9's
+repository handoff passes but its external acceptance is incomplete, T11 retains its independent
+block, and runtime rollout still requires its own evidence. No remaining task may start without
+crossing the explicit dependency, external-evidence, or owner-decision gates below. Do not add
 playback, microservices, a second ingestion pipeline, or unbounded operations/research access early.
 
 ## 2. Input Coverage
 
 | Input | Date | Status | Use |
 |---|---:|---|---|
-| Knowledge Base | 2026-08-07 | Complete / Validated | Discovery is current at `82f4d97...`; D-008 policy is recorded and external deployment/device facts remain unknown. |
-| Product | 2026-08-07 | Complete / Validated | D-008 changes deployment ownership without changing product journeys. |
-| Architecture, Backend, and Database audits | 2026-08-07 | Complete / Validated | T9 repository placement is explicit; runtime and external evidence limits remain recorded. |
-| Infrastructure & Device and Security/DevOps/Observability audits | 2026-08-07 | Complete / Validated | D-008 logical topology/owners are approved; T9 source gaps, credential rotation, durable operations, and physical/deployment evidence remain gates. |
-| Frontend audit | 2026-08-07 | Complete / Validated | One production origin is approved; duplicated fallbacks remain T9 work and human browser acceptance is unavailable. |
+| Knowledge Base | 2026-08-07 | Complete / Validated | Discovery is current at `cdedcc2...`; T9 repository facts are current and external deployment/device facts remain unknown. |
+| Product | 2026-08-07 | Complete / Validated | T9 changes connection authority without changing product journeys. |
+| Architecture, Backend, and Database audits | 2026-08-07 | Complete / Validated | T9 repository placement, fail-closed runtime boundaries, and private data-service contract are current; runtime and external evidence limits remain recorded. |
+| Infrastructure & Device and Security/DevOps/Observability audits | 2026-08-07 | Complete / Validated | T9 closes the repository topology/origin/auth/proxy/health gaps; credential rotation, durable operations, physical-device, and deployment evidence remain gates. |
+| Frontend audit | 2026-08-07 | Complete / Validated | The centralized safe production-origin resolver passes deterministic and full frontend checks; human/deployed acceptance is unavailable. |
 | Dashboard & UX audit | 2026-08-07 | Complete / Validated | Impeccable technical audit scores 9/20 (Poor), with no P0 and open truthful-state, accessibility, feedback-integrity, responsive, and maintainability findings for T14 scoping. |
 | Production Readiness Audit | 2026-08-07 | Complete / Validated / No-Go | D-001=C remains No-Go due T9/external acceptance, T11, T12 runtime, 9/20 UX, operations, credentials, devices/providers, and field evidence. |
-| Decision Queue and owner/task evidence | 2026-08-07 | D-001–D-010 approved; D-011/D-012 pending | D-008 brief enables the exact T9 handoff; T11/T14 and general lifecycle work remain independently gated. |
+| Decision Queue and owner/task evidence | 2026-08-07 | D-001–D-010 approved; D-011/D-012 pending | D-008 constrained the completed T9 repository handoff; T11/T14 and general lifecycle work remain independently gated. |
 
-Level 1 has revalidated the D-008-affected profiles. Actual hosting, TLS, production recovery,
-browser/runtime behavior, physical devices, and TTN console state remain external unknowns.
+Level 1 has revalidated every audit profile at `cdedcc2...`. The freshness delta from the prior
+Roadmap baseline is the exact T9 repository handoff: production Compose/environment/topology tests,
+backend runtime/proxy/CORS/data-client/entrypoint boundaries, the frontend REST/Socket resolver and
+consumers, the task record, and the Server/Network runbook. It changes no schema, migration, product
+journey, or UI semantics. Actual hosting, TLS, production recovery, browser/runtime behavior,
+physical devices, and TTN console state remain external unknowns.
 
 ## 3. Consolidated Recommendation List
 
@@ -83,13 +89,13 @@ browser/runtime behavior, physical devices, and TTN console state remain externa
 | T6 | Versioned canonical state, ordering, freshness, and route authority | High | Production 3.2; Architecture 5, 7; Backend 8–10; Frontend 4, 7 | Phase 2 |
 | T7 | D-002 bounded raw diagnostics and research reads | High for approved research | Production 3.3, 3.6; Database 4, 8–9; Architecture 5, 9 | Phase 2 |
 | T8 | Truthful maps: canonical state, stale/no-service UI, correct route, cache safety | High | Production 3.2, 3.7; Frontend 4, 7, 9; Dashboard 5, 10 | Phase 2 |
-| T9 | Topology/origin contract, then deployment configuration alignment | High | Production 3.5; Infrastructure 4–5, 12; Security 7, 9–11; D-003 | Phase 2 |
+| T9 | Topology/origin contract, then deployment configuration alignment | High | Production 3.5; Infrastructure 4–5, 12; Security 7, 9–11; D-003 | Phase 2; repository handoff passed, external acceptance blocked |
 | T10 | Route-stop operations and cache invalidation | Critical for daily operations | Production 3.1, 3.7; Product 7; Frontend 4, 13; Backend 9, 12 | Phase 3; complete for the exact handoff scope; affected audits revalidated |
 | T11 | Supported sender operations, trip history, and exception view | Critical/High for daily operations | Production 3.1, 3.3; Product 7–9; Dashboard 7, 10 | Phase 3; policy/acceptance contract set, but external Android artifact and exact handoff pending |
 | T12 | Feedback triage and device/source operations views | High for broad public support | Product 7, 11; Frontend 12; Dashboard 10; Database 12 | Phase 3; complete for the D-009/D-010:A exact handoff; runtime rollout remains unverified |
-| T13 | Production deployment/recovery drill and monitoring | High before production | Production 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16 | Phase 4 |
-| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4 |
-| T15 | Physical senders, research dashboard, playback/reports, scale extensions | Deferred | Product 11; Architecture 9–10, 12; Infrastructure 7–9; D-002 | Phase 5 |
+| T13 | Production deployment/recovery drill and monitoring | High before production | Production 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16 | Phase 4; blocked on T9 external acceptance and target authority |
+| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; blocked on D-011 and exact handoff |
+| T15 | Physical senders, research dashboard, playback/reports, scale extensions | Deferred | Product 11; Architecture 9–10, 12; Infrastructure 7–9; D-002 | Phase 5; blocked on T13 and physical/provider facts |
 
 Every Critical/High finding remains represented. D-001=C opens T10–T12's release-scope gate, but
 fresh audits and their independent policy/evidence gates are still mandatory.
@@ -106,13 +112,26 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T6 | Complete | Re-audited canonical REST/Socket parity, version/route/freshness semantics, frontend guards, admin state surface, and public neutral presentation remain current; T8's focused and isolated browser evidence validates its local-expiry and route-switch boundary. |
 | T7 | Complete for approved disposable scope | Additive implementation, migration, protected export/lifecycle checks, Redis failure/recovery, retention, backup/restore, canonical-boundary, and query-plan evidence passed on 2026-07-29 using the exact D-006 target. Do not promote research capability to production/public operation without the still-missing external operational evidence. |
 | T8 | Complete for approved truthful public-state scope | Local expiry updates Marker/live-count/ETA together and non-live updates remove only the vehicle Marker. Native and isolated Playwright tests cover local expiry, route switching, and a newer canonical `live` restore; D-001=C opens T10's separately scoped route-mutation/cache work after re-audit. |
-| T9 | Level 3 record pending Level 1 re-audit — Partially Complete; external acceptance unavailable | Fail-closed runtime/origin configuration, private/authenticated production template, deterministic checks, and the Server/Network runbook passed; external deployment acceptance remains a completion gate. |
+| T9 | Partially Complete — repository handoff validated; external acceptance unavailable | Fail-closed runtime/origin configuration, private/authenticated production template, deterministic checks, full CI, and the Server/Network runbook passed; external deployment acceptance remains a completion gate. |
 | T10 | Complete | The exact-path handoff delivered authenticated route-stop management, transactional replacement, and public-cache invalidation with deterministic backend and repository-CI evidence. No ambient browser/database smoke ran; this re-audit carries its changed evidence. |
 | T11 | Blocked — technical/external evidence | The policy and v2 acceptance contract are current, but the external Android report/artifact and an exact lifecycle/schema handoff remain. No repository test can prove Android runtime coverage. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
-| T13 | Pending | Requires T4/T5 plus T6 and T9, then deployment/recovery/alert evidence. |
-| T14 | Pending owner priority/exact task handoff | The 2026-08-07 Dashboard & UX technical re-audit is current (9/20, Poor). The owner must still select the exact screens/actions and acceptance priority before an exact-path Level 3 handoff. |
-| T15 | Deferred | T7 is complete for disposable scope; physical sender/provider/protocol facts and T13 remain open. |
+| T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
+| T14 | Blocked — pending D-011/exact task handoff | The 2026-08-07 Dashboard & UX technical re-audit is current (9/20, Poor). The owner must select the first exact screens/actions and acceptance order before an exact-path Level 3 handoff. |
+| T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
+
+### Approved-batch continuation gate
+
+| Candidate | Eligibility result | Stop condition |
+|---|---|---|
+| T9 continuation | Not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. |
+| T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
+| T13 | Not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. |
+| T14 | Not eligible | D-011 is a pending owner choice; selecting a first UX slice would exceed Main Agent authority. |
+| T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
+
+Batch result: all eligible completed units remain accepted, and there is no next implementation unit
+that can be started without bypassing a dependency, external-target authority, or owner decision.
 
 ## 4. Dependency Map
 
@@ -126,13 +145,13 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T6 | T2, T5 lifecycle vocabulary | T7, T8, T11, T15 |
 | T7 | T3, T6, D-006 policy, and exact disposable-target evidence | Research comparison |
 | T8 | T6; T10 for final route invalidation | Truthful tracking claims |
-| T9 | D-003=A and topology facts | T13/public deployment |
+| T9 | D-003=A and D-008 topology/ownership policy | T13/public deployment |
 | T10 | T2, T8, D-001=B/C | Operator-managed routes |
 | T11 | T5, T6, D-001=B/C | Daily service accountability |
 | T12 | D-001=C, T6 | Public support/device operations |
 | T13 | T4, T5, T6, T9 | Production readiness reassessment |
 | T14 | T8 plus the current Dashboard & UX audit; exact owner-approved handoff is a decision gate | None |
-| T15 | T7 and physical provider/device facts | None |
+| T15 | T7, T13, and physical provider/device facts | None |
 
 Cycle check: the previous topology/frontend configuration cycle is resolved by D-003=A. T9 defines topology and origins before configuration alignment. No technical cycle remains.
 
@@ -802,8 +821,8 @@ approved target with the University Server/Network Team.
 
 ### Status
 
-Level 3 implementation record pending Level 1 re-audit: Partially Complete — repository handoff
-passed; external acceptance unavailable. The production template now keeps data services private,
+Partially Complete — repository handoff validated; external acceptance unavailable. The production
+template now keeps data services private,
 authenticates non-root Redis, binds app ports to loopback, uses versioned images and health ordering,
 fails closed on unsafe runtime/origin/proxy values, and uses one frontend REST/Socket authority.
 Focused tests and full CI pass. T9 remains incomplete until the University Server/Network checklist
@@ -820,7 +839,8 @@ deploy` with a dummy localhost target and failed with `P1001` before connection;
 stop-condition breach, caused no migration/data mutation, and is not runtime acceptance. No host,
 container stack, provider, deployed secret, connected migration target, restore or deployment target
 was operated. HTTPS/WSS, public ports, restart, restore, alerts, contacts and capacity remain
-unavailable. These Level 3 results have not been validated by the pending Level 1 roadmap re-audit.
+unavailable. Level 1 revalidated the repository evidence at `cdedcc2...`; it did not promote static
+checks into external runtime acceptance.
 
 ## 7. Phase 3 — Feature Completion
 
@@ -1170,8 +1190,8 @@ Clean production build completes; simulated dependency/source failures change re
 
 ### Status
 
-Pending — T4, T5, and T6 evidence are current; deployment/recovery/alert validation remains blocked
-on T9 topology facts and an approved disposable production-mode target.
+Blocked — T4, T5, and T6 evidence are current, but T9 external acceptance is incomplete and no
+approved disposable production-mode target, recovery owners, or alert destinations are available.
 
 ### Evidence
 
@@ -1253,7 +1273,7 @@ component/accessibility checks, and desktop/mobile browser smoke tests.
 
 ### Status
 
-Pending owner priority/exact task handoff — T8 completion and the 2026-08-07 Dashboard & UX technical
+Blocked on D-011 and exact task handoff — T8 completion and the 2026-08-07 Dashboard & UX technical
 audit are current. Exact screens/actions, data priority, D-007 role views, visual acceptance, and
 browser journeys still require owner selection and an exact-path Level 3 task before implementation.
 
@@ -1331,8 +1351,8 @@ bounded export, and provider webhook tests.
 
 ### Status
 
-Deferred — T7 is complete for its approved disposable scope; physical sender/provider/protocol facts
-and T13 remain blockers for field/public operation.
+Deferred / blocked — T7 is complete for its approved disposable scope; physical sender/provider/
+protocol facts and T13 remain blockers for field/public operation.
 
 ### Evidence
 
@@ -1356,7 +1376,7 @@ Repository simulators exist; physical/provider evidence is unavailable.
 | Driver, trip-history, and exception workflows are absent | D-001=C now requires them, so this is no longer an accepted release omission. T10 route-stop operations are complete for their bounded scope. | Complete T11 with external Android evidence before release. |
 | Feedback runtime rollout is unverified | T12 source/test scope is complete, but no migration, retention run, staff/rider acceptance, backup, or deployed scheduling evidence exists. | Execute an approved disposable/staging rollout and retention/role acceptance before release. |
 | Dashboard/public UX is not release-ready | The current technical audit scores 9/20 (Poor): truthful live/freshness state, dialog/focus/form semantics, Feedback association, mobile navigation, responsive behavior, and other P1/P2 evidence remain open. | Owner-select the exact T14 priority surfaces, create an exact-path handoff, implement with browser/accessibility evidence, and re-audit. |
-| Deployment/TLS/backup/recovery evidence is absent | D-008 policy exists, but the repository and University Server/Network acceptance checks are incomplete. | Implement T9, obtain external acceptance, then complete T13. |
+| Deployment/TLS/backup/recovery evidence is absent | D-008 policy and the T9 repository handoff exist, but University Server/Network acceptance checks are incomplete. | Obtain T9 external acceptance, then complete T13. |
 | Physical device/TTN evidence is absent | Provider/hardware/provisioning facts are unknown. | Record facts and execute T15. |
 | Playback/reports are absent | D-002=B authorizes bounded diagnostics, not unbounded fidelity claims. | Approve query/fidelity scope after T7 evidence. |
 
@@ -1388,9 +1408,10 @@ Route every focused technical question through `agents/level-2-specialist/AGENT.
 
 ## 14. Roadmap Limitations
 
-This synchronization records approved D-008, the completed T12 source/test implementation,
-M-20260807-01/02/03, and the affected 2026-08-07 re-audits. It does not run a migration, retention
-job, simulator journey, deployment, or credential rotation; establish external host/domain/runtime
+This synchronization records approved D-008, the validated T9 repository handoff, the completed T12
+source/test implementation, M-20260807-01/02/03, and every affected 2026-08-07 re-audit. It does not
+run a migration, retention job, simulator journey, deployment, or credential rotation; establish
+external host/domain/runtime
 facts; choose hardware/field protocol; infer
 human UX acceptance; or invent security-sensitive account-lifecycle details outside D-007/D-010:A.
 The monolith remains the supported architecture; this roadmap does not authorize a microservice split.
@@ -1398,11 +1419,14 @@ The monolith remains the supported architecture; this roadmap does not authorize
 ## 15. Handoff
 
 T1–T8, T10, and T12 are complete for their recorded scopes; M-20260807-01/02/03 are complete corrective
-maintenance outside roadmap ordering. T9's repository handoff is partially complete; external
-Server/Network acceptance remains part of its completion boundary. T11 remains blocked until its external Android acceptance artifact and exact lifecycle handoff
-exist. T14 has current technical audit evidence but remains blocked on owner-selected priority and an
-exact-path handoff. T12 runtime rollout is not authorization to start deployment/public-release work.
-No T11/T13/T14/T15 implementation or deployment/public-release work becomes eligible through D-008.
+maintenance outside roadmap ordering. T9's repository handoff is validated and partially complete;
+external Server/Network acceptance remains part of its completion boundary. T11 remains blocked until
+its external Android acceptance artifact and exact lifecycle handoff exist. T13 is blocked by T9's
+external gate and missing target authority. T14 has current technical audit evidence but remains
+blocked on D-011 and an exact-path handoff. T15 remains deferred behind T13 and external physical
+facts. T12 runtime rollout is not authorization to start deployment/public-release work. The approved
+batch is exhausted because no remaining Roadmap implementation unit is eligible without bypassing a
+dependency, owner decision, or external-evidence/authority gate.
 
 Validate each completed task against its originating audit finding before advancing. Re-run Production Readiness only after the production-bar tasks applicable to the desired release scope are complete.
 
@@ -1414,11 +1438,13 @@ D-005=B keeps the 30-second stale state separate but adds an all-source 10-minut
 with fixed close fields/no-reopen to T11;
 D-006 resolves T7's safer target/export
 policy; D-007 introduces a three-tier role direction; D-008 fixes the university single-origin
-handoff and separates repository work from Server/Network acceptance; D-009 binds feedback/privacy/read-only device policy; and D-010:A maps legacy roles while
+handoff and separates the now-validated repository work from pending Server/Network acceptance;
+D-009 binds feedback/privacy/read-only device policy; and D-010:A maps legacy roles while
 requiring unknown roles to fail closed. T14 now includes admin Dashboard information hierarchy and
 public-theme visual polish, bounded by the 2026-08-07 9/20 technical audit and a still-required owner
 priority decision. M-20260807-01/02/03 correct logging, simulator, and generated-artifact boundaries
-without changing roadmap order. The affected audits and roadmap were revalidated after those units.
+without changing roadmap order. Every audit and this Roadmap were revalidated at `cdedcc2...` after
+those units; the resulting gate audit found no eligible next implementation task.
 
 **Assumptions and unknowns:** the target is C but no daily/public readiness claim is made before the
 required work passes. Diagnostics remain bounded/protected; no external host/provider/device fact or

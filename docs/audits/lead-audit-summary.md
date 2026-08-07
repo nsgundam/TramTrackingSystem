@@ -2,11 +2,12 @@
 
 Last updated: 2026-08-07
 
-Coordination status: **D-008 policy approved and affected audits revalidated; production remains
-No-Go.** The university single-host/single-origin handoff and responsibility boundary are fixed. T9
-is eligible for an exact repository-side handoff, T11 remains blocked on its external Android
-acceptance artifact and exact lifecycle handoff, and D-011/D-012 record the remaining T14/general
-lifecycle owner gates.
+Coordination status: **Every audit and the Roadmap are revalidated, no Roadmap implementation unit is
+currently eligible, and production remains No-Go.** All Level 1 records are current at `cdedcc2...`.
+T9 is still only partially complete because University Server/Network acceptance is external. T11
+remains blocked on its Android artifact/exact lifecycle handoff, T13 is blocked behind T9 and target
+authority, T14 is blocked on D-011, and T15 is deferred behind T13 and physical/provider facts.
+D-012 retains the later general lifecycle owner gate.
 Repository CI and Compose evidence are not deployment, provider, credential-rotation, UX-acceptance,
 or physical-device proof.
 
@@ -14,26 +15,33 @@ or physical-device proof.
 
 This update supersedes prior active coordination statements while retaining the historical snapshots
 below. The immutable source baseline is
-`82f4d97d8609d73f79aa74eea6efaadaa34238d9`.
+`cdedcc2fd82ab264e2176716ac23a74c948e1a28`.
 
-- D-008 selects a university-managed single host behind one TLS origin at the preferred
-  `tram-tracking.rsu.ac.th`, with private data services and a formal application-versus-Server/
-  Network responsibility boundary. Vercel/Render/Neon and AWS learning remain isolated demos.
-- The decision enables T9 repository work but supplies no actual host, TLS, firewall, secret,
-  backup, alert, contact, recovery, capacity, or deployment evidence.
-
-- M-20260807-01 removes raw invalid Socket.IO payload logging while preserving the stable rejection
-  response and allowlisted outcome signal; focused and CI regression guards cover `rawData`.
-- M-20260807-02/03 remove the automated simulator's non-local/default-credential behavior, redact
-  raw/token/coordinate output from both Mobile simulators, restore a deterministic one-shot path, and
-  exclude Playwright artifacts from Git and Docker context.
-- Discovery through Production Readiness and Roadmap were revalidated for D-008. The required
-  Impeccable Dashboard & UX audit remains **9/20 (Poor)** with
-  no P0 and open truthful-state, modal/focus/form, Feedback-association, mobile-navigation,
-  responsive, and maintainability findings.
-- The supported monolith remains appropriate. No UI implementation, microservice split, database
-  migration, retention run, simulator target, deployment, provider, credential rotation, hardware,
-  field test, or human browser acceptance was performed.
+- T9 implements the checked-in university single-host/single-origin template: private data network,
+  authenticated Redis, loopback-only app ports, versioned images, health ordering, one fail-closed
+  backend runtime authority, one frontend REST/Socket origin authority, and the external-team
+  operations runbook.
+- Focused Discovery evidence passed at `cdedcc2...`: backend `npm run check`, frontend T9 tests
+  (5/5), and the static production-topology test. No stateful or external target was operated.
+- Discovery revalidates every material prior finding and the current role, Feedback, research,
+  route-stop, source-health, startup, and topology inventory. It explicitly preserves physical
+  Mobile/ESP32/LoRaWAN/provider facts and production host/proxy/DNS/TLS/secrets/restore/alerts/
+  capacity as unavailable external evidence.
+- Product confirms that T9 preserves existing rider/admin journey semantics while removing REST/
+  Socket fallback ambiguity; no deployed or human journey evidence was created.
+- Architecture confirms that T9 preserves the monolith, durable/transient data-product authority,
+  and ingestion/canonical boundaries while resolving the repository topology/origin authority.
+- Infrastructure & Device confirms T9's static handoff while retaining all external/device facts.
+  Dashboard & UX confirms T9 changed no UI semantics and the current Impeccable score remains 9/20
+  (Poor), with no P0; D-011 is still the T14 scope-order gate.
+- Security/DevOps/Observability closes T9's checked-in port/origin/auth/proxy/health findings while
+  retaining TLS, secrets, firewall, restore, alerts, forwarded-hop, and incident evidence as external.
+- Production Readiness remains No-Go after current full CI: external T9 acceptance, T11 Android/
+  lifecycle, T12 runtime, 9/20 UX, operations, devices/providers, and field evidence remain open.
+- Roadmap revalidation confirms that T9 continuation requires external target/operator authority,
+  T11 lacks its exact lifecycle handoff and Android artifact, T13 depends on external T9 acceptance,
+  T14 cannot consume pending D-011, and T15 remains deferred. The approved batch therefore stops
+  without selecting an unauthorized implementation task.
 
 The controlled local demo remains Conditional only; research field trials, daily operations, and
 public service remain No-Go.
@@ -59,26 +67,26 @@ now supersedes that release assumption without changing the already-tested T6 co
 
 ## 2. Current profile status
 
-- Discovery: **Complete / Validated** at 82f4d97; D-008 policy is recorded without inventing runtime facts.
-- Product: **Complete / Validated**; T10/T12 exact journeys are implemented, without human acceptance evidence.
-- Architecture: **Complete / Validated**; persisted RBAC/fresh-auth and Feedback/safe-DTO boundaries are current.
-- Backend: **Complete / Validated**; T12 server models, role enforcement, deterministic tests, and CI are current.
-- Frontend: **Complete / Validated**; public notice, inbox, and read-only health UI build, but no ambient browser role workflow ran.
-- Database: **Complete / Validated**; T12's reviewed additive migration/lifecycle/audit/retention design is current but unexecuted.
-- Infrastructure & Device: **Complete / Validated**; D-008 logical topology/owners are approved, while actual deployment and all physical/provider evidence remain unavailable.
-- Dashboard & UX: **Complete / Validated**; required technical audit is 9/20 (Poor), with no P0 and unresolved T14 P1/P2 scope.
-- Security, DevOps & Observability: **Complete / Validated**; D-008 policy is resolved while T9 source gaps, external credential rotation, broad scanning, and durable runtime operations remain open.
-- Production Readiness: **Complete / Validated / No-Go**; T9/external Server acceptance, T11, T12 runtime, 9/20 UX, operations, credentials, devices/providers, and field evidence remain blockers.
-- Roadmap: **Complete / Validated**; T9 is eligible for an exact repository handoff, T11 remains blocked, and D-011/D-012 retain T14/general lifecycle owner gates.
+- Discovery: **Complete / Validated** at `cdedcc2...`; T9 repository facts and external limits are current.
+- Product: **Complete / Validated** at `cdedcc2...`; T9 preserves existing journeys and remains externally unaccepted.
+- Architecture: **Complete / Validated** at `cdedcc2...`; the monolith and data authorities remain appropriate.
+- Backend: **Complete / Validated** at `cdedcc2...`; T9 runtime/proxy/CORS/data-client boundaries are current.
+- Frontend: **Complete / Validated** at `cdedcc2...`; T9 origin authority and full frontend checks are current, while technical UX remains 9/20 (Poor).
+- Database: **Complete / Validated** at `cdedcc2...`; no schema/migration changed and private/authenticated data boundaries are current.
+- Infrastructure & Device: **Complete / Validated** at `cdedcc2...`; repository topology is current and all external/device facts remain unavailable.
+- Dashboard & UX: **Complete / Validated** at `cdedcc2...`; T9 changed no UI semantics and Impeccable remains 9/20 (Poor).
+- Security, DevOps & Observability: **Complete / Validated** at `cdedcc2...`; repository T9 controls are current and external security/operations facts remain unavailable.
+- Production Readiness: **Complete / Validated / No-Go** at `cdedcc2...`; current full CI passes and external/release gates remain open.
+- Roadmap: **Complete / Validated** at `cdedcc2...`; no implementation unit is currently eligible.
 
 ## 3. Evidence and validation
 
-`bash scripts/ci-checks.sh` passed after the final M-20260807-03 source changes: backend build and
-boundary tests, Prisma validation, simulator tooling tests (4/4), T8 state tests and isolated
-Playwright coverage, frontend lint/build, development/production Compose parsing, dynamic-log guard,
-and workflow validation. An earlier run exposed a transient pre-existing T8 expiry timing failure;
-the immediate full rerun and the later final full run passed. Frontend lint retains two pre-existing
-warnings in `app/layout.tsx` and `utils/IconHelpers.ts`.
+Current validation passed full `bash scripts/ci-checks.sh`: backend build and boundary suites
+(including T6/T9/T10/T12), Prisma validation, simulator and focused frontend suites, isolated
+Playwright, frontend lint/build, development/production Compose validation, the T9 topology test,
+unsafe dynamic-logging scan, and workflow validation. Frontend lint retains two existing warnings;
+no check failed. Focused Discovery evidence also passed backend `npm run check`, frontend
+`npm run test:t9` (5/5), and `node scripts/test-production-topology.mjs`.
 
 No database migration, retention purge, role/feedback browser acceptance, authenticated invalid-
 payload runtime journey, simulator target, Socket.IO interruption, deployment, provider, credential
@@ -114,11 +122,13 @@ remain required.
 D-008 is approved through the binding specialist brief: university-managed single-host production,
 one TLS origin, private data services, application-team artifact/migration/runbook ownership, and
 University Server/Network infrastructure/recovery/operations ownership. Its external acceptance
-checklist remains unverified. The next eligible work is an exact T9 repository handoff; T9 cannot be
-completed from static tests alone. T11 remains blocked on the external Android artifact/exact
-lifecycle handoff, T13 depends on T9 and approved operations evidence, T14 awaits owner priority/
-exact handoff, and T15 awaits physical facts and T13. A later approved target may supply T12 runtime
-evidence but does not bypass these gates or grant deployment scope.
+checklist remains unverified. The repository-side T9 handoff is implemented and revalidated by every
+audit profile, but T9 cannot be completed from static tests alone. Roadmap revalidation is now
+complete. T11 remains blocked on the external Android artifact/exact lifecycle handoff, T13 depends
+on T9 external acceptance and approved operations evidence, T14 awaits D-011 and an exact handoff,
+and T15 awaits physical facts and T13. No next Roadmap implementation unit is eligible. A later
+approved target may supply T12 runtime evidence but does not bypass these gates or grant deployment
+scope.
 
 Confidence is **High** for the recorded owner directions and repository-visible source/test evidence,
 **Medium** for the provisional T9–T15 gate mapping, and **Low** for deployment, provider, credential

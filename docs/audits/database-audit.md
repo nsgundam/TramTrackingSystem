@@ -1,11 +1,19 @@
 # Database Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 82f4d97d8609d73f79aa74eea6efaadaa34238d9
-- Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend/Frontend audits, docs/decision-queue.md, docs/research/, task records, shuttle-tracking-backend/prisma/, shuttle-tracking-backend/src/services/, shuttle-tracking-backend/src/middleware/research-access.ts, shuttle-tracking-backend/src/routes/research.route.ts, and shuttle-tracking-backend/tests/
-- Reviewed at: 2026-08-07T16:40:54+07:00
+- Evidence baseline: cdedcc2fd82ab264e2176716ac23a74c948e1a28
+- Evidence scope: docs/project-knowledge-base.md, Product/Architecture audits, Backend/Frontend
+  audits as cross-boundary context, docs/decision-queue.md, docs/research/, docs/tasks/,
+  docs/operations/university-server-network-handoff.md, docker-compose.prod.yml,
+  env.production.example, shuttle-tracking-backend/prisma/,
+  shuttle-tracking-backend/src/config/prisma.ts, shuttle-tracking-backend/src/config/redis.ts,
+  shuttle-tracking-backend/src/services/,
+  shuttle-tracking-backend/src/middleware/research-access.ts,
+  shuttle-tracking-backend/src/routes/research.route.ts, and shuttle-tracking-backend/tests/
+- Reviewed at: 2026-08-07T19:55:18+07:00
 - Validation state: Validated
-- Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md, docs/audits/architecture-audit.md, docs/audits/backend-audit.md, and docs/audits/frontend-audit.md @ 6905fe4ceedc621ef16f6f1f3f32edcc58599f2f (atomic D-008 synchronization snapshot; later changes in this sealing pass are metadata-only)
+- Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md, and
+  docs/audits/architecture-audit.md @ cdedcc2fd82ab264e2176716ac23a74c948e1a28
 
 ## 1. Executive Summary
 
@@ -22,10 +30,15 @@ migration/default. General role/account lifecycle remains outside the approved s
 
 This profile reviews schema, migrations, constraints, indexes, data lifecycle/retention code, and database-facing services/tests. It does not certify a live migration, query plan, backup/restore, deletion, rollback, provider, hardware, or production database.
 
-All predecessors are validated at 82f4d97. D-008 chooses PostgreSQL/PostGIS as durable production
-data and private/authenticated Redis as transient coordination under University Server/Network
-operations. No actual database placement, migration, backup, restore, retention, or provider action
-was performed.
+Required predecessors are validated at `cdedcc2...`. The preceding Database baseline was
+`82f4d97...`. T9 changes `docker-compose.prod.yml`, `env.production.example`,
+`shuttle-tracking-backend/src/config/prisma.ts`, `src/config/redis.ts`,
+`src/config/runtime.ts`, `src/config/validate-runtime.ts`,
+`tests/test_t9_runtime_config.js`, the T9 task/runbook, static topology/CI scripts, and current
+predecessor/decision evidence. It adds authenticated/non-local fail-closed connection parsing,
+private data networking, and backup/restore instructions; it changes no Prisma model, SQL migration,
+data, retention rule, or query. Backend check/Prisma validation and the static topology test pass.
+No actual placement, migration, backup, restore, retention, query plan, or provider action occurred.
 
 ## 3. Prior-Finding Revalidation
 
@@ -41,6 +54,7 @@ was performed.
 | D-007 role/account lifecycle was represented | Partially Resolved | D-010:A migration/default plus runtime ADMIN/SUPER_ADMIN/DEV enforcement and fresh-auth support exist. Provisioning/promotion/demotion and general account lifecycle remain outside scope. |
 | T11 timeout/claim/emergency recovery facts were durable | Still Present | No Installation/claim/audit tables or Trip fields for lastAcceptedAt, closeReason, closedAt, admin actor/reason or no-reopen transition exist. |
 | Physical/source accuracy claims were ground truth | No Longer Relevant | T7 stores labels/proxies with route/version provenance; the audit retains the rule that route conformance and reported accuracy are not absolute error. |
+| Production PostgreSQL/Redis placement and authentication were defined by repository configuration | Partially Resolved | T9 keeps both services off host ports on an internal data network, requires Redis authentication, and validates production connection/authentication inputs before migration. Actual host placement, firewall, secret handling, backup/restore, and runtime connectivity remain Unable to Verify. |
 
 ## 4. Data-Product Boundaries
 
@@ -50,16 +64,18 @@ was performed.
 | Operational Trip and GPSTrack | PostgreSQL/PostGIS via Operations | One active trip, transactional lifecycle and sampled canonical history; no raw/event/timeout state. |
 | Latest/canonical live state | Redis | Transient only; never a durable research or history substitute. |
 | Research diagnostics | T7 PostgreSQL tables | Session/protocol/metric provenance, receive-time lifecycle, bounded research access; no public state authority. |
-| Feedback | PostgreSQL Feedback | Capture-only personal-data-bearing record; D-009 supplies the required lifecycle/deletion policy, which T12 must model and enforce. |
+| Feedback | PostgreSQL Feedback and content-free audit rows | T12 models and enforces the bounded D-009 lifecycle/deletion/restore/retention policy in source; target migration and retention execution remain unverified. |
 
 ## 5. Required Task Placement
 
-- T9 may align private PostgreSQL/Redis networking and document migration/backup/rollback commands
-  under D-008. The actual host, target, secret, off-host destination and restore result may not be
-  inferred from Compose or migrations.
+- T9 now aligns private PostgreSQL/Redis networking and documents migration/backup/database-recovery
+  commands under D-008. The actual host, target, secret, off-host destination and restore result may
+  not be inferred from Compose or migrations.
 - T10 is complete without a schema migration: its constrained transaction uses the existing RouteStop model. Do not add unrelated role or feedback schema to it.
 - T11 needs an approved exact schema/interface contract for Mobile installation/claim, lifecycle fields, actor/reason audit, receipt-time update, timeout/no-reopen and concurrent recovery. The existing T5 invariant is the baseline to extend, not bypass.
-- T12 has D-009 policy. It needs an additive triage/retention/deletion/audit model and server authorization/re-authentication evidence; no source/device write model belongs in this task.
+- T12 is complete for its exact additive triage/retention/deletion/audit model and server
+  authorization/re-authentication source/test scope; no source/device write model belongs in it and
+  runtime migration/retention evidence remains separate.
 
 ## 6. Integrity and Operational Risks
 
@@ -67,17 +83,20 @@ Direct database writes could bypass service-level GPSTrack/trip vehicle matching
 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
-T9 is eligible for an exact repository-side handoff under D-008. T10 is complete for exact scope.
+T9 is Partially Complete for its repository-side handoff under D-008. T10 is complete for exact scope.
 T11 needs a complete technical schema/API contract and external Android acceptance evidence. T12
 runtime migration, deletion/restore and retention verification remain required. No new owner
 decision is proposed.
 
 Confidence is High for schema/migration-visible data boundaries, Medium for unit/contract lifecycle evidence, and Low for migration/rollback, retention execution, query plans, backup/restore, volume, hardware, and production operations.
 
-## 8. Handoff
+## 8. Proposed Owner Decisions and Handoff
 
-Database is validated at 82f4d97 for the D-008 decision impact. Infrastructure & Device is now
-eligible because Backend, Frontend, and Database predecessor reports are current.
+No new owner decision is proposed. D-012 still gates general account/source lifecycle and
+privileged data-recovery controls; external database/backup evidence remains an operations fact.
+
+Database is validated at `cdedcc2...` for the T9 implementation impact. Infrastructure & Device and
+every downstream profile through Roadmap have now completed their dependent revalidations.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 

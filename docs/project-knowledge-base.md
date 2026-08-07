@@ -1,15 +1,61 @@
 # Tram Tracking System Project Knowledge Base
 
 Audit metadata:
-- Evidence baseline: `82f4d97d8609d73f79aa74eea6efaadaa34238d9`
-- Evidence scope: `README.md`, `AGENTS.md`, Compose/configuration and scripts, `shuttle-tracking-backend/`, `shuttle-tracking-web/`, `docs/testing/`, `docs/research/`, `docs/tasks/`, `docs/decision-queue.md`, and `docs/audits/specialized/`
-- Reviewed at: `2026-08-07T16:40:54+07:00`
+- Evidence baseline: `cdedcc2fd82ab264e2176716ac23a74c948e1a28`
+- Evidence scope: `README.md`, `AGENTS.md`, Compose/environment configuration and scripts,
+  `shuttle-tracking-backend/`, `shuttle-tracking-web/`, `docs/testing/`, `docs/research/`,
+  `docs/tasks/`, `docs/operations/`, `docs/decision-queue.md`, and `docs/audits/specialized/`
+- Reviewed at: `2026-08-07T19:35:48+07:00`
 - Validation state: `Validated`
 - Predecessor baselines: `None` (Discovery has no required predecessor)
 
-Evidence status: **Validated**. This discovery refresh re-baselines the repository through the
-approved D-008 production-handoff decision. Use `docs/audits/README.md` as the coordination
-authority.
+Evidence status: **Validated**. This Discovery re-audit consumes the completed T9 repository
+handoff and re-baselines the current source, configuration, tests, task contract, and operations
+runbook. T9 remains only partially complete because the external University Server/Network
+acceptance evidence is unavailable. Use `docs/audits/README.md` as the coordination authority.
+
+## T9 Implementation Re-audit — 2026-08-07
+
+The preceding validated Discovery baseline was
+`82f4d97d8609d73f79aa74eea6efaadaa34238d9`. T9 changed evidence that this profile consumes:
+
+| Changed evidence | Discovery effect |
+|---|---|
+| `docker-compose.prod.yml`, `env.production.example`, `scripts/test-production-topology.mjs`, `scripts/ci-checks.sh` | Adds the static university production template, private data network, loopback-only app bindings, Redis authentication, versioned images, health ordering, and deterministic topology evidence. |
+| `shuttle-tracking-backend/src/config/runtime.ts`, `validate-runtime.ts`, `prisma.ts`, `redis.ts`, `server.ts`, `middleware/rate-limit.ts`, `docker-entrypoint.sh`, backend tests/package/README | Adds one fail-closed runtime authority for production URLs, secrets, CORS origin, proxy trust, client address, and port; validation runs before migration. |
+| `shuttle-tracking-web/config/backend.ts` and the changed REST/Socket consumers, `next.config.ts`, tests/package | Adds one browser connection authority: production defaults REST to `/api` and Socket.IO to the current origin; explicit production overrides must be one safe HTTPS origin. |
+| `docs/tasks/T9-production-topology-origin-handoff.md`, `docs/operations/university-server-network-handoff.md`, D-008 specialist/decision evidence | Records the exact repository handoff and the external host, DNS/TLS, secrets, restore, alert, contact, proxy-chain, and capacity evidence that remains unavailable. |
+
+Exact changed paths within Discovery scope:
+
+- Runtime/topology: `docker-compose.prod.yml`, `env.production.example`,
+  `scripts/ci-checks.sh`, and `scripts/test-production-topology.mjs`.
+- Backend: `shuttle-tracking-backend/README.md`,
+  `shuttle-tracking-backend/docker-entrypoint.sh`, `shuttle-tracking-backend/package.json`,
+  `shuttle-tracking-backend/src/config/prisma.ts`,
+  `shuttle-tracking-backend/src/config/redis.ts`,
+  `shuttle-tracking-backend/src/config/runtime.ts`,
+  `shuttle-tracking-backend/src/config/validate-runtime.ts`,
+  `shuttle-tracking-backend/src/middleware/rate-limit.ts`,
+  `shuttle-tracking-backend/src/server.ts`, and
+  `shuttle-tracking-backend/tests/test_t9_runtime_config.js`.
+- Frontend: `shuttle-tracking-web/components/admin/LiveMap.tsx`,
+  `shuttle-tracking-web/components/public/FeedbackModal.tsx`,
+  `shuttle-tracking-web/config/backend.ts`, `shuttle-tracking-web/hooks/useShuttleTracker.ts`,
+  `shuttle-tracking-web/hooks/useSocketConnection.ts`, `shuttle-tracking-web/next.config.ts`,
+  `shuttle-tracking-web/package.json`, `shuttle-tracking-web/services/api.ts`,
+  `shuttle-tracking-web/services/publicApi.ts`, and
+  `shuttle-tracking-web/tests/t9-backend-origin.test.ts`.
+- Handoff/decision evidence: `docs/tasks/T9-production-topology-origin-handoff.md`,
+  `docs/operations/university-server-network-handoff.md`,
+  `docs/audits/specialized/D-008-observability-production-topology-handoff-v2.md`, and
+  `docs/decision-queue.md`.
+
+Focused revalidation passed at the current baseline: backend `npm run check` (build, boundary tests,
+T9 runtime checks, and Prisma validation), frontend `npm run test:t9` (5/5), and
+`node scripts/test-production-topology.mjs`. These are deterministic repository checks; no Compose
+stack, migration, seed, deployment, proxy, certificate, backup/restore, alert, provider, device,
+field, load, or human-browser target was operated.
 
 ## D-008 Decision Re-audit — 2026-08-07
 
@@ -21,6 +67,9 @@ logs/alerts and incident response. Vercel/Render/Neon and AWS learning deploymen
 non-production profiles. This is an approved logical topology and responsibility boundary, not
 evidence of an actual host, port policy, certificate, backup, alert, restore, or 10,000-viewer
 capacity result. Those facts remain external acceptance evidence for T9/T13.
+
+The T9 repository implementation described above now realizes the checked-in topology and
+configuration portion of that decision. It does not change the external-evidence limitation.
 
 Discovery refresh: 2026-07-22
 
@@ -66,10 +115,10 @@ ambient browser session, deployment, provider, or hardware result is implied.
 
 D-009 records anonymous one-way feedback with a `SUPER_ADMIN` business-day triage owner, 180-day
 feedback/case retention, 30-day rate-limit-only IP retention, protected soft deletion/restore, and
-read-only safe source/device fields. The decision does not create an inbox, a privacy notice, a
-retention job, server RBAC, or a role hierarchy implementation. Android locked-screen functionality
-is owner-reported field evidence only; the required versioned Android acceptance artifact remains
-external and unavailable in this repository.
+read-only safe source/device fields. At this historical decision-only baseline it did not create an
+inbox, privacy notice, retention job, server RBAC, or role hierarchy; T12 subsequently implemented
+those bounded repository surfaces. Android locked-screen functionality remains external and the
+required versioned Android acceptance artifact is unavailable in this repository.
 
 This document describes the current repository state from source code, configuration, schema,
 migrations, seed data, tests, and repository documentation. It is the Level 1 Discovery profile
@@ -95,14 +144,21 @@ The current implementation contains:
 - A transactional Operations/Trip service for explicit start, virtual-trip creation, active-trip
   validation, idempotent end, and sampled canonical-history writes; the database also validates trip
   status/time relationships.
-- Docker Compose development and production-mode container configurations.
+- Persisted `ADMIN`, `SUPER_ADMIN`, and `DEV` roles, current-role revalidation, bounded fresh
+  authentication, a Super Admin/Dev feedback inbox, and an all-admin safe read-only source-health
+  page.
+- Bounded research-session/raw-observation/aggregate/lifecycle records and authenticated research
+  reads/exports, separate from public and canonical operational DTOs.
+- Docker Compose development configuration plus a checked-in T9 production handoff with private
+  data services, authenticated Redis, loopback-only application ports, health ordering, and one
+  fail-closed runtime/origin configuration authority.
 
 The repository directly evidences these user groups:
 
 - Public users who view routes, stops, vehicles, ETA, location, and submit feedback.
-- Admin users who manage vehicles, routes, stops, and tracking-source registrations through the
-  authenticated backend; the current frontend exposes vehicle, route, and stop pages but not a
-  device/source page.
+- Admin users with persisted `ADMIN`, `SUPER_ADMIN`, or `DEV` roles. The frontend exposes vehicle,
+  route, stop, route-stop, read-only source-health, and role-gated feedback-triage surfaces; the
+  backend also retains tracking-source management and research-read boundaries.
 - External senders such as mobile applications, ESP32 devices, and simulators that authenticate and
   submit location observations.
 - TTN/LoRaWAN webhook senders that submit location payloads through the server-side webhook route.
@@ -114,18 +170,16 @@ configuration are not present in this repository.
 
 ## Freshness and Validation Summary
 
-The preceding baseline was `d94abb3...`. Changed evidence through `671b712...` includes public
-canonical-state hooks/utilities, synthetic test server/Playwright coverage, package scripts, and
-simulator alignment; the remaining changes are decisions, roadmap/audit records, and workflow
-governance. The public-state change can affect the frontend inventory and product claims, so the
-Discovery inventory was revalidated rather than treating a complete register row as proof of
-freshness.
+The preceding baseline was `82f4d97...`; the current baseline is `cdedcc2...`. The exact changed
+Discovery evidence is recorded in the T9 table above. Source/configuration changes affect the
+runtime topology, startup, REST/Socket origin resolution, public Feedback submission, public and
+admin live connections, and documented operations handoff, so the inventory required revalidation.
+Coordination-document changes alone were not treated as proof of application behavior.
 
-Static validation recorded for the T8 change: `node --test --experimental-strip-types
-tests/t8-public-state.test.ts`, the isolated T8 Playwright test, frontend lint/build, repository
-CI, workflow validation, and `git diff --check`. No database/Redis migration, deployment,
-provider/hardware, or ambient runtime check was run; the T5 integration test remains evidence that
-requires an explicitly configured disposable Postgres/Redis target.
+Current focused validation passed: backend check including Prisma validation and the full boundary
+suite, frontend T9 connection tests (5/5), and the static production-topology test. No external or
+stateful target was touched; previously recorded T5/T7/T8 stateful or browser evidence was not
+silently promoted to current production evidence.
 
 ### Prior-finding revalidation
 
@@ -135,8 +189,9 @@ requires an explicitly configured disposable Postgres/Redis target.
 | Trip lifecycle had competing non-transactional writers | **Resolved** | `shuttle-tracking-backend/src/services/operations.service.ts`, the T5 migration, and `test_t5_operations.js` define one transactional/idempotent boundary; live integration was not rerun here. |
 | Simulator and seed source fixtures diverged | **Resolved** | `env.example`, `prisma/seed.js`, `shuttle-tracking-web/simulate.js`, `shuttle-tracking-backend/simulate-ttn.js`, and `docs/testing/pipeline-smoke-tests.md` use aligned source/vehicle mappings. |
 | Raw observations, event-time ordering, and high-fidelity history are absent | **Partially Resolved** | T7 records bounded research raw observations separately from sampled canonical `gps_tracks`; it does not add event-time/sequence semantics or general high-fidelity operational history. |
-| Public/admin stale or offline truth is not exposed as a user-facing contract | **Partially Resolved** | T8 keeps local public Marker/count/ETA projection internally truthful after expiry and route changes. No public/admin health endpoint, service-state explanation, or operations freshness UI is evidenced. |
-| Physical sender, firmware, TTN deployment, and production topology are unavailable | **Partially Resolved** | D-008 defines the logical university topology and ownership handoff. Physical sources and actual host/network/TLS/recovery/runtime evidence remain unavailable. |
+| Public/admin stale or offline truth is not exposed as a user-facing contract | **Partially Resolved** | T8 keeps public Marker/count/ETA truthful after local expiry and route changes; T12 adds a safe read-only admin source-health API/page. Public service-state explanation and complete daily-operations freshness/recovery journeys remain incomplete. |
+| Physical sender, firmware, TTN deployment, and production topology are unavailable | **Partially Resolved** | D-008 plus T9 now define and statically validate the repository topology/configuration/runbook. Physical sources and actual host/network/DNS/TLS/proxy/recovery/alert/capacity evidence remain unavailable. |
+| Production configuration and frontend backend-origin behavior were duplicated or permissive | **Resolved** | T9 supplies one fail-closed backend runtime parser and one frontend REST/Socket connection resolver; focused backend, frontend, and topology tests pass at `cdedcc2...`. External proxy/deployment behavior remains outside this repository finding. |
 
 ## Project Overview
 
@@ -209,9 +264,13 @@ broadcasts that canonical result, and periodically persists canonical history to
 - Route list, create, edit, delete, color, and status management.
 - Stop list, create, edit, delete, bilingual names, coordinates, image URL, and status management.
 - Backend route-stop list/create/delete API plus authenticated full-sequence replacement. The Admin
-  Routes page exposes a route-stop management modal; source/device operations remain absent.
-- Backend tracking-source/device CRUD API and source-selection analytics API. No admin device page
-  was found in the current frontend source.
+  Routes page exposes a route-stop management modal.
+- Read-only Source Health page for all three admin roles; the safe DTO excludes credentials,
+  payloads, locations, and IP data, and the UI exposes no source mutation action.
+- Feedback Inbox for `SUPER_ADMIN` and `DEV`, including bounded status transitions, internal notes,
+  recent-authentication-protected soft deletion, and recoverable restore.
+- Backend tracking-source/device CRUD and source-selection analytics APIs remain separate from the
+  read-only Source Health UI. General source lifecycle authority is still gated by D-012.
 
 ### Sender, Driver, Mobile, ESP32, Or Simulator
 
@@ -345,8 +404,9 @@ The admin area uses an App Router layout and `AuthProvider`. The frontend stores
 the `admin_token` cookie, attaches it to Axios requests as a Bearer token, and redirects protected
 admin navigation to `/admin/login` when the cookie is absent.
 
-The current frontend has admin pages for dashboard, vehicles, routes, and stops. It does not contain
-pages for devices/tracking sources, route-stop management, feedback review, trips, or history.
+The current frontend has admin pages for dashboard, vehicles, routes, stops, safe read-only source
+health, and role-gated feedback triage. Route-stop management is embedded in the Routes page. It
+does not contain trip-history, playback, reporting, or tracking-source mutation pages.
 
 ### Backend
 
@@ -361,14 +421,18 @@ Current route mounts are:
 - `/api/admin/stops`: admin-protected stop CRUD.
 - `/api/admin/route-stops`: admin-protected route-stop operations.
 - `/api/admin/devices`: admin-protected tracking-source/device CRUD and analytics.
+- `/api/admin/feedback`: `SUPER_ADMIN`-minimum feedback inbox, lifecycle, protected delete, and
+  restore operations.
+- `/api/research`: `DEV`/`SUPER_ADMIN` research-session observation reads and CSV export.
 - `/api/public`: public route, vehicle, stop, and feedback endpoints.
 - `/api/trips`: sender-authenticated trip lifecycle.
 - `/api/ingest`: sender-authenticated HTTP and secret-authenticated TTN ingestion.
 
-Admin JWT middleware accepts claims with a `userId` and rejects sender-kind tokens. Sender JWT
-middleware verifies token type, source ID, vehicle ID, source status, source type, and credential
-version against the database. Sender tokens default to a 15-minute lifetime through
-`SENDER_JWT_EXPIRES_IN`.
+Admin JWT middleware accepts admin claims, rejects sender-kind tokens, reloads the current user and
+persisted role, accepts only `ADMIN`, `SUPER_ADMIN`, or `DEV`, and applies minimum-role/fresh-auth
+gates where required. Sender JWT middleware verifies token type, source ID, vehicle ID, source
+status, source type, and credential version against the database. Sender tokens default to a
+15-minute lifetime through `SENDER_JWT_EXPIRES_IN`.
 
 ### Multi-Source Tracking Pipeline
 
@@ -476,34 +540,46 @@ indexes.
 6. Route, stop, vehicle, and route-stop mutations call public cache invalidation after success;
    route-stop replacement is transactional and assigns contiguous server-side ordering. Device
    mutations are handled through the device controller.
+7. All admin roles can load the safe read-only source-health view; `SUPER_ADMIN` and `DEV` can load
+   and triage feedback. Delete/restore requires a fresh signed authentication claim.
 
 ### Feedback Flow
 
 1. The public tracker opens `FeedbackModal` and loads active vehicles.
 2. The user selects a feedback type and vehicle, then submits a message.
 3. The frontend posts `type`, `vehicleId`, and `message` to `/api/public/feedback`.
-4. The backend validates the fields, verifies the vehicle exists, captures `req.ip`, and creates a
-   `Feedback` row.
-5. The public client shows a success state. No feedback review API or admin feedback page is
-   present in the current repository.
+4. The backend validates the fields, verifies the vehicle exists, uses `req.ip` only for the
+   rate-limit boundary, and creates an anonymous `Feedback` row without persisting the request IP.
+5. The public client shows the approved anonymous/no-reply/non-emergency/business-day and retention
+   notice plus success/error states.
+6. `SUPER_ADMIN` and `DEV` can use the Feedback Inbox to assign/update cases, record bounded notes,
+   soft-delete with a reason, and restore within the recovery window; audit events and retention
+   services remain server-owned.
 
 ### Startup And Deployment Flow
 
-1. Docker starts PostGIS and Redis with health checks.
-2. Backend startup connects Redis, attaches the Socket.IO Redis adapter, and runs the entrypoint.
-3. The entrypoint runs `prisma migrate deploy`.
+1. Docker starts PostGIS and authenticated Redis with health checks on a private production data
+   network; application ports are bound to host loopback for the external reverse proxy.
+2. The backend entrypoint validates production database/Redis URLs, secrets, exact frontend origin,
+   proxy trust, and port without echoing configured values.
+3. Only after validation does the entrypoint run `prisma migrate deploy` and start the backend,
+   which attaches the Socket.IO Redis adapter.
 4. Development containers run `prisma db seed`; non-development containers skip the seed.
-5. Production-mode startup validates JWT and TTN secrets before migrations and application startup.
-6. `docker-compose.prod.yml` starts production Docker targets for database, Redis, backend, and
-   frontend.
+5. The frontend waits for backend readiness and uses one same-origin REST/Socket authority by
+   default in production.
+6. The checked-in production flow is a static repository handoff only; the actual reverse proxy,
+   DNS/TLS, secrets, migration target, restore, alerts, restart, and capacity evidence remain
+   external.
 
 ## Entity Summary
 
 ### User
 
-Admin account with unique username and bcrypt password hash. The current schema has no role column;
-the admin middleware identifies admin-style tokens by the presence of a user ID and absence of the
-sender token kind.
+Administrative account with unique username, bcrypt password hash, and persisted role. The server
+accepts only `ADMIN`, `SUPER_ADMIN`, and `DEV`, ordered hierarchically, reloads the current user on
+administrative requests, and uses a signed `authTime` claim for recent-authentication gates. General
+account provisioning/promotion/demotion/removal and out-of-band `DEV` recovery remain outside the
+implemented bounded role contract.
 
 ### Route
 
@@ -550,9 +626,17 @@ for LoRaWAN sources.
 
 ### Feedback
 
-Public feedback record with type, optional vehicle ID, message, IP address, and creation timestamp.
-The vehicle relation uses `ON DELETE SET NULL`. The current public flow requires a vehicle ID when
-creating feedback.
+Anonymous public feedback/case record with type, optional vehicle association, message, status,
+assignment/timestamps, bounded internal note, soft-deletion/restore metadata, and creation time. The
+vehicle and responsible-user relations use safe `SET NULL` behavior where defined. Public creation
+does not persist request IP; case mutations create separate `FeedbackAuditEvent` records.
+
+### ResearchSession, ResearchRawObservation, ResearchMetricAggregate, ResearchLifecycleRun
+
+T7 research records keep approved experiment/session metadata, append-only raw observations with
+provenance/timing/selection fields, typed aggregate outputs, and lifecycle/backup verification runs
+separate from canonical operational state. Access is restricted to `DEV` and `SUPER_ADMIN`; the
+repository evidence does not upgrade simulator data into physical or ground-truth evidence.
 
 ### Relationships
 
@@ -563,7 +647,9 @@ creating feedback.
 - One trip belongs to one vehicle and one route and has many GPS tracks.
 - One GPS track may reference the selected tracking source.
 - One tracking source can be assigned to at most one vehicle and can have many GPS tracks.
-- One feedback record may reference one vehicle.
+- One feedback record may reference one vehicle, one assigned admin, and one deleting admin, with
+  separate immutable audit events.
+- One research session has many raw observations, aggregate records, and lifecycle runs.
 
 ## API Summary
 
@@ -578,6 +664,8 @@ All paths below are relative to the backend host, with REST routes under `/api` 
 
 - `POST /api/auth/login`: admin username/password login; returns admin JWT and user identity.
 - `GET /api/auth/me`: admin JWT-protected current-user lookup.
+- `POST /api/auth/reauthenticate`: verifies the current admin password and refreshes the signed
+  recent-authentication claim used by sensitive feedback actions.
 - `POST /api/auth/vehicle-login`: source ID, secret, and optional vehicle ID validation; returns a
   short-lived sender JWT for active non-LoRaWAN sources.
 
@@ -634,9 +722,31 @@ These endpoints list and maintain vehicles, including optional route assignment 
 - `PUT /api/admin/devices/:id`
 - `DELETE /api/admin/devices/:id`
 - `GET /api/admin/devices/analytics`
+- `GET /api/admin/devices/health`
 
 The CRUD endpoints operate on `TrackingSource`. The analytics endpoint returns Redis source
-selection counters grouped by vehicle. The current endpoint does not expose an admin frontend page.
+selection counters grouped by vehicle. The separate health endpoint returns an allowlisted DTO and
+backs the read-only Admin Source Health page; the page does not expose CRUD or credential actions.
+
+### Admin Feedback REST
+
+- `GET /api/admin/feedback`
+- `GET /api/admin/feedback/deleted`
+- `PATCH /api/admin/feedback/:id`
+- `POST /api/admin/feedback/:id/delete`
+- `POST /api/admin/feedback/:id/restore`
+
+The group requires at least `SUPER_ADMIN`; delete and restore also require recent
+re-authentication. `DEV` inherits the same bounded actions through the approved hierarchy.
+
+### Research REST
+
+- `GET /api/research/sessions`
+- `GET /api/research/sessions/:sessionId/observations`
+- `GET /api/research/sessions/:sessionId/export.csv`
+
+These read/export routes require `DEV` or `SUPER_ADMIN` and preserve the T7 safe-field/export
+contract; no public research API is mounted.
 
 ### Sender Trip REST
 
@@ -702,9 +812,10 @@ Observed acknowledgement/error codes include `SENDER_AUTH_REQUIRED`, `SENDER_AUT
 
 No Vercel, Render, Neon, or other cloud-provider configuration was found. D-008 permits them only as
 isolated demo/learning profiles and selects a university-managed single-host production handoff.
-The repository contains `docker-compose.prod.yml`, but it is not yet aligned to that contract and no
-actual host, approved DNS, TLS, firewall, secret store, backup, monitoring, or operations acceptance
-is documented.
+T9 aligns `docker-compose.prod.yml`, `env.production.example`, backend/frontend configuration, and
+the operations runbook to that repository-side contract. No actual host, approved DNS/TLS, proxy
+chain, firewall, secret store, backup/restore result, monitoring/alert result, named contacts, or
+operations acceptance is documented.
 
 ## Environment Configuration
 
@@ -743,9 +854,19 @@ is documented.
 
 ### Frontend Variables
 
-`shuttle-tracking-web/.env.example` documents `NEXT_PUBLIC_API_BASE_URL`. Source code also reads
-`NEXT_PUBLIC_BACKEND_URL` and `NEXT_PUBLIC_SOCKET_URL` for some public/admin Socket.IO and feedback
-URL resolution paths, but those names are not in the frontend example file.
+`shuttle-tracking-web/.env.example` documents the legacy development
+`NEXT_PUBLIC_API_BASE_URL`. The central resolver accepts `NEXT_PUBLIC_BACKEND_ORIGIN`, legacy
+`NEXT_PUBLIC_BACKEND_URL`, and legacy `NEXT_PUBLIC_API_BASE_URL`, requires them to agree, and routes
+all listed REST/Socket consumers through one authority. Production with no override uses relative
+`/api` and current-origin Socket.IO; an explicit production override must be one non-local HTTPS
+origin. `NEXT_PUBLIC_SOCKET_URL` is no longer an independent configuration path.
+
+### Production Handoff Variables
+
+`env.production.example` requires one immutable `APP_VERSION`, PostgreSQL identity and authenticated
+`DATABASE_URL`, `REDIS_PASSWORD`, distinct JWT/TTN secrets, exact `FRONTEND_URL`, and narrow
+`TRUST_PROXY`. It contains placeholders only and is a schema for an external mode-`0600` secret file,
+not a deployable environment.
 
 ### Seed And Production Startup Behavior
 
@@ -758,11 +879,13 @@ URL resolution paths, but those names are not in the frontend example file.
 - Non-development seed execution is disabled except for an explicit one-time initial-admin flow
   requiring `PROVISION_INITIAL_ADMIN=true`, a chosen username, a password of at least 16 characters,
   and an empty users table.
-- The backend production entrypoint validates `JWT_SECRET` and `TTN_WEBHOOK_SECRET`, rejects known
-  placeholder/default patterns and short values, requires the two values to differ, runs migrations,
-  skips seed, and starts the compiled server.
-- `docker-compose.prod.yml` requires production database password, JWT secret, and TTN webhook
-  secret values, and defaults sender JWT lifetime to 15 minutes.
+- The backend production entrypoint validates environment mode, authenticated/non-local
+  PostgreSQL/Redis URLs, Redis password, distinct JWT/TTN secrets, exact HTTPS frontend origin,
+  narrow proxy addresses/CIDRs, and port before migrations. Errors name only the variable and safe
+  reason; non-development startup skips seed.
+- `docker-compose.prod.yml` requires one version for both application images, keeps PostgreSQL and
+  Redis off host ports, authenticates Redis, binds application ports to `127.0.0.1`, and orders
+  startup through database/Redis/backend/frontend health checks.
 
 ## Known Limitations From Available Evidence
 
@@ -772,11 +895,12 @@ These are repository-state descriptions, not quality or security findings.
   simulators.
 - No ESP32 firmware or device-side protocol implementation is present.
 - No live TTN provider configuration, MQTT consumer, or external LoRaWAN deployment is present.
-- Tracking-source device CRUD and analytics exist only in backend APIs; no corresponding admin page
-  is present.
-- Route-stop CRUD exists only in backend APIs; no corresponding admin page is present.
-- Public feedback submission is implemented, but no feedback review/list/status API or admin page is
-  present.
+- Tracking-source CRUD and analytics remain backend-only; the admin frontend intentionally exposes
+  only the safe read-only source-health view. General lifecycle authority remains pending D-012.
+- Route-stop management is implemented in the Admin Routes modal, but no ambient browser/database
+  acceptance was run in this re-audit.
+- Feedback triage is implemented for `SUPER_ADMIN`/`DEV`, but runtime migration, retention sweep,
+  and human workflow acceptance remain unverified.
 - The operational pipeline retains only the latest observation per source in Redis. T7 adds bounded
   research raw observations with separate lifecycle/metrics APIs; it does not establish event-time,
   sequence, rejection, or high-fidelity operational-history semantics.
@@ -786,8 +910,8 @@ These are repository-state descriptions, not quality or security findings.
   observation; no incoming event-time or sequence field is handled by the current observation
   interface.
 - Source freshness is represented by a 30-second helper/classifier and selection check. The backend
-  source-health sweep emits redacted stale/recovery signals, but no dedicated health REST response,
-  public/admin freshness UI, or device-health dashboard was found.
+  emits redacted stale/recovery signals and exposes a safe read-only admin health API/page; complete
+  public service-state explanation, notification, and recovery operations are still absent.
 - Route-stop replacement validates active membership and invalidates public route-stop cache after
   a successful transaction. The existing create/delete writes now use the same invalidator; no
   stateful cache/DB runtime smoke was run for this source-level evidence.
@@ -795,7 +919,9 @@ These are repository-state descriptions, not quality or security findings.
 - No OpenAPI/Swagger contract was found.
 - Test artifacts exist for sender claims, Socket.IO boundary, and an integration pipeline; the
   integration pipeline requires running infrastructure and configured secrets. T8 adds a native
-  frontend canonical-state test and isolated Playwright route-switch/expiry coverage.
+  frontend canonical-state test and isolated Playwright route-switch/expiry coverage. T9 adds
+  deterministic backend runtime, frontend origin, and static production-topology checks; none is
+  external deployment evidence.
 - The root README still documents `admin`/`transport` with `admin123`, while the current seed code
   requires `SEED_ADMIN_PASSWORD` and has no built-in password. The intended credential setup needs
   confirmation.
@@ -816,13 +942,17 @@ fully compare intended behavior with implementation:
 - ESP32 hardware, firmware, transport, payload, provisioning, and credential rotation contract.
 - TTN application/device registry, device IDs, webhook configuration, payload decoder ownership,
   and whether the intended integration is webhook-only or also MQTT/history based.
-- Intended tracking-source provisioning workflow and who is allowed to create, assign, retire, or
-  rotate a source.
-- Product definition for admin roles and permissions beyond the current single admin-token shape.
+- The complete D-012 tracking-source/account lifecycle matrix: general provisioning, assignment,
+  promotion/demotion, disable/removal, credential rotation, re-authentication, audit, and recovery
+  authority outside T11/T12's bounded decisions.
+- Account provisioning UI, promotion/demotion/removal, and out-of-band `DEV` allowlist/recovery
+  implementation beyond the current persisted hierarchy.
 - GPS event-time semantics, expected update interval, clock synchronization, canonical-history
   retention, raw-source retention, and archival/deletion ownership.
-- Intended stale/offline behavior for public vehicle display and admin operations.
-- Intended feedback moderation, review, status, retention, and privacy workflow.
+- Runtime/human acceptance for the implemented public expiry behavior and safe admin source-health
+  view, plus the still-missing complete public service-state and operator recovery journeys.
+- Runtime/human acceptance for the approved and implemented bounded feedback triage, retention,
+  privacy, deletion, restore, and audit behavior.
 - Intended trip history, playback, reports, notifications, alerts, and announcements scope.
 - Formal REST and WebSocket request/response contract, including error semantics and versioning.
 - Confirmation of the credential setup documented in the root README versus the current seed flow.
@@ -831,19 +961,18 @@ fully compare intended behavior with implementation:
 
 ## Actionable Recommendations
 
-- Run the Architecture profile next. It can consume this validated Discovery and Product baseline to
-  place C-scope operations, role boundaries, route invalidation, Mobile lifecycle, protected
-  history, and research isolation before the parallel Backend/Frontend/Database profiles.
+- Run the Product profile next. Discovery is the only profile without a predecessor; Product must
+  consume this `cdedcc2...` baseline before Architecture and the later domain profiles can be
+  revalidated for T9.
 - Revalidate Architecture, Backend, and Database against the T5 Operations/Trip boundary before
   treating lifecycle integrity as a release capability; this Discovery report does not replace their
   domain findings or live integration evidence.
 - Keep the three research boundaries separate in all later work: Mobile/Socket.IO, ESP32+GPS/Wi-Fi/
   HTTP, and independent LoRaWAN/Gateway/TTN/Webhook. Simulators remain test tools, not physical
   evidence.
-- Keep raw-observation retention, public stale-state behavior, feedback workflow, and
-  hardware/provider choices at their approved decision gates. For D-008, preserve the approved
-  topology while treating University Server/Network acceptance as external evidence rather than
-  inferring it from source code.
+- Preserve the approved raw-observation, stale/lifecycle, role, feedback, and D-008 boundaries;
+  revalidate their implemented slices without treating pending D-011/D-012 or external University
+  Server/Network acceptance as resolved by source code.
 
 ## Roadmap Impact
 
@@ -852,8 +981,9 @@ fully compare intended behavior with implementation:
 - T5 lifecycle facts are now part of the current baseline. Downstream audits must revalidate the
   transaction, partial active-trip index, status/time constraints, idempotent start/end behavior,
   and virtual-trip policy before confirming or closing related findings.
-- Approved decisions D-001 through D-010 remain applicable. D-008 authorizes an exact repository-
-  side T9 handoff but does not authorize external deployment or establish production readiness.
+- Approved decisions D-001 through D-010 remain applicable. T9 is **Partially Complete** for its
+  repository handoff at `cdedcc2...`; it still blocks T13/public release on external University
+  Server/Network acceptance and does not establish production readiness.
 
 ## Proposed Owner Decisions
 
@@ -877,10 +1007,20 @@ No unsupported business or deployment assumptions are used as facts.
 - The root README and current seed behavior are both recorded where they differ; this document does
   not choose which credential instruction is intended.
 
+## Confidence
+
+- **High** for repository-visible source, schema, route/page inventory, checked-in T9 topology and
+  configuration contracts, and the focused checks run at `cdedcc2...`.
+- **High** for downstream audit/roadmap mapping because every successor profile consumed this
+  predecessor baseline in the same Level 1 sequence.
+- **Low** for actual deployment, proxy behavior, DNS/TLS, production secrets, backup/restore,
+  alerts, capacity, physical devices/providers, Android behavior, field research, and human workflow
+  outcomes because no approved external target was operated.
+
 ## Audit Readiness
 
-Validated at `82f4d97...`; Product is the next profile in the canonical predecessor order for this
-D-008 decision-only revalidation.
+Validated at `cdedcc2...`; every successor audit and the Roadmap has now consumed this baseline.
+The completed gate audit found no currently eligible implementation unit.
 
 The current repository behavior, multi-source tracking boundary, data model, APIs, frontend
 features, deployment files, simulators, tests, and open information gaps are documented from
@@ -905,18 +1045,19 @@ vehicle management, multi-source location ingestion, and public rider feedback.
 ### User Roles
 
 - Public user.
-- Admin user.
+- `ADMIN`, `SUPER_ADMIN`, and `DEV` administrative users with persisted hierarchical authority.
 - Sender/device identity bound to a tracking source and vehicle.
 
-The current code does not yet implement the D-007 `DEV` > `SUPER_ADMIN` > `ADMIN` hierarchy, separate
-driver accounts, or the approved account-lifecycle controls; the decision direction is not proof of
-an implemented permission model.
+The current code implements the D-007 `DEV` > `SUPER_ADMIN` > `ADMIN` hierarchy for the bounded T12
+surfaces and revalidates the persisted current role on admin requests. It does not implement separate
+driver accounts or the complete D-012 account/source lifecycle and out-of-band `DEV` controls.
 
 ### Features
 
 - Public live map, route selection, stops, vehicles, ETA, geolocation, nearest stop, and feedback.
-- Admin login, dashboard, live map, vehicle CRUD, route CRUD, stop CRUD, and route-stop management.
-- Backend route-stop and tracking-source/device CRUD.
+- Admin login/re-authentication, dashboard, live map, vehicle CRUD, route CRUD, stop CRUD,
+  route-stop management, safe source health, and role-gated feedback triage.
+- Backend route-stop and tracking-source/device CRUD plus safe device-health and research-read APIs.
 - Sender JWT authentication and credential-version validation.
 - Authenticated trip start/end.
 - HTTP and Socket.IO location ingestion.
@@ -924,6 +1065,8 @@ an implemented permission model.
 - Source priority and freshness-based canonical location selection.
 - Redis current-location/cache/throttle/analytics behavior.
 - Sampled PostGIS GPS history.
+- Bounded T7 research observations/aggregates/lifecycle evidence and protected export.
+- T9 fail-closed production runtime/origin configuration and university handoff runbook.
 - Health and readiness endpoints.
 - Boundary and pipeline test scripts.
 
@@ -953,13 +1096,15 @@ selection, TTN webhook ingestion, admin CRUD, feedback submission, and migration
 
 ### Business Entities
 
-User, Route, Vehicle, Stop, RouteStop, Trip, GPSTrack, TrackingSource, and Feedback.
+User, Route, Vehicle, Stop, RouteStop, Trip, GPSTrack, TrackingSource, Feedback,
+FeedbackAuditEvent, ResearchSession, ResearchRawObservation, ResearchMetricAggregate, and
+ResearchLifecycleRun.
 
 ### APIs
 
-REST groups are health, auth, public, admin vehicle/route/stop/route-stop/device, trip lifecycle,
-HTTP ingestion, and TTN ingestion. Socket.IO events are `send-location`, `location-update`, and
-`error-response`.
+REST groups are health, auth/re-authentication, public, admin vehicle/route/stop/route-stop/device,
+admin feedback, protected research reads/export, trip lifecycle, HTTP ingestion, and TTN ingestion.
+Socket.IO events are `send-location`, `location-update`, and `error-response`.
 
 ### External Services
 
@@ -981,18 +1126,22 @@ See “Known Limitations From Available Evidence” and “Missing Information�
 - How will approved D-007 account provisioning, promotion/demotion, privileged deletion,
   re-authentication/audit, backup/restore, and out-of-band `DEV` recovery be controlled?
 - What are the GPS event-time, update-rate, retention, and stale-state policies?
-- Is raw observation research history required, and if so, what fields and retention apply?
-- Who reviews public feedback and what statuses/workflow are required?
-- Are route-stop and device management intentionally API-only or planned for the admin UI?
+- Has the approved T7 research protocol and bounded raw-observation lifecycle been exercised with
+  physical Mobile, ESP32, and LoRaWAN sources without promoting simulator/proxy metrics to
+  ground-truth evidence?
+- Has bounded feedback triage/retention/deletion behavior passed migration, runtime, retention-sweep,
+  and human acceptance on an approved target?
+- Which D-011 UX slice should be first, and which D-012 actor/action/re-authentication/recovery matrix
+  should govern general account and source lifecycle work?
 - Which reports, alerts, notifications, trip history, and playback capabilities belong to the MVP?
 
 ## Handoff Recommendation
 
-Next recommended profile: Architecture Audit.
+Next eligible profile: Product Re-audit.
 
-## T12 Implementation Re-audit Addendum — 2026-08-01
+## Historical T12 Implementation Addendum — 2026-08-01
 
-Current working-tree evidence extends `6697acbd62c740039722769588b1c464231e5ce1` with D-010:A,
+The then-current implementation evidence extended `6697acbd62c740039722769588b1c464231e5ce1` with D-010:A,
 the reviewed `20260801110000_feedback_triage_roles` migration, and the bounded T12 source/UI/tests.
 `OPERATOR` is migrated to the ordinary `ADMIN` role; only `ADMIN`, `SUPER_ADMIN`, and `DEV` pass the
 new persisted server-role allowlist. Login and explicit re-authentication issue signed freshness
@@ -1001,3 +1150,6 @@ states its anonymous/no-reply/non-emergency/business-day and 180-day/30-day IP p
 and Dev have a dedicated feedback inbox; all three roles receive only the separate read-only source
 health view. No account-provisioning UI, Android runtime, device/source write action, deployment,
 database migration execution, or physical/provider evidence was observed.
+
+The consolidated current inventory above supersedes this historical addendum and revalidates the
+same bounded T12 surfaces at `cdedcc2...`.

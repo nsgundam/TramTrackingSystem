@@ -4,17 +4,17 @@ Last updated: 2026-08-07
 
 | Phase | Status | Report / evidence | Evidence baseline | Last reviewed | Notes |
 |---|---|---|---|---|---|
-| Discovery | Needs Re-audit | `docs/project-knowledge-base.md` | `82f4d97` | 2026-08-07 | T9 changed Compose/configuration, backend/frontend source/tests, task and operations evidence; external facts remain unavailable. |
-| Product | Needs Re-audit | `docs/audits/product-audit.md` | `82f4d97` | 2026-08-07 | T9 consolidated tracker/feedback/LiveMap REST/Socket connections; no journey change was intended, but direct evidence paths changed. |
-| Architecture | Needs Re-audit | `docs/audits/architecture-audit.md` | `82f4d97` | 2026-08-07 | T9 added central backend runtime and frontend origin authorities plus private production networks. |
-| Backend | Needs Re-audit | `docs/audits/backend-audit.md` | `82f4d97` | 2026-08-07 | T9 implemented fail-closed runtime, proxy/CORS/client-address, Prisma/Redis and pre-migration validation boundaries. |
-| Frontend | Needs Re-audit | `docs/audits/frontend-audit.md` | `82f4d97` | 2026-08-07 | T9 removed duplicated fallbacks/localhost rewrites and added one same-origin-capable REST/Socket resolver. |
-| Database | Needs Re-audit | `docs/audits/database-audit.md` | `82f4d97` | 2026-08-07 | T9 changed Prisma/Redis connection validation and predecessors; no schema, migration, backup or target data changed. |
-| Infrastructure & Device | Needs Re-audit | `docs/audits/infrastructure-device-audit.md` | `82f4d97` | 2026-08-07 | T9 changed production networks, bindings, Redis auth, healthchecks, env schema and handoff runbook; host/device facts remain external. |
-| Dashboard & UX | Needs Re-audit | `docs/audits/dashboard-ux-audit.md` | `82f4d97` | 2026-08-07 | Shared tracker, Feedback and Admin LiveMap connection paths changed without intended UI redesign; prior 9/20 findings still require validation. |
-| Security, DevOps & Observability | Needs Re-audit | `docs/audits/security-devops-observability-audit.md` | `82f4d97` | 2026-08-07 | T9 added private/authenticated template and static guards; TLS, deployed secrets, restore, alerts and runtime proxy evidence remain external. |
-| Production Readiness | Needs Re-audit | `docs/audits/production-readiness-audit.md` | `82f4d97` | 2026-08-07 | T9 repository checks passed, but external acceptance and the existing T11/T12/UX/operations/device/field gates keep release No-Go. |
-| Roadmap | Needs Re-audit | `docs/roadmap/master-refactoring-roadmap.md` | `82f4d97` | 2026-08-07 | T9 is partially complete for repository delivery and still blocks T13/public release on external acceptance; dependency state needs Level 1 validation. |
+| Discovery | Complete | `docs/project-knowledge-base.md` | `cdedcc2` | 2026-08-07 | Validated after T9: repository topology/runtime/origin/runbook evidence is current; external University Server/Network and physical/provider facts remain unavailable. |
+| Product | Complete | `docs/audits/product-audit.md` | `cdedcc2` | 2026-08-07 | Validated after T9: one REST/Socket authority preserves existing journeys; T9 is repository-partial and external/human acceptance remains unavailable. |
+| Architecture | Complete | `docs/audits/architecture-audit.md` | `cdedcc2` | 2026-08-07 | Validated after T9: monolith/data-product authority is preserved; repository topology/origin authority is current and external runtime remains unverified. |
+| Backend | Complete | `docs/audits/backend-audit.md` | `cdedcc2` | 2026-08-07 | Validated after T9: centralized fail-closed runtime/proxy/CORS/data-client boundaries pass deterministic checks; target behavior remains external. |
+| Frontend | Complete | `docs/audits/frontend-audit.md` | `cdedcc2` | 2026-08-07 | Validated after T9: one safe REST/Socket resolver passes full frontend checks; Impeccable remains 9/20 (Poor) and deployed/browser acceptance is unavailable. |
+| Database | Complete | `docs/audits/database-audit.md` | `cdedcc2` | 2026-08-07 | Validated after T9: private/authenticated connection boundaries are current; schema/migrations are unchanged and target placement/recovery remains external. |
+| Infrastructure & Device | Complete | `docs/audits/infrastructure-device-audit.md` | `cdedcc2` | 2026-08-07 | Validated after T9: static topology/runbook contract is current; host/proxy/TLS/operations and every physical Mobile/ESP32/LoRaWAN fact remain external. |
+| Dashboard & UX | Complete | `docs/audits/dashboard-ux-audit.md` | `cdedcc2` | 2026-08-07 | Validated after T9 and current Impeccable audit: connection authority changed no UI semantics; score remains 9/20 (Poor), with 0 P0 and D-011 pending. |
+| Security, DevOps & Observability | Complete | `docs/audits/security-devops-observability-audit.md` | `cdedcc2` | 2026-08-07 | Validated after T9: repository port/origin/auth/proxy/health gaps are closed; TLS, secrets, firewall, restore, alerts and forwarded-hop evidence remain external. |
+| Production Readiness | Complete | `docs/audits/production-readiness-audit.md` | `cdedcc2` | 2026-08-07 | Validated / No-Go: T9 repository and full CI pass; external acceptance plus T11/T12 runtime, 9/20 UX, operations, device/provider and field gates remain. |
+| Roadmap | Complete | `docs/roadmap/master-refactoring-roadmap.md` | `cdedcc2` | 2026-08-07 | Validated: T9 repository evidence passes but external acceptance is incomplete; T11/T13/T14/T15 are blocked or deferred by explicit dependency, external-evidence, or owner-decision gates, so no implementation unit is currently eligible. |
 
 `Evidence baseline` records the immutable source/decision commit consumed by each report. Each
 report's metadata remains authoritative for its full scope and predecessor chain.

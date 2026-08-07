@@ -1,11 +1,17 @@
 # Architecture Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 82f4d97d8609d73f79aa74eea6efaadaa34238d9
-- Evidence scope: docs/project-knowledge-base.md, docs/audits/product-audit.md, docs/decision-queue.md, docs/research/, docs/tasks/, README.md, Compose/configuration, shuttle-tracking-backend/src/, shuttle-tracking-backend/prisma/, shuttle-tracking-backend/tests/, shuttle-tracking-web/hooks/, shuttle-tracking-web/utils/, shuttle-tracking-web/types/, shuttle-tracking-web/services/, shuttle-tracking-web/components/, and shuttle-tracking-web/tests/
-- Reviewed at: 2026-08-07T16:40:54+07:00
+- Evidence baseline: cdedcc2fd82ab264e2176716ac23a74c948e1a28
+- Evidence scope: docs/project-knowledge-base.md, docs/audits/product-audit.md,
+  docs/decision-queue.md, docs/research/, docs/tasks/, docs/operations/, README.md,
+  Compose/environment configuration and scripts, shuttle-tracking-backend/src/,
+  shuttle-tracking-backend/prisma/, shuttle-tracking-backend/tests/,
+  shuttle-tracking-web/config/, shuttle-tracking-web/hooks/, shuttle-tracking-web/utils/,
+  shuttle-tracking-web/types/, shuttle-tracking-web/services/,
+  shuttle-tracking-web/components/, and shuttle-tracking-web/tests/
+- Reviewed at: 2026-08-07T19:49:20+07:00
 - Validation state: Validated
-- Predecessor baselines: docs/project-knowledge-base.md and docs/audits/product-audit.md @ 6905fe4ceedc621ef16f6f1f3f32edcc58599f2f (atomic D-008 synchronization snapshot; later changes in this sealing pass are metadata-only)
+- Predecessor baselines: docs/project-knowledge-base.md and docs/audits/product-audit.md @ cdedcc2fd82ab264e2176716ac23a74c948e1a28
 
 ## 1. Executive Summary
 
@@ -15,17 +21,35 @@ T6/T8 give public consumers one versioned canonical projection: only an authorit
 
 The C-scope architecture still lacks protected history/exception/read models and the Mobile
 installation/claim/timeout state machine. D-008 now declares a university-managed single-host,
-single-origin logical topology and operations handoff, while the repository template and external
-runtime remain unvalidated. T10/T12 supply their bounded route-stop, authorization, Feedback and
+single-origin logical topology and operations handoff. T9 now statically validates the repository
+template, runtime/origin authorities, and runbook; the external runtime remains unvalidated.
+T10/T12 supply their bounded route-stop, authorization, Feedback and
 safe-view boundaries. None is a reason to split the appropriate monolith into unrelated services.
 
 ## 2. Scope and Freshness
 
 This profile covers boundaries, authority, data products, temporal semantics, cache/realtime behavior, and task placement. It does not certify deployment, physical devices, provider behavior, browser runtime, load, or an Android client.
 
-Discovery and Product are revalidated at 82f4d97. D-008 changes only the approved topology and
-responsibility boundary. It does not prove runtime cache behavior, TLS, private ports, recovery,
-capacity, deployment, or Android behavior.
+Discovery and Product are revalidated at `cdedcc2...`. The preceding Architecture baseline was
+`82f4d97...`. T9 changes the checked-in topology and architectural authorities but does not change
+canonical selection, research capture, relational schema, route-stop ownership, Feedback lifecycle,
+or Mobile/ESP32/LoRaWAN acquisition semantics.
+
+Exact changed architecture evidence includes `docker-compose.prod.yml`, `env.production.example`,
+`scripts/ci-checks.sh`, `scripts/test-production-topology.mjs`,
+`docs/tasks/T9-production-topology-origin-handoff.md`,
+`docs/operations/university-server-network-handoff.md`,
+`shuttle-tracking-backend/src/config/prisma.ts`, `shuttle-tracking-backend/src/config/redis.ts`,
+`shuttle-tracking-backend/src/config/runtime.ts`,
+`shuttle-tracking-backend/src/config/validate-runtime.ts`,
+`shuttle-tracking-backend/src/middleware/rate-limit.ts`,
+`shuttle-tracking-backend/src/server.ts`,
+`shuttle-tracking-backend/tests/test_t9_runtime_config.js`,
+`shuttle-tracking-web/config/backend.ts`, the changed `LiveMap`, `FeedbackModal`, tracker/socket
+hooks and API services, and `shuttle-tracking-web/tests/t9-backend-origin.test.ts`; current
+predecessor/decision records changed as listed in the evidence scope. Focused backend, frontend
+(5/5), and static topology checks pass. They prove repository composition and pure configuration
+behavior only, not TLS, forwarded-hop behavior, recovery, capacity, deployment, or Android behavior.
 
 ## 3. Prior-Finding Revalidation
 
@@ -39,6 +63,7 @@ capacity, deployment, or Android behavior.
 | Route-stop cache ownership is incomplete | Resolved | T10 provides bounded active-membership validation, contiguous ordered replacement in one Prisma transaction, and post-success shared public-cache invalidation; legacy create/delete use the same invalidator. Deterministic tests/CI cover the pure boundary, not a stateful cache/DB runtime. |
 | Realtime fan-out/scaling is proven | Unable to Verify | The Redis adapter exists, but publication is global and no rooms, replay, load threshold, or fan-out measurement is evidenced. |
 | Public/admin service-state behavior is an operational contract | Partially Resolved | Canonical state distinguishes live, stale, no_service, and unknown; T8 keeps public projection coherent. C-scope user-facing wording, history, exception handling, and ownership are not implemented. |
+| Production topology and REST/Socket origin authority were unresolved | Partially Resolved | T9 establishes one checked-in university topology, one fail-closed backend runtime parser, and one frontend REST/Socket origin resolver with deterministic tests. Actual reverse proxy, TLS, data-service exposure, restart, recovery, and capacity remain Unable to Verify externally. |
 
 ## 4. Data Products and Authority
 
@@ -53,9 +78,10 @@ capacity, deployment, or Android behavior.
 
 ## 5. Required C-scope Placement
 
-- T9: D-008 now authorizes repository configuration against one university-managed origin. Keep REST
-  and Socket.IO behind one TLS proxy, keep data services private, and stop before external operations
-  unless the named Server/Network owners and approved target are available.
+- T9: repository configuration now implements the one university-managed origin, private data
+  network, loopback app bindings, runtime validation, and application/Server-Network handoff. Keep
+  REST and Socket.IO behind one TLS proxy and stop before external operations unless named owners
+  and an approved target are available.
 - T10: complete for its exact composition/invalidation scope. A future audit must retain the invariant that the public read consumes the changed authoritative sequence rather than treating cache invalidation as a production proof.
 - T11: extend the Operations/lifecycle authority and supporting schema/auth boundaries for receipt-time lastAcceptedAt, 10-minute timeout, no-reopen, Mobile installation/claim, revocation, audit, protected history, and exceptions. A separate Android client remains an external consumer of a versioned contract. General D-007 account-lifecycle policy is not authorized to be invented here.
 - T12: D-009 resolves feedback privacy/retention/triage/deletion and read-only device-view policy. Its feedback and source/device views must remain separate from raw research data and privileged actions, with server role/re-authentication enforcement.
@@ -64,23 +90,28 @@ capacity, deployment, or Android behavior.
 
 1. Define Redis-loss/degraded and recovery behavior before a production claim; the current model cannot recreate a durable current-state/version stream from PostgreSQL.
 2. Keep timeout execution serialized with sender observations and administrative recovery in the same lifecycle transaction/locking order. Rejected/post-close observations must not advance lastAcceptedAt.
-3. Implement hierarchy enforcement at a reusable server authorization boundary after remaining owner policy is approved; current authenticateToken proves identity but has no role authorization.
+3. Preserve the implemented reusable `ADMIN` < `SUPER_ADMIN` < `DEV` authorization and fresh-auth
+   boundary; require D-012 before expanding general account/source lifecycle actions.
 4. Preserve T10's explicit cache invalidation and add its stateful public-read proof only on an approved disposable target; do not fall back to TTL semantics.
 5. Preserve the no-raw-public invariant; research data requires distinct authentication and provenance/retention semantics.
 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
-T9 is eligible for an exact repository-side handoff under D-008. T10/T12 are complete for their
+T9 is Partially Complete for its repository-side handoff under D-008. T10/T12 are complete for their
 bounded handoffs. T11 needs focused technical and external Android evidence. Production operations,
 runtime retention, capacity and external-device facts remain open; no new owner decision is proposed.
 
 Confidence is High for code-visible authority and missing boundaries, Medium for T8 local projection because deterministic and isolated-browser tests exist, and Low for distributed recovery, deployment, load, hardware, provider, Android, and real operations outcomes.
 
-## 8. Handoff
+## 8. Proposed Owner Decisions and Handoff
 
-Backend, Frontend, and Database are independently eligible for the D-008 revalidation using this
-Architecture baseline. They must not promote a policy direction or simulator into implementation or
-runtime evidence.
+No new owner decision is proposed. D-011 and D-012 remain pending and constrain only their stated
+UX-order and general account/source lifecycle questions; external T9 acceptance remains evidence,
+not a policy choice to infer.
+
+Backend, Frontend, and Database completed their independent T9 revalidations using this Architecture
+baseline, and every downstream profile is current. None promotes a policy direction or simulator
+into implementation or runtime evidence.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 
