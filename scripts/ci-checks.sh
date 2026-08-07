@@ -15,7 +15,7 @@ docker compose --env-file "$repo_root/env.example" -f "$repo_root/docker-compose
 
 echo "== Unsafe dynamic logging check =="
 if rg -n --glob '*.ts' --glob '*.tsx' \
-  'console\.(log|warn|error)\([^)]*(,\s*error\b|req\.body|req\.headers|process\.env|REDIS_URL|DATABASE_URL|JWT_SECRET|TTN_WEBHOOK_SECRET|secretHash)' \
+  'console\.(log|warn|error)\([^)]*(,\s*error\b|req\.body|req\.headers|process\.env|REDIS_URL|DATABASE_URL|JWT_SECRET|TTN_WEBHOOK_SECRET|secretHash|rawData)' \
   "$repo_root/shuttle-tracking-backend/src"; then
   echo "Unsafe dynamic logging call found" >&2
   exit 1

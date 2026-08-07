@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:simulator-tooling": "node --test tests/simulator-tooling.test.mjs",
     "test:t8": "node --test --experimental-strip-types tests/t8-public-state.test.ts",
     "test:e2e:t8": "playwright test -c playwright.config.ts",
-    "check": "npm run test:t8 && npm run test:e2e:t8 && npm run lint && npm run build"
+    "check": "npm run test:simulator-tooling && npm run test:t8 && npm run test:e2e:t8 && npm run lint && npm run build"
   },
   "dependencies": {
     "@turf/turf": "^7.3.4",

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 
 const { emitOperationalSignal, getRequestId } = await import('../dist/services/operational-signals.js');
 
@@ -57,5 +58,15 @@ assert.equal(Object.hasOwn(failed, 'secret'), false);
 assert.equal(JSON.stringify(failed).includes('password'), false);
 assert.notEqual(getRequestId('bad request id with spaces'), 'bad request id with spaces');
 assert.match(getRequestId('req-456'), /^req-456$/);
+
+const serverSource = await readFile('src/server.ts', 'utf8');
+const consoleCalls = serverSource.match(/console\.(?:log|warn|error)\([\s\S]*?\);/g) ?? [];
+for (const call of consoleCalls) {
+  assert.doesNotMatch(call, /\brawData\b/);
+}
+assert.match(
+  serverSource,
+  /emitSocketOutcome\(\{ level: 'warn', outcome: 'rejected', reasonCode: invalid\.code \}\);/,
+);
 
 console.log('Operational signal redaction tests passed.');

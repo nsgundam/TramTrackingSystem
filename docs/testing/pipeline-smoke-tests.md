@@ -49,6 +49,10 @@ and checks the safe `{ ok: true, canonicalLocation }` acknowledgement. It exits 
 node --env-file=.env shuttle-tracking-web/simulate.js --once
 ```
 
+The simulator defaults only to `http://localhost:3001`. Set `API_URL` and, when needed,
+`SOCKET_URL` explicitly to use another approved disposable target; never rely on a checked-in
+non-local endpoint. It exits before connecting when `TRACKING_SOURCE_SECRET_MOBILE` is absent.
+
 Expected output includes `Socket ACK ok=true`, `source=TS_MOB_01`, and `type=mobile`. The simulator
 does not print the mobile source secret or the sender token.
 

@@ -246,7 +246,6 @@ io.on("connection", (socket) => {
       } catch (error) {
         const invalid = mapBoundaryError(error, new BoundaryError(400, 'INVALID_REQUEST', 'Location payload is invalid'));
         const response = { ok: false, code: invalid.code, error: invalid.message };
-        console.warn(`[Socket.IO] send-location invalid payload rejected: ${invalid.message}`, { rawData });
         emitSocketOutcome({ level: 'warn', outcome: 'rejected', reasonCode: invalid.code });
         respond(response);
         socket.emit('error-response', response);

@@ -1,5 +1,4 @@
 import { io } from 'socket.io-client';
-import { jwtDecode } from 'jwt-decode';
 import readline from 'readline';
 
 const rawBackendUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
@@ -7,7 +6,7 @@ const API_URL = rawBackendUrl.endsWith('/api') ? rawBackendUrl : `${rawBackendUr
 const SOCKET_URL = process.env.SOCKET_URL || API_URL.replace(/\/api\/?$/, '');
 const VEHICLE_ID = process.env.TRACKING_VEHICLE_ID_MOBILE || 'VH001';
 const SOURCE_ID = process.env.TRACKING_SOURCE_ID_MOBILE || 'TS_MOB_01';
-const SOURCE_SECRET = process.env.TRACKING_SOURCE_SECRET_MOBILE;
+const SOURCE_SECRET = process.env.TRACKING_SOURCE_SECRET_MOBILE?.trim();
 
 const socket = io(SOCKET_URL, { autoConnect: false, reconnection: true });
 let senderToken = null;
@@ -67,10 +66,9 @@ async function loginSender() {
 
   const data = await res.json();
   if (!res.ok || !data.token) {
-    throw new Error(`REST Login Rejected (HTTP ${res.status}): ${data.code || data.error || 'unknown error'}`);
+    throw new Error(`REST Login Rejected (HTTP ${res.status}): ${data.code || 'UNKNOWN_ERROR'}`);
   }
   console.log('✅ Mobile Token acquired successfully.');
-  console.log('Token Claims:', jwtDecode(data.token));
   return data.token;
 }
 
@@ -85,7 +83,7 @@ async function startTrip(token) {
   });
   const data = await res.json();
   if (!res.ok) {
-    console.error('⚠️ Failed to start trip registry:', data);
+    console.error(`⚠️ Failed to start trip registry (HTTP ${res.status}): ${data.code || 'UNKNOWN_ERROR'}`);
     return null;
   }
   console.log('🎬 Trip Session Active ID:', data.trip?.id || data.id || 'AUTO_TRACKED');
@@ -171,7 +169,11 @@ async function sendLocation(lat, lng, speed, bearing, station) {
       return;
     }
 
-    console.log(`📡 [WS Emit] Lat: ${lat.toFixed(6)} | Lng: ${lng.toFixed(6)} | Status: ${station} | Bearing: ${bearing.toFixed(2)}°`);
+    console.log(
+      `Manual ACK ok=true source=${response.canonicalLocation?.sourceId || SOURCE_ID}` +
+      ` type=${response.canonicalLocation?.sourceType || 'unknown'}` +
+      ` vehicle=${response.canonicalLocation?.vehicleId || VEHICLE_ID}`,
+    );
   } catch (e) {
     console.error('❌ Emission Failure:', e.message);
   }
@@ -184,7 +186,9 @@ async function runManualSimulator() {
     if (!tripId) tripId = null;
   } catch (err) {
     console.error('❌ Initialization Flow Broke:', err.message);
+    socket.disconnect();
     rl.close();
+    process.exitCode = 1;
     return;
   }
 
