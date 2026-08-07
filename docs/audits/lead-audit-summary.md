@@ -1,30 +1,35 @@
 # Lead Audit Summary
 
-Last updated: 2026-08-01
+Last updated: 2026-08-07
 
-Coordination status: **Roadmap revalidated; T12 is complete for its exact source/test scope.** T10 is
-also complete for its exact bounded scope. T9 remains D-008 topology blocked and T11 remains blocked
-on its external Android acceptance artifact and exact lifecycle handoff. Repository CI and Compose
-evidence are not deployment, provider, or physical-device proof.
+Coordination status: **Affected audits and Roadmap revalidated after M-20260807-01/02/03; production
+remains No-Go.** SEC-01 and unsafe Mobile simulator output/defaults are resolved at source/test level.
+T9 remains D-008 topology blocked, T11 remains blocked on its external Android acceptance artifact
+and exact lifecycle handoff, and T14 remains blocked on owner priority plus an exact task handoff.
+Repository CI and Compose evidence are not deployment, provider, credential-rotation, UX-acceptance,
+or physical-device proof.
 
-## Current coordination update — 2026-08-01
+## Current coordination update — 2026-08-07
 
-This update supersedes the historical baseline statements below. Discovery through Roadmap have been
-re-audited at committed baseline `6697acb...` plus the current D-009/D-010 decision working copy.
-T10 is **Complete for its exact handoff scope**: authenticated route-stop replacement validates active
-membership, assigns contiguous order, writes transactionally, invalidates public cache, and is surfaced
-in the Admin Routes page. Backend check, frontend lint/build, and repository CI passed; no ambient
-database/browser/cache workflow was authorized.
+This update supersedes prior active coordination statements while retaining the historical snapshots
+below. The immutable source baseline is
+`acada7f618ca74d32e7b5b76f3c75e69e4aa3354`.
 
-D-009/D-010:A are now implemented for T12's exact scope: the reviewed migration maps legacy
-`OPERATOR` to `ADMIN` and sets the future default; server middleware rechecks current allowlisted
-roles and requires 15-minute fresh authentication for privileged Feedback delete/restore; the public
-notice, accountable inbox, safe source-health view, lifecycle/audit/retention code, and deterministic
-tests are present. `bash scripts/ci-checks.sh` passes. No database migration, retention run, or
-role/feedback browser acceptance was authorized. SEC-01 remains a separate corrective maintenance
-blocker.
-The controlled demo remains Conditional Go; research field trials, daily operations, and public service
-remain No-Go.
+- M-20260807-01 removes raw invalid Socket.IO payload logging while preserving the stable rejection
+  response and allowlisted outcome signal; focused and CI regression guards cover `rawData`.
+- M-20260807-02/03 remove the automated simulator's non-local/default-credential behavior, redact
+  raw/token/coordinate output from both Mobile simulators, restore a deterministic one-shot path, and
+  exclude Playwright artifacts from Git and Docker context.
+- Infrastructure & Device, Dashboard & UX, Security/DevOps/Observability, Production Readiness, and
+  Roadmap were revalidated. The required Impeccable Dashboard & UX audit scores **9/20 (Poor)** with
+  no P0 and open truthful-state, modal/focus/form, Feedback-association, mobile-navigation,
+  responsive, and maintainability findings.
+- The supported monolith remains appropriate. No UI implementation, microservice split, database
+  migration, retention run, simulator target, deployment, provider, credential rotation, hardware,
+  field test, or human browser acceptance was performed.
+
+The controlled local demo remains Conditional only; research field trials, daily operations, and
+public service remain No-Go.
 
 ## Historical T6 snapshot — superseded by the current coordination update
 
@@ -47,28 +52,30 @@ now supersedes that release assumption without changing the already-tested T6 co
 
 ## 2. Current profile status
 
-- Discovery: **Complete / Validated** at `6697acb...` plus current T12 working-tree evidence and external-evidence limits.
+- Discovery: **Complete / Validated** at its recorded baseline plus committed T12 evidence and external-evidence limits.
 - Product: **Complete / Validated**; T10/T12 exact journeys are implemented, without human acceptance evidence.
 - Architecture: **Complete / Validated**; persisted RBAC/fresh-auth and Feedback/safe-DTO boundaries are current.
 - Backend: **Complete / Validated**; T12 server models, role enforcement, deterministic tests, and CI are current.
 - Frontend: **Complete / Validated**; public notice, inbox, and read-only health UI build, but no ambient browser role workflow ran.
 - Database: **Complete / Validated**; T12's reviewed additive migration/lifecycle/audit/retention design is current but unexecuted.
-- Infrastructure & Device: **Complete / Validated**; D-008 and all physical/provider evidence remain unavailable.
-- Dashboard & UX: **Complete / Validated**; T12 inbox/health journeys are present; dashboard/accessibility evidence remains open.
-- Security, DevOps & Observability: **Complete / Validated**; D-007/D-009/D-010:A enforcement is current; SEC-01/runtime operations remain release blockers.
-- Production Readiness: **Complete / Validated / No-Go**; SEC-01, D-008, T11, and field/runtime evidence remain blockers.
-- Roadmap: **Complete / Validated**; T10/T12 are complete for exact scopes; T9/T11 remain blocked.
+- Infrastructure & Device: **Complete / Validated**; M-20260807-02/03 tooling boundaries are current, while D-008 and all physical/provider evidence remain unavailable.
+- Dashboard & UX: **Complete / Validated**; required technical audit is 9/20 (Poor), with no P0 and unresolved T14 P1/P2 scope.
+- Security, DevOps & Observability: **Complete / Validated**; SEC-01 and simulator-output findings are resolved at source/test level; D-008, external credential rotation, broad scanning, and durable runtime operations remain open.
+- Production Readiness: **Complete / Validated / No-Go**; D-008, T11, T12 runtime, 9/20 UX, operations, credential, device/provider, and field evidence remain blockers.
+- Roadmap: **Complete / Validated**; M-20260807-01/02/03 do not change ordering; T9/T11 remain blocked and T14 awaits owner priority/exact handoff.
 
 ## 3. Evidence and validation
 
-The T12 re-audit compares the committed `6697acb...` baseline plus approved D-009/D-010:A against
-the current implementation working tree. `bash scripts/ci-checks.sh` passed: backend build/boundary
-tests (including T12 role/fresh-auth/retention/safe-DTO coverage), Prisma validation, frontend
-lint/build, development/production Compose parsing, dynamic-log check, workflow validation, and the
-isolated Playwright T8 route-switch fixture. Frontend lint retains two pre-existing warnings in
-`app/layout.tsx` and `utils/IconHelpers.ts`.
-No T12 database migration, retention purge, role/feedback browser acceptance, Socket.IO interruption,
-deployment, provider, hardware, or ambient stateful check was run.
+`bash scripts/ci-checks.sh` passed after the final M-20260807-03 source changes: backend build and
+boundary tests, Prisma validation, simulator tooling tests (4/4), T8 state tests and isolated
+Playwright coverage, frontend lint/build, development/production Compose parsing, dynamic-log guard,
+and workflow validation. An earlier run exposed a transient pre-existing T8 expiry timing failure;
+the immediate full rerun and the later final full run passed. Frontend lint retains two pre-existing
+warnings in `app/layout.tsx` and `utils/IconHelpers.ts`.
+
+No database migration, retention purge, role/feedback browser acceptance, authenticated invalid-
+payload runtime journey, simulator target, Socket.IO interruption, deployment, provider, credential
+rotation, hardware, field, or ambient stateful check was run.
 
 ## 4. Decisions and next action
 
@@ -95,14 +102,18 @@ discard. Driver-facing `SOURCE_ID` entry is removed from the direction; a non-se
 the primary selector and a printed short code may provide the same authenticated-session-only
 fallback, while internal source provenance remains required. The current focused identity decision
 is `docs/audits/specialized/T11-identity-mobile-sender-enrollment.md`. The focused T11 owner
-policy is complete; stale predecessor re-audits, exact implementation parameters/handoff, and
-external Android acceptance evidence remain required.
+policy is complete; exact implementation parameters/handoff and external Android acceptance evidence
+remain required.
 D-008 records university infrastructure/AWS/VPS and post-server domain sequencing but remains pending
-for exact topology, TLS, data placement, and operational owners. There is no further eligible task in
-the user-approved T9–T12 batch: T9 remains D-008 blocked, T11 remains blocked on the external Android
-artifact/exact lifecycle handoff, and T12 is complete for exact scope. A later approved disposable or
-staging rollout may supply T12 runtime evidence but does not bypass T9/T11 or grant deployment scope.
+for exact topology, TLS, data placement, and operational owners. T14's audit is current, but the owner
+must choose the exact priority screens/actions and acceptance journeys before an implementation task
+can be handed off. There is no further implementation-ready roadmap task: T9 remains D-008 blocked,
+T11 remains blocked on the external Android artifact/exact lifecycle handoff, T13 depends on T9 and
+approved operations evidence, T14 awaits owner priority/exact handoff, and T15 awaits physical facts
+and T13. A later approved disposable or staging rollout may supply T12 runtime evidence but does not
+bypass these gates or grant deployment scope.
 
-Confidence is **High** for the recorded owner directions and repository-visible T8 state path,
-**Medium** for the provisional T9–T15 gate mapping, and **Low** for deployment, provider,
-physical-device, destructive-data operations, and real-world operator outcomes until re-audited.
+Confidence is **High** for the recorded owner directions and repository-visible source/test evidence,
+**Medium** for the provisional T9–T15 gate mapping, and **Low** for deployment, provider, credential
+rotation, human UX outcomes, physical-device, destructive-data operations, and real-world operator
+outcomes until external evidence exists.
