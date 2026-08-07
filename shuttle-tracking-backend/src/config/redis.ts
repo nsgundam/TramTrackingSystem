@@ -1,9 +1,14 @@
+import 'dotenv/config';
 import { createClient } from 'redis';
 import { emitOperationalSignal } from '../services/operational-signals.js';
+import { parseRuntimeConfig } from './runtime.js';
 
-const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+const { redis } = parseRuntimeConfig(process.env);
 
-export const redisClient = createClient({ url: REDIS_URL });
+export const redisClient = createClient({
+    url: redis.url,
+    ...(redis.password ? { password: redis.password } : {}),
+});
 
 redisClient.on('error', () => {
     emitOperationalSignal({

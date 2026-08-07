@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { type NextFunction, type Request, type Response } from "express";
 import cors from "cors";
 import { createServer } from "http";
@@ -49,8 +50,15 @@ import {
   emitOperationalSignal,
   getRequestId,
 } from "./services/operational-signals.js";
+import {
+  CORS_METHODS,
+  isAllowedRequestOrigin,
+  parseRuntimeConfig,
+} from './config/runtime.js';
 
+const runtimeConfig = parseRuntimeConfig(process.env);
 const app = express();
+app.set('trust proxy', runtimeConfig.trustProxy);
 
 app.use((req, res, next) => {
   const requestId = getRequestId();
@@ -85,16 +93,10 @@ const configuredSocketBuffer = (() => {
 // HTTP server and Socket.IO setup
 const httpServer = createServer(app);
 
-const FRONTEND_URLS = [
-  process.env.FRONTEND_URL,
-  "http://localhost:3000",
-  "http://127.0.0.1:3000"
-].filter(Boolean) as string[];
-
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
 
-    if (!origin || FRONTEND_URLS.includes(origin)) {
+    if (isAllowedRequestOrigin(origin, runtimeConfig.frontendOrigins)) {
       callback(null, true);
     } else {
       console.warn('CORS blocked origin');
@@ -102,7 +104,7 @@ const corsOptions = {
     }
   },
   credentials: true,
-  methods: ['GET', 'POST'],
+  methods: [...CORS_METHODS],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
@@ -422,8 +424,6 @@ app.use((error: unknown, req: Request, res: Response, next: NextFunction) => {
   res.status(mapped.status).json({ code: mapped.code, error: mapped.message });
 });
 
-const PORT = process.env.PORT;
-
 const startServer = async () => {
   try {
     // Connect to Redis
@@ -438,7 +438,7 @@ const startServer = async () => {
     io.adapter(createAdapter(pubClient, subClient));
     console.log("[Socket.IO] Redis adapter attached");
 
-    httpServer.listen(PORT, () => {
+    httpServer.listen(runtimeConfig.port, () => {
       emitOperationalSignal({
         event: 'startup.outcome',
         level: 'info',

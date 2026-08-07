@@ -11,7 +11,10 @@ npm --prefix "$repo_root/shuttle-tracking-web" run check
 
 echo "== Compose validation =="
 docker compose --env-file "$repo_root/env.example" -f "$repo_root/docker-compose.yml" config --quiet
-docker compose --env-file "$repo_root/env.example" -f "$repo_root/docker-compose.prod.yml" config --quiet
+docker compose --env-file "$repo_root/env.production.example" -f "$repo_root/docker-compose.prod.yml" config --quiet
+
+echo "== Production topology contract =="
+node "$repo_root/scripts/test-production-topology.mjs"
 
 echo "== Unsafe dynamic logging check =="
 if rg -n --glob '*.ts' --glob '*.tsx' \

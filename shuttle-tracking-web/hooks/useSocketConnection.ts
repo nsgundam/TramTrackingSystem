@@ -2,10 +2,10 @@
 import { useEffect } from "react";
 import L from "leaflet";
 import { io, Socket } from "socket.io-client";
+import { backendConnection } from "@/config/backend";
 import { LocationUpdateData } from "@/types";
 
 interface UseSocketOptions {
-  configuredBackendOrigin?: string;
   mapRef: React.RefObject<L.Map | null>;
   isZoomingRef: React.MutableRefObject<boolean>;
   pendingUpdatesRef: React.MutableRefObject<Record<string, LocationUpdateData>>;
@@ -15,7 +15,6 @@ interface UseSocketOptions {
 }
 
 export function useSocketConnection({
-  configuredBackendOrigin,
   mapRef,
   isZoomingRef,
   pendingUpdatesRef,
@@ -24,7 +23,6 @@ export function useSocketConnection({
   acceptCanonicalState,
 }: UseSocketOptions) {
   useEffect(() => {
-    const socketOrigin = configuredBackendOrigin || "http://localhost:3001";
     let disposed = false;
     let socket: Socket | null = null;
     let hasConnected = false;
@@ -37,7 +35,7 @@ export function useSocketConnection({
       }
       if (disposed) return;
 
-      socket = io(socketOrigin, { autoConnect: false });
+      socket = io(backendConnection.socketOrigin, { autoConnect: false });
       socket.on("connect", () => {
         if (hasConnected) void hydrateActiveVehicles();
         hasConnected = true;
@@ -59,7 +57,6 @@ export function useSocketConnection({
       socket?.disconnect();
     };
   }, [
-    configuredBackendOrigin,
     mapRef,
     isZoomingRef,
     pendingUpdatesRef,

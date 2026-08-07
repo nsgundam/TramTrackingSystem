@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { io, Socket } from "socket.io-client";
+import { backendConnection } from "@/config/backend";
 import { getActiveVehicles } from "@/services/publicApi";
 import {
   CanonicalVehicleStateV1,
@@ -26,10 +27,6 @@ export default function LiveMap() {
   const hasConnectedRef = useRef(false);
 
   useEffect(() => {
-    const configuredBackendOrigin =
-      process.env.NEXT_PUBLIC_BACKEND_URL ||
-      (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api").replace(/\/api\/?$/, "");
-    const socketUrl = configuredBackendOrigin;
     let disposed = false;
     let socket: Socket | null = null;
 
@@ -45,7 +42,7 @@ export default function LiveMap() {
     };
 
     const hydrate = async () => {
-      const vehicles = await getActiveVehicles(configuredBackendOrigin);
+      const vehicles = await getActiveVehicles();
       vehicles.forEach((vehicle) => acceptState(vehicle.state));
     };
 
@@ -53,7 +50,7 @@ export default function LiveMap() {
       await hydrate();
       if (disposed) return;
 
-      socket = io(socketUrl, { autoConnect: false });
+      socket = io(backendConnection.socketOrigin, { autoConnect: false });
       socket.on("connect", () => {
         setConnectionState("connected");
         if (hasConnectedRef.current) void hydrate();

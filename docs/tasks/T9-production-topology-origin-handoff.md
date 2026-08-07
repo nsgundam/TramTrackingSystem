@@ -147,7 +147,7 @@
   release version. Its source requires every production secret without a usable default, its
   tracked example uses placeholders, and no database/Redis/JWT/TTN secret enters frontend build or
   runtime variables.
-- Production runtime rejects missing/placeholder/weak secrets, malformed/local data URLs, missing
+- Production runtime rejects missing/placeholder/weak secrets, malformed data URLs, missing
   database or Redis authentication, loopback/localhost data fallbacks, insecure/local/path-bearing
   frontend origins, and
   missing/broad/numeric proxy trust without revealing values. Valid explicit production
@@ -197,10 +197,59 @@ the University Server/Network Team.
 
 ## Completion Evidence
 
-- Status: `In Progress`
-- Acceptance mapping: Pending implementation and Main Agent verification.
-- Changed files: Pending.
-- Validation results: Pending.
-- Audit freshness changes: Pending. After the Main Agent reviews the final diff, downgrade only rows
-  whose evidence scope or predecessor changed and record a row-specific rationale; do not
-  pre-approve a fixed list.
+- Status: `Partially Complete — repository handoff passed; external University Server/Network
+  acceptance unavailable`
+- Acceptance mapping:
+  - Private data network, loopback app ports, authenticated non-root Redis, versioned images,
+    healthchecks, dependency order, required secrets, sanitized placeholders, and frontend secret
+    exclusion → `node scripts/test-production-topology.mjs` and production Compose rendering passed.
+  - Fail-closed backend URLs/secrets/origin/proxy/port, known-placeholder and mapped-loopback
+    rejection, CORS behavior/methods, Express proxy predicate, `req.ip`, safe errors, and exported
+    production `NODE_ENV` before migration → backend check and `test_t9_runtime_config.js` passed.
+  - Same-origin production REST/Socket, explicit HTTPS demo origin, matching legacy development
+    inputs, conflict/local/path rejection, one consumer authority, no localhost Next rewrite, T8
+    behavior, isolated browser route-switch behavior, lint, and production build → frontend check
+    passed, including T9 5/5 and Playwright 1/1.
+  - Release identity, responsibility acceptance, reverse-proxy routes, `0600` secret boundary,
+    pre-migration backup, atomic private dump, disposable restore, post-restore validation,
+    artifact/database rollback distinction, monitoring, incident, and every D-008 external item →
+    `docs/operations/university-server-network-handoff.md` passed Main Agent and independent
+    frontend/topology review; execution remains external.
+  - Required repository gates → `bash scripts/ci-checks.sh`, agent workflow validation, and diff
+    check passed. Independent backend and frontend/topology reviews reported no remaining
+    Critical/Major finding.
+  - HTTPS/WSS, public ports, actual proxy chain, restart, restore, alerts, named contacts, host facts,
+    demo isolation, and 10-vehicle/10,000-viewer capacity → `Unavailable — external target/operator
+    required`; therefore T9 and Production Readiness remain incomplete/No-Go.
+- Changed files: `docs/tasks/T9-production-topology-origin-handoff.md`, `docker-compose.prod.yml`,
+  `env.production.example`, `scripts/test-production-topology.mjs`, `scripts/ci-checks.sh`,
+  `shuttle-tracking-backend/src/config/runtime.ts`,
+  `shuttle-tracking-backend/src/config/validate-runtime.ts`,
+  `shuttle-tracking-backend/src/config/prisma.ts`,
+  `shuttle-tracking-backend/src/config/redis.ts`, `shuttle-tracking-backend/src/server.ts`,
+  `shuttle-tracking-backend/src/middleware/rate-limit.ts`,
+  `shuttle-tracking-backend/docker-entrypoint.sh`,
+  `shuttle-tracking-backend/tests/test_t9_runtime_config.js`,
+  `shuttle-tracking-backend/package.json`, `shuttle-tracking-backend/README.md`,
+  `shuttle-tracking-web/config/backend.ts`, `shuttle-tracking-web/services/api.ts`,
+  `shuttle-tracking-web/services/publicApi.ts`,
+  `shuttle-tracking-web/hooks/useShuttleTracker.ts`,
+  `shuttle-tracking-web/hooks/useSocketConnection.ts`,
+  `shuttle-tracking-web/components/public/FeedbackModal.tsx`,
+  `shuttle-tracking-web/components/admin/LiveMap.tsx`, `shuttle-tracking-web/next.config.ts`,
+  `shuttle-tracking-web/tests/t9-backend-origin.test.ts`,
+  `shuttle-tracking-web/package.json`, `docs/operations/university-server-network-handoff.md`,
+  `docs/roadmap/master-refactoring-roadmap.md`, and `docs/audits/README.md`.
+- Validation results (2026-08-07): backend `npm run check` passed (build, boundaries, T9, Prisma);
+  frontend `npm run check` passed (simulator, T8, T9 5/5, Playwright 1/1, lint with the two
+  pre-existing warnings, same-origin build); production topology/Compose, full repository CI,
+  workflow validation, and diff check passed. Node emitted the existing module-type/deprecation
+  warnings. During red-team review, an accidental entrypoint invocation reached `prisma migrate
+  deploy` against a dummy localhost URL and failed with `P1001` before connection; no migration or
+  data mutation occurred.
+- Audit freshness changes: all register rows are downgraded to `Needs Re-audit — T9`. Discovery,
+  Architecture, Backend, Frontend, Infrastructure, Security, Production Readiness, and Roadmap
+  directly consume changed task/config/source/test/runbook evidence. Product and Dashboard & UX
+  directly consume the changed tracker/feedback/LiveMap/services/tests even though no UI change was
+  intended. Database consumes the changed Prisma/Redis runtime boundary, backend tests, and changed
+  predecessors; no schema or target data changed.

@@ -4,17 +4,17 @@ Last updated: 2026-08-07
 
 | Phase | Status | Report / evidence | Evidence baseline | Last reviewed | Notes |
 |---|---|---|---|---|---|
-| Discovery | Complete | `docs/project-knowledge-base.md` | `82f4d97` | 2026-08-07 | D-008 university production handoff is recorded; actual deployment/device facts remain external. |
-| Product | Complete | `docs/audits/product-audit.md` | `82f4d97` | 2026-08-07 | D-008 changes deployment ownership, not product journeys; staff/rider acceptance remains unverified. |
-| Architecture | Complete | `docs/audits/architecture-audit.md` | `82f4d97` | 2026-08-07 | Single-host/single-origin handoff preserves the supported monolith; implementation/runtime evidence remains open. |
-| Backend | Complete | `docs/audits/backend-audit.md` | `82f4d97` | 2026-08-07 | T9 origin/proxy/CORS/fail-closed configuration is eligible for an exact handoff; no proxy runtime ran. |
-| Frontend | Complete | `docs/audits/frontend-audit.md` | `82f4d97` | 2026-08-07 | D-008 approves one origin; duplicated localhost fallbacks remain T9 implementation work. |
-| Database | Complete | `docs/audits/database-audit.md` | `82f4d97` | 2026-08-07 | D-008 assigns private data/recovery ownership; no target migration, backup or restore ran. |
-| Infrastructure & Device | Complete | `docs/audits/infrastructure-device-audit.md` | `82f4d97` | 2026-08-07 | Logical topology/owners are approved; actual host/network/TLS and all physical/provider evidence remain unavailable. |
-| Dashboard & UX | Complete | `docs/audits/dashboard-ux-audit.md` | `82f4d97` | 2026-08-07 | D-008 has no UI effect; technical audit remains 9/20 (Poor) with T14 truth/accessibility gates. |
-| Security, DevOps & Observability | Complete | `docs/audits/security-devops-observability-audit.md` | `82f4d97` | 2026-08-07 | D-008 policy is resolved; T9 source gaps and external TLS/secret/recovery/alert evidence remain open. |
-| Production Readiness | Complete | `docs/audits/production-readiness-audit.md` | `82f4d97` | 2026-08-07 | Validated No-Go: D-008 policy is approved, but T9/external acceptance, T11, runtime T12, UX, operations and field evidence remain blockers. |
-| Roadmap | Complete | `docs/roadmap/master-refactoring-roadmap.md` | `82f4d97` | 2026-08-07 | T9 is eligible for an exact repository handoff; T11 remains blocked; D-011/D-012 record T14 and general lifecycle owner gates. |
+| Discovery | Needs Re-audit | `docs/project-knowledge-base.md` | `82f4d97` | 2026-08-07 | T9 changed Compose/configuration, backend/frontend source/tests, task and operations evidence; external facts remain unavailable. |
+| Product | Needs Re-audit | `docs/audits/product-audit.md` | `82f4d97` | 2026-08-07 | T9 consolidated tracker/feedback/LiveMap REST/Socket connections; no journey change was intended, but direct evidence paths changed. |
+| Architecture | Needs Re-audit | `docs/audits/architecture-audit.md` | `82f4d97` | 2026-08-07 | T9 added central backend runtime and frontend origin authorities plus private production networks. |
+| Backend | Needs Re-audit | `docs/audits/backend-audit.md` | `82f4d97` | 2026-08-07 | T9 implemented fail-closed runtime, proxy/CORS/client-address, Prisma/Redis and pre-migration validation boundaries. |
+| Frontend | Needs Re-audit | `docs/audits/frontend-audit.md` | `82f4d97` | 2026-08-07 | T9 removed duplicated fallbacks/localhost rewrites and added one same-origin-capable REST/Socket resolver. |
+| Database | Needs Re-audit | `docs/audits/database-audit.md` | `82f4d97` | 2026-08-07 | T9 changed Prisma/Redis connection validation and predecessors; no schema, migration, backup or target data changed. |
+| Infrastructure & Device | Needs Re-audit | `docs/audits/infrastructure-device-audit.md` | `82f4d97` | 2026-08-07 | T9 changed production networks, bindings, Redis auth, healthchecks, env schema and handoff runbook; host/device facts remain external. |
+| Dashboard & UX | Needs Re-audit | `docs/audits/dashboard-ux-audit.md` | `82f4d97` | 2026-08-07 | Shared tracker, Feedback and Admin LiveMap connection paths changed without intended UI redesign; prior 9/20 findings still require validation. |
+| Security, DevOps & Observability | Needs Re-audit | `docs/audits/security-devops-observability-audit.md` | `82f4d97` | 2026-08-07 | T9 added private/authenticated template and static guards; TLS, deployed secrets, restore, alerts and runtime proxy evidence remain external. |
+| Production Readiness | Needs Re-audit | `docs/audits/production-readiness-audit.md` | `82f4d97` | 2026-08-07 | T9 repository checks passed, but external acceptance and the existing T11/T12/UX/operations/device/field gates keep release No-Go. |
+| Roadmap | Needs Re-audit | `docs/roadmap/master-refactoring-roadmap.md` | `82f4d97` | 2026-08-07 | T9 is partially complete for repository delivery and still blocks T13/public release on external acceptance; dependency state needs Level 1 validation. |
 
 `Evidence baseline` records the immutable source/decision commit consumed by each report. Each
 report's metadata remains authoritative for its full scope and predecessor chain.

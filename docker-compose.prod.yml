@@ -1,48 +1,51 @@
 services:
-  # ============================================
-  # PostgreSQL + PostGIS
-  # ============================================
   db:
     image: postgis/postgis:16-3.4-alpine
-    platform: linux/amd64
     container_name: shuttle-db-prod
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-shuttle_user}
+      POSTGRES_USER: "${POSTGRES_USER:?POSTGRES_USER must be set for production}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set for production}"
-      POSTGRES_DB: ${POSTGRES_DB:-shuttle_tracking}
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: "${POSTGRES_DB:?POSTGRES_DB must be set for production}"
     volumes:
       - pgdata-prod:/var/lib/postgresql/data
-      - ./docker/init-postgis.sh:/docker-entrypoint-initdb.d/init-postgis.sh
+      - ./docker/init-postgis.sh:/docker-entrypoint-initdb.d/init-postgis.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-shuttle_user} -d ${POSTGRES_DB:-shuttle_tracking}"]
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    networks:
+      - data
 
-  # ============================================
-  # Redis
-  # ============================================
   redis:
     image: redis:alpine
     container_name: shuttle-redis-prod
     restart: always
-    ports:
-      - "6379:6379"
+    user: redis
+    environment:
+      REDIS_PASSWORD: "${REDIS_PASSWORD:?REDIS_PASSWORD must be set for production}"
+    command:
+      - sh
+      - -ec
+      - |
+        umask 077
+        printf 'appendonly yes\nrequirepass %s\n' "$$REDIS_PASSWORD" > /tmp/redis.conf
+        exec redis-server /tmp/redis.conf
     volumes:
       - redisdata-prod:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli --no-auth-warning ping | grep -q PONG"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+    networks:
+      - data
 
-  # ============================================
-  # Backend – Production Mode
-  # ============================================
   backend:
+    image: "tram-tracking-backend:${APP_VERSION:?APP_VERSION must identify the release}"
     build:
       context: ./shuttle-tracking-backend
       dockerfile: Dockerfile
@@ -52,38 +55,66 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3001
-      DATABASE_URL: "postgres://${POSTGRES_USER:-shuttle_user}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set for production}@db:5432/${POSTGRES_DB:-shuttle_tracking}"
+      DATABASE_URL: "${DATABASE_URL:?DATABASE_URL must be set for production}"
       REDIS_URL: redis://redis:6379
+      REDIS_PASSWORD: "${REDIS_PASSWORD:?REDIS_PASSWORD must be set for production}"
       JWT_SECRET: "${JWT_SECRET:?JWT_SECRET must be set for production}"
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
-      SENDER_JWT_EXPIRES_IN: ${SENDER_JWT_EXPIRES_IN:-15m}
-      API_URL: ${API_URL:-http://localhost:3001}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      JWT_EXPIRES_IN: "${JWT_EXPIRES_IN:-8h}"
+      SENDER_JWT_EXPIRES_IN: "${SENDER_JWT_EXPIRES_IN:-15m}"
+      FRONTEND_URL: "${FRONTEND_URL:?FRONTEND_URL must be set for production}"
+      TRUST_PROXY: "${TRUST_PROXY:?TRUST_PROXY must be set for production}"
       TTN_WEBHOOK_SECRET: "${TTN_WEBHOOK_SECRET:?TTN_WEBHOOK_SECRET must be set for production}"
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3001/ready').then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1));"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    networks:
+      - edge
+      - data
 
-  # ============================================
-  # Frontend – Production Mode
-  # ============================================
   frontend:
+    image: "tram-tracking-frontend:${APP_VERSION:?APP_VERSION must identify the release}"
     build:
       context: ./shuttle-tracking-web
       dockerfile: Dockerfile
       target: production
-      args:
-        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3001/api}
     container_name: shuttle-frontend-prod
     restart: always
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/').then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1));"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+    networks:
+      - edge
+
+networks:
+  edge:
+  data:
+    internal: true
 
 volumes:
   pgdata-prod:

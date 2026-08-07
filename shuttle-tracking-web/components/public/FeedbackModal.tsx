@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, memo } from "react";
 import { X, CheckCircle2, MessageSquarePlus, Loader2 } from "lucide-react";
+import { backendConnection } from "@/config/backend";
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -29,7 +30,6 @@ function FeedbackModal({
   isOpen,
   onClose,
   initialVehicleId,
-  apiOrigin,
 }: FeedbackModalProps) {
   const [type, setType] = useState<string>("suggestion");
   const [vehicleId, setVehicleId] = useState<string>(initialVehicleId || "");
@@ -40,19 +40,12 @@ function FeedbackModal({
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Setup the backend API base url
-  const baseOrigin =
-    apiOrigin ||
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api\/?$/, "") ||
-    "http://localhost:3001";
-
   // Fetch active vehicles on modal open
   useEffect(() => {
     const fetchVehicles = async () => {
       setIsLoadingVehicles(true);
       try {
-        const res = await fetch(`${baseOrigin}/api/public/active-vehicles`);
+        const res = await fetch(`${backendConnection.apiBaseUrl}/public/active-vehicles`);
         if (!res.ok) throw new Error("Failed to fetch");
         const data = (await res.json()) as ActiveVehicle[];
         setVehicles(data);
@@ -78,7 +71,7 @@ function FeedbackModal({
     };
 
     fetchVehicles();
-  }, [initialVehicleId, baseOrigin]);
+  }, [initialVehicleId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,7 +84,7 @@ function FeedbackModal({
     setErrorMsg(null);
 
     try {
-      const response = await fetch(`${baseOrigin}/api/public/feedback`, {
+      const response = await fetch(`${backendConnection.apiBaseUrl}/public/feedback`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -129,8 +129,7 @@ export const rateLimit = (config: RateLimitConfig): RequestHandler => async (
 };
 
 export const clientAddress = (req: Request): string => {
-  // Do not trust forwarded headers until the deployment topology explicitly configures a proxy.
-  return req.socket.remoteAddress || 'unknown-client';
+  return req.ip || 'unknown-client';
 };
 
 export const senderKey = (req: Request): string | undefined =>

@@ -5,12 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:check": "NEXT_PUBLIC_BACKEND_ORIGIN= NEXT_PUBLIC_BACKEND_URL= NEXT_PUBLIC_API_BASE_URL= next build",
     "start": "next start",
     "lint": "eslint",
     "test:simulator-tooling": "node --test tests/simulator-tooling.test.mjs",
     "test:t8": "node --test --experimental-strip-types tests/t8-public-state.test.ts",
+    "test:t9": "node --test --experimental-strip-types tests/t9-backend-origin.test.ts",
     "test:e2e:t8": "playwright test -c playwright.config.ts",
-    "check": "npm run test:simulator-tooling && npm run test:t8 && npm run test:e2e:t8 && npm run lint && npm run build"
+    "check": "npm run test:simulator-tooling && npm run test:t8 && npm run test:t9 && npm run test:e2e:t8 && npm run lint && npm run build:check"
   },
   "dependencies": {
     "@turf/turf": "^7.3.4",

@@ -106,7 +106,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T6 | Complete | Re-audited canonical REST/Socket parity, version/route/freshness semantics, frontend guards, admin state surface, and public neutral presentation remain current; T8's focused and isolated browser evidence validates its local-expiry and route-switch boundary. |
 | T7 | Complete for approved disposable scope | Additive implementation, migration, protected export/lifecycle checks, Redis failure/recovery, retention, backup/restore, canonical-boundary, and query-plan evidence passed on 2026-07-29 using the exact D-006 target. Do not promote research capability to production/public operation without the still-missing external operational evidence. |
 | T8 | Complete for approved truthful public-state scope | Local expiry updates Marker/live-count/ETA together and non-live updates remove only the vehicle Marker. Native and isolated Playwright tests cover local expiry, route switching, and a newer canonical `live` restore; D-001=C opens T10's separately scoped route-mutation/cache work after re-audit. |
-| T9 | Eligible for exact repository handoff | D-008 fixes the logical topology/owners. Repository alignment may start after an exact-path task spec; external deployment acceptance remains a completion gate. |
+| T9 | Level 3 record pending Level 1 re-audit — Partially Complete; external acceptance unavailable | Fail-closed runtime/origin configuration, private/authenticated production template, deterministic checks, and the Server/Network runbook passed; external deployment acceptance remains a completion gate. |
 | T10 | Complete | The exact-path handoff delivered authenticated route-stop management, transactional replacement, and public-cache invalidation with deterministic backend and repository-CI evidence. No ambient browser/database smoke ran; this re-audit carries its changed evidence. |
 | T11 | Blocked — technical/external evidence | The policy and v2 acceptance contract are current, but the external Android report/artifact and an exact lifecycle/schema handoff remain. No repository test can prove Android runtime coverage. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
@@ -777,7 +777,8 @@ Level 3 Refactoring Agent under the approved D-008 specialist brief.
 
 ### Execution Mode
 
-Codex + Specialist decision complete; exact Level 3 repository handoff next.
+Codex + Specialist contract followed by the exact Level 3 repository implementation; external
+University Server/Network execution remains separate.
 
 ### Task Brief
 
@@ -801,16 +802,25 @@ approved target with the University Server/Network Team.
 
 ### Status
 
-Eligible for exact Level 3 repository handoff — not started. D-008 closes the application-owner
-policy gate. T9 remains incomplete until its exact task is implemented and the external acceptance
-portion is supplied and accepted. If it remains unavailable, T9 remains incomplete with that blocker
-recorded.
+Level 3 implementation record pending Level 1 re-audit: Partially Complete — repository handoff
+passed; external acceptance unavailable. The production template now keeps data services private,
+authenticates non-root Redis, binds app ports to loopback, uses versioned images and health ordering,
+fails closed on unsafe runtime/origin/proxy values, and uses one frontend REST/Socket authority.
+Focused tests and full CI pass. T9 remains incomplete until the University Server/Network checklist
+is executed and accepted.
 
 ### Evidence
 
-D-003 resolves ordering. The binding D-008 specialist brief records the selected university
-production contract, isolated demo profile, responsibility matrix, failure modes and measurable
-external checklist. No host or deployment was operated.
+D-003 resolves ordering. The binding D-008 v1/v2 briefs and
+`docs/tasks/T9-production-topology-origin-handoff.md` constrain the delivered source/static scope.
+The Server/Network runbook maps release, migration/recovery, proxy, secret, monitoring, incident and
+external acceptance duties. Backend/frontend/topology tests, isolated Playwright, builds and full CI
+passed. During independent review, an accidental entrypoint invocation reached `prisma migrate
+deploy` with a dummy localhost target and failed with `P1001` before connection; this was a
+stop-condition breach, caused no migration/data mutation, and is not runtime acceptance. No host,
+container stack, provider, deployed secret, connected migration target, restore or deployment target
+was operated. HTTPS/WSS, public ports, restart, restore, alerts, contacts and capacity remain
+unavailable. These Level 3 results have not been validated by the pending Level 1 roadmap re-audit.
 
 ## 7. Phase 3 — Feature Completion
 
@@ -1388,8 +1398,8 @@ The monolith remains the supported architecture; this roadmap does not authorize
 ## 15. Handoff
 
 T1–T8, T10, and T12 are complete for their recorded scopes; M-20260807-01/02/03 are complete corrective
-maintenance outside roadmap ordering. T9 is the next eligible repository work unit after an exact-
-path handoff; external Server/Network acceptance remains part of its completion boundary. T11 remains blocked until its external Android acceptance artifact and exact lifecycle handoff
+maintenance outside roadmap ordering. T9's repository handoff is partially complete; external
+Server/Network acceptance remains part of its completion boundary. T11 remains blocked until its external Android acceptance artifact and exact lifecycle handoff
 exist. T14 has current technical audit evidence but remains blocked on owner-selected priority and an
 exact-path handoff. T12 runtime rollout is not authorization to start deployment/public-release work.
 No T11/T13/T14/T15 implementation or deployment/public-release work becomes eligible through D-008.

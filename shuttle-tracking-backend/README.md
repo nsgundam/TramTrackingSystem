@@ -26,6 +26,9 @@ Create a `.env` file at the root of `shuttle-tracking-backend`:
 # Connection URL format: postgresql://USER:PASSWORD@HOST:PORT/DATABASE
 DATABASE_URL="postgresql://postgres:password@localhost:5432/shuttle_tracking?schema=public"
 
+# Redis is allowed without authentication only for local development.
+REDIS_URL="redis://localhost:6379"
+
 # The port where Express will listen (default: 3001)
 PORT=3001
 
@@ -37,10 +40,40 @@ SENDER_JWT_EXPIRES_IN=15m
 # Required for TTN webhook ingestion
 TTN_WEBHOOK_SECRET="YOUR_TTN_WEBHOOK_SECRET"
 
-# CORS
-CORS_ORIGINS={YOUR FRONTEND URL}
+# Exact browser origin allowed by HTTP and Socket.IO CORS.
+FRONTEND_URL="http://localhost:3000"
 
 ```
+
+Local development defaults to PostgreSQL and Redis on `localhost`, frontend origins
+`http://localhost:3000` and `http://127.0.0.1:3000`, no trusted proxy, and port `3001` when those
+values are omitted.
+
+### Production Runtime Contract
+
+Production (`NODE_ENV=production`) fails closed before `prisma migrate deploy`. Configure:
+
+- `DATABASE_URL`: `postgres:` or `postgresql:` URL with a username, a URL-encoded password of at
+  least 16 characters, a database name, and a non-loopback host.
+- `REDIS_URL`: `redis:` or `rediss:` URL on a non-loopback host. Supply an authentication password
+  either in the URL or through `REDIS_PASSWORD`; matching duplicate values are accepted, conflicts
+  are rejected, and the decoded password must contain at least 16 characters. A separate
+  `REDIS_PASSWORD` used by Compose must be a base64url- or hex-style token containing only letters,
+  digits, `_`, and `-`, without padding or whitespace; an embedded managed-service URL credential
+  may use URL encoding instead.
+- `JWT_SECRET` and `TTN_WEBHOOK_SECRET`: different, non-placeholder values of at least 32
+  characters.
+- `FRONTEND_URL`: one HTTPS origin without credentials, path, query, or fragment.
+- `TRUST_PROXY`: one or more comma-separated reverse-proxy IP addresses or narrow CIDRs. IPv4 CIDRs
+  must be `/24` or narrower and IPv6 CIDRs `/64` or narrower; booleans, hop counts, named ranges,
+  wildcard addresses, and broad networks are rejected.
+- `PORT`: optional integer from `1` to `65535`; defaults to `3001`.
+
+Use the repository's `env.production.example` only as a non-secret schema. The deployed environment
+file belongs outside Git and the image with permission `0600`. After building,
+`npm run runtime:validate` validates the current environment only; use `NODE_ENV=production npm run
+runtime:validate` for a production preflight. It does not connect to dependencies or run a
+migration.
 
 ## Available Scripts
 
@@ -51,6 +84,10 @@ Once your `.env` is setup, initialize your application using these commands:
 - `npm run db:seed` - Populate fundamental mock data (default roles, stops, shuttles, tracks) into your database.
 - `npm run db:studio` - Launches the Prisma graphical tool to view and edit your database contents.
 - `npm test` - Builds the backend and runs sender JWT boundary tests.
+- `npm run check` - Builds the backend, runs deterministic boundary/runtime tests, and validates
+  the Prisma schema.
+- `npm run runtime:validate` - Validates a compiled production runtime environment without
+  connecting or migrating.
 - `npm run test:socket` - Verifies that an unauthenticated Socket.IO viewer cannot emit GPS writes (requires a running backend).
 
 ### Local Development

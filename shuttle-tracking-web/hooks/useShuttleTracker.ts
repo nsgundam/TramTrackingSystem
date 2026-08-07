@@ -21,17 +21,18 @@ import { DEFAULT_STOP_ICON, ACTIVE_STOP_ICON } from "@/constants/shuttle";
 import { useRouteGeometry } from "@/hooks/useRouteGeometry";
 import { useVehicleTracking } from "@/hooks/useVehicleTracking";
 import { getActiveVehicles } from "@/services/publicApi";
+import { backendConnection } from "@/config/backend";
 import {
   canDisplayCanonicalVehicleMarker,
   CanonicalVehicleStateCounts,
   projectCanonicalVehicleStateCounts,
 } from "@/utils/canonical-public-state";
 
+const BACKEND_ORIGINS = [backendConnection.origin];
+
 export function useShuttleTracker() {
   const { mapRef, LRef } = useLeafletMap();
-  const configuredBackendOrigin =
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api\/?$/, "");
+  const configuredBackendOrigin = backendConnection.origin;
 
   // === UI State ===
   const [routes, setRoutes] = useState<RouteData[]>([]);
@@ -98,16 +99,6 @@ export function useShuttleTracker() {
   const pendingUpdatesRef = useRef<Record<string, LocationUpdateData>>({});
   const processLocationUpdateRef = useRef<(data: LocationUpdateData) => void>(() => {});
   const calculateETARef = useRef<() => void>(() => {});
-
-  // === Helper: get API origins ===
-  const getApiOrigins = useCallback((): string[] => {
-    const origins: string[] = [];
-    if (configuredBackendOrigin) {
-      origins.push(configuredBackendOrigin.replace(/\/$/, ""));
-    }
-    origins.push("http://localhost:3001");
-    return [...new Set(origins)];
-  }, [configuredBackendOrigin]);
 
   const removeVehicleMarker = useCallback((id: string) => {
     const marker = vehiclesRef.current[id];
@@ -250,35 +241,29 @@ export function useShuttleTracker() {
   });
 
   const hydrateActiveVehicles = useCallback(async () => {
-    for (const origin of getApiOrigins()) {
-      try {
-        const vehicles = await getActiveVehicles(origin);
-        const names = vehicles.reduce<Record<string, string>>((mapping, vehicle) => {
-          mapping[String(vehicle.id)] = vehicle.name || String(vehicle.id);
-          return mapping;
-        }, {});
-        setVehicleNames((current) => ({ ...current, ...names }));
+    try {
+      const vehicles = await getActiveVehicles();
+      const names = vehicles.reduce<Record<string, string>>((mapping, vehicle) => {
+        mapping[String(vehicle.id)] = vehicle.name || String(vehicle.id);
+        return mapping;
+      }, {});
+      setVehicleNames((current) => ({ ...current, ...names }));
 
-        vehicles.forEach((vehicle: ActiveVehicleState) => {
-          if (acceptCanonicalState(vehicle.state)) {
-            processLocationUpdateRef.current(vehicle.state);
-          }
-        });
-        namesLoadedRef.current = true;
-        checkLoadingCompleteRef.current();
-        return;
-      } catch {
-        // Try the next configured backend origin.
-      }
+      vehicles.forEach((vehicle: ActiveVehicleState) => {
+        if (acceptCanonicalState(vehicle.state)) {
+          processLocationUpdateRef.current(vehicle.state);
+        }
+      });
+    } catch {
+      // The Socket.IO connection can still recover if this REST snapshot is unavailable.
+    } finally {
+      namesLoadedRef.current = true;
+      checkLoadingCompleteRef.current();
     }
-
-    namesLoadedRef.current = true;
-    checkLoadingCompleteRef.current();
-  }, [acceptCanonicalState, getApiOrigins, namesLoadedRef, checkLoadingCompleteRef]);
+  }, [acceptCanonicalState, namesLoadedRef, checkLoadingCompleteRef]);
 
   // === Sync Socket Connection ===
   useSocketConnection({
-    configuredBackendOrigin,
     mapRef,
     isZoomingRef,
     pendingUpdatesRef,
@@ -431,25 +416,17 @@ export function useShuttleTracker() {
     if (hasInitRoutesRef.current) return;
     hasInitRoutesRef.current = true;
 
-    const apiOrigins = getApiOrigins();
-
     const initRoutes = async () => {
       let activeRoutes: RouteData[] = [];
       try {
-        for (const origin of apiOrigins) {
-          try {
-            const res = await fetch(`${origin}/api/public/active-routes`);
-            if (res.ok) {
-              const data = await res.json();
-              if (data.success && data.data) {
-                activeRoutes = data.data;
-                break;
-              } else if (Array.isArray(data)) {
-                activeRoutes = data;
-                break;
-              }
-            }
-          } catch { /* next origin */ }
+        const res = await fetch(`${backendConnection.apiBaseUrl}/public/active-routes`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.data) {
+            activeRoutes = data.data;
+          } else if (Array.isArray(data)) {
+            activeRoutes = data;
+          }
         }
       } catch (err) {
         console.error("Failed to fetch active routes", err);
@@ -516,7 +493,7 @@ export function useShuttleTracker() {
           });
 
           if (activeRoutes) {
-            activeRoutes.forEach((r) => routeGeometry.loadRouteData(r.id, r.color, apiOrigins));
+            activeRoutes.forEach((r) => routeGeometry.loadRouteData(r.id, r.color, BACKEND_ORIGINS));
           }
         }
       }
@@ -527,7 +504,7 @@ export function useShuttleTracker() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [LRef, mapRef, configuredBackendOrigin, getApiOrigins, mapReadyRef, checkLoadingCompleteRef, routeGeometry, setSelectedRoute, selectedRouteRef]);
+  }, [LRef, mapRef, mapReadyRef, checkLoadingCompleteRef, routeGeometry, setSelectedRoute, selectedRouteRef]);
 
   // === Tour Zoom Center ===
   useEffect(() => {
