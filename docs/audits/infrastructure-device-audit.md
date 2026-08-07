@@ -1,17 +1,22 @@
 # Infrastructure & Device Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: acada7f618ca74d32e7b5b76f3c75e69e4aa3354
-- Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend/Frontend/Database audits, docs/decision-queue.md, docs/research/, docs/testing/, docs/tasks/M-20260807-02-secure-simulator-test-artifacts.md, docs/tasks/M-20260807-03-redact-manual-simulator-output.md, roadmap records, README.md, env.example, docker-compose.yml, docker-compose.prod.yml, docker/, shuttle-tracking-backend Docker/startup/config/simulator/test files, and shuttle-tracking-web Docker/config/simulator/test/ignore files
-- Reviewed at: 2026-08-07T15:48:28+07:00
+- Evidence baseline: 82f4d97d8609d73f79aa74eea6efaadaa34238d9
+- Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend/Frontend/Database audits, docs/decision-queue.md, docs/audits/specialized/D-008-observability-production-topology-handoff.md, docs/research/, docs/testing/, docs/tasks/M-20260807-02-secure-simulator-test-artifacts.md, docs/tasks/M-20260807-03-redact-manual-simulator-output.md, README.md, env.example, docker-compose.yml, docker-compose.prod.yml, docker/, shuttle-tracking-backend Docker/startup/config/simulator/test files, and shuttle-tracking-web Docker/config/simulator/test/ignore files
+- Reviewed at: 2026-08-07T16:40:54+07:00
 - Validation state: Validated
-- Predecessor baselines: Discovery, Product, Architecture, Backend, Frontend, and Database at their recorded 6697acbd62c740039722769588b1c464231e5ce1 plus T12 addenda; the composite T12 application evidence is committed at 4e0dfaa9faa1ca3e3b490d310ecf5dad54b913ba
+- Predecessor baselines: Discovery through Database revalidated at 82f4d97d8609d73f79aa74eea6efaadaa34238d9
 
 ## 1. Executive Summary
 
 The repository contains local and production-mode Compose templates for PostGIS, Redis, backend, and frontend. Images have development/production targets; production startup validates key secrets, runs migrations, and disables normal seed behavior. This is a template, not a deployed production topology.
 
-D-008 narrows candidates to university infrastructure, AWS, or a VPS and delays domain binding until a working server deployment. It does not select provider/region/network placement, public origins, TLS terminator/certificate owner, secret source, PostgreSQL/Redis placement, backup/restore, migration/rollback, logging/alerts, or incident owner. T9 is therefore blocked and no configuration or deployment inference is authorized.
+D-008 now selects the logical production handoff: one university-managed host behind one TLS proxy
+at the preferred `https://tram-tracking.rsu.ac.th`, private PostgreSQL/Redis, application-owned
+artifacts/migrations/runbook, and University Server/Network ownership of host/network/DNS/TLS,
+deployed secrets, off-host recovery, logs/alerts and incidents. T9 repository configuration is now
+eligible for an exact handoff. The actual host, DNS, firewall, certificate, secrets, backup, alerts,
+contacts and capacity remain external evidence and no deployment inference is authorized.
 
 The three device boundaries remain fixed: Mobile phone GPS through authenticated Socket.IO; ESP32 plus GPS module through Wi-Fi/authenticated HTTP; a separate LoRaWAN device through gateway, TTN, and authenticated webhook. M-20260807-02/03 make both Mobile simulators credential-fail-closed and safely logged, make the automated simulator local/configurable and one-shot capable, and exclude generated Playwright outputs from Git and the frontend Docker context. These remain backend/test-tool contracts only. No Mobile application, ESP32 firmware/hardware, TTN console/gateway, or field/pilot evidence was observed.
 
@@ -19,12 +24,10 @@ The three device boundaries remain fixed: Mobile phone GPS through authenticated
 
 This profile reviews Compose, Docker, startup, environment templates, simulators, test documentation, and declared transport boundaries. It does not certify host security, cloud/provider behavior, TLS, deployment, devices, radio/network, runtime recovery, backups, or field performance.
 
-All required predecessors remain validated for their recorded T12 scope. Changed evidence since
-4e0dfaa is limited to M-20260807-02's simulator, focused test, smoke documentation, package check,
-and Git/Docker ignore paths. The simulator itself, a stateful stack, provider, device, and field path
-were not run. The owner's reported locked-screen test and the T11 acceptance contract remain external
-evidence requirements, not a repository Mobile runtime result. Decisions and simulators are not
-runtime proof.
+All required predecessors are revalidated at 82f4d97. Changed evidence is a decision and handoff
+record only; no Compose stack, provider, device, field path, proxy or external target was run. The
+owner's reported locked-screen test and the T11 acceptance contract remain external evidence
+requirements, not a repository Mobile runtime result. Decisions and simulators are not runtime proof.
 
 ## 3. Prior-Finding Revalidation
 
@@ -33,9 +36,9 @@ runtime proof.
 | Development-only image paths | Resolved | Backend and frontend Dockerfiles have development and compiled production targets. |
 | Dependency readiness was absent | Partially Resolved | DB/Redis Compose healthchecks and backend ready endpoint exist. Production Compose has no backend/frontend healthchecks or health-gated frontend dependency. |
 | Production secret/migration startup was absent | Partially Resolved | Production entrypoint validates secrets, migrates and disables normal seed. Operations ownership/recovery/rollback remain undefined. |
-| Provider/topology/domain/TLS deployment existed | Unable to Verify | D-008 intentionally leaves actual provider, region, network, origins and TLS/operations facts pending. |
-| Database and Redis were protected production internals | Still Present | Production Compose host-publishes both data-service ports; no selected network/firewall/managed-service boundary exists. |
-| REST and Socket.IO production origin was established | Still Present | Templates and frontend code retain localhost/default/fallback behavior; no D-008 contract defines public origin or TLS proxy. |
+| Provider/topology/domain/TLS deployment existed | Partially Resolved | D-008 resolves the logical university host/origin/TLS/owner contract; actual university host, DNS, certificate, network and operations acceptance are Unable to Verify. |
+| Database and Redis were protected production internals | Still Present | D-008 requires private/authenticated data services, but production Compose still host-publishes both ports and no external firewall/runtime evidence exists. |
+| REST and Socket.IO production origin was established | Partially Resolved | D-008 defines one proxy origin and paths; templates/frontend still retain localhost defaults until T9 implements the contract. |
 | Mobile sender was a supported application | Still Present | The Node simulator uses backend sender APIs; no native app, installation, background permission, lock-screen, reconnect, offline-discard, or field evidence exists. |
 | ESP32 sender was a physical implementation | Still Present | HTTP contract exists, but no firmware, GPS module, provisioning, Wi-Fi/retry/offline, clock, power, or mounting evidence exists. |
 | LoRaWAN delivery was deployed | Unable to Verify | Webhook parser/secret and synthetic payload simulator exist; TTN registry, gateway/coverage, region, codec, counters/dedup, webhook delivery, RSSI/SNR, and provider recovery are unknown. |
@@ -49,12 +52,16 @@ runtime proof.
 | Environment | Repository evidence | Limitation |
 |---|---|---|
 | Development Compose | Four local services, source mounts, DB/Redis healthchecks, local ports, fixture/seeding variables. | Not a production security, recovery, or device result. |
-| Production-mode Compose | Four self-hosted containers, production build targets, restart always, required DB/JWT/TTN secrets, migration-before-start. | No selected host/network/TLS, backend/frontend healthcheck, internal-only data placement, backup/restore, alerting, or incident ownership. |
+| Production-mode Compose | Four self-hosted containers, production build targets, restart always, required DB/JWT/TTN secrets, migration-before-start. | D-008 selects its target boundary, but the template still lacks internal-only data ports, complete healthchecks and fail-closed origins; no external deployment/recovery/alert result exists. |
 | External sender path | Mobile/ESP32 contact backend; LoRaWAN contacts TTN then webhook. | Domain/origin, firewall, provider registration and physical runtime remain unverified. |
 
 ## 5. Required T9 Contract
 
-T9 cannot start until the owner supplies one written deployment record naming provider/host and region/network boundary; frontend/backend public origins; PostgreSQL and Redis placement; TLS terminator and certificate owner; secret source; Redis persistence/authentication/eviction policy; log and alert destination; backup/restore owner; migration/rollback owner; and incident/on-call owner. The record must forbid plaintext production traffic and direct public data-service exposure. Only then may configuration be aligned and a disposable/staging readiness/origin check be planned.
+T9 may now start as an exact repository-side task against the D-008 record. It must align one origin,
+private/authenticated PostgreSQL/Redis, fail-closed production configuration, proxy/CORS/Socket
+requirements, healthchecks, non-secret environment schema and University handoff/recovery commands.
+It must stop before deployment or runtime acceptance until the Server/Network Team names contacts and
+provides the actual host/network, DNS/TLS, secret, backup, log/alert, recovery and capacity facts.
 
 ## 6. Device and Field-Evidence Contract
 
@@ -62,19 +69,20 @@ Mobile must provide phone/OS/app version, permission/background/lock-screen beha
 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
-T9 is blocked by D-008 facts. T10 is complete for exact scope and has no infrastructure dependency
-beyond ordinary safe verification. T11 can implement backend/web structures only after its remaining
+T9 is eligible for an exact repository-side handoff under D-008. T10 is complete for exact scope and
+has no infrastructure dependency beyond ordinary safe verification. T11 can implement backend/web
+structures only after its remaining
 gates; it may not claim an Android or physical sender result. T12 is complete for exact scope, but
 its read-only source view must not be treated as device/provider evidence. Infrastructure & Device
-does not propose a new owner decision: D-008 captures the missing facts.
+does not propose a new owner decision: D-008 captures the policy and its external acceptance gate.
 
 Confidence is High for checked-in templates, simulator configuration, and deterministic tooling boundaries; Medium for production-mode static behavior; and Low for deployment, TLS, provider, physical device, radio, field performance, recovery and operations.
 
 ## 8. Handoff
 
-Infrastructure & Device is validated against 4e0dfaa plus M-20260807-02/03. Dashboard & UX,
-Security/DevOps/Observability, Production Readiness, and Roadmap were subsequently revalidated on
-2026-08-07; none promotes this tooling evidence to provider, device, field, or deployment proof.
+Infrastructure & Device is validated at 82f4d97. Dashboard & UX,
+Security/DevOps/Observability, Production Readiness, and Roadmap follow this revalidation; none may
+promote the D-008 decision or tooling evidence to provider, device, field, or deployment proof.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 

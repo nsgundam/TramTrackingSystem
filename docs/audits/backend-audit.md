@@ -1,11 +1,11 @@
 # Backend Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 6697acbd62c740039722769588b1c464231e5ce1 plus approved D-009/D-010:A and the current T12 implementation working tree
+- Evidence baseline: 82f4d97d8609d73f79aa74eea6efaadaa34238d9
 - Evidence scope: docs/project-knowledge-base.md, Product and Architecture audits, docs/decision-queue.md, docs/research/, roadmap/task records, shuttle-tracking-backend/package.json, shuttle-tracking-backend/src/, shuttle-tracking-backend/prisma/, shuttle-tracking-backend/tests/, and scripts/ci-checks.sh
-- Reviewed at: 2026-08-01T14:45:45+07:00
+- Reviewed at: 2026-08-07T16:40:54+07:00
 - Validation state: Validated
-- Predecessor baselines: Discovery, Product, and Architecture @ 6697acbd62c740039722769588b1c464231e5ce1 plus their T12 implementation re-audit addenda
+- Predecessor baselines: Discovery, Product, and Architecture revalidated at 82f4d97d8609d73f79aa74eea6efaadaa34238d9
 
 ## 1. Executive Summary
 
@@ -24,9 +24,9 @@ force-close audit, protected history reads, or feedback triage. These remain sep
 
 This profile reviews routes, controllers, middleware, Socket.IO, validation, canonical/operations/research services, schema, errors, rate limits, and backend tests. It is not a running-service, penetration, provider, hardware, Android, or production topology test.
 
-Architecture is validated at 6697acb plus approved D-009/D-010:A and the T12 working tree. T10 changes
-validation, route-stop controller/routes, a pure ordering service, the backend test command, and
-deterministic tests. T12 adds server enforcement/migration source/test evidence, but not runtime proof.
+Architecture is validated at 82f4d97. D-008 changes the approved origin/topology/operations contract,
+not backend runtime behavior. Existing T10/T12 source/test evidence remains current, while no
+university runtime or proxy path was exercised.
 
 ## 3. Prior-Finding Revalidation
 
@@ -56,26 +56,30 @@ deterministic tests. T12 adds server enforcement/migration source/test evidence,
 
 ## 5. Required Task Placement
 
-- T9 is blocked: do not change origins, proxy trust, CORS, Socket.IO, secrets, or production readiness without D-008 topology/ownership facts.
+- T9 may now align origins, proxy trust, CORS, Socket.IO and fail-closed production configuration to
+  D-008 through an exact task. It must not invent actual host/proxy values or claim production
+  readiness without University Server/Network acceptance evidence.
 - T10 is complete for its exact backend scope. A future approved disposable target is required to test an actual cache/DB public read; no controller must rely on cache TTL instead.
 - T11 must extend Operations and schema atomically. Timeout, sender observation, normal end, and emergency force-close must share lock/order and idempotency rules; only accepted observations may update backend receipt-time lastAcceptedAt. Existing sender routes cannot be relabelled as the approved Mobile product.
 - T12's endpoints enforce role/re-authentication server-side, implement retention/deletion audit rules, and keep raw research data isolated. Runtime scheduling and migration execution remain separate release evidence.
 
 ## 6. Reliability, Security, and Observability
 
-Canonical state and latest source snapshots remain Redis-backed and transient. Source-health and canonical freshness use related but distinct stored facts; process-local sweeps and global Socket.IO publication lack distributed ownership, replay, and capacity evidence. Boundary errors are typed in key paths, rate limits cover key sender/admin/feedback routes, and logs are designed to avoid secrets/continuous coordinates. Legacy CRUD validation/error consistency remains uneven. No conclusion about proxy address trust, TLS, backups, Redis recovery, external alerts, or production incidents is possible before T9/D-008.
+Canonical state and latest source snapshots remain Redis-backed and transient. Source-health and canonical freshness use related but distinct stored facts; process-local sweeps and global Socket.IO publication lack distributed ownership, replay, and capacity evidence. Boundary errors are typed in key paths, rate limits cover key sender/admin/feedback routes, and logs are designed to avoid secrets/continuous coordinates. Legacy CRUD validation/error consistency remains uneven. D-008 supplies target responsibilities, but no conclusion about actual proxy trust, TLS, backups, Redis recovery, external alerts, or production incidents is possible before T9 and external validation.
 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
-T9 remains blocked by D-008. T10/T12 are complete for their bounded handoffs. T11 needs technical
-lifecycle parameters, external Android acceptance evidence, and an exact handoff. T12 runtime
-migration/retention/concurrency evidence remains separate; no new owner decision is proposed.
+T9 is eligible for an exact repository-side handoff under D-008. T10/T12 are complete for their
+bounded handoffs. T11 needs technical lifecycle parameters, external Android acceptance evidence,
+and an exact handoff. T12 runtime migration/retention/concurrency evidence remains separate; no new
+owner decision is proposed.
 
 Confidence is High for code-visible backend boundaries and missing server models, Medium for checked-in test evidence, and Low for running infrastructure, concurrency under load, Redis recovery, devices, TTN, Android, and production operations.
 
 ## 8. Handoff
 
-Backend is validated at 671b712. Frontend and Database remain independently eligible re-audits; Infrastructure & Device must wait until all three are validated.
+Backend is validated at 82f4d97 for the D-008 decision impact. Frontend and Database remain
+independently eligible re-audits; Infrastructure & Device follows all three.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 

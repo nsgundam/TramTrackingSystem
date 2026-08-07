@@ -1,11 +1,11 @@
 # Production Readiness Audit
 
 Audit metadata:
-- Evidence baseline: acada7f618ca74d32e7b5b76f3c75e69e4aa3354 plus the validated 2026-08-07 domain re-audits
-- Evidence scope: docs/project-knowledge-base.md; every validated domain audit; docs/audits/README.md; docs/audits/lead-audit-summary.md; docs/decision-queue.md; docs/roadmap/master-refactoring-roadmap.md; docs/tasks/; scripts/ci-checks.sh; Compose/configuration; the Impeccable Dashboard & UX technical audit evidence; and the source paths cited by the validated findings
-- Reviewed at: 2026-08-07T15:48:28+07:00
+- Evidence baseline: 82f4d97d8609d73f79aa74eea6efaadaa34238d9
+- Evidence scope: docs/project-knowledge-base.md; every validated domain audit; docs/decision-queue.md; docs/tasks/; scripts/ci-checks.sh; Compose/configuration; the Impeccable Dashboard & UX technical audit evidence; and the source paths cited by the validated findings
+- Reviewed at: 2026-08-07T16:40:54+07:00
 - Validation state: Validated
-- Predecessor baselines: Discovery through Database at their recorded 6697acbd62c740039722769588b1c464231e5ce1 plus T12 addenda committed at 4e0dfaa9faa1ca3e3b490d310ecf5dad54b913ba; Infrastructure & Device, Dashboard & UX, and Security/DevOps/Observability revalidated on 2026-08-07
+- Predecessor baselines: Discovery through Security/DevOps/Observability revalidated at 82f4d97d8609d73f79aa74eea6efaadaa34238d9
 
 ## 1. Executive Summary
 
@@ -19,8 +19,10 @@ M-20260807-02/03 also repair unsafe simulator defaults/output and browser-test a
 No running invalid-payload journey, deployed log inspection, simulator target, or external credential
 rotation was performed.
 
-The release determination remains **No-Go**. D-008 still leaves topology, TLS, private data services,
-secret source, backup/restore, migration/rollback, logs/alerts, and incident ownership unresolved.
+The release determination remains **No-Go**. D-008 resolves the logical university topology and
+responsibility boundary, but T9 has not aligned the repository and the University Server/Network Team
+has not supplied host, TLS, private-port, secret, backup/restore, logs/alerts, incident or capacity
+acceptance evidence.
 T11 still lacks its exact lifecycle/Android evidence; T12 lacks target migration/retention/human
 acceptance; physical senders/provider/field behavior is unavailable; and the Dashboard & UX technical
 audit is 9/20 (Poor) with truthful live-state and accessibility P1 findings.
@@ -51,7 +53,7 @@ audit is 9/20 (Poor) with truthful live-state and accessibility P1 findings.
 | PR-01 | T10 route-stop composition/invalidation is implemented for its exact scope. | Resolved | The command/UI and deterministic/CI evidence pass; ambient cache/database/browser proof remains unavailable. |
 | PR-02 | T11 Mobile installation/claim, receipt-time 10-minute timeout/no-reopen, force-close audit, protected history and exception paths are absent; Android evidence is external. | Still Present | Internal, public |
 | PR-03 | T12 feedback ownership/privacy/retention/deletion/SLA and read-only device policy are implemented for exact source/test scope; runtime rollout is unverified. | Partially Resolved | Public |
-| PR-04 | D-008 exact provider/topology/origins/TLS/secrets/data placement/backup/log/incident facts are missing; production DB/Redis are host-published in the template. | Still Present | Internal, public |
+| PR-04 | D-008 logical topology/owners are approved; T9 implementation and every external host/TLS/private-port/secret/recovery/alert/capacity result are absent. | Partially Resolved | Internal, public |
 | PR-05 | D-007/D-010:A hierarchy and sensitive Feedback action fresh-auth/audit are enforced server-side; general account lifecycle remains out of scope. | Partially Resolved | Internal, public |
 | PR-06 | SEC-01 raw Socket.IO invalid payload logging can leak sensitive coordinates/payloads. | Resolved | Source/test blocker removed by M-20260807-01; retain guards and obtain deployed-log evidence on an approved target. |
 | PR-07 | Durable metrics/logs/alerts, on-call, recovery drill and backup/restore/rollback evidence are absent. | Still Present | Internal, public |
@@ -70,7 +72,9 @@ stale, dependency, or ingestion failure.
 ## 6. Minimum Evidence Before D-001=C Release
 
 1. Preserve the SEC-01 and simulator-output regression guards; assess/rotate any external source that may once have accepted the removed credential literal.
-2. Obtain D-008 facts, implement T9, and verify one TLS REST/Socket origin in an explicitly approved disposable/staging target with private data services, backup/restore, migration/rollback, logs/alerts and incident owner.
+2. Implement the approved D-008 contract through T9, obtain written University Server/Network
+   acceptance, and verify one TLS REST/Socket origin in an explicitly approved target with private
+   data services, backup/restore, migration/rollback, logs/alerts and named incident contacts.
 3. Preserve T10 route-operation evidence and obtain approved-target cache/browser verification if a release claim needs it; then implement T11 sender/lifecycle/history/exception controls and obtain external Android acceptance evidence.
 4. Roll out and verify T12's approved RBAC/feedback migration, retention/purge, backup/restore, proxy-IP handling, and accountable staff/rider workflow on an approved target.
 5. Correct and accept the Dashboard & UX P1 truthfulness/accessibility findings through a bounded T14 handoff; keep public/Admin/research information boundaries distinct.
@@ -79,15 +83,15 @@ stale, dependency, or ingestion failure.
 
 ## 7. Confidence and Handoff
 
-Confidence is High for this No-Go because all validated audits agree on the remaining topology,
+Confidence is High for this No-Go because all validated audits agree on the remaining implementation,
 lifecycle, operations, UX, and field gates. Confidence is High that SEC-01 is absent from current
 source and covered by deterministic guards, but Low for deployed logs, credential rotation,
 deployment/device/provider/field behavior because those remain unobserved. This audit validates the
 release synthesis; it does not approve a release.
 
-Roadmap was re-synthesized on 2026-08-07. It records M-20260807-01/02/03 as completed maintenance,
-removes SEC-01 from the active source blocker list without changing roadmap order, retains the T9/T11
-blocks, keeps T12 runtime proof open, and carries the Dashboard & UX findings into T14 gates.
+Roadmap is re-synthesized on 2026-08-07. It records D-008 policy as approved, makes the exact
+repository-side T9 handoff eligible without claiming deployment, keeps T11/T12 runtime proof open,
+and carries the Dashboard & UX findings into T14 gates.
 
 ## 8. T12 Implementation Re-audit — 2026-08-01
 
@@ -99,9 +103,10 @@ frontend lint/build, and the isolated Playwright route-switch fixture. The front
 only two pre-existing warnings in `app/layout.tsx` and `utils/IconHelpers.ts`.
 
 This does not change the **No-Go** determination: no database migration or retention sweep ran on an
-approved target; no role/feedback browser acceptance occurred; T9/D-008 topology, TLS, backups,
-alerts, and incident ownership are absent; T11 lacks its Android/lifecycle evidence; the technical UX
-audit is below the release baseline; and physical sender/provider/field evidence remains unavailable.
+approved target; no role/feedback browser acceptance occurred; T9 implementation and D-008 external
+TLS, backups, alerts, and incident acceptance are absent; T11 lacks its Android/lifecycle evidence;
+the technical UX audit is below the release baseline; and physical sender/provider/field evidence
+remains unavailable.
 T12 is not a policy/source implementation blocker, but its runtime rollout evidence is still required.
 
 ## 9. M-20260807-01/02/03 Readiness Re-audit — 2026-08-07

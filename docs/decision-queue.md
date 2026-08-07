@@ -2,7 +2,44 @@
 
 ## Pending
 
-None.
+## D-011 — T14 first corrective UX slice and acceptance order
+
+Related reports: `docs/audits/dashboard-ux-audit.md`,
+`docs/audits/production-readiness-audit.md`, and
+`docs/roadmap/master-refactoring-roadmap.md`.
+
+Current evidence: the technical Dashboard & UX audit is 9/20 (Poor) with no P0. The highest-risk
+local defects are false Feedback vehicle association, unconditional/stale “live” claims, systemic
+dialog/focus/form accessibility failures, and an off-screen focusable Mobile admin sidebar. T14 is
+too broad to implement as one unbounded redesign.
+
+Pending owner choice: select the first exact T14 slice and its browser/accessibility acceptance
+journeys. Recommendation: prioritize data integrity first (fail-closed Feedback association plus
+truthful public/admin freshness), then dialog/form/navigation accessibility, then responsive/
+performance/visual-system work. This is a scope-order decision, not permission to change the
+incumbent identity or implement every audit finding at once.
+
+Roadmap effect: T14 remains blocked until this order is accepted and an exact-path task handoff is
+created. It does not block the repository-side T9 work.
+
+## D-012 — Remaining administrative and credential lifecycle matrix
+
+Related reports: `docs/audits/security-devops-observability-audit.md`,
+`docs/audits/database-audit.md`, D-007 below, and
+`docs/roadmap/master-refactoring-roadmap.md`.
+
+Current evidence: D-007 approves the role hierarchy and bounded T11/T12 actions, while its own
+security gate still leaves general `ADMIN`/`SUPER_ADMIN` provisioning, promotion, demotion, disable/
+removal, non-Mobile Sender credential lifecycle, privileged deletion/backup/export approval,
+backup-before-delete/restore, and out-of-band `DEV` allowlist/recovery unspecified.
+
+Pending owner choice: approve a least-privilege actor/action/reauthentication/reason/audit/recovery
+matrix before any later task implements those general capabilities. Do not expand T11/T12 or T9 to
+hide this decision.
+
+Roadmap effect: blocks later general account/credential management and any release claim that
+depends on those actions; it does not reopen the completed bounded T12 role implementation or block
+the D-008/T9 repository handoff.
 
 ## Approved
 

@@ -1,11 +1,11 @@
 # Product Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: `6697acbd62c740039722769588b1c464231e5ce1` plus approved D-009/D-010:A and the current T12 implementation working tree
+- Evidence baseline: `82f4d97d8609d73f79aa74eea6efaadaa34238d9`
 - Evidence scope: `docs/project-knowledge-base.md`, `docs/decision-queue.md`, `docs/research/`, `README.md`, `shuttle-tracking-web/app/`, `shuttle-tracking-web/components/`, `shuttle-tracking-web/services/`, `shuttle-tracking-web/contexts/`, `shuttle-tracking-web/hooks/`, `shuttle-tracking-web/utils/`, `shuttle-tracking-web/tests/`, `shuttle-tracking-web/package.json`, `shuttle-tracking-web/simulate.js`, `shuttle-tracking-web/simulate-manual.js`, `shuttle-tracking-backend/src/routes/`, `shuttle-tracking-backend/src/controllers/`, `shuttle-tracking-backend/src/services/`, `shuttle-tracking-backend/prisma/`, and `shuttle-tracking-backend/tests/`
-- Reviewed at: `2026-08-01T14:45:45+07:00`
+- Reviewed at: `2026-08-07T16:40:54+07:00`
 - Validation state: `Validated`
-- Predecessor baselines: `docs/project-knowledge-base.md @ 6697acbd62c740039722769588b1c464231e5ce1` plus its T12 implementation re-audit addendum
+- Predecessor baselines: `docs/project-knowledge-base.md @ 82f4d97d8609d73f79aa74eea6efaadaa34238d9`
 
 ## 1. Executive Summary
 
@@ -31,11 +31,11 @@ model.
 This audit revalidates product roles, journeys, release promises, ownership, and roadmap impact. It does
 not establish deployment, provider, physical-device, browser-runtime, or field-performance behavior.
 
-The prior Product report was based at `671b712...`. T10 now supplies the previously missing route-stop
-operator journey and D-009 supplies T12's product/privacy policy. T10's backend/frontend source and
-deterministic tests prove its bounded implementation, not a deployed rider/admin workflow; D-009 does
-not yet create an inbox, notice, retention execution, or role enforcement. No browser session, real
-rider/operator, native Android sender, ESP32 firmware, TTN deployment, or physical source was observed.
+The application journeys are unchanged by D-008. Its approved university handoff separates the
+application team's deliverables from University Server/Network operations and permits isolated cloud
+demo profiles, but it supplies no deployed rider/admin workflow or capacity evidence. No browser
+session, real rider/operator, native Android sender, ESP32 firmware, TTN deployment, physical source,
+or university runtime was observed.
 
 ## 3. Prior-Finding Revalidation
 
@@ -74,8 +74,9 @@ rider/operator, native Android sender, ESP32 firmware, TTN deployment, or physic
 
 ## 6. Roadmap Impact
 
-- T9 remains **Blocked**: D-008 does not name provider, topology, TLS, secrets, backup/restore,
-  migration/rollback, logging, or incident owner.
+- T9 is **Eligible for an exact repository-side handoff**: D-008 now fixes the logical university
+  topology, single origin and role boundary. T9 still cannot claim completion or deployment until
+  the University Server/Network acceptance checklist and an approved target are available.
 - T10 is complete for its exact handoff scope; changed evidence is now carried by this re-audit.
 - T11 remains gated by its downstream fresh audits, the unapproved general role/account-lifecycle
   controls where its implementation touches them, technical lifecycle parameters, and external Android
@@ -94,16 +95,16 @@ operator, mobile, hardware, provider, privacy, or production outcomes without ru
 
 ## 8. Proposed Owner Decisions
 
-The following remain pending and are not inferred by this audit: general `ADMIN`/`SUPER_ADMIN`
-provisioning and credential lifecycle, the reusable server role/re-authentication implementation,
-backup/rollback behavior, and external Android acceptance evidence. D-009 resolves T12's policy
-choices but not their code, migration, or runtime proof.
+The following remain outside this product revalidation: general `ADMIN`/`SUPER_ADMIN` provisioning
+and credential lifecycle, T11's remaining lifecycle contract, external Android acceptance evidence,
+and D-008's external Server/Network checklist. D-008 resolves the application-owner deployment
+policy; it does not fabricate an operational acceptance result.
 
 ## 9. Handoff
 
-Architecture is now the next eligible audit profile. It must consume this Product baseline and revalidate
-where C-scope operations, role boundaries, route invalidation, Mobile lifecycle, protected history, and
-research isolation belong before Backend, Frontend, and Database are re-audited.
+Architecture is the next profile in the D-008 revalidation chain. It must preserve the selected
+monolith and public/data boundaries while separating repository configuration work from external
+deployment evidence.
 
 ## 10. T12 Implementation Re-audit — 2026-08-01
 

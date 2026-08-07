@@ -1,14 +1,26 @@
 # Tram Tracking System Project Knowledge Base
 
 Audit metadata:
-- Evidence baseline: `6697acbd62c740039722769588b1c464231e5ce1`
-- Evidence scope: `README.md`, `AGENTS.md`, Compose/configuration and scripts, `shuttle-tracking-backend/`, `shuttle-tracking-web/`, `docs/testing/`, `docs/research/`, `docs/tasks/`, `docs/decision-queue.md`, `docs/audits/specialized/`, and `docs/audits/README.md`
-- Reviewed at: `2026-08-01T09:45:45+07:00`
+- Evidence baseline: `82f4d97d8609d73f79aa74eea6efaadaa34238d9`
+- Evidence scope: `README.md`, `AGENTS.md`, Compose/configuration and scripts, `shuttle-tracking-backend/`, `shuttle-tracking-web/`, `docs/testing/`, `docs/research/`, `docs/tasks/`, `docs/decision-queue.md`, and `docs/audits/specialized/`
+- Reviewed at: `2026-08-07T16:40:54+07:00`
 - Validation state: `Validated`
 - Predecessor baselines: `None` (Discovery has no required predecessor)
 
-Evidence status: **Validated**. This discovery refresh re-baselines the repository after T8 and
-records the current evidence contract. Use `docs/audits/README.md` as the coordination authority.
+Evidence status: **Validated**. This discovery refresh re-baselines the repository through the
+approved D-008 production-handoff decision. Use `docs/audits/README.md` as the coordination
+authority.
+
+## D-008 Decision Re-audit — 2026-08-07
+
+D-008 now selects a university-managed single-host, single-origin production handoff at the
+preferred `https://tram-tracking.rsu.ac.th`, subject to university DNS approval. The application
+team owns versioned artifacts, environment schema, migrations and runbook; the University
+Server/Network Team owns host/network/firewall, DNS/TLS, deployed secrets, off-host backup/restore,
+logs/alerts and incident response. Vercel/Render/Neon and AWS learning deployments are isolated
+non-production profiles. This is an approved logical topology and responsibility boundary, not
+evidence of an actual host, port policy, certificate, backup, alert, restore, or 10,000-viewer
+capacity result. Those facts remain external acceptance evidence for T9/T13.
 
 Discovery refresh: 2026-07-22
 
@@ -38,8 +50,8 @@ service or physical-device result.
 D-001=C, D-005=B, D-007, and D-008 now constrain downstream work: C requires operational
 capabilities before a public-service claim, timeout is a separate 10-minute receipt-time lifecycle
 rule, administrative authority is intended to be `DEV` > `SUPER_ADMIN` > `ADMIN`, and production
-topology/operations ownership is still unconfirmed. These are decision facts, not implementation
-evidence for the missing C-scope surfaces.
+uses the approved university handoff boundary above. These are decision facts, not implementation
+or external operations evidence for the missing C-scope surfaces.
 
 ## T10 / D-009 Re-audit Addendum — 2026-08-01
 
@@ -124,7 +136,7 @@ requires an explicitly configured disposable Postgres/Redis target.
 | Simulator and seed source fixtures diverged | **Resolved** | `env.example`, `prisma/seed.js`, `shuttle-tracking-web/simulate.js`, `shuttle-tracking-backend/simulate-ttn.js`, and `docs/testing/pipeline-smoke-tests.md` use aligned source/vehicle mappings. |
 | Raw observations, event-time ordering, and high-fidelity history are absent | **Partially Resolved** | T7 records bounded research raw observations separately from sampled canonical `gps_tracks`; it does not add event-time/sequence semantics or general high-fidelity operational history. |
 | Public/admin stale or offline truth is not exposed as a user-facing contract | **Partially Resolved** | T8 keeps local public Marker/count/ETA projection internally truthful after expiry and route changes. No public/admin health endpoint, service-state explanation, or operations freshness UI is evidenced. |
-| Physical sender, firmware, TTN deployment, and production topology are unavailable | **Still Present** | Only backend contracts, simulators, Compose files, and documentation are in the repository. |
+| Physical sender, firmware, TTN deployment, and production topology are unavailable | **Partially Resolved** | D-008 defines the logical university topology and ownership handoff. Physical sources and actual host/network/TLS/recovery/runtime evidence remain unavailable. |
 
 ## Project Overview
 
@@ -688,10 +700,11 @@ Observed acknowledgement/error codes include `SENDER_AUTH_REQUIRED`, `SENDER_AUT
 
 ### Hosting Providers
 
-No Vercel, Render, Neon, or other cloud-provider configuration was found. The repository does
-contain `docker-compose.prod.yml`, which describes a production-mode self-hosted container stack,
-but the actual deployment host, domain, TLS, and operations environment are not documented in the
-repository.
+No Vercel, Render, Neon, or other cloud-provider configuration was found. D-008 permits them only as
+isolated demo/learning profiles and selects a university-managed single-host production handoff.
+The repository contains `docker-compose.prod.yml`, but it is not yet aligned to that contract and no
+actual host, approved DNS, TLS, firewall, secret store, backup, monitoring, or operations acceptance
+is documented.
 
 ## Environment Configuration
 
@@ -794,10 +807,10 @@ These are repository-state descriptions, not quality or security findings.
 The following information is not available in the repository and is required for later audits to
 fully compare intended behavior with implementation:
 
-- Production deployment topology beyond the self-hosted Docker Compose description, including host,
-  domain, TLS termination, network boundaries, and process scaling.
-- Production ownership and configuration for PostgreSQL, Redis, backups, monitoring, alerting, and
-  log retention.
+- University Server/Network acceptance with named primary/backup contacts and actual host, resource,
+  public-IP/NAT, administrator-network, firewall, DNS/TLS and process-scaling facts.
+- Actual production secret store, PostgreSQL/Redis placement, off-host backup/restore destination,
+  log/metric destination, alert delivery and incident evidence under the approved D-008 owners.
 - The source repository and API contract for the real mobile/driver application.
 - Mobile offline, retry, authentication renewal, trip lifecycle, and background-location behavior.
 - ESP32 hardware, firmware, transport, payload, provisioning, and credential rotation contract.
@@ -827,9 +840,10 @@ fully compare intended behavior with implementation:
 - Keep the three research boundaries separate in all later work: Mobile/Socket.IO, ESP32+GPS/Wi-Fi/
   HTTP, and independent LoRaWAN/Gateway/TTN/Webhook. Simulators remain test tools, not physical
   evidence.
-- Keep raw-observation retention, public stale-state behavior, feedback workflow, deployment
-  topology, and hardware/provider choices in the owner decision queue rather than inferring them
-  from source code.
+- Keep raw-observation retention, public stale-state behavior, feedback workflow, and
+  hardware/provider choices at their approved decision gates. For D-008, preserve the approved
+  topology while treating University Server/Network acceptance as external evidence rather than
+  inferring it from source code.
 
 ## Roadmap Impact
 
@@ -838,15 +852,16 @@ fully compare intended behavior with implementation:
 - T5 lifecycle facts are now part of the current baseline. Downstream audits must revalidate the
   transaction, partial active-trip index, status/time constraints, idempotent start/end behavior,
   and virtual-trip policy before confirming or closing related findings.
-- Approved decisions D-001 through D-008 remain applicable. The refresh adds no new owner decision
-  and does not authorize implementation of a roadmap task.
+- Approved decisions D-001 through D-010 remain applicable. D-008 authorizes an exact repository-
+  side T9 handoff but does not authorize external deployment or establish production readiness.
 
 ## Proposed Owner Decisions
 
 No new owner decision is proposed by Discovery. Existing decisions on C-scope release, bounded raw
-diagnostics, topology/origin order, three-device research, timeout, role direction, and hosting
-sequencing should be carried forward; the unresolved parameters in “Missing Information” remain
-pending where they are not covered by an approved decision.
+diagnostics, topology/origin order, three-device research, timeout, role direction, and the D-008
+production handoff should be carried forward. The unresolved parameters in “Missing Information”
+are external or downstream implementation evidence where they are not covered by an approved
+decision.
 
 ## Assumptions
 
@@ -864,8 +879,8 @@ No unsupported business or deployment assumptions are used as facts.
 
 ## Audit Readiness
 
-Validated and ready for Architecture Audit Agent. Product is validated at `671b712...`; Architecture
-is the next eligible profile in the canonical predecessor order.
+Validated at `82f4d97...`; Product is the next profile in the canonical predecessor order for this
+D-008 decision-only revalidation.
 
 The current repository behavior, multi-source tracking boundary, data model, APIs, frontend
 features, deployment files, simulators, tests, and open information gaps are documented from
@@ -958,7 +973,8 @@ See “Known Limitations From Available Evidence” and “Missing Information�
 
 ### Open Questions
 
-- What is the actual production deployment topology and operations ownership?
+- Has the University Server/Network Team named contacts and accepted the actual host, TLS, firewall,
+  secret, backup, monitoring, alert, recovery, and capacity checklist under D-008?
 - Where is the real mobile/driver app and its formal contract?
 - What are the ESP32 and TTN device provisioning and payload contracts?
 - Which source IDs are authoritative for LoRaWAN fixtures and deployed devices?

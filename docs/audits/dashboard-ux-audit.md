@@ -1,11 +1,11 @@
 # Dashboard & UX Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: acada7f618ca74d32e7b5b76f3c75e69e4aa3354
-- Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend/Frontend/Infrastructure & Device audits, docs/decision-queue.md, docs/research/, roadmap/task records, shuttle-tracking-web/app/, shuttle-tracking-web/components/, shuttle-tracking-web/hooks/, shuttle-tracking-web/services/, shuttle-tracking-web/types/, shuttle-tracking-web/utils/, shuttle-tracking-web/tests/, full frontend lint/build evidence, and the 2026-08-07 Impeccable technical audit/detector pass
-- Reviewed at: 2026-08-07T15:48:28+07:00
+- Evidence baseline: 82f4d97d8609d73f79aa74eea6efaadaa34238d9
+- Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend/Frontend/Infrastructure & Device audits, docs/decision-queue.md, docs/research/, task records, shuttle-tracking-web/app/, shuttle-tracking-web/components/, shuttle-tracking-web/hooks/, shuttle-tracking-web/services/, shuttle-tracking-web/types/, shuttle-tracking-web/utils/, shuttle-tracking-web/tests/, full frontend lint/build evidence, and the 2026-08-07 Impeccable technical audit/detector pass
+- Reviewed at: 2026-08-07T16:40:54+07:00
 - Validation state: Validated
-- Predecessor baselines: Product and Frontend at their recorded 6697acbd62c740039722769588b1c464231e5ce1 plus T12 addenda committed at 4e0dfaa9faa1ca3e3b490d310ecf5dad54b913ba; Infrastructure & Device revalidated with M-20260807-02/03 on 2026-08-07
+- Predecessor baselines: Product, Frontend, and Infrastructure & Device revalidated at 82f4d97d8609d73f79aa74eea6efaadaa34238d9
 
 ## 1. Executive Summary
 
@@ -33,9 +33,9 @@ surface. These findings constrain T14 and release evidence; this profile does no
 
 This profile reviews information architecture, truthfulness, separation of public/operations/research surfaces, loading/error/accessibility states, and task placement. It is not a browser usability study, accessibility certification, user research, device/pilot, or production service test.
 
-Product and Frontend remain validated for the committed T12 scope. Infrastructure & Device was
-revalidated after M-20260807-02/03; those changes affect simulator/test tooling only and do not alter
-application UI. This run inspected frontend source, lint/build/test evidence, and one full Impeccable
+Product, Frontend, and Infrastructure & Device are revalidated at 82f4d97. D-008 changes deployment
+policy and responsibility only; it does not alter application UI or resolve any technical audit
+finding. This run retains the frontend source, lint/build/test evidence, and full Impeccable
 detector pass. It did not run axe, contrast measurement, keyboard/screen-reader sessions, mobile
 devices, user research, production traffic, or runtime retention; static findings are not an
 accessibility certification.
@@ -157,7 +157,7 @@ technical audit. These are T14 handoff inputs, not implementation authorization.
 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
-T9 remains blocked by D-008. T10/T12 are complete for exact scopes. T11 needs backend/role/lifecycle
+T9 is eligible for an exact repository-side handoff under D-008. T10/T12 are complete for exact scopes. T11 needs backend/role/lifecycle
 and external Android evidence. T12 usability/accessibility acceptance remains unverified. T14 must
 consume the P1/P2 audit evidence, define exact target screens, priority operational questions/actions,
 role views, responsive/accessibility acceptance, and the incumbent identity to preserve before any
@@ -167,10 +167,9 @@ Confidence is High for source-visible UI separation and technical implementation
 
 ## 8. Handoff
 
-Dashboard & UX is validated against 4e0dfaa plus the M-20260807-02/03 Infrastructure predecessor and
-the 2026-08-07 technical audit. Security/DevOps/Observability, Production Readiness, and Roadmap were
-subsequently revalidated on 2026-08-07 and carry these truthfulness/accessibility findings without
-treating them as fixed.
+Dashboard & UX is validated at 82f4d97 with the D-008 Infrastructure predecessor and the 2026-08-07
+technical audit. Security/DevOps/Observability, Production Readiness, and Roadmap follow and must
+carry these truthfulness/accessibility findings without treating them as fixed.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 

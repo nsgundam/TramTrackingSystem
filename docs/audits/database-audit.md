@@ -1,11 +1,11 @@
 # Database Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 6697acbd62c740039722769588b1c464231e5ce1 plus approved D-009/D-010:A and the current T12 implementation working tree
-- Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend/Frontend audits, docs/decision-queue.md, docs/research/, roadmap/task records, shuttle-tracking-backend/prisma/, shuttle-tracking-backend/src/services/, shuttle-tracking-backend/src/middleware/research-access.ts, shuttle-tracking-backend/src/routes/research.route.ts, and shuttle-tracking-backend/tests/
-- Reviewed at: 2026-08-01T14:45:45+07:00
+- Evidence baseline: 82f4d97d8609d73f79aa74eea6efaadaa34238d9
+- Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend/Frontend audits, docs/decision-queue.md, docs/research/, task records, shuttle-tracking-backend/prisma/, shuttle-tracking-backend/src/services/, shuttle-tracking-backend/src/middleware/research-access.ts, shuttle-tracking-backend/src/routes/research.route.ts, and shuttle-tracking-backend/tests/
+- Reviewed at: 2026-08-07T16:40:54+07:00
 - Validation state: Validated
-- Predecessor baselines: Discovery, Product, Architecture, Backend, and Frontend @ 6697acbd62c740039722769588b1c464231e5ce1 plus their T12 implementation re-audit addenda
+- Predecessor baselines: Discovery, Product, Architecture, Backend, and Frontend revalidated at 82f4d97d8609d73f79aa74eea6efaadaa34238d9
 
 ## 1. Executive Summary
 
@@ -22,9 +22,10 @@ migration/default. General role/account lifecycle remains outside the approved s
 
 This profile reviews schema, migrations, constraints, indexes, data lifecycle/retention code, and database-facing services/tests. It does not certify a live migration, query plan, backup/restore, deletion, rollback, provider, hardware, or production database.
 
-All predecessors are validated at 6697acb plus the D-009 working copy. T10 changes the application
-transaction boundary but not Prisma schema/migrations. D-009 defines future Feedback retention and
-deletion policy but is not a migration, scheduled retention run, or database proof.
+All predecessors are validated at 82f4d97. D-008 chooses PostgreSQL/PostGIS as durable production
+data and private/authenticated Redis as transient coordination under University Server/Network
+operations. No actual database placement, migration, backup, restore, retention, or provider action
+was performed.
 
 ## 3. Prior-Finding Revalidation
 
@@ -53,7 +54,9 @@ deletion policy but is not a migration, scheduled retention run, or database pro
 
 ## 5. Required Task Placement
 
-- T9 remains blocked. No production database/Redis placement, backup/restore ownership, migration/rollback target, or topology may be inferred from the current Compose/migrations.
+- T9 may align private PostgreSQL/Redis networking and document migration/backup/rollback commands
+  under D-008. The actual host, target, secret, off-host destination and restore result may not be
+  inferred from Compose or migrations.
 - T10 is complete without a schema migration: its constrained transaction uses the existing RouteStop model. Do not add unrelated role or feedback schema to it.
 - T11 needs an approved exact schema/interface contract for Mobile installation/claim, lifecycle fields, actor/reason audit, receipt-time update, timeout/no-reopen and concurrent recovery. The existing T5 invariant is the baseline to extend, not bypass.
 - T12 has D-009 policy. It needs an additive triage/retention/deletion/audit model and server authorization/re-authentication evidence; no source/device write model belongs in this task.
@@ -64,16 +67,17 @@ Direct database writes could bypass service-level GPSTrack/trip vehicle matching
 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
-T9 is blocked by D-008. T10 is complete for exact scope. T11 needs a complete technical schema/API
-contract and external Android acceptance evidence. T12's owner policy is resolved; its exact schema,
-authorization, deletion/restore, retention, and migration verification handoff remains required.
-No new owner decision is proposed.
+T9 is eligible for an exact repository-side handoff under D-008. T10 is complete for exact scope.
+T11 needs a complete technical schema/API contract and external Android acceptance evidence. T12
+runtime migration, deletion/restore and retention verification remain required. No new owner
+decision is proposed.
 
 Confidence is High for schema/migration-visible data boundaries, Medium for unit/contract lifecycle evidence, and Low for migration/rollback, retention execution, query plans, backup/restore, volume, hardware, and production operations.
 
 ## 8. Handoff
 
-Database is validated at 671b712. Infrastructure & Device is now eligible because Backend, Frontend, and Database predecessor reports are current.
+Database is validated at 82f4d97 for the D-008 decision impact. Infrastructure & Device is now
+eligible because Backend, Frontend, and Database predecessor reports are current.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 

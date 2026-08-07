@@ -1,11 +1,11 @@
 # Frontend Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 6697acbd62c740039722769588b1c464231e5ce1 plus approved D-009/D-010:A and the current T12 implementation working tree
-- Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend audits, docs/decision-queue.md, docs/roadmap/master-refactoring-roadmap.md, docs/tasks/, shuttle-tracking-web/app/, shuttle-tracking-web/components/, shuttle-tracking-web/contexts/, shuttle-tracking-web/hooks/, shuttle-tracking-web/services/, shuttle-tracking-web/types/, shuttle-tracking-web/utils/, shuttle-tracking-web/package.json, and shuttle-tracking-web/tests/
-- Reviewed at: 2026-08-01T14:45:45+07:00
+- Evidence baseline: 82f4d97d8609d73f79aa74eea6efaadaa34238d9
+- Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend audits, docs/decision-queue.md, docs/tasks/, shuttle-tracking-web/app/, shuttle-tracking-web/components/, shuttle-tracking-web/contexts/, shuttle-tracking-web/hooks/, shuttle-tracking-web/services/, shuttle-tracking-web/types/, shuttle-tracking-web/utils/, shuttle-tracking-web/package.json, and shuttle-tracking-web/tests/
+- Reviewed at: 2026-08-07T16:40:54+07:00
 - Validation state: Validated
-- Predecessor baselines: Discovery, Product, Architecture, and Backend @ 6697acbd62c740039722769588b1c464231e5ce1 plus their T12 implementation re-audit addenda
+- Predecessor baselines: Discovery, Product, Architecture, and Backend revalidated at 82f4d97d8609d73f79aa74eea6efaadaa34238d9
 
 ## 1. Executive Summary
 
@@ -23,10 +23,9 @@ D-007 provides a future role direction, while the UI currently has a single admi
 
 This re-audit covers public/admin state ownership, REST/Socket lifecycle, loading/failure/permission behavior, configuration, route/geometry/ETA presentation, and relevant tests. It does not certify accessibility, load, browser/device/runtime, deployed origin, or provider behavior.
 
-The preceding Frontend report contains T8 evidence through 2e499df. T10 adds `RouteStopsModal` and
-Routes-page integration, while D-009 sets the future feedback/device-view policy. T10 lint/build/CI
-evidence is available, but no admin browser mutation against a database/cache target was authorized.
-D-009 is not a UI implementation.
+D-008 changes the approved production origin and responsibility boundary, not current UI behavior.
+Existing T8/T10/T12 source/build/test evidence remains current, but no browser path through the
+university proxy or deployed origin was authorized.
 
 ## 3. Prior-Finding Revalidation
 
@@ -40,7 +39,7 @@ D-009 is not a UI implementation.
 | Admin sender/trip/history/exception operations existed | Still Present | No pages/components exist for device/source status, Mobile claim/revocation, active/timeout trips, history, or force-close. |
 | Feedback had accountable triage | Partially Resolved | T12 adds the notice/receipt, Super Admin/Dev inbox, case transitions, password-confirmed delete/restore, and safe health page. Browser staff/rider acceptance remains unavailable. |
 | Admin role-specific UX enforced D-007 | Partially Resolved | Session hydration receives the server role and navigation hides the feedback inbox from ADMIN. Backend authorization remains authoritative and general role management is out of scope. |
-| Public/backend origin contract was settled | Partially Resolved | Hooks derive configured backend origin and strip API suffix, but duplicated localhost fallback remains until T9 topology/origin facts are approved. |
+| Public/backend origin contract was settled | Partially Resolved | D-008 approves one public origin and proxy paths; hooks derive a configured backend origin, but duplicated localhost fallbacks remain until T9 aligns the implementation. |
 | Research dashboard exposed raw diagnostic work appropriately | Still Present | No Dev Dashboard exists; this correctly avoids exposing raw telemetry but leaves D-004 research UI incomplete. |
 
 ## 4. Surface Assessment
@@ -56,7 +55,8 @@ D-009 is not a UI implementation.
 
 ## 5. Task Placement
 
-- T9 remains blocked by D-008. Do not consolidate origins or change production fallback behavior without the topology contract.
+- T9 may now consolidate REST/Socket origins and remove production fallback ambiguity through its
+  exact D-008 handoff. Browser/proxy acceptance still requires an approved external target.
 - T10 is complete for its narrow route-detail composition UI; preserve server-side validation and record stateful published-read evidence only on an approved target.
 - T11 needs an operations UI only after backend authorization/lifecycle APIs and the external Android acceptance contract are specified. It must not embed an Android driver runtime or expose sender secrets/source identifiers.
 - T12 has D-009 policy. Future triage/device views require explicit server role checks, privacy wording, retention/deletion controls, and read-only safe DTOs rather than generic admin CRUD.
@@ -67,15 +67,17 @@ Public tracker state remains broadly coordinated in useShuttleTracker, though su
 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
-T9 is blocked; T10/T12 are complete for exact scopes. T11 requires backend contract/role gates and
-external Android acceptance evidence. T12 browser role/accessibility acceptance is still unverified.
-T14 owns the public-theme Dashboard redesign after its own re-audit/brief.
+T9 is eligible for an exact repository-side handoff; T10/T12 are complete for exact scopes. T11
+requires backend contract/role gates and external Android acceptance evidence. T12 browser role/
+accessibility acceptance is still unverified. T14 owns the public-theme Dashboard redesign after its
+own re-audit/brief.
 
 Confidence is High for source-visible canonical projection and missing UI surfaces, Medium for T8 synthetic test coverage, and Low for accessibility, production configuration, real Socket.IO failures, hardware, Android, and actual operator/rider outcomes.
 
 ## 8. Handoff
 
-Frontend is validated at 671b712. Database is the remaining peer profile before Infrastructure & Device; Dashboard & UX must wait for Frontend and Infrastructure & Device.
+Frontend is validated at 82f4d97 for the D-008 decision impact. Database is the remaining peer
+profile before Infrastructure & Device; Dashboard & UX follows Frontend and Infrastructure & Device.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 

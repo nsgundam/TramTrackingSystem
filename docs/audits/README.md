@@ -2,19 +2,19 @@
 
 Last updated: 2026-08-07
 
-| Phase | Status | Report / evidence | Legacy report commit | Last reviewed | Notes |
+| Phase | Status | Report / evidence | Evidence baseline | Last reviewed | Notes |
 |---|---|---|---|---|---|
-| Discovery | Complete | `docs/project-knowledge-base.md` | `6697acb` | 2026-08-01 | Revalidated through D-010:A and T12 working-tree evidence; external Android/runtime/device facts remain unavailable. |
-| Product | Complete | `docs/audits/product-audit.md` | `6697acb` | 2026-08-01 | T12 public notice, accountable inbox, and safe source journey are present; staff/rider acceptance remains unverified. |
-| Architecture | Complete | `docs/audits/architecture-audit.md` | `6697acb` | 2026-08-01 | Persisted RBAC, fresh-auth, separate Feedback lifecycle, and safe DTO boundaries are revalidated. |
-| Backend | Complete | `docs/audits/backend-audit.md` | `6697acb` | 2026-08-01 | T12 server role/re-auth/feedback/retention/safe-health source and deterministic tests pass. |
-| Frontend | Complete | `docs/audits/frontend-audit.md` | `6697acb` | 2026-08-01 | Notice, role-aware inbox, safe health page, and build evidence are current; no ambient role workflow ran. |
-| Database | Complete | `docs/audits/database-audit.md` | `6697acb` | 2026-08-01 | Additive role/Feedback/audit migration and deterministic retention design are reviewed, not executed. |
-| Infrastructure & Device | Complete | `docs/audits/infrastructure-device-audit.md` | `6697acb` | 2026-08-07 | M-20260807-02/03 safe simulator/artifact boundaries are validated as tooling only; D-008/T11 and provider/device/field evidence remain unavailable. |
-| Dashboard & UX | Complete | `docs/audits/dashboard-ux-audit.md` | `6697acb` | 2026-08-07 | Impeccable technical audit: 9/20 (Poor), no P0; truthful live state, modal/focus/form accessibility, feedback fallback, and T14 scope remain open. |
-| Security, DevOps & Observability | Complete | `docs/audits/security-devops-observability-audit.md` | `6697acb` | 2026-08-07 | SEC-01 and both Mobile simulator output paths are resolved at source/test level; D-008, credential rotation, broad CI scanning, durable operations, and runtime evidence remain open. |
-| Production Readiness | Complete | `docs/audits/production-readiness-audit.md` | `6697acb` | 2026-08-07 | Validated No-Go: SEC-01 is resolved in source/tests; D-008, T11, runtime T12, 9/20 UX, operations, credential, device/provider/field evidence remain blockers. |
-| Roadmap | Complete | `docs/roadmap/master-refactoring-roadmap.md` | `6697acb` | 2026-08-07 | M-20260807-01/02/03 are complete maintenance outside roadmap ordering; T9/T11 remain blocked and T14 awaits owner priority plus an exact handoff. |
+| Discovery | Complete | `docs/project-knowledge-base.md` | `82f4d97` | 2026-08-07 | D-008 university production handoff is recorded; actual deployment/device facts remain external. |
+| Product | Complete | `docs/audits/product-audit.md` | `82f4d97` | 2026-08-07 | D-008 changes deployment ownership, not product journeys; staff/rider acceptance remains unverified. |
+| Architecture | Complete | `docs/audits/architecture-audit.md` | `82f4d97` | 2026-08-07 | Single-host/single-origin handoff preserves the supported monolith; implementation/runtime evidence remains open. |
+| Backend | Complete | `docs/audits/backend-audit.md` | `82f4d97` | 2026-08-07 | T9 origin/proxy/CORS/fail-closed configuration is eligible for an exact handoff; no proxy runtime ran. |
+| Frontend | Complete | `docs/audits/frontend-audit.md` | `82f4d97` | 2026-08-07 | D-008 approves one origin; duplicated localhost fallbacks remain T9 implementation work. |
+| Database | Complete | `docs/audits/database-audit.md` | `82f4d97` | 2026-08-07 | D-008 assigns private data/recovery ownership; no target migration, backup or restore ran. |
+| Infrastructure & Device | Complete | `docs/audits/infrastructure-device-audit.md` | `82f4d97` | 2026-08-07 | Logical topology/owners are approved; actual host/network/TLS and all physical/provider evidence remain unavailable. |
+| Dashboard & UX | Complete | `docs/audits/dashboard-ux-audit.md` | `82f4d97` | 2026-08-07 | D-008 has no UI effect; technical audit remains 9/20 (Poor) with T14 truth/accessibility gates. |
+| Security, DevOps & Observability | Complete | `docs/audits/security-devops-observability-audit.md` | `82f4d97` | 2026-08-07 | D-008 policy is resolved; T9 source gaps and external TLS/secret/recovery/alert evidence remain open. |
+| Production Readiness | Complete | `docs/audits/production-readiness-audit.md` | `82f4d97` | 2026-08-07 | Validated No-Go: D-008 policy is approved, but T9/external acceptance, T11, runtime T12, UX, operations and field evidence remain blockers. |
+| Roadmap | Complete | `docs/roadmap/master-refactoring-roadmap.md` | `82f4d97` | 2026-08-07 | T9 is eligible for an exact repository handoff; T11 remains blocked; D-011/D-012 record T14 and general lifecycle owner gates. |
 
-`Legacy report commit` records the last commit that changed the existing artifact; it is not a
-substitute for the full evidence-baseline metadata required on the next re-audit.
+`Evidence baseline` records the immutable source/decision commit consumed by each report. Each
+report's metadata remains authoritative for its full scope and predecessor chain.

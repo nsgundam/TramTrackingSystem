@@ -1,11 +1,11 @@
 # Architecture Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 6697acbd62c740039722769588b1c464231e5ce1 plus approved D-009/D-010:A and the current T12 implementation working tree
-- Evidence scope: docs/project-knowledge-base.md, docs/audits/product-audit.md, docs/decision-queue.md, docs/research/, docs/roadmap/master-refactoring-roadmap.md, docs/tasks/, README.md, Compose/configuration, shuttle-tracking-backend/src/, shuttle-tracking-backend/prisma/, shuttle-tracking-backend/tests/, shuttle-tracking-web/hooks/, shuttle-tracking-web/utils/, shuttle-tracking-web/types/, shuttle-tracking-web/services/, shuttle-tracking-web/components/, and shuttle-tracking-web/tests/
-- Reviewed at: 2026-08-01T14:45:45+07:00
+- Evidence baseline: 82f4d97d8609d73f79aa74eea6efaadaa34238d9
+- Evidence scope: docs/project-knowledge-base.md, docs/audits/product-audit.md, docs/decision-queue.md, docs/research/, docs/tasks/, README.md, Compose/configuration, shuttle-tracking-backend/src/, shuttle-tracking-backend/prisma/, shuttle-tracking-backend/tests/, shuttle-tracking-web/hooks/, shuttle-tracking-web/utils/, shuttle-tracking-web/types/, shuttle-tracking-web/services/, shuttle-tracking-web/components/, and shuttle-tracking-web/tests/
+- Reviewed at: 2026-08-07T16:40:54+07:00
 - Validation state: Validated
-- Predecessor baselines: Discovery and Product @ 6697acbd62c740039722769588b1c464231e5ce1 plus their T12 implementation re-audit addenda
+- Predecessor baselines: Discovery and Product revalidated at 82f4d97d8609d73f79aa74eea6efaadaa34238d9
 
 ## 1. Executive Summary
 
@@ -13,19 +13,19 @@ The current monolith remains an appropriate implementation shape, but D-001=C ra
 
 T6/T8 give public consumers one versioned canonical projection: only an authoritative, unexpired live state displays a Marker, contributes to active count, or supplies ETA. This is a local truthfulness correction, not public service-state or operations accountability. T7 adds bounded raw research records, distinct from canonical state and sampled GPSTrack, so raw diagnostics must not leak into public/admin operational projections.
 
-The C-scope architecture still lacks a role-enforcement boundary, protected history/exception/read
-models, feedback-triage data model, Mobile installation/claim/timeout state machine, and declared
-production topology. T10 now supplies a bounded route-stop mutation transaction and invalidation
-boundary. These are task placements and gates, not reasons to merge unrelated concerns into one service.
+The C-scope architecture still lacks protected history/exception/read models and the Mobile
+installation/claim/timeout state machine. D-008 now declares a university-managed single-host,
+single-origin logical topology and operations handoff, while the repository template and external
+runtime remain unvalidated. T10/T12 supply their bounded route-stop, authorization, Feedback and
+safe-view boundaries. None is a reason to split the appropriate monolith into unrelated services.
 
 ## 2. Scope and Freshness
 
 This profile covers boundaries, authority, data products, temporal semantics, cache/realtime behavior, and task placement. It does not certify deployment, physical devices, provider behavior, browser runtime, load, or an Android client.
 
-Discovery and Product have both been revalidated at 6697acb plus the current D-009 working copy.
-T10 adds a source-visible transactional route-stop command, shared cache invalidation, and admin
-composition UI; D-009 supplies a bounded T12 data/access policy. Neither proves runtime cache
-behavior, role enforcement, retention execution, deployment, or Android behavior.
+Discovery and Product are revalidated at 82f4d97. D-008 changes only the approved topology and
+responsibility boundary. It does not prove runtime cache behavior, TLS, private ports, recovery,
+capacity, deployment, or Android behavior.
 
 ## 3. Prior-Finding Revalidation
 
@@ -53,7 +53,9 @@ behavior, role enforcement, retention execution, deployment, or Android behavior
 
 ## 5. Required C-scope Placement
 
-- T9: configuration only after the owner names topology and operations responsibilities. One topology/origin record must govern REST and Socket.IO; do not infer a provider or expose plaintext/IP production service.
+- T9: D-008 now authorizes repository configuration against one university-managed origin. Keep REST
+  and Socket.IO behind one TLS proxy, keep data services private, and stop before external operations
+  unless the named Server/Network owners and approved target are available.
 - T10: complete for its exact composition/invalidation scope. A future audit must retain the invariant that the public read consumes the changed authoritative sequence rather than treating cache invalidation as a production proof.
 - T11: extend the Operations/lifecycle authority and supporting schema/auth boundaries for receipt-time lastAcceptedAt, 10-minute timeout, no-reopen, Mobile installation/claim, revocation, audit, protected history, and exceptions. A separate Android client remains an external consumer of a versioned contract. General D-007 account-lifecycle policy is not authorized to be invented here.
 - T12: D-009 resolves feedback privacy/retention/triage/deletion and read-only device-view policy. Its feedback and source/device views must remain separate from raw research data and privileged actions, with server role/re-authentication enforcement.
@@ -68,15 +70,17 @@ behavior, role enforcement, retention execution, deployment, or Android behavior
 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
-T9 is blocked by D-008. T10/T12 are complete for their bounded handoffs. T11 needs focused technical
-and external Android evidence. General account lifecycle, production operations, runtime retention,
-and external-device facts remain open; no new owner decision is proposed.
+T9 is eligible for an exact repository-side handoff under D-008. T10/T12 are complete for their
+bounded handoffs. T11 needs focused technical and external Android evidence. Production operations,
+runtime retention, capacity and external-device facts remain open; no new owner decision is proposed.
 
 Confidence is High for code-visible authority and missing boundaries, Medium for T8 local projection because deterministic and isolated-browser tests exist, and Low for distributed recovery, deployment, load, hardware, provider, Android, and real operations outcomes.
 
 ## 8. Handoff
 
-Backend, Frontend, and Database are now independently eligible for re-audit using this Architecture baseline. Their reports must cover the C-scope placement above without treating a policy direction or simulator as implementation/runtime evidence.
+Backend, Frontend, and Database are independently eligible for the D-008 revalidation using this
+Architecture baseline. They must not promote a policy direction or simulator into implementation or
+runtime evidence.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 
