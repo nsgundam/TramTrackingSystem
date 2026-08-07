@@ -99,7 +99,7 @@ devices, and TTN console state remain external unknowns.
 | T11 | Supported sender operations, trip history, and exception view | Critical/High for daily operations | Production 3.1, 3.3; Product 7–9; Dashboard 7, 10 | Phase 3; native source pinned, but coordinated Backend/Mobile handoff, compatible patch, Android target, and acceptance artifact pending |
 | T12 | Feedback triage and device/source operations views | High for broad public support | Product 7, 11; Frontend 12; Dashboard 10; Database 12 | Phase 3; complete for the D-009/D-010:A exact handoff; runtime rollout remains unverified |
 | T13 | Production deployment/recovery drill and monitoring | High before production | Production 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16 | Phase 4; blocked on T9 external acceptance and target authority |
-| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; D-011 approved, first truth/integrity slice eligible for exact handoff |
+| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; first D-011 truth/integrity slice in progress under exact handoff |
 | T15 | Physical senders, research dashboard, playback/reports, scale extensions | Deferred | Product 11; Architecture 9–10, 12; Infrastructure 7–9; D-002 | Phase 5; blocked on T13 and physical/provider facts |
 
 Every Critical/High finding remains represented. D-001=C opens T10–T12's release-scope gate, but
@@ -122,7 +122,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T11 | Blocked — cross-repository/external evidence | The v3 brief pins a partially compatible native app. Static-secret storage, backup/cleartext, task-removal and missing enrollment/claim/recovery gaps require a coordinated exact handoff plus writable Mobile/Android target and device acceptance. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
 | T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
-| T14 | Eligible for exact first-slice handoff | D-011 selects fail-closed Feedback association and truthful Public/Admin state with minimal Public visual change. Current Dashboard & UX evidence is 9/20 (Poor); implementation still requires the exact-path Level 3 contract. |
+| T14 | In Progress — first truth/integrity slice | D-011 and current audits are satisfied; `docs/tasks/T14-truthful-feedback-and-live-state.md` binds exact paths, limited Public visual change, deterministic checks, and browser journeys. |
 | T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
 
 ### Approved-batch continuation gate
@@ -132,7 +132,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Eligible | Create the exact D-011 first-slice handoff, run the required UI skills, implement, browser-verify, and re-audit before selecting the next slice. |
+| T14 | In progress | Complete the exact D-011 handoff, browser-verify, and re-audit before selecting the next slice. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
 Batch result: T14's first D-011 slice is the next eligible implementation lane. T9/T13 remain
@@ -1279,15 +1279,16 @@ component/accessibility checks, and desktop/mobile browser smoke tests.
 
 ### Status
 
-Eligible for exact first-slice handoff — T8, D-011, and the 2026-08-08 Dashboard & UX re-audit are
-current. Implementation must not begin until the Level 3 task records exact Feedback/Admin paths,
+In Progress — T8, D-011, and the 2026-08-08 Dashboard & UX re-audit are current. The exact Level 3
+handoff is `docs/tasks/T14-truthful-feedback-and-live-state.md`; it binds Feedback/Admin paths,
 state invariants, limited Public visual acceptance, focused tests, and browser journeys.
 
 ### Evidence
 
 `docs/audits/dashboard-ux-audit.md` records the required Impeccable audit (9/20, Poor; no P0; nine P1,
 ten P2, and one P3), detector limitations, source evidence, and the bounded T14 recommendation set.
-No T14 implementation or human browser acceptance was performed.
+The first-slice exact handoff is `docs/tasks/T14-truthful-feedback-and-live-state.md`; implementation
+and browser acceptance are pending.
 
 ## 9. Phase 5 — Future Enhancements
 
