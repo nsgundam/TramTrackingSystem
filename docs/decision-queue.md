@@ -2,6 +2,8 @@
 
 ## Pending
 
+None.
+
 ## Approved
 
 ## D-011 — T14 first corrective UX slice and acceptance order

@@ -1,7 +1,7 @@
 # Dashboard & UX Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: cdedcc2fd82ab264e2176716ac23a74c948e1a28
+- Evidence baseline: 1eec86602c40c859d50dd9d369f636b103b6896f
 - Evidence scope: docs/project-knowledge-base.md,
   Product/Architecture/Backend/Frontend/Infrastructure & Device audits,
   docs/decision-queue.md, docs/research/, docs/tasks/,
@@ -10,10 +10,25 @@ Audit metadata:
   shuttle-tracking-web/hooks/, shuttle-tracking-web/services/, shuttle-tracking-web/types/,
   shuttle-tracking-web/utils/, shuttle-tracking-web/tests/, full current frontend check evidence,
   and the current Impeccable technical audit/detector pass
-- Reviewed at: 2026-08-07T19:58:02+07:00
+- Reviewed at: 2026-08-08T00:07:30+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/audits/product-audit.md, docs/audits/frontend-audit.md, and
-  docs/audits/infrastructure-device-audit.md @ cdedcc2fd82ab264e2176716ac23a74c948e1a28
+  docs/audits/infrastructure-device-audit.md @ 1eec86602c40c859d50dd9d369f636b103b6896f
+
+## 2026-08-08 D-011 visual-authority re-audit
+
+Product, Frontend, and Infrastructure & Device are current at `1eec866...`; web source is unchanged.
+D-011 approves the first T14 slice as fail-closed Feedback vehicle association plus truthful
+Public/Admin connection and freshness state. The Public surface must retain its current visual
+identity and layout as far as practical; copy/state/semantics may change only as required for truth,
+accessibility, and recoverability. Admin pages may later receive a substantial but separately
+bounded complementary Dashboard theme.
+
+The current 9/20 score remains authoritative because no finding was implemented. The approved first
+slice must browser-check Feedback success/load-failure/no-selection behavior and Admin successful,
+loading, API-error, Socket-disconnected, stale-expiry, and recovered states without turning failure
+into fabricated vehicles, zeroes, or “Live System Active.” Accessibility/navigation and broader
+Admin visual work remain later slices and cannot be bundled into this data-integrity task.
 
 ## 1. Executive Summary
 
@@ -26,10 +41,10 @@ Mobile recovery.
 The research scope remains a future authenticated developer surface and must not be exposed through
 public/admin operations pages.
 
-The owner has requested a public-theme Dashboard redesign, but its information hierarchy and visual
-acceptance belong to T14 after a bounded dashboard brief. T10 and T12 provide their exact bounded
-operations/data-policy surfaces; T11 remains independently blocked. This audit does not authorize an
-unbounded redesign.
+The owner approves substantial Admin Dashboard improvement but does not own the Public visual
+surface. T14 must therefore preserve Public identity and split Admin restructuring into bounded
+slices. T10 and T12 provide their exact bounded operations/data-policy surfaces; T11 remains
+independently blocked. This audit does not authorize an unbounded redesign.
 
 The required Impeccable technical audit scores the current frontend **9/20 (Poor)** with no P0,
 nine P1, ten P2, and one P3 finding. The product-specific public/admin separation is visible, but
@@ -45,7 +60,7 @@ the UI score and all twenty technical findings remain unchanged.
 
 This profile reviews information architecture, truthfulness, separation of public/operations/research surfaces, loading/error/accessibility states, and task placement. It is not a browser usability study, accessibility certification, user research, device/pilot, or production service test.
 
-Product, Frontend, and Infrastructure & Device are revalidated at `cdedcc2...`. The preceding
+Product, Frontend, and Infrastructure & Device are revalidated at `1eec866...`. The preceding
 Dashboard & UX baseline was `82f4d97...`. T9 changes the task/runbook/decision evidence and
 `shuttle-tracking-web/components/admin/LiveMap.tsx`,
 `components/public/FeedbackModal.tsx`, `config/backend.ts`, tracker/socket hooks,
@@ -69,7 +84,7 @@ certification.
 | Feedback capture had staff triage/privacy journey | Partially Resolved | T12 implements notice/receipt, Super Admin/Dev triage, selected reason delete/restore, and safe health fields. No usability/accessibility/human acceptance evidence exists. |
 | Research data had an appropriate dashboard | Still Present | No research route/UI has session/source/time filters, metric definitions, sample counts, uncertainty labels, drill-down or bounded export. Existing absence preserves the no-raw-public invariant. |
 | Role-specific UX enforced the new hierarchy | Partially Resolved | T12 session hydration and Sidebar hide the feedback inbox from `ADMIN` while the server remains authoritative. General capability rendering, account lifecycle, research navigation, and role-denial acceptance remain absent. |
-| Dashboard public-theme direction had a bounded specification | Still Present | Direction is recorded, but exact target screens, priority questions/actions, shared tokens and accessible visual acceptance remain unbounded. T14 owns it. |
+| Dashboard public-theme direction had a bounded specification | Partially Resolved | D-011 fixes order and Public/Admin visual authority. The first truth/integrity slice still needs exact paths and browser journeys; later Admin theme/accessibility slices remain unbounded. |
 | Modal, focus, form, and document accessibility met a release baseline | Still Present | Root zoom/language settings, systemic dialog/focus omissions, unassociated labels/selection state, and an off-screen focusable Mobile sidebar create source-visible WCAG risks. No automated or human accessibility acceptance exists. |
 | Feedback vehicle association failed safely | Still Present | Public Feedback substitutes and auto-selects hard-coded vehicles when the active-vehicle fetch fails, so a real complaint can be attached to the wrong vehicle without disclosure. |
 
@@ -79,7 +94,7 @@ certification.
 |---|---|---|
 | Public rider | Canonical route/stops/live state, neutral ETA, feedback and truthful service messaging. | No source identity, raw telemetry, credentials, research comparison, unrestricted history or admin actions. |
 | ADMIN operations | Authorized route publishing, source/device/trip exception and feedback workflow data. | Must be server-authorized; not raw research diagnostic data or higher-privilege deletion/export by default. |
-| SUPER_ADMIN/DEV | Approved privileged actions and separate research surfaces. | T12's bounded Feedback/fresh-auth actions exist; D-012 still gates general lifecycle/recovery and no UI grants implicit authority. |
+| SUPER_ADMIN/DEV | Approved privileged actions and separate research surfaces. | T12's bounded Feedback/fresh-auth actions exist; D-012 policy is approved but unimplemented, and no UI grants implicit authority. |
 | Research developer | Session-scoped metrics/aggregates, data definitions, limitations, bounded exports. | Separate route/auth; displayed route conformance and reported accuracy must not be labeled ground truth. |
 
 ## 5. Required UX Task Placement
@@ -89,7 +104,9 @@ certification.
 - T12's Feedback inbox/status/assignment and read-only source-health views implement their bounded
   source/test contract. Preserve server-authorized actions and clear privacy/retention/delete/restore
   controls; runtime/human acceptance remains separate.
-- T14 owns the public-theme Dashboard visual system and hierarchy: its brief must identify questions/actions, system/error states, responsive/accessibility criteria, and research/operations separation before styling work.
+- T14 first owns the approved truth/integrity journeys with minimal Public visual change. Later exact
+  Admin hierarchy/theme work must identify questions/actions, system/error states, responsive/
+  accessibility criteria, and research/operations separation before styling.
 
 ## 6. Impeccable Technical Audit
 
@@ -186,11 +203,10 @@ Confidence is High for source-visible UI separation and technical implementation
 
 ## 8. Proposed Owner Decisions and Handoff
 
-No new owner decision is proposed. D-011 remains pending and is the binding choice for the first
-exact T14 slice and its browser/accessibility acceptance order; this audit does not authorize a
-broad redesign.
+No new owner decision is proposed. D-011 is approved and binds the first exact T14 truth/integrity
+slice and Public/Admin visual limits; this audit does not authorize a broad redesign.
 
-Dashboard & UX is validated at `cdedcc2...` with the T9 Infrastructure predecessor and the current
+Dashboard & UX is validated at `1eec866...` with current predecessors and the technical
 technical audit. Security/DevOps/Observability, Production Readiness, and Roadmap have now consumed
 these truthfulness/accessibility findings without treating them as fixed.
 

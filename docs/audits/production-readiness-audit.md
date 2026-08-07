@@ -1,20 +1,34 @@
 # Production Readiness Audit
 
 Audit metadata:
-- Evidence baseline: cdedcc2fd82ab264e2176716ac23a74c948e1a28
+- Evidence baseline: 1eec86602c40c859d50dd9d369f636b103b6896f
 - Evidence scope: docs/project-knowledge-base.md; every validated domain audit;
   docs/decision-queue.md; docs/tasks/; docs/operations/; scripts/ci-checks.sh;
   scripts/test-production-topology.mjs; Compose/environment configuration; the current Impeccable
   Dashboard & UX technical audit evidence; the current full repository CI; and source paths cited
-  by validated findings
-- Reviewed at: 2026-08-07T20:02:02+07:00
+  by validated findings; the D-012 matrix; and the T11 v3 external Mobile compatibility brief
+- Reviewed at: 2026-08-08T00:07:30+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md,
   docs/audits/architecture-audit.md, docs/audits/backend-audit.md,
   docs/audits/frontend-audit.md, docs/audits/database-audit.md,
   docs/audits/infrastructure-device-audit.md, docs/audits/dashboard-ux-audit.md, and
   docs/audits/security-devops-observability-audit.md @
-  cdedcc2fd82ab264e2176716ac23a74c948e1a28
+  1eec86602c40c859d50dd9d369f636b103b6896f
+
+## 2026-08-08 release-gate re-audit
+
+Every predecessor is validated at `1eec866...`. D-011/D-012 are approved, removing two owner-policy
+gates but not their implementation/runtime evidence. D-011 permits the bounded T14 truth/integrity
+slice with minimal Public visual change; D-012 supplies future lifecycle safeguards but none is
+implemented. The selected D-001=C release remains **No-Go**.
+
+The external native Android source is now available and partially compatible with the current
+Sender API. It adds a concrete foreground/Socket.IO/Trip code path, but also creates SEC-08: reusable
+Sender material in ordinary preferences with backup/cleartext enabled, no T11 enrollment/claim/
+Keystore/revocation/recovery flow, unsafe task-removal/end behavior, and no signed build/device/OS
+acceptance. A build attempt was **Unable to Verify** without Android SDK. This improves discovery,
+not release readiness.
 
 ## 1. Executive Summary
 
@@ -32,13 +46,13 @@ The release determination remains **No-Go**. D-008 resolves the logical universi
 responsibility boundary, and T9 now aligns the repository template/runtime/origin/runbook with
 deterministic checks. The University Server/Network Team has not supplied host, TLS, firewall,
 forwarded-hop, deployed secret, backup/restore, logs/alerts, incident or capacity acceptance evidence.
-T11 still lacks its exact lifecycle/Android evidence; T12 lacks target migration/retention/human
+T11 still lacks its coordinated lifecycle/Mobile patch and Android runtime evidence; T12 lacks target migration/retention/human
 acceptance; physical senders/provider/field behavior is unavailable; and the Dashboard & UX technical
 audit is 9/20 (Poor) with truthful live-state and accessibility P1 findings.
 
 ## 2. Freshness and Validated Predecessor Coverage
 
-The preceding baseline was `82f4d97...`. Every domain report now consumes `cdedcc2...`. Changed
+The preceding baseline was `cdedcc2...`. Every domain report now consumes `1eec866...`. Changed
 release evidence is the T9 task/runbook/decision set; `docker-compose.prod.yml` and
 `env.production.example`; static topology/CI scripts; backend entrypoint/runtime/Prisma/Redis/
 server/rate-limit/tests; and the central frontend connection resolver with its listed consumers and
@@ -69,14 +83,15 @@ and workflow validation. No production target or stateful acceptance target was 
 | ID | Finding | State | Blocks |
 |---|---|---|---|
 | PR-01 | T10 route-stop composition/invalidation is implemented for its exact scope. | Resolved | The command/UI and deterministic/CI evidence pass; ambient cache/database/browser proof remains unavailable. |
-| PR-02 | T11 Mobile installation/claim, receipt-time 10-minute timeout/no-reopen, force-close audit, protected history and exception paths are absent; Android evidence is external. | Still Present | Internal, public |
+| PR-02 | A native Mobile source exists, but T11 installation/claim/Keystore refresh, receipt-time timeout/no-reopen, force-close audit, protected history/exceptions, coordinated client migration, and Android runtime evidence are absent. | Partially Resolved | Internal, public |
 | PR-03 | T12 feedback ownership/privacy/retention/deletion/SLA and read-only device policy are implemented for exact source/test scope; runtime rollout is unverified. | Partially Resolved | Public |
 | PR-04 | D-008 logical topology/owners are approved and T9 repository implementation passes; every external host/TLS/firewall/proxy-hop/secret/recovery/alert/capacity result is absent. | Partially Resolved | Internal, public |
-| PR-05 | D-007/D-010:A hierarchy and sensitive Feedback action fresh-auth/audit are enforced server-side; general account lifecycle remains out of scope. | Partially Resolved | Internal, public |
+| PR-05 | D-007/D-010:A bounded hierarchy is enforced and D-012 policy is approved; general account/session/Sender/deletion/backup/recovery controls are unimplemented. | Partially Resolved | Internal, public |
 | PR-06 | SEC-01 raw Socket.IO invalid payload logging can leak sensitive coordinates/payloads. | Resolved | Source/test blocker removed by M-20260807-01; retain guards and obtain deployed-log evidence on an approved target. |
 | PR-07 | Durable metrics/logs/alerts, on-call, recovery drill and backup/restore/rollback evidence are absent. | Still Present | Internal, public |
 | PR-08 | Mobile, ESP32, TTN/gateway/provider and field/recovery evidence are unavailable; simulators are not physical evidence. | Unable to Verify | Research, internal, public |
 | PR-09 | T8 canonical projection is resolved, but public C-scope service-state/retry explanation, accessibility and real user/runtime evidence remain incomplete; Admin status/fallback truth is also unsafe for a release claim. | Partially Resolved | Internal, public |
+| PR-10 | The external Mobile revision stores reusable Sender material in ordinary preferences with backup/cleartext enabled and lacks installation revocation/recovery. | New Finding | Internal, public |
 
 ## 5. Stop Conditions
 
@@ -107,13 +122,13 @@ source and covered by deterministic guards, but Low for deployed logs, credentia
 deployment/device/provider/field behavior because those remain unobserved. This audit validates the
 release synthesis; it does not approve a release.
 
-No new owner decision is proposed. D-011 and D-012 remain pending and cannot be bypassed; T9/T11/T12
-external/runtime acceptance is missing evidence rather than a decision to infer.
+No new owner decision is proposed. D-011 and D-012 are approved and cannot be expanded beyond their
+recorded scope; T9/T11/T12 external/runtime acceptance is missing evidence rather than a decision to
+infer.
 
-Roadmap has now consumed this release synthesis. It records T9 as repository-partial without claiming
-deployment, keeps T11/T12 runtime proof open, preserves the Dashboard & UX findings/D-011 gate for
-T14, and stops implementation selection at the first unmet dependency or owner decision. No next
-implementation unit is currently eligible.
+Roadmap may now consume this release synthesis and create only the first exact T14 truth/integrity
+handoff. T9 remains repository-partial, T11/T12 runtime proof remains open, and T13/T15 dependencies
+cannot be bypassed.
 
 ## 8. T12 Implementation Re-audit — 2026-08-01
 

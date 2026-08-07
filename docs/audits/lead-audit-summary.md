@@ -1,47 +1,41 @@
 # Lead Audit Summary
 
-Last updated: 2026-08-07
+Last updated: 2026-08-08
 
-Coordination status: **Every audit and the Roadmap are revalidated, no Roadmap implementation unit is
-currently eligible, and production remains No-Go.** All Level 1 records are current at `cdedcc2...`.
-T9 is still only partially complete because University Server/Network acceptance is external. T11
-remains blocked on its Android artifact/exact lifecycle handoff, T13 is blocked behind T9 and target
-authority, T14 is blocked on D-011, and T15 is deferred behind T13 and physical/provider facts.
-D-012 retains the later general lifecycle owner gate.
-Repository CI and Compose evidence are not deployment, provider, credential-rotation, UX-acceptance,
-or physical-device proof.
+Coordination status: **Every audit and the Roadmap are revalidated; T14's first D-011 slice is the
+next eligible lane; production remains No-Go.** All Level 1 records are current at `1eec866...`.
+The owner defers T9 continuation and T13 without satisfying their external gates. T11 now has pinned
+native Mobile source but remains blocked on coordinated implementation, writable Mobile/Android
+acceptance authority, and a device report. D-012 is approved but unimplemented. T15 remains deferred
+behind T13 and physical/provider facts. Repository/static Mobile evidence is not deployment, provider,
+credential-rotation, UX-acceptance, or physical-device proof.
 
-## Current coordination update — 2026-08-07
+## Current coordination update — 2026-08-08
 
 This update supersedes prior active coordination statements while retaining the historical snapshots
 below. The immutable source baseline is
-`cdedcc2fd82ab264e2176716ac23a74c948e1a28`.
+`1eec86602c40c859d50dd9d369f636b103b6896f`.
 
-- T9 implements the checked-in university single-host/single-origin template: private data network,
-  authenticated Redis, loopback-only app ports, versioned images, health ordering, one fail-closed
-  backend runtime authority, one frontend REST/Socket origin authority, and the external-team
-  operations runbook.
-- Focused Discovery evidence passed at `cdedcc2...`: backend `npm run check`, frontend T9 tests
-  (5/5), and the static production-topology test. No stateful or external target was operated.
-- Discovery revalidates every material prior finding and the current role, Feedback, research,
-  route-stop, source-health, startup, and topology inventory. It explicitly preserves physical
-  Mobile/ESP32/LoRaWAN/provider facts and production host/proxy/DNS/TLS/secrets/restore/alerts/
-  capacity as unavailable external evidence.
-- Product confirms that T9 preserves existing rider/admin journey semantics while removing REST/
-  Socket fallback ambiguity; no deployed or human journey evidence was created.
-- Architecture confirms that T9 preserves the monolith, durable/transient data-product authority,
-  and ingestion/canonical boundaries while resolving the repository topology/origin authority.
-- Infrastructure & Device confirms T9's static handoff while retaining all external/device facts.
-  Dashboard & UX confirms T9 changed no UI semantics and the current Impeccable score remains 9/20
-  (Poor), with no P0; D-011 is still the T14 scope-order gate.
-- Security/DevOps/Observability closes T9's checked-in port/origin/auth/proxy/health findings while
-  retaining TLS, secrets, firewall, restore, alerts, forwarded-hop, and incident evidence as external.
-- Production Readiness remains No-Go after current full CI: external T9 acceptance, T11 Android/
-  lifecycle, T12 runtime, 9/20 UX, operations, devices/providers, and field evidence remain open.
-- Roadmap revalidation confirms that T9 continuation requires external target/operator authority,
-  T11 lacks its exact lifecycle handoff and Android artifact, T13 depends on external T9 acceptance,
-  T14 cannot consume pending D-011, and T15 remains deferred. The approved batch therefore stops
-  without selecting an unauthorized implementation task.
+- D-011 approves data integrity/truthful Public/Admin state as T14's first slice, preserves Public
+  visual identity, and allows later separately bounded Admin redesign. D-012 approves the
+  least-privilege lifecycle matrix but adds no current account/Sender/deletion/recovery control.
+- Discovery pins Android repository `0-Mini-Peak-1/RSUBusTrackerApp` at
+  `949c80369d1d133b6c03282fedaa2f475a73114b`. Native foreground/Socket.IO/Trip code is partial
+  evidence; reusable credential storage, backup/cleartext, task-removal, enrollment/claim/recovery,
+  tests, signing, and device/OS gaps remain.
+- Product/Architecture/Backend/Database confirm the safe route is one coordinated versioned
+  Backend/Admin/Mobile state machine; the current static-secret client must not become a second
+  permanent authority.
+- Infrastructure & Device records the build as Unable to Verify without Android SDK and retains all
+  ESP32/LoRaWAN/provider/field unknowns. Security records SEC-08 High for external Mobile credential,
+  backup, cleartext, and lifecycle gaps.
+- Frontend/Dashboard & UX retain the 9/20 (Poor) source result. The first T14 handoff is limited to
+  fail-closed Feedback association and truthful Public/Admin state; accessibility/navigation and
+  Admin theme work remain later slices.
+- Production Readiness remains No-Go. T9/T13 are deferred by owner, not completed; T11/T12 runtime,
+  SEC-08, UX, operations, device/provider and field gates remain.
+- Roadmap revalidation selects T14's first exact handoff as the next eligible lane without bypassing
+  T9/T11/T13/T15 dependencies.
 
 The controlled local demo remains Conditional only; research field trials, daily operations, and
 public service remain No-Go.
@@ -67,17 +61,17 @@ now supersedes that release assumption without changing the already-tested T6 co
 
 ## 2. Current profile status
 
-- Discovery: **Complete / Validated** at `cdedcc2...`; T9 repository facts and external limits are current.
-- Product: **Complete / Validated** at `cdedcc2...`; T9 preserves existing journeys and remains externally unaccepted.
-- Architecture: **Complete / Validated** at `cdedcc2...`; the monolith and data authorities remain appropriate.
-- Backend: **Complete / Validated** at `cdedcc2...`; T9 runtime/proxy/CORS/data-client boundaries are current.
-- Frontend: **Complete / Validated** at `cdedcc2...`; T9 origin authority and full frontend checks are current, while technical UX remains 9/20 (Poor).
-- Database: **Complete / Validated** at `cdedcc2...`; no schema/migration changed and private/authenticated data boundaries are current.
-- Infrastructure & Device: **Complete / Validated** at `cdedcc2...`; repository topology is current and all external/device facts remain unavailable.
-- Dashboard & UX: **Complete / Validated** at `cdedcc2...`; T9 changed no UI semantics and Impeccable remains 9/20 (Poor).
-- Security, DevOps & Observability: **Complete / Validated** at `cdedcc2...`; repository T9 controls are current and external security/operations facts remain unavailable.
-- Production Readiness: **Complete / Validated / No-Go** at `cdedcc2...`; current full CI passes and external/release gates remain open.
-- Roadmap: **Complete / Validated** at `cdedcc2...`; no implementation unit is currently eligible.
+- Discovery: **Complete / Validated** at `1eec866...`; owner decisions and pinned external Mobile facts are current.
+- Product: **Complete / Validated** at `1eec866...`; Mobile is partial and T14's first scope is approved.
+- Architecture: **Complete / Validated** at `1eec866...`; the coordinated cross-repository boundary is current.
+- Backend: **Complete / Validated** at `1eec866...`; current sender contract and missing T11 lifecycle are revalidated.
+- Frontend: **Complete / Validated** at `1eec866...`; D-011 visual limits are current and UX remains 9/20 (Poor).
+- Database: **Complete / Validated** at `1eec866...`; D-012 target invariants are approved but absent from schema/runtime.
+- Infrastructure & Device: **Complete / Validated** at `1eec866...`; native source is partial and Android runtime remains unverified.
+- Dashboard & UX: **Complete / Validated** at `1eec866...`; first truth journeys are ordered and Impeccable remains 9/20 (Poor).
+- Security, DevOps & Observability: **Complete / Validated** at `1eec866...`; SEC-08 is open and D-012 controls are unimplemented.
+- Production Readiness: **Complete / Validated / No-Go** at `1eec866...`; external/release gates remain open.
+- Roadmap: **Complete / Validated** at `1eec866...`; T14's first exact handoff is the next eligible lane.
 
 ## 3. Evidence and validation
 
@@ -98,9 +92,10 @@ Approved D-001=C supersedes A. D-007 records hierarchical `DEV` > `SUPER_ADMIN` 
 with `DEV` able to perform every action. T11 permits `ADMIN` or higher to provision device Sender
 credentials in the Admin UI, while a separate Mobile GPS Sender Application performs the driver GPS
 runtime against the Backend; only the owner/authorized creator team may provision or remove `DEV`
-out of band. `SUPER_ADMIN` privileged deletion is limited to Trip, GPSTrack, and Feedback. Remaining
-non-Mobile account/credential lifecycle, re-authentication/audit, backup-before-delete, and restore
-controls remain implementation gates. For T11, `ADMIN` or higher may disable/revoke and re-enroll a
+out of band. `SUPER_ADMIN` privileged deletion is limited to Trip, GPSTrack, and Feedback. D-012 now
+fixes the least-privilege actor/action/fresh-auth/reason/audit/recovery matrix; its account/session,
+non-Mobile Sender, recoverable deletion, backup/restore, and out-of-band recovery controls remain
+implementation gates. For T11, `ADMIN` or higher may disable/revoke and re-enroll a
 lost/replaced shared phone and atomically emergency-force-close its active Trip plus release the
 claim with an explicit reason and immutable audit; this lifecycle action does not delete evidence.
 
@@ -116,17 +111,19 @@ Mobile self-start, Admin-controlled LoRaWAN/IoT start, locked-screen sending, an
 discard. Driver-facing `SOURCE_ID` entry is removed from the direction; a non-secret vehicle QR is
 the primary selector and a printed short code may provide the same authenticated-session-only
 fallback, while internal source provenance remains required. The current focused identity decision
-is `docs/audits/specialized/T11-identity-mobile-sender-enrollment.md`. The focused T11 owner
-policy is complete; exact implementation parameters/handoff and external Android acceptance evidence
-remain required.
+is `docs/audits/specialized/T11-identity-mobile-sender-enrollment.md`. V3 pins the supplied Android
+source and records partial foreground/Socket.IO evidence plus the static-secret, backup/cleartext,
+task-removal, enrollment/claim/recovery, build, and device-report gaps. The focused T11 owner policy
+is complete; a coordinated Backend/Admin/Mobile handoff and external Android acceptance remain
+required.
 D-008 is approved through the binding specialist brief: university-managed single-host production,
 one TLS origin, private data services, application-team artifact/migration/runbook ownership, and
 University Server/Network infrastructure/recovery/operations ownership. Its external acceptance
 checklist remains unverified. The repository-side T9 handoff is implemented and revalidated by every
-audit profile, but T9 cannot be completed from static tests alone. Roadmap revalidation is now
-complete. T11 remains blocked on the external Android artifact/exact lifecycle handoff, T13 depends
-on T9 external acceptance and approved operations evidence, T14 awaits D-011 and an exact handoff,
-and T15 awaits physical facts and T13. No next Roadmap implementation unit is eligible. A later
+audit profile, but T9 cannot be completed from static tests alone. The owner defers T9 continuation
+and T13 without satisfying those gates. D-011 opens T14's first truth/integrity slice while preserving
+Public identity; its exact handoff is the next action. T11 remains blocked on coordinated Mobile/
+Backend implementation and Android acceptance, and T15 awaits physical facts and T13. A later
 approved target may supply T12 runtime evidence but does not bypass these gates or grant deployment
 scope.
 

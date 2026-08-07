@@ -1,17 +1,34 @@
 # Architecture Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: cdedcc2fd82ab264e2176716ac23a74c948e1a28
+- Evidence baseline: 1eec86602c40c859d50dd9d369f636b103b6896f
 - Evidence scope: docs/project-knowledge-base.md, docs/audits/product-audit.md,
   docs/decision-queue.md, docs/research/, docs/tasks/, docs/operations/, README.md,
   Compose/environment configuration and scripts, shuttle-tracking-backend/src/,
   shuttle-tracking-backend/prisma/, shuttle-tracking-backend/tests/,
   shuttle-tracking-web/config/, shuttle-tracking-web/hooks/, shuttle-tracking-web/utils/,
   shuttle-tracking-web/types/, shuttle-tracking-web/services/,
-  shuttle-tracking-web/components/, and shuttle-tracking-web/tests/
-- Reviewed at: 2026-08-07T19:49:20+07:00
+  shuttle-tracking-web/components/, shuttle-tracking-web/tests/, and the T11 v3 external Mobile
+  compatibility brief
+- Reviewed at: 2026-08-08T00:07:30+07:00
 - Validation state: Validated
-- Predecessor baselines: docs/project-knowledge-base.md and docs/audits/product-audit.md @ cdedcc2fd82ab264e2176716ac23a74c948e1a28
+- Predecessor baselines: docs/project-knowledge-base.md and docs/audits/product-audit.md @ 1eec86602c40c859d50dd9d369f636b103b6896f
+
+## 2026-08-08 Decision and Mobile boundary re-audit
+
+Discovery and Product are current at `1eec866...`; application source in this repository is
+unchanged. The pinned external Android source confirms a concrete consumer of the present
+`vehicle-login`/Trip/Socket.IO contract, but also exposes contract drift: the client persists and
+replays a static Source ID/secret while T11 requires installation enrollment, a protected refresh
+credential, a non-secret vehicle selector, exclusive claim/version state, and authoritative
+idempotent Trip recovery. The safe architecture remains one versioned cross-repository state machine
+with server-owned claims/lifecycle; retaining old and new authentication contracts indefinitely
+would create two authorities.
+
+D-012 now supplies the future least-privilege account/Sender/deletion/recovery policy, closing the
+owner question but not the schema/service/session/audit implementation. D-011 authorizes a bounded
+T14 truth/integrity slice and preserves the Public visual identity. Neither decision changes current
+runtime boundaries.
 
 ## 1. Executive Summary
 
@@ -30,7 +47,7 @@ safe-view boundaries. None is a reason to split the appropriate monolith into un
 
 This profile covers boundaries, authority, data products, temporal semantics, cache/realtime behavior, and task placement. It does not certify deployment, physical devices, provider behavior, browser runtime, load, or an Android client.
 
-Discovery and Product are revalidated at `cdedcc2...`. The preceding Architecture baseline was
+Discovery and Product are revalidated at `1eec866...`. The preceding Architecture baseline was
 `82f4d97...`. T9 changes the checked-in topology and architectural authorities but does not change
 canonical selection, research capture, relational schema, route-stop ownership, Feedback lifecycle,
 or Mobile/ESP32/LoRaWAN acquisition semantics.
@@ -83,7 +100,7 @@ behavior only, not TLS, forwarded-hop behavior, recovery, capacity, deployment, 
   REST and Socket.IO behind one TLS proxy and stop before external operations unless named owners
   and an approved target are available.
 - T10: complete for its exact composition/invalidation scope. A future audit must retain the invariant that the public read consumes the changed authoritative sequence rather than treating cache invalidation as a production proof.
-- T11: extend the Operations/lifecycle authority and supporting schema/auth boundaries for receipt-time lastAcceptedAt, 10-minute timeout, no-reopen, Mobile installation/claim, revocation, audit, protected history, and exceptions. A separate Android client remains an external consumer of a versioned contract. General D-007 account-lifecycle policy is not authorized to be invented here.
+- T11: extend the Operations/lifecycle authority and supporting schema/auth boundaries for receipt-time lastAcceptedAt, 10-minute timeout, no-reopen, Mobile installation/claim, revocation, audit, protected history, and exceptions. The pinned Android client is an external consumer that must migrate in coordination with the versioned contract. D-012 general lifecycle policy remains outside T11.
 - T12: D-009 resolves feedback privacy/retention/triage/deletion and read-only device-view policy. Its feedback and source/device views must remain separate from raw research data and privileged actions, with server role/re-authentication enforcement.
 
 ## 6. Risks and Recommendations
@@ -91,7 +108,7 @@ behavior only, not TLS, forwarded-hop behavior, recovery, capacity, deployment, 
 1. Define Redis-loss/degraded and recovery behavior before a production claim; the current model cannot recreate a durable current-state/version stream from PostgreSQL.
 2. Keep timeout execution serialized with sender observations and administrative recovery in the same lifecycle transaction/locking order. Rejected/post-close observations must not advance lastAcceptedAt.
 3. Preserve the implemented reusable `ADMIN` < `SUPER_ADMIN` < `DEV` authorization and fresh-auth
-   boundary; require D-012 before expanding general account/source lifecycle actions.
+   boundary; apply approved D-012 only through an exact general lifecycle handoff.
 4. Preserve T10's explicit cache invalidation and add its stateful public-read proof only on an approved disposable target; do not fall back to TTL semantics.
 5. Preserve the no-raw-public invariant; research data requires distinct authentication and provenance/retention semantics.
 
@@ -105,8 +122,8 @@ Confidence is High for code-visible authority and missing boundaries, Medium for
 
 ## 8. Proposed Owner Decisions and Handoff
 
-No new owner decision is proposed. D-011 and D-012 remain pending and constrain only their stated
-UX-order and general account/source lifecycle questions; external T9 acceptance remains evidence,
+No new owner decision is proposed. D-011 and D-012 are approved and constrain only their stated
+UX-order and general account/source lifecycle work; external T9/Mobile acceptance remains evidence,
 not a policy choice to infer.
 
 Backend, Frontend, and Database completed their independent T9 revalidations using this Architecture

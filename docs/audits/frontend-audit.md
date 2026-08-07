@@ -1,7 +1,7 @@
 # Frontend Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: cdedcc2fd82ab264e2176716ac23a74c948e1a28
+- Evidence baseline: 1eec86602c40c859d50dd9d369f636b103b6896f
 - Evidence scope: docs/project-knowledge-base.md, Product/Architecture audits, Backend audit as
   cross-boundary context, docs/decision-queue.md, docs/tasks/,
   shuttle-tracking-web/app/, shuttle-tracking-web/components/, shuttle-tracking-web/config/,
@@ -9,10 +9,23 @@ Audit metadata:
   shuttle-tracking-web/types/, shuttle-tracking-web/utils/, shuttle-tracking-web/package.json,
   shuttle-tracking-web/tests/, full frontend check evidence, and the current Impeccable technical
   audit/detector pass
-- Reviewed at: 2026-08-07T19:53:43+07:00
+- Reviewed at: 2026-08-08T00:07:30+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md, and
-  docs/audits/architecture-audit.md @ cdedcc2fd82ab264e2176716ac23a74c948e1a28
+  docs/audits/architecture-audit.md @ 1eec86602c40c859d50dd9d369f636b103b6896f
+
+## 2026-08-08 D-011 scope re-audit
+
+Required predecessors are current at `1eec866...`; no web source changed. D-011 now approves the
+first T14 slice in this order: data integrity/truthful Public and Admin state, then accessibility/
+navigation, then measured responsive/performance/visual-system work. The Public tracker must retain
+its incumbent visual identity; only minimal semantic, copy/state, accessibility, and source-quality
+changes are allowed. Admin pages may receive a separately bounded visual restructure.
+
+The 9/20 Impeccable score and all source findings remain current. Approval changes task eligibility,
+not finding state: the hard-coded Feedback vehicle fallback and unconditional/stale Admin “live”
+claims remain P1 until an exact handoff is implemented and browser-verified. The external Android
+repository changes no web surface and does not authorize a T11 Admin UI before server APIs exist.
 
 ## 1. Executive Summary
 
@@ -26,9 +39,9 @@ static Live System Active label and master-data count do not make it an accounta
 
 D-007 is implemented for the bounded T12 session/navigation surfaces: the client hydrates the
 server-provided role and hides the Feedback Inbox from `ADMIN`; server authorization remains
-authoritative. The requested public-theme Dashboard redesign belongs to the later T14 scope after
-Dashboard & UX and D-011 produce an exact information hierarchy; it does not authorize broad
-styling work here.
+authoritative. The first T14 truth/integrity slice is owner-approved. A later Admin Dashboard
+redesign may use a complementary theme, while the Public surface keeps its current identity; neither
+authorizes broad styling without an exact handoff.
 
 T9 removes the per-consumer production fallback chains and routes public/admin REST and Socket.IO
 through one resolver. Production defaults to same-origin `/api` and current-origin Socket.IO; a
@@ -124,10 +137,10 @@ Confidence is High for source-visible canonical projection and missing UI surfac
 
 ## 8. Proposed Owner Decisions and Handoff
 
-No new owner decision is proposed. D-011 remains the binding choice for the first exact T14 slice;
-this audit evidence is not permission for an unbounded redesign.
+No new owner decision is proposed. D-011 is approved and binds the first exact T14 slice; this audit
+evidence is not permission for an unbounded redesign.
 
-Frontend is validated at `cdedcc2...` for the T9 implementation impact. Database and every dependent
+Frontend is validated at `1eec866...` for the current decision evidence. Database and every dependent
 profile through Roadmap have now completed their revalidations.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01

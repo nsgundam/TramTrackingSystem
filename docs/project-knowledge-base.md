@@ -1,18 +1,46 @@
 # Tram Tracking System Project Knowledge Base
 
 Audit metadata:
-- Evidence baseline: `cdedcc2fd82ab264e2176716ac23a74c948e1a28`
+- Evidence baseline: `1eec86602c40c859d50dd9d369f636b103b6896f`
 - Evidence scope: `README.md`, `AGENTS.md`, Compose/environment configuration and scripts,
   `shuttle-tracking-backend/`, `shuttle-tracking-web/`, `docs/testing/`, `docs/research/`,
-  `docs/tasks/`, `docs/operations/`, `docs/decision-queue.md`, and `docs/audits/specialized/`
-- Reviewed at: `2026-08-07T19:35:48+07:00`
+  `docs/tasks/`, `docs/operations/`, `docs/decision-queue.md`, `docs/audits/specialized/`, and the
+  immutable external Mobile revision recorded in the T11 v3 specialist brief
+- Reviewed at: `2026-08-08T00:07:30+07:00`
 - Validation state: `Validated`
 - Predecessor baselines: `None` (Discovery has no required predecessor)
 
-Evidence status: **Validated**. This Discovery re-audit consumes the completed T9 repository
-handoff and re-baselines the current source, configuration, tests, task contract, and operations
-runbook. T9 remains only partially complete because the external University Server/Network
-acceptance evidence is unavailable. Use `docs/audits/README.md` as the coordination authority.
+Evidence status: **Validated**. This Discovery re-audit consumes the approved D-011/D-012 records
+and the owner-supplied immutable Android source revision in addition to the existing T9 baseline.
+T9 remains only partially complete because the external University Server/Network acceptance
+evidence is unavailable. Use `docs/audits/README.md` as the coordination authority.
+
+## D-011/D-012 and T11 Mobile Repository Re-audit — 2026-08-08
+
+The preceding validated Discovery baseline was
+`cdedcc2fd82ab264e2176716ac23a74c948e1a28`; the current immutable decision/evidence baseline is
+`1eec86602c40c859d50dd9d369f636b103b6896f`. Application source in this repository is unchanged.
+The changed evidence is `docs/decision-queue.md`,
+`docs/audits/specialized/D-012-identity-administrative-lifecycle-matrix.md`, and
+`docs/audits/specialized/T11-mobile-repository-compatibility-v3.md`.
+
+The owner supplied the external native Android repository
+[`0-Mini-Peak-1/RSUBusTrackerApp`](https://github.com/0-Mini-Peak-1/RSUBusTrackerApp) at immutable
+revision `949c80369d1d133b6c03282fedaa2f475a73114b`. Static inspection confirms a Kotlin/Compose
+application with a location foreground service, short-lived sender-token login, Trip start/end, and
+Socket.IO location acknowledgements. It also confirms material T11 gaps: human-entered Source ID and
+reusable secret, plaintext `SharedPreferences` credential storage, application backup and cleartext
+traffic enabled, no installation enrollment/QR/claim/Keystore refresh lifecycle, task-removal Trip
+termination, no revoke/replacement/timeout/force-close integration, and no meaningful acceptance
+tests or signed device/OS report. A Gradle unit-test attempt was **Unable to Verify** because the
+inspection environment has no Android SDK; no build/runtime failure or acceptance pass is inferred.
+
+D-011 approves data integrity/truthful state as the first T14 slice while preserving the Public UI's
+incumbent visual identity; Admin surfaces may be restructured and restyled within an exact handoff.
+D-012 approves the least-privilege administrative/account/Sender/deletion/recovery matrix. These are
+policy and task-order facts, not implemented controls. The external Mobile source replaces the prior
+“application unavailable” inventory statement, but T11 remains incomplete and requires coordinated
+Backend/Admin and Mobile changes plus the v2 device/OS acceptance artifact.
 
 ## T9 Implementation Re-audit — 2026-08-07
 
@@ -165,8 +193,10 @@ The repository directly evidences these user groups:
 
 The declared project stage is MVP. The Level 1 contract in
 `agents/level-1-audit/AGENT.md` targets evidence-based progression toward a
-production-ready system. A complete mobile application, ESP32 firmware, and deployed TTN provider
-configuration are not present in this repository.
+production-ready system. A T11-compatible mobile application, ESP32 firmware, and deployed TTN
+provider configuration are not present in this repository. An external native Mobile source
+repository is now recorded and partially evidenced, but it does not satisfy the approved T11
+contract.
 
 ## Freshness and Validation Summary
 
@@ -290,8 +320,10 @@ broadcasts that canonical result, and periodically persists canonical history to
 - `shuttle-tracking-backend/tests/test_pipeline.js` for an end-to-end sender, TTN, and source-priority
   integration exercise.
 
-The repository does not contain a separate driver/mobile application or ESP32 firmware. These
-features are represented by backend contracts and simulators.
+This repository does not contain the separate driver/mobile application or ESP32 firmware. The
+owner-supplied external Android revision implements a foreground tracking path against the current
+static Sender contract, but not the approved T11 enrollment/QR/claim/recovery contract. ESP32
+features remain represented only by backend contracts and simulators.
 
 ### TTN / LoRaWAN Source
 
@@ -806,7 +838,8 @@ Observed acknowledgement/error codes include `SENDER_AUTH_REQUIRED`, `SENDER_AUT
   `simulate-ttn.js`.
 - No TTN MQTT client, external TTN application configuration, payload decoder service, or
   LoRaWAN network deployment file is present.
-- No mobile application source or ESP32 firmware/provisioning project is present.
+- The Mobile application source is external and pinned by the T11 v3 brief; no T11-compatible
+  release artifact/device report is present. No ESP32 firmware/provisioning project is available.
 
 ### Hosting Providers
 
@@ -891,12 +924,13 @@ not a deployable environment.
 
 These are repository-state descriptions, not quality or security findings.
 
-- No separate mobile app source is present; mobile behavior is represented by sender APIs and
-  simulators.
+- No Mobile app source is checked into this repository. The external pinned Android source has a
+  foreground Socket.IO path but retains the static-secret workflow and lacks T11 acceptance.
 - No ESP32 firmware or device-side protocol implementation is present.
 - No live TTN provider configuration, MQTT consumer, or external LoRaWAN deployment is present.
 - Tracking-source CRUD and analytics remain backend-only; the admin frontend intentionally exposes
-  only the safe read-only source-health view. General lifecycle authority remains pending D-012.
+  only the safe read-only source-health view. General lifecycle authority is approved by D-012 but
+  remains unimplemented.
 - Route-stop management is implemented in the Admin Routes modal, but no ambient browser/database
   acceptance was run in this re-audit.
 - Feedback triage is implemented for `SUPER_ADMIN`/`DEV`, but runtime migration, retention sweep,
@@ -937,14 +971,16 @@ fully compare intended behavior with implementation:
   public-IP/NAT, administrator-network, firewall, DNS/TLS and process-scaling facts.
 - Actual production secret store, PostgreSQL/Redis placement, off-host backup/restore destination,
   log/metric destination, alert delivery and incident evidence under the approved D-008 owners.
-- The source repository and API contract for the real mobile/driver application.
-- Mobile offline, retry, authentication renewal, trip lifecycle, and background-location behavior.
+- A writable checkout/authority and versioned cross-repository API/event contract for the supplied
+  mobile/driver application.
+- Executed Mobile enrollment, QR/claim, offline/reconnect, authentication renewal, task-removal,
+  trip lifecycle, background/locked-screen, revoke/replacement, timeout, and force-close evidence.
 - ESP32 hardware, firmware, transport, payload, provisioning, and credential rotation contract.
 - TTN application/device registry, device IDs, webhook configuration, payload decoder ownership,
   and whether the intended integration is webhook-only or also MQTT/history based.
-- The complete D-012 tracking-source/account lifecycle matrix: general provisioning, assignment,
-  promotion/demotion, disable/removal, credential rotation, re-authentication, audit, and recovery
-  authority outside T11/T12's bounded decisions.
+- D-012 implementation evidence for the approved tracking-source/account lifecycle matrix,
+  including session invalidation, disable/rotation, audit, recoverable deletion, backup/restore,
+  last-privileged-account protection, and controlled out-of-band `DEV` recovery.
 - Account provisioning UI, promotion/demotion/removal, and out-of-band `DEV` allowlist/recovery
   implementation beyond the current persisted hierarchy.
 - GPS event-time semantics, expected update interval, clock synchronization, canonical-history
@@ -962,17 +998,17 @@ fully compare intended behavior with implementation:
 ## Actionable Recommendations
 
 - Run the Product profile next. Discovery is the only profile without a predecessor; Product must
-  consume this `cdedcc2...` baseline before Architecture and the later domain profiles can be
-  revalidated for T9.
+  consume this `1eec866...` baseline before Architecture and the later domain profiles can be
+  revalidated for the new decision/Mobile evidence.
 - Revalidate Architecture, Backend, and Database against the T5 Operations/Trip boundary before
   treating lifecycle integrity as a release capability; this Discovery report does not replace their
   domain findings or live integration evidence.
 - Keep the three research boundaries separate in all later work: Mobile/Socket.IO, ESP32+GPS/Wi-Fi/
   HTTP, and independent LoRaWAN/Gateway/TTN/Webhook. Simulators remain test tools, not physical
   evidence.
-- Preserve the approved raw-observation, stale/lifecycle, role, feedback, and D-008 boundaries;
-  revalidate their implemented slices without treating pending D-011/D-012 or external University
-  Server/Network acceptance as resolved by source code.
+- Preserve the approved raw-observation, stale/lifecycle, role, feedback, D-008, D-011, and D-012
+  boundaries; do not treat an approved policy or external Mobile source as implementation/runtime
+  acceptance.
 
 ## Roadmap Impact
 
@@ -981,7 +1017,7 @@ fully compare intended behavior with implementation:
 - T5 lifecycle facts are now part of the current baseline. Downstream audits must revalidate the
   transaction, partial active-trip index, status/time constraints, idempotent start/end behavior,
   and virtual-trip policy before confirming or closing related findings.
-- Approved decisions D-001 through D-010 remain applicable. T9 is **Partially Complete** for its
+- Approved decisions D-001 through D-012 remain applicable. T9 is **Partially Complete** for its
   repository handoff at `cdedcc2...`; it still blocks T13/public release on external University
   Server/Network acceptance and does not establish production readiness.
 
@@ -997,8 +1033,8 @@ decision.
 
 No unsupported business or deployment assumptions are used as facts.
 
-- “Sender”, “driver”, and “mobile/device” refer to the backend sender contract and simulator evidence;
-  they do not imply that a mobile or device application is included.
+- “Sender” refers to the backend contract unless an external Mobile revision is named explicitly.
+  The pinned Android source establishes static code paths, not a compatible release or runtime result.
 - `docker-compose.prod.yml` is documented as a production-mode container configuration because it
   uses production image targets and production secret checks. This does not establish that it is the
   actual deployed production environment.
@@ -1019,8 +1055,8 @@ No unsupported business or deployment assumptions are used as facts.
 
 ## Audit Readiness
 
-Validated at `cdedcc2...`; every successor audit and the Roadmap has now consumed this baseline.
-The completed gate audit found no currently eligible implementation unit.
+Validated at `1eec866...`; successor audits must consume this decision/external-source baseline.
+D-011 now permits a bounded first T14 task after dependent revalidation and an exact handoff.
 
 The current repository behavior, multi-source tracking boundary, data model, APIs, frontend
 features, deployment files, simulators, tests, and open information gaps are documented from
@@ -1120,19 +1156,20 @@ See “Known Limitations From Available Evidence” and “Missing Information�
 
 - Has the University Server/Network Team named contacts and accepted the actual host, TLS, firewall,
   secret, backup, monitoring, alert, recovery, and capacity checklist under D-008?
-- Where is the real mobile/driver app and its formal contract?
+- Who will grant a writable Mobile checkout/review path, and which versioned cross-repository API/
+  event contract will replace its current static-secret workflow?
 - What are the ESP32 and TTN device provisioning and payload contracts?
 - Which source IDs are authoritative for LoRaWAN fixtures and deployed devices?
-- How will approved D-007 account provisioning, promotion/demotion, privileged deletion,
-  re-authentication/audit, backup/restore, and out-of-band `DEV` recovery be controlled?
+- When will the approved D-012 account/Sender/deletion/backup/out-of-band recovery matrix receive an
+  exact implementation task and approved disposable validation target?
 - What are the GPS event-time, update-rate, retention, and stale-state policies?
 - Has the approved T7 research protocol and bounded raw-observation lifecycle been exercised with
   physical Mobile, ESP32, and LoRaWAN sources without promoting simulator/proxy metrics to
   ground-truth evidence?
 - Has bounded feedback triage/retention/deletion behavior passed migration, runtime, retention-sweep,
   and human acceptance on an approved target?
-- Which D-011 UX slice should be first, and which D-012 actor/action/re-authentication/recovery matrix
-  should govern general account and source lifecycle work?
+- Which later T14 accessibility/Admin-theme slice follows the approved data-integrity slice after
+  its measured browser evidence is reviewed?
 - Which reports, alerts, notifications, trip history, and playback capabilities belong to the MVP?
 
 ## Handoff Recommendation

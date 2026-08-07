@@ -1,17 +1,32 @@
 # Backend Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: cdedcc2fd82ab264e2176716ac23a74c948e1a28
+- Evidence baseline: 1eec86602c40c859d50dd9d369f636b103b6896f
 - Evidence scope: docs/project-knowledge-base.md, Product and Architecture audits,
   docs/decision-queue.md, docs/research/, docs/tasks/,
   docs/operations/university-server-network-handoff.md, docker-compose.prod.yml,
   env.production.example, shuttle-tracking-backend/package.json,
   shuttle-tracking-backend/docker-entrypoint.sh, shuttle-tracking-backend/src/,
   shuttle-tracking-backend/prisma/, shuttle-tracking-backend/tests/, scripts/ci-checks.sh,
-  and scripts/test-production-topology.mjs
-- Reviewed at: 2026-08-07T19:49:20+07:00
+  scripts/test-production-topology.mjs, and the T11 v3 external Mobile compatibility brief
+- Reviewed at: 2026-08-08T00:07:30+07:00
 - Validation state: Validated
-- Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md, and docs/audits/architecture-audit.md @ cdedcc2fd82ab264e2176716ac23a74c948e1a28
+- Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md, and docs/audits/architecture-audit.md @ 1eec86602c40c859d50dd9d369f636b103b6896f
+
+## 2026-08-08 Decision and Mobile-consumer re-audit
+
+Required predecessors are current at `1eec866...`; backend source is unchanged. The external Android
+revision proves the current sender login, Trip endpoints, and Socket.IO event are consumed by a
+native app. It also confirms that the existing reusable static secret is being persisted and
+resubmitted client-side, so the current endpoint must not be mistaken for T11 enrollment/refresh.
+The approved solution still requires additive activation/installation/claim state, version-checked
+refresh and Socket.IO authorization, one authoritative Operations transaction for accepted-
+observation receipt time/timeout/end/force-close, and protected history/exceptions.
+
+D-012 resolves future actor/action/re-auth/reason/audit/recovery policy. It does not authorize
+adding account management or recoverable deletion to T11/T12. D-011 makes a bounded frontend T14
+truth/integrity slice possible and changes no backend behavior except where that exact task needs a
+truthful existing API contract.
 
 ## 1. Executive Summary
 
@@ -35,7 +50,7 @@ It changes configuration boundaries, not the three ingestion/canonical pipelines
 
 This profile reviews routes, controllers, middleware, Socket.IO, validation, canonical/operations/research services, schema, errors, rate limits, and backend tests. It is not a running-service, penetration, provider, hardware, Android, or production topology test.
 
-Discovery, Product, and Architecture are validated at `cdedcc2...`. The preceding Backend baseline
+Discovery, Product, and Architecture are validated at `1eec866...`. The preceding Backend baseline
 was `82f4d97...`. Backend-relevant changes are `shuttle-tracking-backend/docker-entrypoint.sh`,
 `package.json`, `src/config/prisma.ts`, `src/config/redis.ts`, `src/config/runtime.ts`,
 `src/config/validate-runtime.ts`, `src/middleware/rate-limit.ts`, `src/server.ts`,
@@ -66,10 +81,10 @@ path was exercised.
 
 | Boundary | Current controls | Remaining C-scope requirement |
 |---|---|---|
-| Mobile Socket.IO | JWT handshake, per-write source/vehicle/version revalidation, acknowledgement and rate limit. | Separate Android acceptance contract, installation session/claim, reconnect/no-offline semantics, new lifecycle fields. |
+| Mobile Socket.IO | JWT handshake, per-write source/vehicle/version revalidation, acknowledgement and rate limit; a pinned native client consumes the old static-secret login. | Installation activation/claim/refresh migration, reconnect/no-offline semantics, lifecycle fields, coordinated client update, and Android acceptance. |
 | ESP32 HTTP | Sender JWT, parser, ownership and coordinate validation, shared processing. | Physical firmware/provisioning evidence and D-005 timeout behavior. |
 | LoRaWAN/TTN webhook | Bearer secret, source-type check, decoded-payload parsing, shared processing. | Provider delivery/duplicate evidence and owner-controlled operations path. |
-| Admin REST | Persisted current-role validation, reusable hierarchy, fresh-auth middleware, and parsers/rate limits on selected routes. | D-012 before expanding general account/source lifecycle, privileged deletion, and recovery actions. |
+| Admin REST | Persisted current-role validation, reusable hierarchy, fresh-auth middleware, and parsers/rate limits on selected routes. | Implement approved D-012 only through an exact general account/source lifecycle, privileged deletion, and recovery task. |
 | Research reads/export | Research access middleware, bounded/session-scoped fixed-field API and lifecycle records. | Preserve research-only access; do not reuse as public/admin operations views. |
 
 ## 5. Required Task Placement
@@ -96,10 +111,10 @@ Confidence is High for code-visible backend boundaries and missing server models
 
 ## 8. Proposed Owner Decisions and Handoff
 
-No new owner decision is proposed. D-012 still gates general account/source lifecycle controls;
-external T9 and Android evidence cannot be inferred from backend tests.
+No new owner decision is proposed. D-012 is approved but its general lifecycle controls remain
+unimplemented; external T9 and Android runtime evidence cannot be inferred from backend tests.
 
-Backend is validated at `cdedcc2...` for the T9 implementation impact. Frontend, Database,
+Backend is validated at `1eec866...` for the current decision/Mobile evidence. Frontend, Database,
 Infrastructure & Device, and every downstream profile have now completed their dependent
 revalidations.
 

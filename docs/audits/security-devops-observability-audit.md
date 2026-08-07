@@ -1,7 +1,7 @@
 # Security, DevOps & Observability Audit
 
 Audit metadata:
-- Evidence baseline: cdedcc2fd82ab264e2176716ac23a74c948e1a28
+- Evidence baseline: 1eec86602c40c859d50dd9d369f636b103b6896f
 - Evidence scope: every validated predecessor report; docs/decision-queue.md; docs/research/;
   docs/testing/; D-008 specialist briefs; docs/tasks/T9-production-topology-origin-handoff.md;
   docs/tasks/M-20260807-01-redact-socket-invalid-payload-logging.md;
@@ -11,14 +11,31 @@ Audit metadata:
   docker-compose.prod.yml; env.example; env.production.example; shuttle-tracking-backend
   Docker/startup/config/middleware/controllers/routes/services/tests; shuttle-tracking-web
   authentication/proxy/client/config/simulator/test/ignore files; scripts/ci-checks.sh;
-  scripts/test-production-topology.mjs; and GitHub CI configuration
-- Reviewed at: 2026-08-07T19:59:45+07:00
+  scripts/test-production-topology.mjs; GitHub CI configuration; the D-012 specialist matrix; and
+  the T11 v3 external Mobile compatibility brief
+- Reviewed at: 2026-08-08T00:07:30+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md,
   docs/audits/architecture-audit.md, docs/audits/backend-audit.md,
   docs/audits/frontend-audit.md, docs/audits/database-audit.md,
   docs/audits/infrastructure-device-audit.md, and docs/audits/dashboard-ux-audit.md @
-  cdedcc2fd82ab264e2176716ac23a74c948e1a28
+  1eec86602c40c859d50dd9d369f636b103b6896f
+
+## 2026-08-08 D-012 and external Mobile security re-audit
+
+Every predecessor is current at `1eec866...`; application source in this repository is unchanged.
+D-012 now fixes the future least-privilege actor/action/fresh-auth/reason/audit/recovery matrix. This
+closes the owner-policy question but does not implement account enabled/session versions, role
+lifecycle, immutable general audit, Sender rotation UI, recoverable Trip/GPS deletion, verified
+backup/restore, or controlled out-of-band `DEV` recovery.
+
+**SEC-08 High — New Finding (external Mobile source):** the pinned Android revision asks for and
+persists a reusable Sender secret, Source ID, and access token in ordinary `SharedPreferences`,
+resubmits the secret for refresh, enables application backup and cleartext traffic, and has no
+Keystore/backup-exclusion/installation-revocation contract. Task removal and failed end-Trip paths
+can also discard local authority before a confirmed server transition. No release build/device test
+was available. This blocks T11 acceptance; the repair belongs to coordinated Backend/Mobile work and
+must not be hidden by longer JWT expiry or by merely changing the UI label.
 
 ## 1. Executive Summary
 
@@ -49,7 +66,7 @@ identifies unresolved truthful-state/accessibility release risks.
 
 This profile reviews trust boundaries, authorization, input/abuse controls, secrets, privacy, logging, CI, Compose/runtime and operational observability. It is static repository evidence only, not penetration testing, secret scanning, deployed TLS/proxy, provider/firmware, backup or incident validation.
 
-Every required predecessor is current at `cdedcc2...`. The preceding baseline was `82f4d97...`.
+Every required predecessor is current at `1eec866...`. The preceding baseline was `82f4d97...`.
 T9 changes production Compose/environment/static checks/runbook/task evidence; backend
 entrypoint/runtime/Prisma/Redis/server/rate-limit/tests/package/README; the central frontend
 connection resolver and listed consumers/tests/package; and predecessor/decision records. Current
@@ -82,9 +99,9 @@ or incident exercise was run.
 | Boundary | Existing control | Required remaining control |
 | Public rider/feedback | Rate limit, payload parser, public notice/receipt, and lifecycle source code. | Runtime IP/purge/backup verification. |
 | ADMIN web/API | Persisted-role JWT boundary, role middleware, and fresh authentication for privileged Feedback actions. | General account lifecycle and runtime access review. |
-| Mobile/ESP32 sender | Source-bound JWT, credential version, rate limit and boundary parser. | T11 installation/claim/recovery lifecycle and external app/device evidence. |
+| Mobile/ESP32 sender | Source-bound JWT, credential version, rate limit and boundary parser; a pinned Mobile client consumes the old static-secret path. | T11 installation/claim/Keystore refresh/recovery lifecycle, client hardening, and device acceptance. |
 | TTN webhook | Separate secret, parser, rate limit and source type. | Provider registration/dedup/network boundary evidence. |
-| Research DEV/SUPER_ADMIN | Persisted-role recheck and bounded routes/export. | Preserve it while resolving D-007 lifecycle/deletion/backup/export policy. |
+| Research DEV/SUPER_ADMIN | Persisted-role recheck and bounded routes/export. | Preserve it while implementing D-012 lifecycle/deletion/backup/export controls in a later exact task. |
 | PostgreSQL/Redis | Required credentials, internal-only production network, authenticated Redis, fail-closed URL/auth parsing, ready checks, and an approved owner contract. | Obtain actual firewall/secret placement, persistence, off-host backup and restore evidence. |
 
 ## 5. Findings and Required Placement
@@ -103,6 +120,10 @@ or incident exercise was run.
 - SEC-07 Medium: the removed simulator credential literal's historical external validity/rotation is
   **Unable to Verify**. An authorized owner must assess/rotate it before the corresponding sender is
   used on an approved target; do not infer compromise or safety from repository source alone.
+- SEC-08 High: **New Finding in the external Mobile revision.** Reusable Sender material is stored in
+  ordinary preferences while backup/cleartext are enabled and no T11 installation/revocation
+  lifecycle exists. Use the T11 v3 coordinated handoff; do not publish the current build as a
+  supported sender.
 
 ## 6. Observability and Operations
 
@@ -128,10 +149,11 @@ Confidence is High for code-visible controls and gaps, Medium for CI/static oper
 
 ## 8. Proposed Owner Decisions and Handoff
 
-No new owner decision is proposed. D-012 still gates general account/source lifecycle and recovery;
-the removed historical simulator credential still requires authorized external assessment before use.
+No new owner decision is proposed. D-012 is approved but general lifecycle/recovery implementation
+is absent; the removed historical simulator credential still requires authorized external
+assessment before use.
 
-Security, DevOps & Observability is validated at `cdedcc2...`. Production Readiness and Roadmap have
+Security, DevOps & Observability is validated at `1eec866...`. Production Readiness and Roadmap have
 now consumed this baseline: SEC-01 is absent from the active source blocker list and D-008 policy is
 resolved, while T9 external acceptance, T11/device, runtime data lifecycle, operations, credential-
 rotation uncertainty, and Dashboard truthfulness/accessibility findings remain open.

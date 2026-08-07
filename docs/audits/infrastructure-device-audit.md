@@ -1,7 +1,7 @@
 # Infrastructure & Device Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: cdedcc2fd82ab264e2176716ac23a74c948e1a28
+- Evidence baseline: 1eec86602c40c859d50dd9d369f636b103b6896f
 - Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend/Frontend/Database
   audits, docs/decision-queue.md, D-008 specialist briefs, docs/research/, docs/testing/,
   docs/tasks/T9-production-topology-origin-handoff.md,
@@ -11,13 +11,28 @@ Audit metadata:
   env.production.example, docker-compose.yml, docker-compose.prod.yml, docker/,
   scripts/test-production-topology.mjs, scripts/ci-checks.sh, shuttle-tracking-backend
   Docker/startup/config/simulator/test files, and shuttle-tracking-web
-  Docker/config/simulator/test/ignore files
-- Reviewed at: 2026-08-07T19:56:26+07:00
+  Docker/config/simulator/test/ignore files, and the T11 v3 external Mobile compatibility brief
+- Reviewed at: 2026-08-08T00:07:30+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md,
   docs/audits/architecture-audit.md, docs/audits/backend-audit.md,
   docs/audits/frontend-audit.md, and docs/audits/database-audit.md @
-  cdedcc2fd82ab264e2176716ac23a74c948e1a28
+  1eec86602c40c859d50dd9d369f636b103b6896f
+
+## 2026-08-08 external Mobile repository re-audit
+
+All required predecessors are current at `1eec866...`. The owner-supplied native Android revision
+changes the Mobile finding from “no application source observed” to **Partially Resolved**. Static
+source declares the location foreground-service type/permissions, starts a persistent notification,
+uses fused location, authenticates Socket.IO, sends acknowledged observations, and drops unsent
+offline locations.
+
+It does not establish a supported field device. Credentials are held in ordinary preferences,
+backup and cleartext are enabled, task removal ends the Trip/service, and the approved enrollment/
+QR/claim/Keystore refresh/revoke/replacement/timeout/force-close flow is absent. Gradle execution
+stopped before compilation because no Android SDK was available, so build status is **Unable to
+Verify**. No emulator, phone, OEM battery path, signing artifact, network transition, or device/OS
+acceptance report was exercised. ESP32/LoRaWAN/provider findings are unchanged.
 
 ## 1. Executive Summary
 
@@ -32,13 +47,13 @@ loopback-only app bindings, dependency health ordering, fail-closed runtime/orig
 external-team runbook. The actual host, DNS, firewall, certificate, secrets, backup, alerts,
 contacts and capacity remain external evidence and no deployment inference is authorized.
 
-The three device boundaries remain fixed: Mobile phone GPS through authenticated Socket.IO; ESP32 plus GPS module through Wi-Fi/authenticated HTTP; a separate LoRaWAN device through gateway, TTN, and authenticated webhook. M-20260807-02/03 make both Mobile simulators credential-fail-closed and safely logged, make the automated simulator local/configurable and one-shot capable, and exclude generated Playwright outputs from Git and the frontend Docker context. These remain backend/test-tool contracts only. No Mobile application, ESP32 firmware/hardware, TTN console/gateway, or field/pilot evidence was observed.
+The three device boundaries remain fixed: Mobile phone GPS through authenticated Socket.IO; ESP32 plus GPS module through Wi-Fi/authenticated HTTP; a separate LoRaWAN device through gateway, TTN, and authenticated webhook. M-20260807-02/03 make both Mobile simulators credential-fail-closed and safely logged, make the automated simulator local/configurable and one-shot capable, and exclude generated Playwright outputs from Git and the frontend Docker context. The external native Mobile source is now known but not T11-compatible or runtime-accepted. No ESP32 firmware/hardware, TTN console/gateway, or field/pilot evidence was observed.
 
 ## 2. Scope and Freshness
 
 This profile reviews Compose, Docker, startup, environment templates, simulators, test documentation, and declared transport boundaries. It does not certify host security, cloud/provider behavior, TLS, deployment, devices, radio/network, runtime recovery, backups, or field performance.
 
-All required predecessors are revalidated at `cdedcc2...`. The preceding baseline was
+All required predecessors are revalidated at `1eec866...`. The preceding baseline was
 `82f4d97...`. T9 changes `docker-compose.prod.yml`, `env.production.example`,
 `scripts/test-production-topology.mjs`, `scripts/ci-checks.sh`, the T9 task and University runbook,
 backend entrypoint/runtime/Prisma/Redis/server/rate-limit/test/package/README files, and the central
@@ -58,7 +73,7 @@ simulators are not runtime proof.
 | Provider/topology/domain/TLS deployment existed | Partially Resolved | D-008 and T9 resolve the logical university host/origin/owner contract and checked-in handoff; actual university host, DNS, certificate, network and operations acceptance are Unable to Verify. |
 | Database and Redis were protected production internals | Partially Resolved | T9 removes DB/Redis host ports, places them only on an internal data network, runs Redis as its image user with required authentication, and statically tests the contract. External firewall/runtime evidence is unavailable. |
 | REST and Socket.IO production origin was established | Resolved | T9 defaults production browser traffic to same-origin `/api` and current-origin Socket.IO, permits one safe shared HTTPS override, and removes consumer fallback chains/localhost rewrites. Deployed proxy behavior remains Unable to Verify. |
-| Mobile sender was a supported application | Still Present | The Node simulator uses backend sender APIs; no native app, installation, background permission, lock-screen, reconnect, offline-discard, or field evidence exists. |
+| Mobile sender was a supported application | Partially Resolved | A pinned native app statically implements foreground location and acknowledged Socket.IO sending, but not T11 enrollment/QR/claim/Keystore/recovery, safe task removal, signed release, or device/OS runtime acceptance. |
 | ESP32 sender was a physical implementation | Still Present | HTTP contract exists, but no firmware, GPS module, provisioning, Wi-Fi/retry/offline, clock, power, or mounting evidence exists. |
 | LoRaWAN delivery was deployed | Unable to Verify | Webhook parser/secret and synthetic payload simulator exist; TTN registry, gateway/coverage, region, codec, counters/dedup, webhook delivery, RSSI/SNR, and provider recovery are unknown. |
 | Disposable simulator/pipeline evidence existed | Partially Resolved | The automated Mobile simulator is again local/env-driven, credential-fail-closed, supports documented `--once`, emits a safe acknowledgement summary, and has deterministic source/process tests. No authenticated observation, Compose stack, provider, or physical source was run. |
@@ -102,7 +117,7 @@ Confidence is High for checked-in templates, simulator configuration, and determ
 No new owner decision is proposed. D-008 is implemented only for repository delivery; its external
 acceptance checklist and all Mobile/ESP32/LoRaWAN physical facts remain evidence gates.
 
-Infrastructure & Device is validated at `cdedcc2...`. Dashboard & UX,
+Infrastructure & Device is validated at `1eec866...`. Dashboard & UX,
 Security/DevOps/Observability, Production Readiness, and Roadmap have now completed their dependent
 revalidations; none promotes the D-008 decision or tooling evidence to provider, device, field, or
 deployment proof.

@@ -1,7 +1,7 @@
 # Database Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: cdedcc2fd82ab264e2176716ac23a74c948e1a28
+- Evidence baseline: 1eec86602c40c859d50dd9d369f636b103b6896f
 - Evidence scope: docs/project-knowledge-base.md, Product/Architecture audits, Backend/Frontend
   audits as cross-boundary context, docs/decision-queue.md, docs/research/, docs/tasks/,
   docs/operations/university-server-network-handoff.md, docker-compose.prod.yml,
@@ -10,10 +10,24 @@ Audit metadata:
   shuttle-tracking-backend/src/services/,
   shuttle-tracking-backend/src/middleware/research-access.ts,
   shuttle-tracking-backend/src/routes/research.route.ts, and shuttle-tracking-backend/tests/
-- Reviewed at: 2026-08-07T19:55:18+07:00
+- Reviewed at: 2026-08-08T00:07:30+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md, and
-  docs/audits/architecture-audit.md @ cdedcc2fd82ab264e2176716ac23a74c948e1a28
+  docs/audits/architecture-audit.md @ 1eec86602c40c859d50dd9d369f636b103b6896f
+
+## 2026-08-08 D-012 and Mobile-contract re-audit
+
+Required predecessors are current at `1eec866...`; schema and migrations are unchanged. D-012 now
+defines the future durable lifecycle requirements: enabled/session version for administrative
+accounts; safe audit events; generated-once/rotatable Sender credentials; recoverable Trip-plus-GPS
+tombstone with a 30-day restore window and named backup; and a separate final purge action that
+retains lifecycle/audit evidence. These are approved requirements, not current columns, constraints,
+jobs, or target evidence.
+
+The external Mobile source confirms that the current `TrackingSource.secretHash`/credential-version
+model is actively consumed by a client that persists and resubmits a static secret. T11 still needs
+additive Installation/activation/refresh/claim state rather than overloading `TrackingSource` or
+deleting provenance. No current migration may be represented as satisfying that lifecycle.
 
 ## 1. Executive Summary
 
@@ -30,7 +44,7 @@ migration/default. General role/account lifecycle remains outside the approved s
 
 This profile reviews schema, migrations, constraints, indexes, data lifecycle/retention code, and database-facing services/tests. It does not certify a live migration, query plan, backup/restore, deletion, rollback, provider, hardware, or production database.
 
-Required predecessors are validated at `cdedcc2...`. The preceding Database baseline was
+Required predecessors are validated at `1eec866...`. The preceding Database baseline was
 `82f4d97...`. T9 changes `docker-compose.prod.yml`, `env.production.example`,
 `shuttle-tracking-backend/src/config/prisma.ts`, `src/config/redis.ts`,
 `src/config/runtime.ts`, `src/config/validate-runtime.ts`,
@@ -51,7 +65,7 @@ No actual placement, migration, backup, restore, retention, query plan, or provi
 | Sampled GPSTrack was raw/high-fidelity history | Still Present | GPSTrack remains throttled canonical samples. It must not be used for raw comparison, event replay, or D-005 receipt-time truth. |
 | Route-stop ordering/invalidation safely supported publishing | Resolved | T10 validates active membership, makes the route's delete/create replacement inside one transaction, assigns contiguous order, and invalidates cache after success. No schema migration or stateful DB/cache proof was required for the exact scope. |
 | Feedback supported accountable C-scope triage | Partially Resolved | T12 adds lifecycle/owner/deletion/restore/audit fields and deterministic 30/180-day retention code. No migration or purge execution is evidenced. |
-| D-007 role/account lifecycle was represented | Partially Resolved | D-010:A migration/default plus runtime ADMIN/SUPER_ADMIN/DEV enforcement and fresh-auth support exist. Provisioning/promotion/demotion and general account lifecycle remain outside scope. |
+| D-007/D-012 role/account lifecycle was represented | Partially Resolved | D-010:A migration/default plus runtime role/fresh-auth support exist and D-012 now fixes the target policy. Enabled/session version, lifecycle audit, promotion/demotion/disable, last-privileged protection, and recovery schema remain absent. |
 | T11 timeout/claim/emergency recovery facts were durable | Still Present | No Installation/claim/audit tables or Trip fields for lastAcceptedAt, closeReason, closedAt, admin actor/reason or no-reopen transition exist. |
 | Physical/source accuracy claims were ground truth | No Longer Relevant | T7 stores labels/proxies with route/version provenance; the audit retains the rule that route conformance and reported accuracy are not absolute error. |
 | Production PostgreSQL/Redis placement and authentication were defined by repository configuration | Partially Resolved | T9 keeps both services off host ports on an internal data network, requires Redis authentication, and validates production connection/authentication inputs before migration. Actual host placement, firewall, secret handling, backup/restore, and runtime connectivity remain Unable to Verify. |
@@ -72,7 +86,9 @@ No actual placement, migration, backup, restore, retention, query plan, or provi
   commands under D-008. The actual host, target, secret, off-host destination and restore result may
   not be inferred from Compose or migrations.
 - T10 is complete without a schema migration: its constrained transaction uses the existing RouteStop model. Do not add unrelated role or feedback schema to it.
-- T11 needs an approved exact schema/interface contract for Mobile installation/claim, lifecycle fields, actor/reason audit, receipt-time update, timeout/no-reopen and concurrent recovery. The existing T5 invariant is the baseline to extend, not bypass.
+- T11 needs an exact cross-repository schema/interface contract for Mobile installation/claim,
+  lifecycle fields, actor/reason audit, receipt-time update, timeout/no-reopen and concurrent
+  recovery. The existing T5 invariant is the baseline to extend, not bypass.
 - T12 is complete for its exact additive triage/retention/deletion/audit model and server
   authorization/re-authentication source/test scope; no source/device write model belongs in it and
   runtime migration/retention evidence remains separate.
@@ -92,10 +108,11 @@ Confidence is High for schema/migration-visible data boundaries, Medium for unit
 
 ## 8. Proposed Owner Decisions and Handoff
 
-No new owner decision is proposed. D-012 still gates general account/source lifecycle and
-privileged data-recovery controls; external database/backup evidence remains an operations fact.
+No new owner decision is proposed. D-012 is approved but general account/source lifecycle and
+privileged data-recovery controls are unimplemented; external database/backup evidence remains an
+operations fact.
 
-Database is validated at `cdedcc2...` for the T9 implementation impact. Infrastructure & Device and
+Database is validated at `1eec866...` for the current decision/Mobile evidence. Infrastructure & Device and
 every downstream profile through Roadmap have now completed their dependent revalidations.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
