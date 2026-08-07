@@ -5,7 +5,7 @@ Audit metadata:
 - Evidence scope: `docs/project-knowledge-base.md`, every validated domain and production-readiness audit, `docs/decision-queue.md`, `docs/tasks/`, and the repository evidence cited by the revalidated reports.
 - Reviewed at: `2026-08-07T16:40:54+07:00`
 - Validation state: **Validated**
-- Predecessor baselines: Discovery through Production Readiness revalidated against `82f4d97d8609d73f79aa74eea6efaadaa34238d9`; D-001 through D-010 are approved and D-011/D-012 are pending.
+- Predecessor baselines: `docs/project-knowledge-base.md`, `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`, `docs/audits/frontend-audit.md`, `docs/audits/database-audit.md`, `docs/audits/infrastructure-device-audit.md`, `docs/audits/dashboard-ux-audit.md`, `docs/audits/security-devops-observability-audit.md`, `docs/audits/production-readiness-audit.md`, and `docs/decision-queue.md` @ `6905fe4ceedc621ef16f6f1f3f32edcc58599f2f` (atomic D-008 synchronization snapshot; later changes in this sealing pass are metadata-only); D-001 through D-010 are approved and D-011/D-012 are pending.
 
 Last reviewed: 2026-08-07
 

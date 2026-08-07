@@ -5,7 +5,7 @@ Audit metadata:
 - Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend/Frontend/Infrastructure & Device audits, docs/decision-queue.md, docs/research/, task records, shuttle-tracking-web/app/, shuttle-tracking-web/components/, shuttle-tracking-web/hooks/, shuttle-tracking-web/services/, shuttle-tracking-web/types/, shuttle-tracking-web/utils/, shuttle-tracking-web/tests/, full frontend lint/build evidence, and the 2026-08-07 Impeccable technical audit/detector pass
 - Reviewed at: 2026-08-07T16:40:54+07:00
 - Validation state: Validated
-- Predecessor baselines: Product, Frontend, and Infrastructure & Device revalidated at 82f4d97d8609d73f79aa74eea6efaadaa34238d9
+- Predecessor baselines: docs/audits/product-audit.md, docs/audits/frontend-audit.md, and docs/audits/infrastructure-device-audit.md @ 6905fe4ceedc621ef16f6f1f3f32edcc58599f2f (atomic D-008 synchronization snapshot; later changes in this sealing pass are metadata-only)
 
 ## 1. Executive Summary
 

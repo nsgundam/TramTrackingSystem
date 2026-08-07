@@ -5,7 +5,7 @@ Audit metadata:
 - Evidence scope: every validated predecessor report; docs/decision-queue.md; docs/research/; docs/testing/; docs/tasks/M-20260807-01-redact-socket-invalid-payload-logging.md; docs/tasks/M-20260807-02-secure-simulator-test-artifacts.md; docs/tasks/M-20260807-03-redact-manual-simulator-output.md; docker-compose.yml; docker-compose.prod.yml; env.example; shuttle-tracking-backend Docker/startup/config/middleware/controllers/routes/services/tests; shuttle-tracking-web authentication/proxy/client/simulator/test/ignore files; scripts/ci-checks.sh; and GitHub CI configuration
 - Reviewed at: 2026-08-07T16:40:54+07:00
 - Validation state: Validated
-- Predecessor baselines: Discovery through Dashboard & UX revalidated at 82f4d97d8609d73f79aa74eea6efaadaa34238d9
+- Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md, docs/audits/architecture-audit.md, docs/audits/backend-audit.md, docs/audits/frontend-audit.md, docs/audits/database-audit.md, docs/audits/infrastructure-device-audit.md, and docs/audits/dashboard-ux-audit.md @ 6905fe4ceedc621ef16f6f1f3f32edcc58599f2f (atomic D-008 synchronization snapshot; later changes in this sealing pass are metadata-only)
 
 ## 1. Executive Summary
 

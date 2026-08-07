@@ -5,7 +5,7 @@ Audit metadata:
 - Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend/Frontend audits, docs/decision-queue.md, docs/research/, task records, shuttle-tracking-backend/prisma/, shuttle-tracking-backend/src/services/, shuttle-tracking-backend/src/middleware/research-access.ts, shuttle-tracking-backend/src/routes/research.route.ts, and shuttle-tracking-backend/tests/
 - Reviewed at: 2026-08-07T16:40:54+07:00
 - Validation state: Validated
-- Predecessor baselines: Discovery, Product, Architecture, Backend, and Frontend revalidated at 82f4d97d8609d73f79aa74eea6efaadaa34238d9
+- Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md, docs/audits/architecture-audit.md, docs/audits/backend-audit.md, and docs/audits/frontend-audit.md @ 6905fe4ceedc621ef16f6f1f3f32edcc58599f2f (atomic D-008 synchronization snapshot; later changes in this sealing pass are metadata-only)
 
 ## 1. Executive Summary
 
