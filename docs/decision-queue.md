@@ -2,25 +2,30 @@
 
 ## Pending
 
+## Approved
+
 ## D-011 — T14 first corrective UX slice and acceptance order
 
 Related reports: `docs/audits/dashboard-ux-audit.md`,
 `docs/audits/production-readiness-audit.md`, and
 `docs/roadmap/master-refactoring-roadmap.md`.
 
-Current evidence: the technical Dashboard & UX audit is 9/20 (Poor) with no P0. The highest-risk
-local defects are false Feedback vehicle association, unconditional/stale “live” claims, systemic
-dialog/focus/form accessibility failures, and an off-screen focusable Mobile admin sidebar. T14 is
-too broad to implement as one unbounded redesign.
+Owner decision: **Approved the recommended order with UI ownership constraints on 2026-08-07.** T14
+must begin with data integrity and truthful state: fail-closed Feedback vehicle association plus
+truthful public/Admin connection and freshness behavior. The next slice addresses dialog, form,
+focus, keyboard navigation, and the Mobile Admin sidebar. Responsive/performance work and broader
+visual-system polish follow only after measured evidence and a separately bounded handoff.
 
-Pending owner choice: select the first exact T14 slice and its browser/accessibility acceptance
-journeys. Recommendation: prioritize data integrity first (fail-closed Feedback association plus
-truthful public/admin freshness), then dialog/form/navigation accessibility, then responsive/
-performance/visual-system work. This is a scope-order decision, not permission to change the
-incumbent identity or implement every audit finding at once.
+The Public UI must preserve its incumbent visual identity and layout as far as practical. Public
+changes are limited to source quality, semantics, accessibility, state/copy truthfulness, and small
+UX corrections that do not constitute a redesign. Admin Dashboard/Admin pages may be restructured
+and visually improved substantially, using a theme complementary to the Public UI or another
+documented accessible Dashboard theme. Each slice still requires exact screens/actions and browser
+journeys; this decision is not permission for one unbounded redesign.
 
-Roadmap effect: T14 remains blocked until this order is accepted and an exact-path task handoff is
-created. It does not block the repository-side T9 work.
+Roadmap effect: closes the owner-order gate for the first T14 slice. T14 becomes eligible only after
+the affected audits are fresh and an exact-path Level 3 handoff binds the limited Public changes,
+Admin scope, checks, and stop conditions.
 
 ## D-012 — Remaining administrative and credential lifecycle matrix
 
@@ -28,20 +33,25 @@ Related reports: `docs/audits/security-devops-observability-audit.md`,
 `docs/audits/database-audit.md`, D-007 below, and
 `docs/roadmap/master-refactoring-roadmap.md`.
 
-Current evidence: D-007 approves the role hierarchy and bounded T11/T12 actions, while its own
-security gate still leaves general `ADMIN`/`SUPER_ADMIN` provisioning, promotion, demotion, disable/
-removal, non-Mobile Sender credential lifecycle, privileged deletion/backup/export approval,
-backup-before-delete/restore, and out-of-band `DEV` allowlist/recovery unspecified.
+Owner decision: **Approved the recommended least-privilege matrix on 2026-08-07.** `SUPER_ADMIN`
+manages `ADMIN`; only `DEV` manages `SUPER_ADMIN`; no application role creates/removes `DEV`.
+Protected changes require persisted-role authorization, re-authentication within 15 minutes, an
+explicit reason, safe immutable audit, session/credential invalidation, and last-privileged-account
+protection. Accounts and credentials are disabled/rotated rather than recovered or hard-deleted.
 
-Pending owner choice: approve a least-privilege actor/action/reauthentication/reason/audit/recovery
-matrix before any later task implements those general capabilities. Do not expand T11/T12 or T9 to
-hide this decision.
+`ADMIN` retains routine non-Mobile Sender provisioning/rotation/revocation, with generated secrets
+shown once and recovery by rotation. `SUPER_ADMIN` may perform recoverable Trip-plus-GPS deletion
+only with a named backup and 30-day restore window; individual GPS-row deletion is prohibited, and
+final purge is a second `DEV` action after the window and verified restore evidence. D-006 research
+and D-009 Feedback rules remain authoritative. Out-of-band `DEV` allowlist/recovery contacts remain
+controlled deployment facts, not source defaults.
 
-Roadmap effect: blocks later general account/credential management and any release claim that
-depends on those actions; it does not reopen the completed bounded T12 role implementation or block
-the D-008/T9 repository handoff.
+Binding specialist record:
+`docs/audits/specialized/D-012-identity-administrative-lifecycle-matrix.md`.
 
-## Approved
+Roadmap effect: closes the owner-policy gate for later exact account, credential, deletion, backup,
+and recovery tasks. It does not add those capabilities to T11/T12/T14, prove external recovery
+facts, or authorize a migration/deletion/restore target.
 
 ## D-008 — Production hosting topology and operational ownership
 
