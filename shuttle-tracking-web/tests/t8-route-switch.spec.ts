@@ -23,7 +23,7 @@ test("T8 keeps an expired Marker hidden across route switching until newer live 
 
   await expect(page.locator(".preloader-overlay")).toHaveCount(0);
 
-  const availability = page.locator(".glass-panel").filter({ hasText: "Active Trams" });
+  const availability = page.getByTestId("availability-card");
   const markers = page.locator(".bus-marker-tour");
   const routeMenu = page.locator(".route-selector-menu");
 
@@ -38,7 +38,8 @@ test("T8 keeps an expired Marker hidden across route switching until newer live 
 
   const expiryResponse = await page.request.get("http://127.0.0.1:13001/t8/arm-expiry");
   expect(expiryResponse.ok()).toBe(true);
-  await expect(availability).toContainText("0 คัน");
+  await expect(availability).toContainText("ข้อมูลตำแหน่งล่าช้า");
+  await expect(availability).toContainText("1 คัน");
   await expect(markers).toHaveCount(0);
 
   await routeMenu.getByRole("button", { name: /Route 01/ }).click();
@@ -49,6 +50,7 @@ test("T8 keeps an expired Marker hidden across route switching until newer live 
   await expect(markers).toHaveCount(0);
   const restoreResponse = await page.request.get("http://127.0.0.1:13001/t8/restore");
   expect(restoreResponse.ok()).toBe(true);
+  await expect(availability).toContainText("Active Trams");
   await expect(availability).toContainText("1 คัน");
   await expect(markers).toHaveCount(1);
 });

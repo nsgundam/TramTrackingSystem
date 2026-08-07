@@ -11,8 +11,10 @@
     "test:simulator-tooling": "node --test tests/simulator-tooling.test.mjs",
     "test:t8": "node --test --experimental-strip-types tests/t8-public-state.test.ts",
     "test:t9": "node --test --experimental-strip-types tests/t9-backend-origin.test.ts",
-    "test:e2e:t8": "playwright test -c playwright.config.ts",
-    "check": "npm run test:simulator-tooling && npm run test:t8 && npm run test:t9 && npm run test:e2e:t8 && npm run lint && npm run build:check"
+    "test:t14": "tsc tests/t14-truthful-state.test.ts utils/truthful-ui-state.ts types/canonical-state.ts --outDir .next/t14-tests --module commonjs --moduleResolution node --target ES2022 --esModuleInterop --skipLibCheck --noEmit false --isolatedModules false && node --test .next/t14-tests/tests/t14-truthful-state.test.js",
+    "test:e2e:t8": "playwright test -c playwright.config.ts tests/t8-route-switch.spec.ts",
+    "test:e2e:t14": "playwright test -c playwright.config.ts tests/t14-truthful-state.spec.ts",
+    "check": "npm run test:simulator-tooling && npm run test:t8 && npm run test:t9 && npm run test:t14 && npm run test:e2e:t8 && npm run test:e2e:t14 && npm run lint && npm run build:check"
   },
   "dependencies": {
     "@turf/turf": "^7.3.4",

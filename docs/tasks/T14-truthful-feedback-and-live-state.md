@@ -67,6 +67,7 @@
 - `shuttle-tracking-web/tests/t8-route-switch.spec.ts`
 - `shuttle-tracking-web/playwright.config.ts`
 - `shuttle-tracking-web/package.json`
+- `shuttle-tracking-web/public/sw.js`
 
 ## Read-only Context
 
@@ -109,6 +110,8 @@
    current states without discarding last-known position.
 6. Add deterministic pure/source tests and focused desktop/mobile Playwright journeys; keep the
    existing T8 expiry/route-switch test passing.
+7. Keep the PWA Service Worker from intercepting Socket.IO polling/upgrade transport; realtime
+   requests must use the network directly and surface their real connection state.
 
 ## Acceptance Criteria
 

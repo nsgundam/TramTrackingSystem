@@ -12,6 +12,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Realtime transport must reach Socket.IO directly. Wrapping Engine.IO polling responses in a
+  // Service Worker fetch can interrupt an in-flight upgrade and create a reconnect loop.
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.pathname.startsWith('/socket.io/')) {
+    return;
+  }
+
   // Required to meet PWA installation criteria in Chrome/Android
   event.respondWith(
     fetch(event.request).catch((err) => {

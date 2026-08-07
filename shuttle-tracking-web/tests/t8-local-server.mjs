@@ -53,19 +53,60 @@ const stops = {
   ],
 };
 
+let activeVehicleFailuresRemaining = 0;
+let emptyActiveVehicleResponsesRemaining = 0;
+let adminStatsMode = "ready";
+
 const respondJson = (response, status, payload) => {
   response.writeHead(status, {
     "Access-Control-Allow-Origin": "http://127.0.0.1:13000",
+    "Access-Control-Allow-Headers": "Authorization, Content-Type",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Content-Type": "application/json",
   });
   response.end(JSON.stringify(payload));
 };
 
-const server = createServer((request, response) => {
+const readJsonBody = async (request) => {
+  const chunks = [];
+  for await (const chunk of request) chunks.push(chunk);
+  if (chunks.length === 0) return null;
+  return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+};
+
+const server = createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", `http://127.0.0.1:${port}`);
 
+  if (request.method === "OPTIONS") {
+    response.writeHead(204, {
+      "Access-Control-Allow-Origin": "http://127.0.0.1:13000",
+      "Access-Control-Allow-Headers": "Authorization, Content-Type",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    });
+    response.end();
+    return;
+  }
   if (url.pathname === "/health") {
     respondJson(response, 200, { ok: true });
+    return;
+  }
+  if (url.pathname === "/t14/fail-next-active-vehicles") {
+    const requestedCount = Number(url.searchParams.get("count") ?? "1");
+    activeVehicleFailuresRemaining = Number.isInteger(requestedCount) && requestedCount > 0
+      ? requestedCount
+      : 1;
+    respondJson(response, 200, { armed: activeVehicleFailuresRemaining });
+    return;
+  }
+  if (url.pathname === "/t14/admin-stats-mode") {
+    const requestedMode = url.searchParams.get("mode");
+    adminStatsMode = requestedMode === "error" ? "error" : "ready";
+    respondJson(response, 200, { mode: adminStatsMode });
+    return;
+  }
+  if (url.pathname === "/t14/empty-next-active-vehicles") {
+    emptyActiveVehicleResponsesRemaining = 1;
+    respondJson(response, 200, { armed: true });
     return;
   }
   if (url.pathname === "/t8/restore") {
@@ -83,11 +124,61 @@ const server = createServer((request, response) => {
     return;
   }
   if (url.pathname === "/api/public/active-vehicles") {
+    if (activeVehicleFailuresRemaining > 0) {
+      activeVehicleFailuresRemaining -= 1;
+      respondJson(response, 503, { error: "Active vehicles temporarily unavailable" });
+      return;
+    }
+    if (emptyActiveVehicleResponsesRemaining > 0) {
+      emptyActiveVehicleResponsesRemaining -= 1;
+      respondJson(response, 200, []);
+      return;
+    }
     respondJson(response, 200, [{ id: "t8-vehicle", name: "T8 Test Tram", assignedRouteId: "R01", state: initialState }]);
+    return;
+  }
+  if (url.pathname === "/api/public/feedback" && request.method === "POST") {
+    try {
+      const body = await readJsonBody(request);
+      if (
+        !body
+        || body.vehicleId !== "t8-vehicle"
+        || typeof body.message !== "string"
+        || body.message.trim().length === 0
+      ) {
+        respondJson(response, 400, { error: "Invalid feedback test payload" });
+        return;
+      }
+      respondJson(response, 201, { success: true, data: { id: "t14-feedback" } });
+    } catch {
+      respondJson(response, 400, { error: "Invalid JSON" });
+    }
     return;
   }
   if (url.pathname === "/api/public/active-routes") {
     respondJson(response, 200, routes);
+    return;
+  }
+  if (url.pathname === "/api/auth/me") {
+    respondJson(response, 200, {
+      user: { id: "t14-admin", username: "admin", role: "ADMIN" },
+    });
+    return;
+  }
+  if (url.pathname === "/api/admin/vehicles") {
+    if (adminStatsMode === "error") {
+      respondJson(response, 503, { error: "Dashboard stats temporarily unavailable" });
+      return;
+    }
+    respondJson(response, 200, [{ id: "t8-vehicle", name: "T8 Test Tram", status: "active" }]);
+    return;
+  }
+  if (url.pathname === "/api/admin/routes") {
+    respondJson(response, 200, routes);
+    return;
+  }
+  if (url.pathname === "/api/admin/stops") {
+    respondJson(response, 200, [...stops.R01, ...stops.R02]);
     return;
   }
 

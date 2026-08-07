@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState, memo } from "react";
-import { X, CheckCircle2, MessageSquarePlus, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useState, memo } from "react";
+import { X, CheckCircle2, MessageSquarePlus, Loader2, RefreshCw, TriangleAlert } from "lucide-react";
 import { backendConnection } from "@/config/backend";
+import { resolveVerifiedFeedbackVehicleId } from "@/utils/truthful-ui-state";
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -19,6 +20,14 @@ interface ActiveVehicle {
   } | null;
 }
 
+type VehicleLoadState = "loading" | "ready" | "error";
+
+const isActiveVehicle = (value: unknown): value is ActiveVehicle => {
+  if (typeof value !== "object" || value === null) return false;
+  const vehicle = value as { id?: unknown; name?: unknown };
+  return typeof vehicle.id === "string" && typeof vehicle.name === "string";
+};
+
 const FEEDBACK_TYPES = [
   { id: "suggestion", label: "ข้อเสนอแนะ" },
   { id: "complaint", label: "แจ้งปัญหา / ร้องเรียน" },
@@ -35,46 +44,51 @@ function FeedbackModal({
   const [vehicleId, setVehicleId] = useState<string>(initialVehicleId || "");
   const [message, setMessage] = useState<string>("");
   const [vehicles, setVehicles] = useState<ActiveVehicle[]>([]);
-  const [isLoadingVehicles, setIsLoadingVehicles] = useState<boolean>(false);
+  const [vehicleLoadState, setVehicleLoadState] = useState<VehicleLoadState>("loading");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Fetch active vehicles on modal open
-  useEffect(() => {
-    const fetchVehicles = async () => {
-      setIsLoadingVehicles(true);
-      try {
-        const res = await fetch(`${backendConnection.apiBaseUrl}/public/active-vehicles`);
-        if (!res.ok) throw new Error("Failed to fetch");
-        const data = (await res.json()) as ActiveVehicle[];
-        setVehicles(data);
+  const loadVehicles = useCallback(async (signal?: AbortSignal) => {
+    setVehicleLoadState("loading");
+    setVehicles([]);
+    setVehicleId("");
 
-        // If no vehicle was preselected and we got active vehicles, default to the first one
-        if (!initialVehicleId && data.length > 0) {
-          setVehicleId(data[0].id);
-        }
-      } catch (err) {
-        console.error("Failed to load active vehicles for feedback:", err);
-        // Fallback static list if API fails
-        const fallbackList = [
-          { id: "VH001", name: "Tram R01 (VH001)" },
-          { id: "VH002", name: "Tram R02 (VH002)" },
-        ];
-        setVehicles(fallbackList);
-        if (!initialVehicleId) {
-          setVehicleId("VH002");
-        }
-      } finally {
-        setIsLoadingVehicles(false);
+    try {
+      const res = await fetch(`${backendConnection.apiBaseUrl}/public/active-vehicles`, { signal });
+      if (!res.ok) throw new Error("ACTIVE_VEHICLES_UNAVAILABLE");
+
+      const payload: unknown = await res.json();
+      if (!Array.isArray(payload) || !payload.every(isActiveVehicle)) {
+        throw new Error("ACTIVE_VEHICLES_INVALID");
       }
-    };
+      if (signal?.aborted) return;
 
-    fetchVehicles();
+      setVehicles(payload);
+      setVehicleId(resolveVerifiedFeedbackVehicleId(initialVehicleId, payload));
+      setVehicleLoadState("ready");
+    } catch (error) {
+      if (signal?.aborted || (error instanceof DOMException && error.name === "AbortError")) return;
+      setVehicles([]);
+      setVehicleId("");
+      setVehicleLoadState("error");
+    }
   }, [initialVehicleId]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    queueMicrotask(() => {
+      if (!controller.signal.aborted) void loadVehicles(controller.signal);
+    });
+    return () => controller.abort();
+  }, [loadVehicles]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (vehicleLoadState !== "ready") {
+      setErrorMsg("ยังยืนยันรายชื่อรถไม่ได้ กรุณาลองโหลดข้อมูลรถอีกครั้ง");
+      return;
+    }
     if (!type || !vehicleId || !message.trim()) {
       setErrorMsg("กรุณากรอกข้อมูลให้ครบถ้วน");
       return;
@@ -128,7 +142,9 @@ function FeedbackModal({
             <h3 className="text-lg font-bold text-slate-800">ส่งข้อเสนอแนะ / แจ้งปัญหา</h3>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="ปิดหน้าต่างข้อเสนอแนะ"
             className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
           >
             <X size={18} />
@@ -147,7 +163,7 @@ function FeedbackModal({
         ) : (
           <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
             {errorMsg && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100">
+              <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100" role="alert">
                 ⚠️ {errorMsg}
               </div>
             )}
@@ -181,16 +197,44 @@ function FeedbackModal({
 
             {/* Vehicle selection */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+              <label htmlFor="feedback-vehicle" className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
                 เลือกหมายเลขรถรถราง
               </label>
-              {isLoadingVehicles ? (
+              {vehicleLoadState === "loading" ? (
                 <div className="flex items-center gap-2 text-slate-400 text-sm py-2">
                   <Loader2 size={16} className="animate-spin" />
                   <span>กำลังโหลดข้อมูลรถ...</span>
                 </div>
+              ) : vehicleLoadState === "error" ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">
+                  <div className="flex items-start gap-2">
+                    <TriangleAlert className="mt-0.5 shrink-0" size={17} />
+                    <p>ไม่สามารถโหลดรายชื่อรถได้ จึงยังไม่สามารถผูกข้อเสนอแนะกับรถคันใดได้</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void loadVehicles()}
+                    className="mt-3 inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 font-semibold text-red-800 transition-colors hover:bg-red-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+                  >
+                    <RefreshCw size={15} />
+                    ลองโหลดรายชื่อรถอีกครั้ง
+                  </button>
+                </div>
+              ) : vehicles.length === 0 ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700" role="status">
+                  <p>ขณะนี้ไม่มีรถที่เปิดให้เลือก กรุณาลองใหม่ภายหลัง</p>
+                  <button
+                    type="button"
+                    onClick={() => void loadVehicles()}
+                    className="mt-3 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                  >
+                    <RefreshCw size={15} />
+                    ลองโหลดรายชื่อรถอีกครั้ง
+                  </button>
+                </div>
               ) : (
                 <select
+                  id="feedback-vehicle"
                   value={vehicleId}
                   onChange={(e) => setVehicleId(e.target.value)}
                   className="w-full p-3 rounded-xl border border-slate-200 text-slate-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
@@ -207,10 +251,11 @@ function FeedbackModal({
 
             {/* Feedback message */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+              <label htmlFor="feedback-message" className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
                 รายละเอียดข้อเสนอแนะ / ปัญหาที่พบ
               </label>
               <textarea
+                id="feedback-message"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="กรุณาระบุรายละเอียดข้อความของคุณ..."
@@ -231,7 +276,12 @@ function FeedbackModal({
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={
+                  isSubmitting
+                  || vehicleLoadState !== "ready"
+                  || !vehicleId
+                  || !message.trim()
+                }
                 className="flex-1 py-3 px-4 rounded-xl bg-primary text-white hover:bg-primary-container hover:shadow-lg active:scale-[0.98] transition-all text-sm font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (

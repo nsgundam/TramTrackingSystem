@@ -48,6 +48,7 @@ export function useShuttleTracker() {
     no_service: 0,
     unknown: 0,
   });
+  const [hasAuthoritativeVehicleState, setHasAuthoritativeVehicleState] = useState(false);
   const [targetStop, setTargetStop] = useState<Stop | null>(null);
   const [realEta, setRealEta] = useState<number | null>(null);
   const [isAppLocked, setIsAppLocked] = useState<boolean>(true);
@@ -155,6 +156,7 @@ export function useShuttleTracker() {
       stateVersion: state.stateVersion,
     };
     vehicleStatesRef.current[state.vehicleId] = state;
+    setHasAuthoritativeVehicleState(true);
     scheduleLocalExpiry(state);
     refreshVehicleStateCounts();
     return true;
@@ -243,6 +245,7 @@ export function useShuttleTracker() {
   const hydrateActiveVehicles = useCallback(async () => {
     try {
       const vehicles = await getActiveVehicles();
+      setHasAuthoritativeVehicleState(true);
       const names = vehicles.reduce<Record<string, string>>((mapping, vehicle) => {
         mapping[String(vehicle.id)] = vehicle.name || String(vehicle.id);
         return mapping;
@@ -263,7 +266,7 @@ export function useShuttleTracker() {
   }, [acceptCanonicalState, namesLoadedRef, checkLoadingCompleteRef]);
 
   // === Sync Socket Connection ===
-  useSocketConnection({
+  const realtimeConnectionState = useSocketConnection({
     mapRef,
     isZoomingRef,
     pendingUpdatesRef,
@@ -535,6 +538,8 @@ export function useShuttleTracker() {
     selectedRoute,
     availableCount,
     vehicleStateCounts,
+    realtimeConnectionState,
+    hasAuthoritativeVehicleState,
     userLoc,
     targetStop,
     realEta,

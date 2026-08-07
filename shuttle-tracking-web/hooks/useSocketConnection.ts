@@ -1,9 +1,9 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { io, Socket } from "socket.io-client";
 import { backendConnection } from "@/config/backend";
-import { LocationUpdateData } from "@/types";
+import { LocationUpdateData, RealtimeConnectionState } from "@/types";
 
 interface UseSocketOptions {
   mapRef: React.RefObject<L.Map | null>;
@@ -22,6 +22,18 @@ export function useSocketConnection({
   hydrateActiveVehicles,
   acceptCanonicalState,
 }: UseSocketOptions) {
+  const [connectionState, setConnectionState] = useState<RealtimeConnectionState>("reconnecting");
+  const hydrateActiveVehiclesRef = useRef(hydrateActiveVehicles);
+  const acceptCanonicalStateRef = useRef(acceptCanonicalState);
+
+  useEffect(() => {
+    hydrateActiveVehiclesRef.current = hydrateActiveVehicles;
+  }, [hydrateActiveVehicles]);
+
+  useEffect(() => {
+    acceptCanonicalStateRef.current = acceptCanonicalState;
+  }, [acceptCanonicalState]);
+
   useEffect(() => {
     let disposed = false;
     let socket: Socket | null = null;
@@ -29,7 +41,7 @@ export function useSocketConnection({
 
     const connectAfterSnapshot = async () => {
       try {
-        await hydrateActiveVehicles();
+        await hydrateActiveVehiclesRef.current();
       } catch {
         // The socket can still recover if the initial REST snapshot is unavailable.
       }
@@ -37,11 +49,22 @@ export function useSocketConnection({
 
       socket = io(backendConnection.socketOrigin, { autoConnect: false });
       socket.on("connect", () => {
-        if (hasConnected) void hydrateActiveVehicles();
+        if (disposed) return;
+        setConnectionState("connected");
+        if (hasConnected) void hydrateActiveVehiclesRef.current();
         hasConnected = true;
       });
+      socket.on("disconnect", () => {
+        if (!disposed) setConnectionState("disconnected");
+      });
+      socket.on("connect_error", () => {
+        if (!disposed) setConnectionState("reconnecting");
+      });
+      socket.io.on("reconnect_attempt", () => {
+        if (!disposed) setConnectionState("reconnecting");
+      });
       socket.on("location-update", (data: LocationUpdateData) => {
-        if (!acceptCanonicalState(data) || !mapRef.current) return;
+        if (!acceptCanonicalStateRef.current(data) || !mapRef.current) return;
         if (isZoomingRef.current) {
           pendingUpdatesRef.current[data.vehicleId] = data;
           return;
@@ -51,7 +74,9 @@ export function useSocketConnection({
       socket.connect();
     };
 
-    void connectAfterSnapshot();
+    void connectAfterSnapshot().catch(() => {
+      if (!disposed) setConnectionState("disconnected");
+    });
     return () => {
       disposed = true;
       socket?.disconnect();
@@ -61,7 +86,7 @@ export function useSocketConnection({
     isZoomingRef,
     pendingUpdatesRef,
     processLocationUpdateRef,
-    hydrateActiveVehicles,
-    acceptCanonicalState,
   ]);
+
+  return connectionState;
 }

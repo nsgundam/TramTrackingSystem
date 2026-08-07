@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { RefreshCw } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { io, Socket } from "socket.io-client";
@@ -12,6 +13,12 @@ import {
   RealtimeConnectionState,
   isCanonicalStateNewer,
 } from "@/types";
+import { projectCanonicalVehicleStateCounts } from "@/utils/canonical-public-state";
+import {
+  getCanonicalDisplayState,
+  getCanonicalExpiryDelayMs,
+  reconcileCanonicalVehicleSnapshot,
+} from "@/utils/truthful-ui-state";
 
 const busIcon = new L.Icon({
   iconUrl: "https://cdn-icons-png.flaticon.com/512/3448/3448339.png",
@@ -20,79 +27,306 @@ const busIcon = new L.Icon({
   popupAnchor: [0, -38],
 });
 
+type SnapshotState = "loading" | "ready" | "error";
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const isNullableFiniteNumber = (value: unknown): boolean =>
+  value === null || (typeof value === "number" && Number.isFinite(value));
+
+const isCanonicalLocation = (value: unknown): boolean => {
+  if (value === null) return true;
+  if (!isRecord(value)) return false;
+  return typeof value.lat === "number"
+    && Number.isFinite(value.lat)
+    && typeof value.lng === "number"
+    && Number.isFinite(value.lng)
+    && isNullableFiniteNumber(value.speed)
+    && isNullableFiniteNumber(value.heading)
+    && isNullableFiniteNumber(value.accuracy)
+    && (value.station === null || typeof value.station === "string");
+};
+
+const isCanonicalVehicleState = (value: unknown): value is CanonicalVehicleStateV1 => {
+  if (!isRecord(value) || !isRecord(value.timing) || !isRecord(value.freshness)) return false;
+
+  return value.schemaVersion === 1
+    && value.eventType === "canonical_vehicle_state"
+    && typeof value.stateEpoch === "string"
+    && typeof value.stateVersion === "number"
+    && Number.isFinite(value.stateVersion)
+    && typeof value.vehicleId === "string"
+    && (value.tripId === null || typeof value.tripId === "string")
+    && (value.routeId === null || typeof value.routeId === "string")
+    && ["active_trip", "vehicle_assignment", "unknown"].includes(String(value.routeAuthority))
+    && ["live", "stale", "no_service", "unknown"].includes(String(value.serviceState))
+    && [
+      "CANONICAL_SELECTED",
+      "FALLBACK_SOURCE_SELECTED",
+      "ALL_SOURCES_STALE",
+      "SOURCE_NEVER_SEEN",
+      "NO_ACTIVE_SOURCE",
+      "DEPENDENCY_UNAVAILABLE",
+      "RECOVERED",
+    ].includes(String(value.reasonCode))
+    && isCanonicalLocation(value.liveLocation)
+    && isCanonicalLocation(value.lastKnownLocation)
+    && (value.timing.observedAt === null || typeof value.timing.observedAt === "string")
+    && typeof value.timing.receivedAt === "string"
+    && typeof value.timing.selectedAt === "string"
+    && value.timing.freshnessClock === "server_receive"
+    && isNullableFiniteNumber(value.freshness.ageMs)
+    && typeof value.freshness.thresholdMs === "number"
+    && Number.isFinite(value.freshness.thresholdMs)
+    && ["fresh", "stale", "none"].includes(String(value.freshness.bucket))
+    && (
+      value.sourceType === null
+      || ["mobile", "esp32", "lorawan", "simulator"].includes(String(value.sourceType))
+    )
+    && (
+      value.sourceId === undefined
+      || value.sourceId === null
+      || typeof value.sourceId === "string"
+    );
+};
+
 export default function LiveMap() {
   const [activeVehicles, setActiveVehicles] = useState<Record<string, CanonicalVehicleStateV1>>({});
-  const [connectionState, setConnectionState] = useState<RealtimeConnectionState>("disconnected");
+  const [expiredVehicles, setExpiredVehicles] = useState<Record<string, boolean>>({});
+  const [connectionState, setConnectionState] = useState<RealtimeConnectionState>("reconnecting");
+  const [snapshotState, setSnapshotState] = useState<SnapshotState>("loading");
+  const [hasAuthoritativeState, setHasAuthoritativeState] = useState(false);
+  const [snapshotAttempt, setSnapshotAttempt] = useState(0);
+  const activeVehiclesRef = useRef<Record<string, CanonicalVehicleStateV1>>({});
+  const expiredVehiclesRef = useRef<Record<string, boolean>>({});
   const versionsRef = useRef<Record<string, Pick<CanonicalVehicleStateV1, "stateEpoch" | "stateVersion">>>({});
-  const hasConnectedRef = useRef(false);
+  const expiryTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
     let disposed = false;
     let socket: Socket | null = null;
+    let hasConnected = false;
+    let isHydrating = false;
+    let queuedStates: CanonicalVehicleStateV1[] = [];
 
-    const acceptState = (state: CanonicalVehicleStateV1): boolean => {
-      const previous = versionsRef.current[state.vehicleId];
-      if (!isCanonicalStateNewer(state, previous)) return false;
-      versionsRef.current[state.vehicleId] = {
-        stateEpoch: state.stateEpoch,
-        stateVersion: state.stateVersion,
+    const clearExpiryTimer = (vehicleId: string) => {
+      const timer = expiryTimersRef.current[vehicleId];
+      if (timer) clearTimeout(timer);
+      delete expiryTimersRef.current[vehicleId];
+    };
+
+    const scheduleLocalExpiry = (state: CanonicalVehicleStateV1) => {
+      clearExpiryTimer(state.vehicleId);
+      expiredVehiclesRef.current[state.vehicleId] = false;
+      const delayMs = getCanonicalExpiryDelayMs(state);
+      if (delayMs === null) return;
+
+      expiryTimersRef.current[state.vehicleId] = setTimeout(() => {
+        if (disposed) return;
+        const current = activeVehiclesRef.current[state.vehicleId];
+        if (
+          current
+          && current.serviceState === "live"
+          && current.stateEpoch === state.stateEpoch
+          && current.stateVersion === state.stateVersion
+        ) {
+          expiredVehiclesRef.current = {
+            ...expiredVehiclesRef.current,
+            [state.vehicleId]: true,
+          };
+          setExpiredVehicles((existing) => ({ ...existing, [state.vehicleId]: true }));
+        }
+      }, delayMs);
+    };
+
+    const commitSnapshot = (nextStates: Record<string, CanonicalVehicleStateV1>) => {
+      Object.values(expiryTimersRef.current).forEach(clearTimeout);
+      expiryTimersRef.current = {};
+      activeVehiclesRef.current = nextStates;
+      versionsRef.current = Object.values(nextStates).reduce<
+        Record<string, Pick<CanonicalVehicleStateV1, "stateEpoch" | "stateVersion">>
+      >((versions, state) => {
+        versions[state.vehicleId] = {
+          stateEpoch: state.stateEpoch,
+          stateVersion: state.stateVersion,
+        };
+        return versions;
+      }, {});
+      expiredVehiclesRef.current = {};
+      setExpiredVehicles({});
+      setActiveVehicles(nextStates);
+      Object.values(nextStates).forEach(scheduleLocalExpiry);
+    };
+
+    const acceptState = (candidate: unknown): boolean => {
+      if (!isCanonicalVehicleState(candidate)) return false;
+      const previous = versionsRef.current[candidate.vehicleId];
+      if (!isCanonicalStateNewer(candidate, previous)) return false;
+
+      versionsRef.current[candidate.vehicleId] = {
+        stateEpoch: candidate.stateEpoch,
+        stateVersion: candidate.stateVersion,
       };
-      setActiveVehicles((current) => ({ ...current, [state.vehicleId]: state }));
+      const nextStates = {
+        ...activeVehiclesRef.current,
+        [candidate.vehicleId]: candidate,
+      };
+      activeVehiclesRef.current = nextStates;
+      expiredVehiclesRef.current = {
+        ...expiredVehiclesRef.current,
+        [candidate.vehicleId]: false,
+      };
+      setExpiredVehicles((existing) => ({ ...existing, [candidate.vehicleId]: false }));
+      setActiveVehicles(nextStates);
+      setHasAuthoritativeState(true);
+      scheduleLocalExpiry(candidate);
       return true;
     };
 
-    const hydrate = async () => {
-      const vehicles = await getActiveVehicles();
-      vehicles.forEach((vehicle) => acceptState(vehicle.state));
+    const queueOrAcceptState = (candidate: unknown) => {
+      if (!isCanonicalVehicleState(candidate)) return;
+      if (isHydrating) {
+        queuedStates.push(candidate);
+        return;
+      }
+      acceptState(candidate);
+    };
+
+    const hydrate = async (announceLoading: boolean) => {
+      if (isHydrating) return;
+      if (announceLoading) setSnapshotState("loading");
+      isHydrating = true;
+      queuedStates = [];
+
+      try {
+        const vehicles = await getActiveVehicles();
+        if (disposed) return;
+        const snapshotStates = vehicles
+          .map((vehicle) => vehicle.state)
+          .filter(isCanonicalVehicleState);
+        if (snapshotStates.length !== vehicles.length) {
+          throw new Error("INVALID_CANONICAL_SNAPSHOT");
+        }
+        const reconciled = reconcileCanonicalVehicleSnapshot(
+          snapshotStates,
+          queuedStates,
+        );
+        queuedStates = [];
+        isHydrating = false;
+        commitSnapshot(reconciled);
+        setHasAuthoritativeState(true);
+        setSnapshotState("ready");
+      } catch {
+        if (disposed) return;
+        const statesReceivedDuringFailure = queuedStates;
+        queuedStates = [];
+        isHydrating = false;
+        statesReceivedDuringFailure.forEach(acceptState);
+        setSnapshotState("error");
+      } finally {
+        if (disposed) {
+          isHydrating = false;
+          queuedStates = [];
+        }
+      }
     };
 
     const connectAfterSnapshot = async () => {
-      await hydrate();
+      await hydrate(false);
       if (disposed) return;
 
       socket = io(backendConnection.socketOrigin, { autoConnect: false });
       socket.on("connect", () => {
+        if (disposed) return;
         setConnectionState("connected");
-        if (hasConnectedRef.current) void hydrate();
-        hasConnectedRef.current = true;
+        if (hasConnected) void hydrate(true);
+        hasConnected = true;
       });
-      socket.on("disconnect", () => setConnectionState("disconnected"));
-      socket.on("connect_error", () => setConnectionState("reconnecting"));
-      socket.io.on("reconnect_attempt", () => setConnectionState("reconnecting"));
-      socket.on("location-update", (state: CanonicalVehicleStateV1) => acceptState(state));
+      socket.on("disconnect", () => {
+        if (!disposed) setConnectionState("disconnected");
+      });
+      socket.on("connect_error", () => {
+        if (!disposed) setConnectionState("reconnecting");
+      });
+      socket.io.on("reconnect_attempt", () => {
+        if (!disposed) setConnectionState("reconnecting");
+      });
+      socket.on("location-update", queueOrAcceptState);
       socket.connect();
     };
 
-    void connectAfterSnapshot().catch(() => setConnectionState("disconnected"));
+    void connectAfterSnapshot().catch(() => {
+      if (!disposed) setConnectionState("disconnected");
+    });
     return () => {
       disposed = true;
+      isHydrating = false;
+      queuedStates = [];
+      Object.values(expiryTimersRef.current).forEach(clearTimeout);
+      expiryTimersRef.current = {};
       socket?.disconnect();
     };
-  }, []);
+  }, [snapshotAttempt]);
 
-  const stateCounts = Object.values(activeVehicles).reduce<Record<CanonicalVehicleStateV1["serviceState"], number>>(
-    (counts, state) => {
-      counts[state.serviceState] += 1;
-      return counts;
-    },
-    { live: 0, stale: 0, no_service: 0, unknown: 0 },
+  const displayExpiredVehicles = { ...expiredVehicles };
+  if (connectionState !== "connected") {
+    Object.values(activeVehicles).forEach((state) => {
+      if (state.serviceState === "live") displayExpiredVehicles[state.vehicleId] = true;
+    });
+  }
+  const stateCounts = projectCanonicalVehicleStateCounts(
+    activeVehicles,
+    displayExpiredVehicles,
   );
+
+  const retrySnapshot = () => {
+    setSnapshotState("loading");
+    setConnectionState("reconnecting");
+    setSnapshotAttempt((attempt) => attempt + 1);
+  };
 
   return (
     <div className="w-full h-125 rounded-xl overflow-hidden border border-slate-200 shadow-sm z-0 relative">
-      <div className="absolute top-3 right-3 z-1000 rounded-full bg-white/90 px-3 py-1 text-xs text-slate-600 shadow">
-        {connectionState === "connected" && "Connected"}
-        {connectionState === "reconnecting" && "Reconnecting"}
-        {connectionState === "disconnected" && "Disconnected"}
+      <div
+        className="absolute top-3 right-3 z-1000 rounded-lg bg-white/95 px-3 py-2 text-xs leading-5 text-slate-700 shadow"
+        data-testid="admin-realtime-status"
+        role="status"
+        aria-live="polite"
+      >
+        <div>
+          Realtime: {connectionState === "connected" ? "Connected" : connectionState === "reconnecting" ? "Reconnecting" : "Disconnected"}
+        </div>
+        <div>
+          Snapshot: {snapshotState === "ready" ? "Ready" : snapshotState === "loading" ? "Loading" : "Unavailable"}
+        </div>
+        {snapshotState === "error" && (
+          <button
+            type="button"
+            onClick={retrySnapshot}
+            className="mt-1 inline-flex min-h-8 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+            data-testid="admin-snapshot-retry"
+          >
+            <RefreshCw size={13} />
+            Retry snapshot
+          </button>
+        )}
       </div>
       <div
         aria-label="Vehicle service state summary"
-        className="absolute top-11 right-3 z-1000 rounded-lg bg-white/90 px-3 py-2 text-[11px] leading-5 text-slate-600 shadow"
+        className="absolute top-3 left-3 z-1000 rounded-lg bg-white/95 px-3 py-2 text-[11px] leading-5 text-slate-600 shadow"
+        data-testid="admin-state-summary"
       >
-        <div>Live: {stateCounts.live}</div>
-        <div>Last known: {stateCounts.stale}</div>
-        <div>No service: {stateCounts.no_service}</div>
-        <div>Unavailable: {stateCounts.unknown}</div>
+        {hasAuthoritativeState ? (
+          <>
+            <div>Live: {stateCounts.live}</div>
+            <div>Last known: {stateCounts.stale}</div>
+            <div>No service: {stateCounts.no_service}</div>
+            <div>Unavailable: {stateCounts.unknown}</div>
+          </>
+        ) : (
+          <div>Waiting for canonical vehicle state</div>
+        )}
       </div>
       <MapContainer
         center={[13.964772, 100.587563]}
@@ -105,27 +339,28 @@ export default function LiveMap() {
         />
 
         {Object.values(activeVehicles).map((state) => {
-          const location = state.serviceState === "live"
-            ? state.liveLocation
-            : state.serviceState === "stale"
-              ? state.lastKnownLocation
-              : null;
-          if (!location) return null;
+          const displayState = getCanonicalDisplayState(
+            state,
+            Boolean(displayExpiredVehicles[state.vehicleId]),
+          );
+          if (!displayState.location) return null;
           return (
             <Marker
               key={`${state.vehicleId}:${state.stateEpoch}:${state.stateVersion}`}
-              position={[location.lat, location.lng]}
+              position={[displayState.location.lat, displayState.location.lng]}
               icon={busIcon}
-              opacity={state.serviceState === "stale" ? 0.55 : 1}
+              opacity={displayState.serviceState === "stale" ? 0.55 : 1}
             >
               <Popup>
                 <div className="text-center">
                   <strong className="text-lg text-blue-600 block mb-1">{state.vehicleId}</strong>
-                  <p className="text-sm m-0">State: {state.serviceState}</p>
+                  <p className="text-sm m-0">State: {displayState.serviceState}</p>
                   <p className="text-sm m-0">Route: {state.routeId || "Unknown"}</p>
-                  <p className="text-sm m-0">Speed: {location.speed ?? 0} km/h</p>
+                  <p className="text-sm m-0">Speed: {displayState.location.speed ?? 0} km/h</p>
                   <p className="text-xs text-slate-500 m-0 mt-1">
-                    {state.serviceState === "stale" ? "Last known location — ETA unavailable" : location.station || "No station"}
+                    {displayState.serviceState === "stale"
+                      ? "Last known location — ETA unavailable"
+                      : displayState.location.station || "No station"}
                   </p>
                 </div>
               </Popup>

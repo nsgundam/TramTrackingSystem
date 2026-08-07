@@ -28,6 +28,8 @@ export default function ShuttleTracker() {
     routes,
     selectedRoute,
     vehicleStateCounts,
+    realtimeConnectionState,
+    hasAuthoritativeVehicleState,
     targetStop,
     realEta,
     isAppLocked,
@@ -107,7 +109,11 @@ export default function ShuttleTracker() {
 
         {/* Top Right: Status & Toggles */}
         <div className="absolute top-4 right-4 md:top-10 md:right-10 z-10 flex flex-col items-stretch gap-3 w-40 md:w-45">
-          <AvailabilityCard count={vehicleStateCounts.live} />
+          <AvailabilityCard
+            counts={vehicleStateCounts}
+            connectionState={realtimeConnectionState}
+            hasAuthoritativeState={hasAuthoritativeVehicleState}
+          />
           <RouteSelector
             routes={routes}
             selectedRoute={selectedRoute}
