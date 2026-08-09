@@ -188,10 +188,52 @@
 
 ## Completion Evidence
 
-- Status: `In Progress — exact handoff ready for measurement-first implementation`
-- Acceptance mapping: Pending implementation and supervised verification.
-- Changed files: Pending; the unrelated dirty Feedback-role migration remains outside scope.
-- Validation results: Baseline scoped Impeccable detector returned `[]` on 2026-08-10; behavioral
-  measurement-first and final gates remain pending.
-- Audit freshness changes: None until source implementation changes; affected audits remain current
-  at `0a0fe58...`.
+- Status: `Complete — Public service explanation/recovery slice`
+- Acceptance mapping:
+  - Snapshot truth/recovery → a failed Public active-vehicle snapshot is distinct from verified
+    empty service, exposes no invented dependency cause/count, and keeps one 44 px Retry control.
+    Manual retry remains mounted/disabled while loading, uses the existing endpoint, guards against
+    duplicate clicks, and recovers to the accepted canonical state.
+  - Canonical explanation/age → one pure typed projection owns connection, snapshot, service,
+    explanation, retry eligibility, and ETA reason. Last-update text accepts only valid canonical
+    `timing.selectedAt`, selects the newest accepted value, and updates without treating browser
+    receipt time as ground truth.
+  - ETA truth → the selected-stop card renders a number only for connected authoritative live
+    state. Reconnecting/disconnected/loading/error/stale/no-service/unknown/empty and live-without-
+    ETA states render a dash plus a specific non-causal label; the old blanket
+    `ยังไม่มีรถในสายนี้` claim is absent.
+  - Slow-load recovery → the normal preloader retains its incumbent logo/spinner-only visual path.
+    At 2.5 seconds it announces a concise slow-load message, and the existing five-second safety
+    completion still releases the map without waiting for the snapshot indefinitely.
+  - Identity/responsive continuity → Public glass/palette/type/overlay order remains. A measured
+    narrow-width correction gives Branding and status a gap; 320/390/1280 px have no horizontal
+    overflow, the stop dock does not collide with map controls, and the final scoped detector is
+    `[]`.
+- Changed files: implementation commit `bf8030898e6f0a6d04ec2abd3eb73d860e3243fc` contains only the
+  14 exact Public stylesheet/components/hooks/utility/package/config/test-fixture/unit/browser-test
+  paths in this handoff. The unrelated dirty Feedback-role migration was preserved and excluded.
+- Validation results:
+  - Measurement-first unit compilation failed because snapshot/age/ETA projections did not exist;
+    the corrected pure/source suite passes 8/8. Measurement-first Chromium failed 2/2 because
+    failure remained `กำลังรอข้อมูลรถ` with no Retry and slow loading had no explanation; final
+    browser journeys pass 2/2.
+  - Focused browser evidence covers failure → loading → live recovery, canonical update age,
+    non-misleading stop ETA, 44 px Retry, slow fallback, 320/390/1280 px overflow, Branding/status
+    separation, and dock/control separation. Synthetic trace captures were visually inspected.
+  - `npm --prefix shuttle-tracking-web run check` passed simulator 4/4, T8 unit 2/2, T9 unit 5/5,
+    truth unit 8/8, motion 4/4, contrast 4/4, T8 browser 1/1, truth 2/2, accessibility 4/4,
+    map-quality 2/2, contrast 2/2, Admin Dashboard 2/2, Public recovery 2/2, lint, and the 11-route
+    production build. Lint retains only the same two pre-existing warnings in `app/layout.tsx` and
+    `utils/IconHelpers.ts`.
+  - The sandboxed build first failed only because Turbopack could not bind its internal process
+    port; the authorized production build passed. `bash scripts/ci-checks.sh` then passed Backend
+    build/boundaries, Prisma validation, every Frontend check, Compose, production topology,
+    unsafe-log scan, and workflow validation.
+  - Final scoped Impeccable detector returned `[]`; `git diff --check`,
+    `node scripts/validate-agent-workflow.js`, visual QA, and exact staging review passed. Evidence
+    is local/synthetic, not human/assistive-technology, physical-device, deployed-runtime, or
+    release proof.
+- Audit freshness changes: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
+  and Roadmap are downgraded to `Needs Re-audit` against implementation `bf80308`. Backend,
+  Database, Infrastructure & Device, Security/DevOps/Observability, Discovery, T9/T11/T13/T15
+  gates, and owner decisions are unchanged.
