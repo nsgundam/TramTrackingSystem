@@ -1291,7 +1291,8 @@ Partially Complete — the first D-011 truth/integrity slice is implemented at `
 revalidated at `bd34552...`. The exact Level 3 handoff
 `docs/tasks/T14-truthful-feedback-and-live-state.md` records the bounded Public/Admin paths,
 acceptance mapping, and remaining human/runtime limits. Accessibility/navigation is the next
-eligible slice; Admin theme/hierarchy and measured performance/maintainability remain later.
+eligible slice and is now bounded by `docs/tasks/T14-accessible-dialogs-and-navigation.md`; Admin
+theme/hierarchy and measured performance/maintainability remain later.
 
 ### Evidence
 
