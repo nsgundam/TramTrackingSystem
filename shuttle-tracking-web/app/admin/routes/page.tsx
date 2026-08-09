@@ -1,29 +1,37 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ListOrdered, Pencil, Plus, Trash2 } from "lucide-react";
 import api from "@/services/api";
-import { Plus, Pencil, Trash2, RefreshCw, ListOrdered } from "lucide-react";
 import { Route } from "@/types/route";
 import RouteModal from "@/components/admin/RouteModal";
 import RouteStopsModal from "@/components/admin/RouteStopsModal";
 import { normalizeHexColor } from "@/utils/colorContrast";
+import {
+  AdminIconButton,
+  AdminResourcePage,
+  AdminResourcePanel,
+  AdminResourceState,
+  AdminStatusBadge,
+} from "@/components/admin/AdminResourcePage";
 
 export default function RoutesPage() {
   const [routes, setRoutes] = useState<Route[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [managingStopsFor, setManagingStopsFor] = useState<Route | null>(null);
 
   const fetchData = async () => {
+    setLoading(true);
+    setLoadError(null);
     try {
-      setLoading(true);
-      const res = await api.get("admin/routes");
-      setRoutes(res.data);
+      const response = await api.get<Route[]>("admin/routes");
+      setRoutes(response.data);
     } catch (error) {
       console.error("Failed to fetch routes:", error);
-      alert("Failed to connect to backend!");
+      setLoadError("Unable to load routes. Check the connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -31,22 +39,19 @@ export default function RoutesPage() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchData();
+    void fetchData();
   }, []);
 
   const handleSave = async (data: Partial<Route>) => {
     try {
       if (editingRoute) {
-        // UPDATE
         await api.put(`admin/routes/${editingRoute.id}`, data);
       } else {
-        // CREATE
         await api.post("admin/routes", data);
       }
-
       setIsModalOpen(false);
       setEditingRoute(null);
-      fetchData();
+      await fetchData();
     } catch (error) {
       console.error("Save error:", error);
       alert("Failed to save route");
@@ -57,7 +62,7 @@ export default function RoutesPage() {
     if (!confirm("Are you sure you want to delete this route?")) return;
     try {
       await api.delete(`admin/routes/${id}`);
-      fetchData();
+      await fetchData();
     } catch (error) {
       console.error("Delete error:", error);
       alert("Failed to delete route");
@@ -74,166 +79,114 @@ export default function RoutesPage() {
     setIsModalOpen(true);
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">
-            Routes Management
-          </h1>
-          <p className="text-slate-500">
-            Manage your tram routes and assignments
-          </p>
-        </div>
-        <button
-          onClick={openAddModal}
-          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full sm:w-auto"
-        >
-          <Plus size={20} />
-          Add Route
-        </button>
-      </div>
+  const actionsFor = (route: Route) => (
+    <div className="admin-resource-actions">
+      <AdminIconButton
+        label={`Manage stops for ${route.name}`}
+        onClick={() => setManagingStopsFor(route)}
+      >
+        <ListOrdered size={17} aria-hidden="true" />
+      </AdminIconButton>
+      <AdminIconButton
+        label={`Edit ${route.name}`}
+        tone="primary"
+        onClick={() => openEditModal(route)}
+      >
+        <Pencil size={17} aria-hidden="true" />
+      </AdminIconButton>
+      <AdminIconButton
+        label={`Delete ${route.name}`}
+        tone="danger"
+        onClick={() => void handleDelete(route.id)}
+      >
+        <Trash2 size={17} aria-hidden="true" />
+      </AdminIconButton>
+    </div>
+  );
 
-      {/* Table & Card Section */}
-      <div className="bg-transparent lg:bg-white lg:rounded-xl lg:shadow-xs lg:border lg:border-slate-200/80 overflow-hidden">
+  const colorFor = (route: Route) => (
+    <div className="admin-resource-meta">
+      <span
+        className="admin-route-color"
+        style={{ backgroundColor: normalizeHexColor(route.color) }}
+        aria-hidden="true"
+      />
+      <span className="admin-resource-detail">{route.color.toUpperCase()}</span>
+    </div>
+  );
+
+  return (
+    <AdminResourcePage
+      resource="routes"
+      eyebrow="Network definition"
+      title="Routes Management"
+      description="Maintain route identity, service status, color, and published stop order."
+      actionLabel="Add Route"
+      actionIcon={<Plus size={18} aria-hidden="true" />}
+      onAction={openAddModal}
+    >
+      <AdminResourcePanel>
         {loading ? (
-          <div className="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-500 flex justify-center items-center gap-2 shadow-xs">
-            <RefreshCw className="animate-spin text-blue-600" /> Loading...
-          </div>
+          <AdminResourceState state="loading" message="Loading routes…" />
+        ) : loadError ? (
+          <AdminResourceState
+            state="error"
+            message={loadError}
+            retryLabel="Retry loading routes"
+            onRetry={() => void fetchData()}
+          />
+        ) : routes.length === 0 ? (
+          <AdminResourceState
+            state="empty"
+            message={'No routes found. Click "Add Route" to start.'}
+          />
         ) : (
           <>
-            {/* Card View for Mobile/Tablet */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:hidden">
+            <div className="admin-resource-card-view" data-admin-view="cards">
               {routes.map((route) => (
-                <div
-                  key={route.id}
-                  className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition-all duration-300"
-                >
-                  <div className="flex items-start justify-between">
+                <article key={route.id} className="admin-resource-card">
+                  <div className="admin-resource-card__header">
                     <div>
-                      <span className="font-mono text-xs font-semibold text-muted-on-light bg-slate-100 px-2 py-1 rounded-md">
-                        {route.id}
-                      </span>
-                      <h3 className="text-lg font-bold text-slate-900 mt-2 font-display">
-                        {route.name}
-                      </h3>
+                      <span className="admin-resource-id">{route.id}</span>
+                      <h2 className="admin-resource-name">{route.name}</h2>
                     </div>
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                        route.status === "active"
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200/50"
-                          : "bg-slate-100 text-slate-600 border border-slate-200"
-                      }`}
-                    >
-                      {route.status.toUpperCase()}
-                    </span>
+                    <AdminStatusBadge
+                      label={route.status}
+                      tone={route.status === "active" ? "positive" : "neutral"}
+                    />
                   </div>
-
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="inline-block w-4 h-4 rounded-full shadow-xs"
-                        style={{ backgroundColor: normalizeHexColor(route.color) }}
-                      ></span>
-                      <span className="font-mono text-xs text-slate-500 uppercase">{route.color}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setManagingStopsFor(route)}
-                        className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors inline-flex items-center justify-center border border-indigo-200/40"
-                        title="Manage route stops"
-                        aria-label={`Manage stops for ${route.name}`}
-                      >
-                        <ListOrdered size={18} />
-                      </button>
-                      <button
-                        onClick={() => openEditModal(route)}
-                        className="p-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors inline-flex items-center justify-center border border-blue-200/40"
-                        title="Edit Route"
-                      >
-                        <Pencil size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(route.id)}
-                        className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors inline-flex items-center justify-center border border-red-200/40"
-                        title="Delete Route"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
+                  <div className="admin-resource-card__footer">
+                    {colorFor(route)}
+                    {actionsFor(route)}
                   </div>
-                </div>
+                </article>
               ))}
             </div>
 
-            {/* Table View for Desktop */}
-            <div className="hidden lg:block overflow-x-auto w-full">
-              <table className="w-full text-left border-collapse min-w-[600px]">
-                <thead className="bg-slate-55 border-b border-slate-200">
+            <div className="admin-resource-table-view" data-admin-view="table">
+              <table className="admin-resource-table">
+                <thead>
                   <tr>
-                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider">ID</th>
-                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider">Name</th>
-                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider">Color</th>
-                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider">Status</th>
-                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider text-right">Actions</th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Color</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" className="admin-resource-table__actions">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody>
                   {routes.map((route) => (
-                    <tr
-                      key={route.id}
-                      className="hover:bg-slate-50/80 transition-colors"
-                    >
-                      <td className="p-4 font-mono text-sm font-semibold text-slate-500">
-                        {route.id}
+                    <tr key={route.id}>
+                      <td><span className="admin-resource-id">{route.id}</span></td>
+                      <td className="admin-resource-table__name">{route.name}</td>
+                      <td>{colorFor(route)}</td>
+                      <td>
+                        <AdminStatusBadge
+                          label={route.status}
+                          tone={route.status === "active" ? "positive" : "neutral"}
+                        />
                       </td>
-                      <td className="p-4 font-bold text-slate-900 font-display">
-                        {route.name}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="inline-block w-4 h-4 rounded-full shadow-xs"
-                            style={{ backgroundColor: normalizeHexColor(route.color) }}
-                          ></span>
-                          <span className="font-mono text-xs text-slate-500 uppercase">{route.color}</span>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                            route.status === "active"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200/50"
-                              : "bg-slate-100 text-slate-600 border border-slate-200"
-                          }`}
-                        >
-                          {route.status.toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right space-x-2 whitespace-nowrap">
-                        <button
-                          onClick={() => setManagingStopsFor(route)}
-                          className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 inline-flex items-center justify-center shadow-xs transition-colors hover:scale-105"
-                          title="Manage route stops"
-                          aria-label={`Manage stops for ${route.name}`}
-                        >
-                          <ListOrdered size={16} />
-                        </button>
-                        <button
-                          onClick={() => openEditModal(route)}
-                          className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-flex items-center justify-center shadow-xs transition-colors hover:scale-105"
-                        >
-                          <Pencil size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(route.id)}
-                          className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 inline-flex items-center justify-center shadow-xs transition-colors hover:scale-105"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
+                      <td className="admin-resource-table__actions">{actionsFor(route)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -241,14 +194,7 @@ export default function RoutesPage() {
             </div>
           </>
         )}
-
-        {/* Empty State */}
-        {!loading && routes.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-muted-on-light font-medium shadow-xs">
-            No routes found. Click &ldquo;Add Route&rdquo; to start.
-          </div>
-        )}
-      </div>
+      </AdminResourcePanel>
 
       <RouteModal
         isOpen={isModalOpen}
@@ -262,8 +208,8 @@ export default function RoutesPage() {
       <RouteStopsModal
         route={managingStopsFor}
         onClose={() => setManagingStopsFor(null)}
-        onSaved={fetchData}
+        onSaved={() => void fetchData()}
       />
-    </div>
+    </AdminResourcePage>
   );
 }

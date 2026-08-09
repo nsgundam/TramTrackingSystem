@@ -1,33 +1,51 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import api from "@/services/api";
-import { Plus, Pencil, Trash2, RefreshCw } from "lucide-react";
 import { Vehicle } from "@/types/vehicle";
 import VehicleModal from "@/components/admin/VehicleModal";
 import RouteColorBadge from "@/components/shared/RouteColorBadge";
+import {
+  AdminIconButton,
+  AdminResourcePage,
+  AdminResourcePanel,
+  AdminResourceState,
+  AdminStatusBadge,
+} from "@/components/admin/AdminResourcePage";
+
+interface RouteOption {
+  id: string;
+  name: string;
+}
+
+const vehicleStatusTone = (status: string): "positive" | "warning" | "neutral" => {
+  if (status === "active") return "positive";
+  if (status === "maintenance") return "warning";
+  return "neutral";
+};
 
 export default function VehiclesPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [routes, setRoutes] = useState([]);
+  const [routes, setRoutes] = useState<RouteOption[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
 
   const fetchData = async () => {
+    setLoading(true);
+    setLoadError(null);
     try {
-      setLoading(true);
       const [vehiclesRes, routesRes] = await Promise.all([
-        api.get("admin/vehicles"),
-        api.get("admin/routes"),
+        api.get<Vehicle[]>("admin/vehicles"),
+        api.get<RouteOption[]>("admin/routes"),
       ]);
-
       setVehicles(vehiclesRes.data);
       setRoutes(routesRes.data);
     } catch (error) {
       console.error("Failed to fetch vehicles:", error);
-      alert("Failed to connect to backend!");
+      setLoadError("Unable to load vehicles. Check the connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -35,22 +53,19 @@ export default function VehiclesPage() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchData();
+    void fetchData();
   }, []);
 
   const handleSave = async (data: Partial<Vehicle>) => {
     try {
       if (editingVehicle) {
-        // UPDATE
         await api.put(`admin/vehicles/${editingVehicle.id}`, data);
       } else {
-        // CREATE
         await api.post("admin/vehicles", data);
       }
-
       setIsModalOpen(false);
       setEditingVehicle(null);
-      fetchData();
+      await fetchData();
     } catch (error) {
       console.error("Save error:", error);
       alert("Failed to save vehicle");
@@ -61,9 +76,9 @@ export default function VehiclesPage() {
     if (!confirm("Are you sure you want to delete this vehicle?")) return;
     try {
       await api.delete(`admin/vehicles/${id}`);
-      fetchData();
+      await fetchData();
     } catch (error) {
-      alert("Error deleting vehicle: " + error);
+      alert(`Error deleting vehicle: ${String(error)}`);
     }
   };
 
@@ -77,168 +92,125 @@ export default function VehiclesPage() {
     setIsModalOpen(true);
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">
-            Vehicles Management
-          </h1>
-          <p className="text-slate-500">Manage your fleet and assignments</p>
-        </div>
-        <button
-          onClick={openAddModal}
-          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full sm:w-auto"
-        >
-          <Plus size={20} />
-          Add Vehicle
-        </button>
-      </div>
+  const actionsFor = (vehicle: Vehicle) => (
+    <div className="admin-resource-actions">
+      <AdminIconButton
+        label={`Edit ${vehicle.name}`}
+        tone="primary"
+        onClick={() => openEditModal(vehicle)}
+      >
+        <Pencil size={17} aria-hidden="true" />
+      </AdminIconButton>
+      <AdminIconButton
+        label={`Delete ${vehicle.name}`}
+        tone="danger"
+        onClick={() => void handleDelete(vehicle.id)}
+      >
+        <Trash2 size={17} aria-hidden="true" />
+      </AdminIconButton>
+    </div>
+  );
 
-      {/* Table & Card Section */}
-      <div className="bg-transparent lg:bg-white lg:rounded-xl lg:shadow-xs lg:border lg:border-slate-200/80 overflow-hidden">
+  return (
+    <AdminResourcePage
+      resource="vehicles"
+      eyebrow="Service inventory"
+      title="Vehicles Management"
+      description="Manage fleet records, availability status, and route assignments."
+      actionLabel="Add Vehicle"
+      actionIcon={<Plus size={18} aria-hidden="true" />}
+      onAction={openAddModal}
+    >
+      <AdminResourcePanel>
         {loading ? (
-          <div className="bg-white rounded-xl border border-slate-200 p-12 text-center text-slate-500 flex justify-center items-center gap-2 shadow-xs">
-            <RefreshCw className="animate-spin text-blue-600" /> Loading...
-          </div>
+          <AdminResourceState state="loading" message="Loading vehicles…" />
+        ) : loadError ? (
+          <AdminResourceState
+            state="error"
+            message={loadError}
+            retryLabel="Retry loading vehicles"
+            onRetry={() => void fetchData()}
+          />
+        ) : vehicles.length === 0 ? (
+          <AdminResourceState
+            state="empty"
+            message={'No vehicles found. Click "Add Vehicle" to start.'}
+          />
         ) : (
           <>
-            {/* Card View for Mobile/Tablet */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:hidden">
+            <div className="admin-resource-card-view" data-admin-view="cards">
               {vehicles.map((vehicle) => (
-                <div
-                  key={vehicle.id}
-                  className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition-all duration-300"
-                >
-                  <div className="flex items-start justify-between">
+                <article key={vehicle.id} className="admin-resource-card">
+                  <div className="admin-resource-card__header">
                     <div>
-                      <span className="font-mono text-xs font-semibold text-muted-on-light bg-slate-100 px-2 py-1 rounded-md">
-                        {vehicle.id}
-                      </span>
-                      <h3 className="text-lg font-bold text-slate-900 mt-2 font-display">
-                        {vehicle.name}
-                      </h3>
-                      <p className="text-sm text-slate-500 font-medium mt-0.5">
-                        Type: {vehicle.type}
-                      </p>
+                      <span className="admin-resource-id">{vehicle.id}</span>
+                      <h2 className="admin-resource-name">{vehicle.name}</h2>
+                      <p className="admin-resource-detail">Type: {vehicle.type}</p>
                     </div>
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                        vehicle.status === "active"
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200/50"
-                          : vehicle.status === "maintenance"
-                            ? "bg-amber-50 text-amber-700 border border-amber-200/50"
-                            : "bg-slate-100 text-slate-600 border border-slate-200"
-                      }`}
-                    >
-                      {vehicle.status.toUpperCase()}
-                    </span>
+                    <AdminStatusBadge
+                      label={vehicle.status}
+                      tone={vehicleStatusTone(vehicle.status)}
+                    />
                   </div>
-
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                  <div className="admin-resource-card__footer">
                     <div>
-                      <p className="text-xs text-muted-on-light font-semibold uppercase tracking-wider">Assigned Route</p>
-                      <div className="mt-1">
+                      <p className="admin-resource-label">Assigned route</p>
+                      <div className="admin-resource-detail">
                         {vehicle.route ? (
                           <RouteColorBadge
-                            className="px-2.5 py-1 rounded-md text-xs font-semibold shadow-xs"
+                            className="mt-1 rounded px-2 py-1 text-xs font-semibold"
                             routeColor={vehicle.route.color}
                           >
                             {vehicle.route.name}
                           </RouteColorBadge>
                         ) : (
-                          <span className="text-muted-on-light text-xs font-medium">-</span>
+                          <span>Not assigned</span>
                         )}
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => openEditModal(vehicle)}
-                        className="p-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors inline-flex items-center justify-center border border-blue-200/40"
-                        title="Edit Vehicle"
-                      >
-                        <Pencil size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(vehicle.id)}
-                        className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors inline-flex items-center justify-center border border-red-200/40"
-                        title="Delete Vehicle"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
+                    {actionsFor(vehicle)}
                   </div>
-                </div>
+                </article>
               ))}
             </div>
 
-            {/* Table View for Desktop */}
-            <div className="hidden lg:block overflow-x-auto w-full">
-              <table className="w-full text-left border-collapse min-w-[800px]">
-                <thead className="bg-slate-55 border-b border-slate-200">
+            <div className="admin-resource-table-view" data-admin-view="table">
+              <table className="admin-resource-table">
+                <thead>
                   <tr>
-                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider">ID</th>
-                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider">Name</th>
-                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider">Type</th>
-                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider">Route</th>
-                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider">Status</th>
-                    <th className="p-4 text-sm font-bold text-slate-700 uppercase tracking-wider text-right">Actions</th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Route</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" className="admin-resource-table__actions">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody>
                   {vehicles.map((vehicle) => (
-                    <tr
-                      key={vehicle.id}
-                      className="hover:bg-slate-50/80 transition-colors"
-                    >
-                      <td className="p-4 font-mono text-sm font-semibold text-slate-500">
-                        {vehicle.id}
-                      </td>
-                      <td className="p-4 font-bold text-slate-900 font-display">
-                        {vehicle.name}
-                      </td>
-                      <td className="p-4 text-slate-600 font-medium">{vehicle.type}</td>
-                      <td className="p-4">
+                    <tr key={vehicle.id}>
+                      <td><span className="admin-resource-id">{vehicle.id}</span></td>
+                      <td className="admin-resource-table__name">{vehicle.name}</td>
+                      <td className="admin-resource-table__muted">{vehicle.type}</td>
+                      <td>
                         {vehicle.route ? (
                           <RouteColorBadge
-                            className="px-2.5 py-1 rounded-md text-xs font-semibold shadow-xs"
+                            className="rounded px-2 py-1 text-xs font-semibold"
                             routeColor={vehicle.route.color}
                           >
                             {vehicle.route.name}
                           </RouteColorBadge>
                         ) : (
-                          <span className="text-muted-on-light text-sm font-medium">-</span>
+                          <span className="admin-resource-table__muted">Not assigned</span>
                         )}
                       </td>
-                      <td className="p-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                            vehicle.status === "active"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200/50"
-                              : vehicle.status === "maintenance"
-                                ? "bg-amber-50 text-amber-700 border border-amber-200/50"
-                                : "bg-slate-100 text-slate-600 border border-slate-200"
-                          }`}
-                        >
-                          {vehicle.status.toUpperCase()}
-                        </span>
+                      <td>
+                        <AdminStatusBadge
+                          label={vehicle.status}
+                          tone={vehicleStatusTone(vehicle.status)}
+                        />
                       </td>
-                      <td className="p-4 text-right space-x-2 whitespace-nowrap">
-                        <button
-                          onClick={() => openEditModal(vehicle)}
-                          className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-flex items-center justify-center shadow-xs transition-colors hover:scale-105"
-                        >
-                          <Pencil size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(vehicle.id)}
-                          className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 inline-flex items-center justify-center shadow-xs transition-colors hover:scale-105"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
+                      <td className="admin-resource-table__actions">{actionsFor(vehicle)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -246,22 +218,18 @@ export default function VehiclesPage() {
             </div>
           </>
         )}
-
-        {/* Empty State */}
-        {!loading && vehicles.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-muted-on-light font-medium shadow-xs">
-            No vehicles found. Click &ldquo;Add Vehicle&rdquo; to start.
-          </div>
-        )}
-      </div>
+      </AdminResourcePanel>
 
       <VehicleModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingVehicle(null);
+        }}
         onSubmit={handleSave}
         initialData={editingVehicle}
         routes={routes}
       />
-    </div>
+    </AdminResourcePage>
   );
 }

@@ -1,15 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
-import { useModalFocus } from "@/hooks/useModalFocus";
+import AdminFormModal from "@/components/admin/AdminFormModal";
 import { Route } from "@/types/route";
 
 interface RouteModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: Partial<Route>) => void;
-  initialData?: Route | null; 
+  initialData?: Route | null;
+}
+
+interface RouteFormData {
+  id: string;
+  name: string;
+  color: string;
+  status: Route["status"];
 }
 
 export default function RouteModal({
@@ -18,16 +24,11 @@ export default function RouteModal({
   onSubmit,
   initialData,
 }: RouteModalProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RouteFormData>({
     id: "",
     name: "",
     color: "#3B82F6",
     status: "active",
-  });
-  const dialogRef = useModalFocus<HTMLDivElement>({
-    active: isOpen,
-    onClose,
-    initialFocusSelector: "[data-modal-initial-focus]",
   });
 
   useEffect(() => {
@@ -40,128 +41,111 @@ export default function RouteModal({
         status: initialData.status,
       });
     } else {
-      setFormData({
-        id: "",
-        name: "",
-        color: "#3B82F6",
-        status: "active",
-      });
+      setFormData({ id: "", name: "", color: "#3B82F6", status: "active" });
     }
   }, [initialData, isOpen]);
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="route-dialog-title"
-        tabIndex={-1}
-        className="bg-white rounded-xl shadow-xl w-full max-w-md p-5 sm:p-6 relative max-h-[90vh] overflow-y-auto"
+    <AdminFormModal
+      active={isOpen}
+      kind="form"
+      titleId="route-dialog-title"
+      title={initialData ? "Edit Route" : "Add New Route"}
+      description="Route identity, display color, and service availability."
+      closeLabel="Close route dialog"
+      onClose={onClose}
+    >
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSubmit(formData);
+        }}
+        className="admin-form"
       >
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 id="route-dialog-title" className="text-xl font-bold text-slate-900 font-display">
-            {initialData ? "Edit Route" : "Add New Route"}
-          </h2>
+        <div className="admin-field">
+          <label htmlFor="route-id">Route ID</label>
+          <input
+            id="route-id"
+            required
+            disabled={Boolean(initialData)}
+            type="text"
+            value={formData.id}
+            onChange={(event) => setFormData({ ...formData, id: event.target.value })}
+            className="admin-form-control"
+            data-admin-control
+            placeholder="e.g. R01"
+          />
+        </div>
+
+        <div className="admin-field">
+          <label htmlFor="route-name">Route Name</label>
+          <input
+            id="route-name"
+            required
+            type="text"
+            value={formData.name}
+            onChange={(event) => setFormData({ ...formData, name: event.target.value })}
+            className="admin-form-control"
+            data-admin-control
+            placeholder="e.g. วนภายในมหาวิทยาลัย"
+          />
+        </div>
+
+        <div className="admin-field">
+          <label htmlFor="route-color">Route Color</label>
+          <div className="admin-color-field">
+            <input
+              id="route-color"
+              required
+              type="color"
+              value={formData.color}
+              onChange={(event) => setFormData({ ...formData, color: event.target.value })}
+              className="admin-form-control admin-form-control--color"
+              data-admin-control
+            />
+            <span className="admin-color-field__value">{formData.color}</span>
+          </div>
+        </div>
+
+        <div className="admin-field">
+          <label htmlFor="route-status">Status</label>
+          <select
+            id="route-status"
+            value={formData.status}
+            onChange={(event) => {
+              const status = event.target.value;
+              if (status === "active" || status === "inactive") {
+                setFormData({ ...formData, status });
+              }
+            }}
+            className="admin-form-control"
+            data-admin-control
+          >
+            <option value="active">Active (เปิดให้บริการ)</option>
+            <option value="inactive">Inactive (ปิดปรับปรุง)</option>
+          </select>
+        </div>
+
+        <footer className="admin-modal__footer">
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close route dialog"
-            data-modal-initial-focus
-            className="text-muted-on-light hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            className="admin-button"
+            data-tone="secondary"
+            data-admin-control
           >
-            <X size={20} aria-hidden="true" />
+            Cancel
           </button>
-        </div>
-
-        {/* Form */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSubmit(formData as Partial<Route>);
-          }}
-          className="space-y-4"
-        >
-
-          {/*ID Input*/}
-          <div>
-            <label htmlFor="route-id" className="block text-sm font-medium text-slate-700 mb-1">Route ID</label>
-            <input
-              id="route-id"
-              required
-              disabled={!!initialData}
-              type="text"
-              value={formData.id}
-              onChange={(e) => setFormData({ ...formData, id: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 text-slate-700 disabled:text-slate-400"
-              placeholder="e.g. R01"
-            />
-          </div>
-
-          {/* Route Name */}
-          <div>
-            <label htmlFor="route-name" className="block text-sm font-medium text-slate-700 mb-1">Route Name</label>
-            <input
-              id="route-name"
-              required
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-slate-700"
-              placeholder="e.g. วนภายในมหาวิทยาลัย"
-            />
-          </div>
-
-          {/* Route Color */}
-          <div>
-            <label htmlFor="route-color" className="block text-sm font-medium text-slate-700 mb-1">Route Color</label>
-            <div className="flex items-center gap-3">
-              <input
-                id="route-color"
-                required
-                type="color"
-                value={formData.color}
-                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                className="h-10 w-20 p-1 border border-slate-300 rounded-lg cursor-pointer"
-              />
-              <span className="text-sm font-mono text-slate-500 uppercase">{formData.color}</span>
-            </div>
-          </div>
-
-          {/* Route Status */}
-          <div>
-            <label htmlFor="route-status" className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-            <select
-              id="route-status"
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value})}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-slate-700"
-            >
-              <option value="active">Active (เปิดให้บริการ)</option>
-              <option value="inactive">Inactive (ปิดปรับปรุง)</option>
-            </select>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-            >
-              {initialData ? "Save Changes" : "Create Route"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          <button
+            type="submit"
+            className="admin-button"
+            data-tone="primary"
+            data-admin-control
+          >
+            {initialData ? "Save Changes" : "Create Route"}
+          </button>
+        </footer>
+      </form>
+    </AdminFormModal>
   );
 }

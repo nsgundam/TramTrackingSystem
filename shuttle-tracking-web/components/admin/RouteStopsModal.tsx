@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ListOrdered, Loader2, Plus, Trash2, X } from "lucide-react";
-import { useModalFocus } from "@/hooks/useModalFocus";
+import { ArrowDown, ArrowUp, ListOrdered, Loader2, Plus, Trash2 } from "lucide-react";
+import AdminFormModal from "@/components/admin/AdminFormModal";
 import api from "@/services/api";
 import { Route } from "@/types/route";
 import { Stop } from "@/types/stop";
@@ -36,14 +36,6 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const dialogRef = useModalFocus<HTMLDivElement>({
-    active: Boolean(route),
-    onClose: () => {
-      if (!saving) onClose();
-    },
-    closeOnEscape: !saving,
-    initialFocusSelector: "[data-modal-initial-focus]",
-  });
 
   useEffect(() => {
     if (!route) return;
@@ -131,148 +123,135 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
   if (!route) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="route-stops-dialog-title"
-        tabIndex={-1}
-        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-5 shadow-xl sm:p-6"
-      >
-        <div className="mb-5 flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-blue-700">
-              <ListOrdered size={20} aria-hidden="true" />
-              <h2 id="route-stops-dialog-title" className="text-xl font-bold text-slate-900">Route stops</h2>
-            </div>
-            <p className="mt-1 text-sm text-slate-500">
-              Arrange the published stop order for {route.name} ({route.id}).
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={saving}
-            aria-label="Close route stops manager"
-            data-modal-initial-focus
-            className="rounded-lg p-2 text-muted-on-light transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-          >
-            <X size={20} aria-hidden="true" />
-          </button>
+    <AdminFormModal
+      active
+      kind="route-stops"
+      titleId="route-stops-dialog-title"
+      title="Route stops"
+      description={`Arrange the published stop order for ${route.name} (${route.id}).`}
+      closeLabel="Close route stops manager"
+      onClose={onClose}
+      closeDisabled={saving}
+      size="wide"
+      leading={<ListOrdered size={18} aria-hidden="true" />}
+    >
+      {loading ? (
+        <div className="admin-route-stops__loading" role="status">
+          <Loader2 className="admin-resource-state__spinner" size={20} aria-hidden="true" />
+          Loading route stops…
         </div>
-
-        {loading ? (
-          <div className="flex min-h-48 items-center justify-center gap-2 text-slate-500">
-            <Loader2 className="animate-spin text-blue-600" size={20} aria-hidden="true" />
-            Loading route stops…
-          </div>
-        ) : (
-          <>
-            <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:flex sm:items-end sm:gap-3">
-              <label htmlFor="route-stop-selection" className="block flex-1 text-sm font-medium text-slate-700">
-                Add active stop
-                <select
-                  id="route-stop-selection"
-                  value={selectedStopId}
-                  onChange={(event) => setSelectedStopId(event.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                >
-                  <option value="">Select a stop</option>
-                  {availableStops.map((stop) => (
-                    <option key={stop.id} value={stop.id}>
-                      {stop.nameTh}{stop.nameEn ? ` — ${stop.nameEn}` : ""}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button
-                type="button"
-                onClick={addStop}
-                disabled={!selectedStopId}
-                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300 sm:mt-0 sm:w-auto"
+      ) : (
+        <>
+          <div className="admin-route-stops__add">
+            <label htmlFor="route-stop-selection" className="admin-field__label">
+              Add active stop
+              <select
+                id="route-stop-selection"
+                value={selectedStopId}
+                onChange={(event) => setSelectedStopId(event.target.value)}
+                className="admin-form-control"
+                data-admin-control
               >
-                <Plus size={18} aria-hidden="true" />
-                Add
-              </button>
-            </div>
-
-            {error && (
-              <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {error}
-              </div>
-            )}
-
-            <ol className="space-y-2" aria-label="Published stop order">
-              {orderedStops.map((stop, index) => (
-                <li key={stop.id} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-700">
-                    {index + 1}
-                  </span>
-                  <span className="min-w-0 flex-1 font-medium text-slate-800">
+                <option value="">Select a stop</option>
+                {availableStops.map((stop) => (
+                  <option key={stop.id} value={stop.id}>
                     {stop.nameTh}{stop.nameEn ? ` — ${stop.nameEn}` : ""}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => moveStop(index, -1)}
-                      disabled={index === 0 || saving}
-                      aria-label={`Move ${stop.nameTh} up`}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300"
-                    >
-                      <ArrowUp size={17} aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => moveStop(index, 1)}
-                      disabled={index === orderedStops.length - 1 || saving}
-                      aria-label={`Move ${stop.nameTh} down`}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300"
-                    >
-                      <ArrowDown size={17} aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setOrderedStops((current) => current.filter((item) => item.id !== stop.id))}
-                      disabled={saving}
-                      aria-label={`Remove ${stop.nameTh}`}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-md text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-red-300"
-                    >
-                      <Trash2 size={17} aria-hidden="true" />
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ol>
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={addStop}
+              disabled={!selectedStopId}
+              className="admin-button"
+              data-tone="primary"
+              data-admin-control
+            >
+              <Plus size={17} aria-hidden="true" />
+              Add
+            </button>
+          </div>
 
-            {orderedStops.length === 0 && (
-              <p className="rounded-xl border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-500">
-                No stops are published for this route yet.
-              </p>
-            )}
+          {error && <div role="alert" className="admin-inline-alert">{error}</div>}
 
-            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={saving}
-                className="rounded-lg bg-slate-100 px-4 py-2 font-medium text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={save}
-                disabled={saving || loading}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-              >
-                {saving && <Loader2 className="animate-spin" size={18} aria-hidden="true" />}
-                Publish order
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+          <ol className="admin-route-stops__list" aria-label="Published stop order">
+            {orderedStops.map((stop, index) => (
+              <li key={stop.id} className="admin-route-stops__item">
+                <span className="admin-route-stops__order">{index + 1}</span>
+                <span className="admin-route-stops__name">
+                  {stop.nameTh}{stop.nameEn ? ` — ${stop.nameEn}` : ""}
+                </span>
+                <div className="admin-resource-actions">
+                  <button
+                    type="button"
+                    onClick={() => moveStop(index, -1)}
+                    disabled={index === 0 || saving}
+                    aria-label={`Move ${stop.nameTh} up`}
+                    className="admin-icon-action"
+                    data-admin-control
+                  >
+                    <ArrowUp size={17} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveStop(index, 1)}
+                    disabled={index === orderedStops.length - 1 || saving}
+                    aria-label={`Move ${stop.nameTh} down`}
+                    className="admin-icon-action"
+                    data-admin-control
+                  >
+                    <ArrowDown size={17} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOrderedStops(
+                      (current) => current.filter((item) => item.id !== stop.id),
+                    )}
+                    disabled={saving}
+                    aria-label={`Remove ${stop.nameTh}`}
+                    className="admin-icon-action"
+                    data-tone="danger"
+                    data-admin-control
+                  >
+                    <Trash2 size={17} aria-hidden="true" />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ol>
+
+          {orderedStops.length === 0 && (
+            <p className="admin-route-stops__empty">
+              No stops are published for this route yet.
+            </p>
+          )}
+
+          <footer className="admin-modal__footer">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={saving}
+              className="admin-button"
+              data-tone="secondary"
+              data-admin-control
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => void save()}
+              disabled={saving || loading}
+              className="admin-button"
+              data-tone="primary"
+              data-admin-control
+            >
+              {saving && <Loader2 className="admin-resource-state__spinner" size={17} aria-hidden="true" />}
+              Publish order
+            </button>
+          </footer>
+        </>
+      )}
+    </AdminFormModal>
   );
 }
