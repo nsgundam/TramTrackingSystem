@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSyncExternalStore, type ReactNode } from "react";
+import { useSyncExternalStore } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useModalFocus } from "@/hooks/useModalFocus";
-import { 
+import type { LucideIcon } from "lucide-react";
+import {
   LayoutDashboard, 
   Bus, 
   Map as MapIcon, 
@@ -19,7 +20,7 @@ import {
 interface MenuItem {
   title: string;
   path: string;
-  icon: ReactNode;
+  icon: LucideIcon;
   minimumRole?: "ADMIN" | "SUPER_ADMIN";
 }
 
@@ -27,33 +28,33 @@ const menuItems: MenuItem[] = [
   {
     title: "Dashboard",
     path: "/admin/dashboard",
-    icon: <LayoutDashboard size={20} />,
+    icon: LayoutDashboard,
   },
   {
     title: "Vehicles",
     path: "/admin/vehicles",
-    icon: <Bus size={20} />,
+    icon: Bus,
   },
   {
     title: "Routes",
     path: "/admin/routes",
-    icon: <MapIcon size={20} />,
+    icon: MapIcon,
   },
   {
     title: "Stops",
     path: "/admin/stops",
-    icon: <MapPin size={20} />,
+    icon: MapPin,
   },
   {
     title: "Source Health",
     path: "/admin/devices",
-    icon: <Radio size={20} />,
+    icon: Radio,
     minimumRole: "ADMIN",
   },
   {
     title: "Feedback Inbox",
     path: "/admin/feedback",
-    icon: <MessageSquare size={20} />,
+    icon: MessageSquare,
     minimumRole: "SUPER_ADMIN",
   },
 ];
@@ -101,20 +102,21 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       aria-modal={isMobileDialogOpen ? true : undefined}
       aria-label={isMobileDialogOpen ? "Admin navigation" : undefined}
       tabIndex={isMobileDialogOpen ? -1 : undefined}
-      className={`w-64 bg-slate-950/95 backdrop-blur-lg border-r border-slate-800/40 text-white h-screen flex flex-col fixed left-0 top-0 overflow-y-auto z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      }`}
+      className="admin-sidebar"
+      data-open={isOpen}
     >
-      {/* 1. Logo Section */}
-      <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-blue-400">Shuttle Admin</h1>
-          <p className="text-xs text-slate-400 mt-1">Management System</p>
+      <div className="admin-sidebar__brand">
+        <div className="admin-sidebar__identity">
+          <span className="admin-sidebar__mark" aria-hidden="true">RSU</span>
+          <div>
+            <p className="admin-sidebar__brand-title">RSU Operations</p>
+            <p className="admin-sidebar__brand-subtitle">Transport control</p>
+          </div>
         </div>
-        {/* Close Button for Mobile Drawer */}
         <button
+          type="button"
           onClick={onClose}
-          className="lg:hidden p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
+          className="admin-sidebar__close"
           aria-label="Close sidebar"
           data-modal-initial-focus
         >
@@ -122,40 +124,45 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </button>
       </div>
 
-      {/* 2. Menu Items */}
-      <nav aria-label="Admin" className="flex-1 p-4 space-y-2">
-        {menuItems.filter((item) => canAccess(item.minimumRole)).map((item) => {
-          const isActive = pathname.startsWith(item.path);
-          return (
-            <Link
-              key={item.path}
-              href={item.path}
-              onClick={onClose}
-              aria-current={isActive ? "page" : undefined}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                isActive
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-900/50"
-                  : "text-slate-300 hover:bg-slate-800 hover:text-white"
-              } focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400`}
-            >
-              {item.icon}
-              <span className="font-medium">{item.title}</span>
-            </Link>
-          );
-        })}
+      <nav aria-label="Admin" className="admin-sidebar__nav">
+        <p className="admin-sidebar__section-label">Workspace</p>
+        <div className="admin-sidebar__links">
+          {menuItems.filter((item) => canAccess(item.minimumRole)).map((item) => {
+            const isActive = pathname.startsWith(item.path);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.path}
+                href={item.path}
+                onClick={onClose}
+                aria-current={isActive ? "page" : undefined}
+                className="admin-sidebar__link"
+              >
+                <Icon size={19} aria-hidden="true" />
+                <span>{item.title}</span>
+              </Link>
+            );
+          })}
+        </div>
       </nav>
 
-      {/* 3. Logout Button */}
-      <div className="p-4 border-t border-slate-800">
-        <button 
+      <div className="admin-sidebar__footer">
+        {user && (
+          <div className="admin-sidebar__user">
+            <p className="admin-sidebar__username">{user.username}</p>
+            <p className="admin-sidebar__user-role">{user.role.replaceAll("_", " ")}</p>
+          </div>
+        )}
+        <button
+          type="button"
           onClick={() => {
             onClose();
             logout(); 
           }}
-          className="flex items-center gap-3 px-4 py-3 w-full text-red-400 hover:bg-red-950/30 rounded-lg transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
+          className="admin-sidebar__logout"
         >
-          <LogOut size={20} />
-          <span className="font-medium">Logout</span>
+          <LogOut size={19} aria-hidden="true" />
+          <span>Logout</span>
         </button>
       </div>
     </aside>

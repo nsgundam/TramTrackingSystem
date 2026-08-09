@@ -287,46 +287,71 @@ export default function LiveMap() {
   };
 
   return (
-    <div className="w-full h-125 rounded-xl overflow-hidden border border-slate-200 shadow-sm z-0 relative">
+    <div
+      className="admin-live-map"
+      data-testid="admin-live-map"
+      role="region"
+      aria-label="Canonical vehicle service map"
+    >
       <div
-        className="absolute top-3 right-3 z-1000 rounded-lg bg-white/95 px-3 py-2 text-xs leading-5 text-slate-700 shadow"
-        data-testid="admin-realtime-status"
-        role="status"
-        aria-live="polite"
+        className="admin-map-status-surface"
+        data-testid="admin-map-status-surface"
       >
-        <div>
-          Realtime: {connectionState === "connected" ? "Connected" : connectionState === "reconnecting" ? "Reconnecting" : "Disconnected"}
+        <div
+          className="admin-system-status"
+          data-testid="admin-realtime-status"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="admin-system-status__row">
+            <span className="admin-system-status__label">Realtime:{" "}</span>
+            <strong className="admin-system-status__value">
+              {connectionState === "connected"
+                ? "Connected"
+                : connectionState === "reconnecting"
+                  ? "Reconnecting"
+                  : "Disconnected"}
+            </strong>
+          </div>
+          <div className="admin-system-status__row">
+            <span className="admin-system-status__label">Snapshot:{" "}</span>
+            <strong className="admin-system-status__value">
+              {snapshotState === "ready"
+                ? "Ready"
+                : snapshotState === "loading"
+                  ? "Loading"
+                  : "Unavailable"}
+            </strong>
+          </div>
+          {snapshotState === "error" && (
+            <button
+              type="button"
+              onClick={retrySnapshot}
+              className="admin-snapshot-retry"
+              data-testid="admin-snapshot-retry"
+            >
+              <RefreshCw size={13} aria-hidden="true" />
+              Retry snapshot
+            </button>
+          )}
         </div>
-        <div>
-          Snapshot: {snapshotState === "ready" ? "Ready" : snapshotState === "loading" ? "Loading" : "Unavailable"}
+
+        <div
+          aria-label="Vehicle service state summary"
+          className="admin-state-summary"
+          data-testid="admin-state-summary"
+        >
+          {hasAuthoritativeState ? (
+            <>
+              <div className="admin-state-summary__item">Live: {stateCounts.live}</div>
+              <div className="admin-state-summary__item">Last known: {stateCounts.stale}</div>
+              <div className="admin-state-summary__item">No service: {stateCounts.no_service}</div>
+              <div className="admin-state-summary__item">Unavailable: {stateCounts.unknown}</div>
+            </>
+          ) : (
+            <div className="admin-state-summary__waiting">Waiting for canonical vehicle state</div>
+          )}
         </div>
-        {snapshotState === "error" && (
-          <button
-            type="button"
-            onClick={retrySnapshot}
-            className="mt-1 inline-flex min-h-8 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
-            data-testid="admin-snapshot-retry"
-          >
-            <RefreshCw size={13} />
-            Retry snapshot
-          </button>
-        )}
-      </div>
-      <div
-        aria-label="Vehicle service state summary"
-        className="absolute top-3 left-3 z-1000 rounded-lg bg-white/95 px-3 py-2 text-[11px] leading-5 text-slate-600 shadow"
-        data-testid="admin-state-summary"
-      >
-        {hasAuthoritativeState ? (
-          <>
-            <div>Live: {stateCounts.live}</div>
-            <div>Last known: {stateCounts.stale}</div>
-            <div>No service: {stateCounts.no_service}</div>
-            <div>Unavailable: {stateCounts.unknown}</div>
-          </>
-        ) : (
-          <div>Waiting for canonical vehicle state</div>
-        )}
       </div>
       <MapContainer
         center={[13.964772, 100.587563]}

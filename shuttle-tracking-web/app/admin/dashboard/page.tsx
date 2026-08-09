@@ -2,14 +2,26 @@
 
 import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { Bus, Clock3, Map, MapPin, Loader2, RefreshCw, TriangleAlert } from "lucide-react";
+import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
+import {
+  ArrowUpRight,
+  Bus,
+  Clock3,
+  Map,
+  MapPin,
+  Loader2,
+  Radio,
+  RefreshCw,
+  TriangleAlert,
+} from "lucide-react";
 import api from "@/services/api";
 
 const LiveMap = dynamic(() => import("@/components/admin/LiveMap"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[500px] bg-slate-100 animate-pulse rounded-xl flex items-center justify-center text-muted-on-light">
-      Loading Map...
+    <div className="admin-live-map admin-live-map--loading animate-pulse" role="status">
+      Loading map…
     </div>
   ),
 });
@@ -21,6 +33,42 @@ interface DashboardStats {
 }
 
 type DashboardLoadState = "loading" | "ready" | "error";
+
+interface DashboardMetricDefinition {
+  key: keyof DashboardStats;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+  testId: string;
+  tone: "blue" | "indigo" | "green";
+}
+
+const dashboardMetrics: readonly DashboardMetricDefinition[] = [
+  {
+    key: "activeVehicles",
+    label: "Vehicles enabled",
+    description: "Enabled in master data",
+    icon: Bus,
+    testId: "admin-stat-vehicles",
+    tone: "blue",
+  },
+  {
+    key: "totalRoutes",
+    label: "Total routes",
+    description: "Configured shuttle lines",
+    icon: Map,
+    testId: "admin-stat-routes",
+    tone: "indigo",
+  },
+  {
+    key: "totalStops",
+    label: "Transit stops",
+    description: "Configured pickup points",
+    icon: MapPin,
+    testId: "admin-stat-stops",
+    tone: "green",
+  },
+] as const;
 
 const requireList = (value: unknown, label: string): readonly unknown[] => {
   if (!Array.isArray(value)) throw new Error(`INVALID_${label}_RESPONSE`);
@@ -37,22 +85,53 @@ const countEnabledVehicles = (value: readonly unknown[]): number => {
 function DashboardStatValue({
   loadState,
   value,
-  spinnerClass,
   testId,
 }: {
   loadState: DashboardLoadState;
   value: number | undefined;
-  spinnerClass: string;
   testId: string;
 }) {
   if (loadState === "loading") {
-    return <Loader2 className={`w-8 h-8 animate-spin mt-2 ${spinnerClass}`} aria-label="Loading" />;
+    return (
+      <dd className="admin-metric__value">
+        <Loader2 className="admin-metric__spinner animate-spin" aria-label="Loading" />
+      </dd>
+    );
   }
 
   return (
-    <h3 className="text-3xl font-extrabold text-slate-900 mt-2 font-display" data-testid={testId}>
+    <dd className="admin-metric__value" data-testid={testId}>
       {loadState === "ready" ? value ?? "—" : "—"}
-    </h3>
+    </dd>
+  );
+}
+
+function DashboardMetric({
+  definition,
+  loadState,
+  stats,
+}: {
+  definition: DashboardMetricDefinition;
+  loadState: DashboardLoadState;
+  stats: DashboardStats | null;
+}) {
+  const Icon = definition.icon;
+
+  return (
+    <div className="admin-metric" data-tone={definition.tone}>
+      <div className="admin-metric__icon">
+        <Icon size={20} aria-hidden="true" />
+      </div>
+      <div>
+        <dt className="admin-metric__label">{definition.label}</dt>
+        <dd className="admin-metric__description">{definition.description}</dd>
+      </div>
+      <DashboardStatValue
+        loadState={loadState}
+        value={stats?.[definition.key]}
+        testId={definition.testId}
+      />
+    </div>
   );
 }
 
@@ -108,122 +187,127 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="admin-dashboard" data-testid="admin-dashboard-content">
+      <header className="admin-dashboard__header">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight font-display">
-            Live Dashboard
-          </h1>
-          <p className="text-slate-500 font-medium">Monitor shuttle buses in real-time</p>
+          <p className="admin-dashboard__eyebrow">RSU transport operations</p>
+          <h1 className="admin-dashboard__title">Live operations</h1>
+          <p className="admin-dashboard__description">
+            Verify configured service data and monitor canonical vehicle state from one workspace.
+          </p>
         </div>
         <div
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-full text-sm font-semibold border shadow-xs ${
-            loadState === "error"
-              ? "bg-red-50 text-red-700 border-red-200/60"
-              : "bg-slate-50 text-slate-700 border-slate-200/60"
-          }`}
+          className="admin-dashboard__status"
+          data-state={loadState}
           data-testid="admin-dashboard-status"
           role="status"
           aria-live="polite"
         >
           {loadState === "loading" ? (
-            <Loader2 size={16} className="animate-spin text-slate-500" />
+            <Loader2 size={16} className="animate-spin" aria-hidden="true" />
           ) : loadState === "error" ? (
-            <TriangleAlert size={16} className="text-red-600" />
+            <TriangleAlert size={16} aria-hidden="true" />
           ) : (
-            <Clock3 size={16} className="text-blue-600" />
+            <Clock3 size={16} aria-hidden="true" />
           )}
           {loadState === "loading" && "Loading dashboard data"}
           {loadState === "error" && "Dashboard data unavailable"}
           {loadState === "ready" && `Updated ${updatedAtLabel ?? "—"} น.`}
         </div>
-      </div>
+      </header>
 
       {loadState === "error" && (
-        <div className="flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 sm:flex-row sm:items-center sm:justify-between" role="alert">
-          <div className="flex items-start gap-2">
-            <TriangleAlert className="mt-0.5 shrink-0" size={18} />
+        <div className="admin-dashboard__alert" role="alert">
+          <div className="admin-dashboard__alert-copy">
+            <TriangleAlert className="mt-0.5 shrink-0" size={18} aria-hidden="true" />
             <p>Dashboard counts could not be verified. Unavailable values are shown instead of zeros.</p>
           </div>
           <button
             type="button"
             onClick={() => void loadStats()}
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-3 font-semibold text-red-800 transition-colors hover:bg-red-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+            className="admin-dashboard__retry"
             data-testid="admin-dashboard-retry"
           >
-            <RefreshCw size={16} />
+            <RefreshCw size={16} aria-hidden="true" />
             Retry dashboard data
           </button>
         </div>
       )}
 
-      {/* Stats Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Active Vehicles Card */}
-        <div className="relative overflow-hidden bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-2xl p-6 shadow-xs transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl -mr-8 -mt-8" />
-          <div className="flex items-center justify-between">
+      <div className="admin-dashboard__grid">
+        <section
+          className="admin-panel"
+          aria-labelledby="admin-service-map-title"
+          data-testid="admin-map-workspace"
+        >
+          <div className="admin-panel__header">
             <div>
-              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Vehicles enabled</p>
-              <DashboardStatValue
-                loadState={loadState}
-                value={stats?.activeVehicles}
-                spinnerClass="text-blue-600"
-                testId="admin-stat-vehicles"
-              />
+              <p className="admin-panel__eyebrow">Canonical service state</p>
+              <h2 className="admin-panel__title" id="admin-service-map-title">Service map</h2>
+              <p className="admin-panel__description">
+                Snapshot, realtime connection, and last-known state remain visible together.
+              </p>
             </div>
-            <div className="p-3.5 bg-blue-50 text-blue-600 rounded-xl shadow-xs">
-              <Bus size={24} />
-            </div>
+            <span className="admin-panel__tag">Primary workspace</span>
           </div>
-          <p className="text-xs text-slate-500 mt-4 font-medium">Operational status; live telemetry is shown below</p>
-        </div>
-
-        {/* Total Routes Card */}
-        <div className="relative overflow-hidden bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-2xl p-6 shadow-xs transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl -mr-8 -mt-8" />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Routes</p>
-              <DashboardStatValue
-                loadState={loadState}
-                value={stats?.totalRoutes}
-                spinnerClass="text-indigo-600"
-                testId="admin-stat-routes"
-              />
-            </div>
-            <div className="p-3.5 bg-indigo-50 text-indigo-600 rounded-xl shadow-xs">
-              <Map size={24} />
-            </div>
+          <div className="admin-map-frame">
+            <LiveMap />
           </div>
-          <p className="text-xs text-slate-500 mt-4 font-medium">Configured shuttle lines</p>
-        </div>
+        </section>
 
-        {/* Total Stops Card */}
-        <div className="relative overflow-hidden bg-white/70 backdrop-blur-md border border-slate-200/60 rounded-2xl p-6 shadow-xs transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl -mr-8 -mt-8" />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Transit Stops</p>
-              <DashboardStatValue
-                loadState={loadState}
-                value={stats?.totalStops}
-                spinnerClass="text-emerald-600"
-                testId="admin-stat-stops"
-              />
+        <aside className="admin-dashboard__rail" data-testid="admin-configured-inventory">
+          <section className="admin-panel admin-inventory" aria-labelledby="admin-inventory-title">
+            <div className="admin-inventory__header">
+              <p className="admin-panel__eyebrow">Supporting metrics</p>
+              <h2 className="admin-panel__title" id="admin-inventory-title">
+                Configured service inventory
+              </h2>
+              <p className="admin-panel__description">
+                Master-data totals only. Live telemetry state appears on the map.
+              </p>
             </div>
-            <div className="p-3.5 bg-emerald-50 text-emerald-600 rounded-xl shadow-xs">
-              <MapPin size={24} />
+
+            <dl className="admin-metric-list">
+              {dashboardMetrics.map((definition) => (
+                <DashboardMetric
+                  key={definition.key}
+                  definition={definition}
+                  loadState={loadState}
+                  stats={stats}
+                />
+              ))}
+            </dl>
+          </section>
+
+          <section className="admin-panel admin-shortcuts" aria-labelledby="admin-shortcuts-title">
+            <p className="admin-panel__eyebrow">Existing destinations</p>
+            <h2 className="admin-panel__title" id="admin-shortcuts-title">Workspace shortcuts</h2>
+            <div className="admin-shortcuts__list">
+              <Link href="/admin/devices" className="admin-shortcut">
+                <span className="flex items-center gap-2">
+                  <Radio size={17} aria-hidden="true" />
+                  Open source health
+                </span>
+                <ArrowUpRight size={16} aria-hidden="true" />
+              </Link>
+              <Link href="/admin/vehicles" className="admin-shortcut">
+                <span className="flex items-center gap-2">
+                  <Bus size={17} aria-hidden="true" />
+                  Manage vehicles
+                </span>
+                <ArrowUpRight size={16} aria-hidden="true" />
+              </Link>
             </div>
+          </section>
+
+          <div className="admin-scope-note">
+            <p className="admin-scope-note__title">Data scope</p>
+            <p className="admin-scope-note__text">
+              Counts come from verified configuration endpoints. Canonical service state is shown
+              only on the map.
+            </p>
           </div>
-          <p className="text-xs text-slate-500 mt-4 font-medium">Designated picking spots</p>
-        </div>
-      </div>
-
-      {/* Live Map Component */}
-      <div className="bg-white rounded-2xl border border-slate-200/60 p-1 shadow-xs overflow-hidden">
-        <LiveMap />
+        </aside>
       </div>
     </div>
   );
