@@ -218,7 +218,7 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
                       onClick={() => moveStop(index, -1)}
                       disabled={index === 0 || saving}
                       aria-label={`Move ${stop.nameTh} up`}
-                      className="rounded-md p-2 text-slate-600 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300"
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300"
                     >
                       <ArrowUp size={17} aria-hidden="true" />
                     </button>
@@ -227,7 +227,7 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
                       onClick={() => moveStop(index, 1)}
                       disabled={index === orderedStops.length - 1 || saving}
                       aria-label={`Move ${stop.nameTh} down`}
-                      className="rounded-md p-2 text-slate-600 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300"
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300"
                     >
                       <ArrowDown size={17} aria-hidden="true" />
                     </button>
@@ -236,7 +236,7 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
                       onClick={() => setOrderedStops((current) => current.filter((item) => item.id !== stop.id))}
                       disabled={saving}
                       aria-label={`Remove ${stop.nameTh}`}
-                      className="rounded-md p-2 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-red-300"
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-md text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-red-300"
                     >
                       <Trash2 size={17} aria-hidden="true" />
                     </button>

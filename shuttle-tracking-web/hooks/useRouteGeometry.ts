@@ -1,5 +1,5 @@
 "use client";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import L from "leaflet";
 import { Stop, RouteGeometryCache } from "@/types";
 import { DEFAULT_STOP_ICON, ROUTE_CACHE_TTL_MS } from "@/constants/shuttle";
@@ -38,10 +38,17 @@ export function useRouteGeometry({
 }: UseRouteGeometryOptions) {
 
   const { loadedRoutesRef, checkLoadingCompleteRef } = preloader;
+  const pendingRouteLoadsRef = useRef<Record<string, Promise<boolean>>>({});
 
   const loadRouteData = useCallback(
-    async (routeId: string, routeColor: string, apiOrigins: string[]) => {
-      try {
+    (routeId: string, routeColor: string, apiOrigins: string[]): Promise<boolean> => {
+      if (loadedRoutesRef.current.has(routeId)) return Promise.resolve(true);
+      const pendingLoad = pendingRouteLoadsRef.current[routeId];
+      if (pendingLoad) return pendingLoad;
+
+      let completed = false;
+      const load = (async () => {
+        try {
         let stops: Stop[] | null = null;
         let lastError: unknown = null;
 
@@ -61,7 +68,7 @@ export function useRouteGeometry({
             `Could not fetch route ${routeId} stops from any backend (${apiOrigins.join(", ")}).`,
             lastError
           );
-          return;
+          return false;
         }
 
         const stopLayer = L.layerGroup();
@@ -196,12 +203,20 @@ export function useRouteGeometry({
           if (routeId === selectedRouteRef.current && mapRef.current)
             routeLayer.addTo(mapRef.current);
         }
-      } catch (err) {
-        console.error(`Failed to load route ${routeId}`, err);
-      } finally {
-        loadedRoutesRef.current.add(routeId);
-        checkLoadingCompleteRef.current();
-      }
+          completed = finalCoords.length > 0;
+          return completed;
+        } catch (err) {
+          console.error(`Failed to load route ${routeId}`, err);
+          return false;
+        } finally {
+          if (completed) loadedRoutesRef.current.add(routeId);
+          delete pendingRouteLoadsRef.current[routeId];
+          checkLoadingCompleteRef.current();
+        }
+      })();
+
+      pendingRouteLoadsRef.current[routeId] = load;
+      return load;
     },
     [mapRef, loadedRoutesRef, checkLoadingCompleteRef, onStopSelect, setStopsByRoute, stopsByRouteRef, routeGeometryRef, stopMarkersMapRef, selectedRouteRef, stopLayersRef, routeLayersRef]
   );

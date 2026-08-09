@@ -2,6 +2,7 @@
 import { useEffect, useRef, memo } from "react";
 import { Stop } from "@/types";
 import { Locate } from "lucide-react";
+import { motionScrollBehavior } from "@/utils/motion";
 
 interface VehicleInfoCardProps {
   vehicleId: string;
@@ -39,7 +40,7 @@ function VehicleInfoCard({
           const targetScroll = activeLeft - containerWidth / 2 + activeWidth / 2;
           container.scrollTo({
             left: targetScroll,
-            behavior: "smooth",
+            behavior: motionScrollBehavior(),
           });
         }
       }

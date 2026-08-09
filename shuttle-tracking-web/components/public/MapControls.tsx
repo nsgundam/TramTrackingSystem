@@ -10,27 +10,39 @@ interface MapControlsProps {
 
 function MapControls({ onZoomIn, onZoomOut, onLocate }: MapControlsProps) {
   return (
-    <div className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-10 flex flex-col gap-1 md:gap-2">
+    <div
+      className="absolute bottom-4 right-4 md:bottom-10 md:right-10 z-10 flex flex-col gap-1 md:gap-2"
+      data-testid="map-controls"
+    >
       <button
-        className="glass-panel backdrop-blur-sm rounded-lg w-9 h-9 flex items-center justify-center text-on-surface hover:bg-white/40! transition-colors cursor-pointer"
+        type="button"
+        className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl bg-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         title="Zoom In"
         onClick={onZoomIn}
       >
-        <Plus size={20} className="text-on-surface" />
+        <span className="glass-panel flex h-9 w-9 items-center justify-center rounded-lg text-on-surface transition-colors hover:bg-white/40!">
+          <Plus size={20} className="text-on-surface" />
+        </span>
       </button>
       <button
-        className="glass-panel backdrop-blur-sm rounded-lg w-9 h-9 flex items-center justify-center text-on-surface hover:bg-white/40! transition-colors cursor-pointer"
+        type="button"
+        className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl bg-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         title="Zoom Out"
         onClick={onZoomOut}
       >
-        <Minus size={20} className="text-on-surface" />
+        <span className="glass-panel flex h-9 w-9 items-center justify-center rounded-lg text-on-surface transition-colors hover:bg-white/40!">
+          <Minus size={20} className="text-on-surface" />
+        </span>
       </button>
       <button
-        className="glass-panel backdrop-blur-sm rounded-lg w-9 h-9 flex items-center justify-center text-on-surface hover:bg-white/40! transition-colors mt-2 cursor-pointer"
+        type="button"
+        className="mt-2 flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl bg-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         title="Current Location"
         onClick={onLocate}
       >
-        <Locate size={20} className="text-on-surface" />
+        <span className="glass-panel flex h-9 w-9 items-center justify-center rounded-lg text-on-surface transition-colors hover:bg-white/40!">
+          <Locate size={20} className="text-on-surface" />
+        </span>
       </button>
     </div>
   );

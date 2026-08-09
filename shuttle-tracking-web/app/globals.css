@@ -154,6 +154,26 @@
   50% { opacity: .5; }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-delay: 0s !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .animate-ping,
+  .animate-pulse,
+  .animate-spin,
+  .loader,
+  .pulse-dot,
+  .user-pulse {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
 /* Hide scrollbar in no-scrollbar utility */
 @utility no-scrollbar {
   -ms-overflow-style: none;  /* IE and Edge */

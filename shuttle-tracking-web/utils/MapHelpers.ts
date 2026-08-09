@@ -1,4 +1,9 @@
 import L from "leaflet";
+import {
+  prefersReducedMotion,
+  startCoordinateAnimation,
+  type CancelMotion,
+} from "@/utils/motion";
 
 type Coordinate = [number, number];
 
@@ -9,17 +14,19 @@ export function shouldMove(oldPos: Coordinate | undefined, newPos: Coordinate): 
   return Math.sqrt(dx * dx + dy * dy) > 0.00003;
 }
 
-export function animateMove(marker: L.Marker, start: Coordinate, end: Coordinate, duration = 2800) {
-  const startTime = performance.now();
-  function step(currentTime: number) {
-    const progress = Math.min((currentTime - startTime) / duration, 1);
-    const lat = start[0] + (end[0] - start[0]) * progress;
-    const lng = start[1] + (end[1] - start[1]) * progress;
-    
-    marker.setLatLng([lat, lng]);
-    if (progress < 1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
+export function animateMove(
+  marker: L.Marker,
+  start: Coordinate,
+  end: Coordinate,
+  duration = 2800,
+): CancelMotion {
+  return startCoordinateAnimation({
+    start,
+    end,
+    durationMs: duration,
+    reducedMotion: prefersReducedMotion(),
+    write: (position) => marker.setLatLng(position),
+  });
 }
 
 // ฟังก์ชันเดิม (ใช้ตอนเริ่มหาตำแหน่งครั้งแรก)

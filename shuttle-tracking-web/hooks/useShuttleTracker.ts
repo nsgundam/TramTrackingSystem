@@ -27,6 +27,11 @@ import {
   CanonicalVehicleStateCounts,
   projectCanonicalVehicleStateCounts,
 } from "@/utils/canonical-public-state";
+import {
+  cancelOwnedMotion,
+  mapMotionOptions,
+  type OwnedMotionRegistry,
+} from "@/utils/motion";
 
 const BACKEND_ORIGINS = [backendConnection.origin];
 
@@ -94,6 +99,7 @@ export function useShuttleTracker() {
   const vehicleStatesRef = useRef<Record<string, CanonicalVehicleStateV1>>({});
   const expiredVehiclesRef = useRef<Record<string, boolean>>({});
   const expiryTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const vehicleAnimationsRef = useRef<OwnedMotionRegistry>({});
 
   const isZoomingRef = useRef<boolean>(false);
   const hasInitRoutesRef = useRef<boolean>(false);
@@ -102,6 +108,7 @@ export function useShuttleTracker() {
   const calculateETARef = useRef<() => void>(() => {});
 
   const removeVehicleMarker = useCallback((id: string) => {
+    cancelOwnedMotion(vehicleAnimationsRef.current, id);
     const marker = vehiclesRef.current[id];
     if (marker && mapRef.current?.hasLayer(marker)) mapRef.current.removeLayer(marker);
   }, [mapRef]);
@@ -176,7 +183,7 @@ export function useShuttleTracker() {
     setTargetStop(stop);
     targetStopRef.current = stop;
     calculateETARef.current();
-    mapRef.current?.flyTo([stop.lat, stop.lng], 19, { animate: true, duration: 0.8 });
+    mapRef.current?.flyTo([stop.lat, stop.lng], 19, mapMotionOptions(0.8));
   }, [mapRef]);
 
   // === Hook 1: Route and Geometry Manager ===
@@ -217,7 +224,7 @@ export function useShuttleTracker() {
       if (info) setActiveVehicleInfo(info);
 
       const pos = marker.getLatLng();
-      mapRef.current?.flyTo([pos.lat, pos.lng], 19, { animate: true, duration: 0.8 });
+      mapRef.current?.flyTo([pos.lat, pos.lng], 19, mapMotionOptions(0.8));
     }, [mapRef]),
     onVehicleUpdate: useCallback((id: string, info: ActiveVehicleInfo) => {
       if (selectedVehicleIdRef.current === id) {
@@ -226,7 +233,7 @@ export function useShuttleTracker() {
     }, []),
     onCameraTrack: useCallback((id: string, pos: [number, number]) => {
       if (id === selectedVehicleIdRef.current && isTrackingRef.current) {
-        mapRef.current?.panTo(pos, { animate: true, duration: 0.8 });
+        mapRef.current?.panTo(pos, mapMotionOptions(0.8));
       }
     }, [mapRef]),
     updateAvailableCount: useCallback(() => {
@@ -240,6 +247,7 @@ export function useShuttleTracker() {
     vehicleLastPolyIndexRef,
     vehicleStopsStatusRef,
     expiredVehiclesRef,
+    vehicleAnimationsRef,
   });
 
   const hydrateActiveVehicles = useCallback(async () => {
@@ -322,7 +330,7 @@ export function useShuttleTracker() {
       setTargetStop(nearest);
       targetStopRef.current = nearest;
       calculateETA();
-      mapRef.current.flyTo([nearest.lat, nearest.lng], 19, { animate: true });
+      mapRef.current.flyTo([nearest.lat, nearest.lng], 19, mapMotionOptions(0.8));
 
       if (activeStopMarkerRef.current)
         activeStopMarkerRef.current.setIcon(DEFAULT_STOP_ICON);
@@ -336,6 +344,14 @@ export function useShuttleTracker() {
 
   const handleRouteChange = useCallback((routeId: string) => {
     routeGeometry.handleRouteChange(routeId);
+    const nextRoute = routes.find((route) => route.id === routeId);
+    if (nextRoute) {
+      void routeGeometry.loadRouteData(nextRoute.id, nextRoute.color, BACKEND_ORIGINS).then(() => {
+        Object.values(vehicleStatesRef.current).forEach((state) => {
+          if (state.routeId === routeId) processLocationUpdateRef.current(state);
+        });
+      });
+    }
 
     Object.keys(vehiclesRef.current).forEach((id) => {
       const marker = vehiclesRef.current[id];
@@ -349,7 +365,12 @@ export function useShuttleTracker() {
       if (canDisplayMarker) {
         if (!mapRef.current?.hasLayer(marker)) marker.addTo(mapRef.current!);
       } else {
-        if (mapRef.current?.hasLayer(marker)) mapRef.current.removeLayer(marker);
+        if (mapRef.current?.hasLayer(marker)) {
+          cancelOwnedMotion(vehicleAnimationsRef.current, id);
+          const latestPosition = prevPositionsRef.current[id];
+          if (latestPosition) marker.setLatLng(latestPosition);
+          mapRef.current.removeLayer(marker);
+        }
       }
     });
 
@@ -366,11 +387,11 @@ export function useShuttleTracker() {
     isTrackingRef.current = false;
 
     calculateETA();
-  }, [mapRef, routeGeometry, calculateETA, vehiclesRef, activeStopMarkerRef]);
+  }, [mapRef, routeGeometry, routes, calculateETA, vehiclesRef, activeStopMarkerRef]);
 
   const handleLocateUser = useCallback(() => {
     if (userLoc) {
-      mapRef.current?.flyTo(userLoc, 18, { animate: true, duration: 1.0 });
+      mapRef.current?.flyTo(userLoc, 18, mapMotionOptions(1));
       handleFindNearestStop();
     } else {
       alert("กรุณาเปิดการเข้าถึงตำแหน่งที่ตั้ง (GPS) ในเบราว์เซอร์ของคุณ");
@@ -384,7 +405,7 @@ export function useShuttleTracker() {
         const pos = marker.getLatLng();
         setIsTracking(true);
         isTrackingRef.current = true;
-        mapRef.current.flyTo([pos.lat, pos.lng], 19, { animate: true, duration: 0.8 });
+        mapRef.current.flyTo([pos.lat, pos.lng], 19, mapMotionOptions(0.8));
       }
     }
   }, [mapRef, vehiclesRef]);
@@ -450,13 +471,9 @@ export function useShuttleTracker() {
       function waitForMap() {
         if (mapRef.current && LRef.current) {
           clearInterval(interval);
-          mapRef.current.flyTo(RSU_CENTER, 16.7, { animate: true, duration: 1.2 });
+          mapRef.current.flyTo(RSU_CENTER, 16.7, mapMotionOptions(1.2));
           mapReadyRef.current = true;
           checkLoadingCompleteRef.current();
-          Object.values(vehicleStatesRef.current).forEach((state) => {
-            processLocationUpdateRef.current(state);
-          });
-
           mapRef.current.on("zoomstart", (e: L.LeafletEvent & { originalEvent?: unknown }) => {
             isZoomingRef.current = true;
             setIsAppLocked(true);
@@ -491,12 +508,21 @@ export function useShuttleTracker() {
               selectedVehicleIdRef.current = null;
               setIsTracking(false);
               isTrackingRef.current = false;
-              mapRef.current?.flyTo(RSU_CENTER, 16.7, { animate: true, duration: 0.8 });
+              mapRef.current?.flyTo(RSU_CENTER, 16.7, mapMotionOptions(0.8));
             }
           });
 
-          if (activeRoutes) {
-            activeRoutes.forEach((r) => routeGeometry.loadRouteData(r.id, r.color, BACKEND_ORIGINS));
+          const initialRoute = activeRoutes[0];
+          if (initialRoute) {
+            void routeGeometry.loadRouteData(
+              initialRoute.id,
+              initialRoute.color,
+              BACKEND_ORIGINS,
+            ).then(() => {
+              Object.values(vehicleStatesRef.current).forEach((state) => {
+                processLocationUpdateRef.current(state);
+              });
+            });
           }
         }
       }
@@ -524,7 +550,7 @@ export function useShuttleTracker() {
         setIsTracking(false);
         isTrackingRef.current = false;
 
-        mapRef.current.flyTo(RSU_CENTER, 16.7, { animate: true, duration: 1.2 });
+        mapRef.current.flyTo(RSU_CENTER, 16.7, mapMotionOptions(1.2));
       }
     };
 

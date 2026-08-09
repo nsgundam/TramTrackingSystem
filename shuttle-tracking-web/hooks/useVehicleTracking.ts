@@ -1,10 +1,16 @@
 "use client";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import L from "leaflet";
 import { Stop, LocationUpdateData, ActiveVehicleInfo } from "@/types";
 import { generateBusIconHtml } from "@/utils/IconHelpers";
 import { getNearestPointIndex, getDirectionalPointIndex, shouldMove, animateMove } from "@/utils/MapHelpers";
 import { findPrevNextStops, getVehicleETAToStop } from "@/utils/ShuttleHelpers";
+import {
+  cancelAllOwnedMotions,
+  cancelOwnedMotion,
+  replaceOwnedMotion,
+  type OwnedMotionRegistry,
+} from "@/utils/motion";
 
 interface UseVehicleTrackingOptions {
   mapRef: React.RefObject<L.Map | null>;
@@ -22,6 +28,7 @@ interface UseVehicleTrackingOptions {
   vehicleLastPolyIndexRef: React.MutableRefObject<Record<string, number>>;
   vehicleStopsStatusRef: React.MutableRefObject<Record<string, ActiveVehicleInfo>>;
   expiredVehiclesRef: React.MutableRefObject<Record<string, boolean>>;
+  vehicleAnimationsRef: React.MutableRefObject<OwnedMotionRegistry>;
 }
 
 export function useVehicleTracking({
@@ -40,7 +47,13 @@ export function useVehicleTracking({
   vehicleLastPolyIndexRef,
   vehicleStopsStatusRef,
   expiredVehiclesRef,
+  vehicleAnimationsRef,
 }: UseVehicleTrackingOptions) {
+
+  useEffect(
+    () => () => cancelAllOwnedMotions(vehicleAnimationsRef.current),
+    [vehicleAnimationsRef],
+  );
 
   const processLocationUpdate = useCallback(
     (data: LocationUpdateData) => {
@@ -55,6 +68,7 @@ export function useVehicleTracking({
       const routeId = data.routeAuthority === "unknown" ? null : data.routeId;
 
       if (!stateLocation || !routeId) {
+        cancelOwnedMotion(vehicleAnimationsRef.current, id);
         vehicleRouteMapRef.current[id] = "";
         const marker = vehiclesRef.current[id];
         if (marker && mapRef.current.hasLayer(marker)) mapRef.current.removeLayer(marker);
@@ -85,6 +99,7 @@ export function useVehicleTracking({
       vehicleRouteMapRef.current[id] = routeId;
 
       if (data.serviceState !== "live" || expiredVehiclesRef.current[id]) {
+        cancelOwnedMotion(vehicleAnimationsRef.current, id);
         const marker = vehiclesRef.current[id];
         if (marker && mapRef.current.hasLayer(marker)) mapRef.current.removeLayer(marker);
         const unavailableInfo: ActiveVehicleInfo = {
@@ -125,6 +140,7 @@ export function useVehicleTracking({
 
       // 2. Create new vehicle marker
       if (!vehiclesRef.current[id]) {
+        cancelOwnedMotion(vehicleAnimationsRef.current, id);
         const busHtml = generateBusIconHtml(id, backendBearing, routeId);
 
         const marker = L.marker(newPos, {
@@ -158,6 +174,8 @@ export function useVehicleTracking({
         if (!mapRef.current.hasLayer(marker)) marker.addTo(mapRef.current);
       } else {
         if (mapRef.current.hasLayer(marker)) {
+          cancelOwnedMotion(vehicleAnimationsRef.current, id);
+          marker.setLatLng(newPos);
           mapRef.current.removeLayer(marker);
           return;
         }
@@ -201,7 +219,12 @@ export function useVehicleTracking({
       // 6. Animate movement
       const oldPos = prevPositionsRef.current[id];
       if (shouldMove(oldPos, newPos)) {
-        animateMove(marker, oldPos, newPos);
+        const currentPosition = marker.getLatLng();
+        replaceOwnedMotion(vehicleAnimationsRef.current, id, () => animateMove(
+          marker,
+          [currentPosition.lat, currentPosition.lng],
+          newPos,
+        ));
         prevPositionsRef.current[id] = newPos;
       }
 
@@ -226,6 +249,7 @@ export function useVehicleTracking({
       vehicleLastPolyIndexRef,
       vehicleStopsStatusRef,
       expiredVehiclesRef,
+      vehicleAnimationsRef,
     ]
   );
 

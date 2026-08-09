@@ -13,24 +13,31 @@ export function usePreloader({ routesLength }: PreloaderOptions) {
   const loadedRoutesRef = useRef<Set<string>>(new Set());
   const mapReadyRef = useRef<boolean>(false);
   const checkLoadingCompleteRef = useRef<() => void>(() => {});
+  const completionStartedRef = useRef(false);
+  const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const beginCompletion = useCallback((introDelayMs: number) => {
+    if (completionStartedRef.current) return;
+    completionStartedRef.current = true;
+    introTimerRef.current = setTimeout(() => {
+      setIsIntroFinished(true);
+      hideTimerRef.current = setTimeout(() => setShowPreloader(false), 800);
+    }, introDelayMs);
+  }, []);
 
   const checkLoadingComplete = useCallback(() => {
-    const totalRoutes = routesLength > 0 ? routesLength : 1;
+    const requiredRouteCount = 1;
 
     if (
       mapReadyRef.current &&
-      loadedRoutesRef.current.size === totalRoutes &&
-      totalRoutes > 0 &&
+      loadedRoutesRef.current.size >= requiredRouteCount &&
+      routesLength > 0 &&
       namesLoadedRef.current
     ) {
-      setTimeout(() => {
-        setIsIntroFinished(true);
-        setTimeout(() => {
-          setShowPreloader(false);
-        }, 800);
-      }, 500);
+      beginCompletion(500);
     }
-  }, [routesLength]);
+  }, [beginCompletion, routesLength]);
 
   useEffect(() => {
     checkLoadingCompleteRef.current = checkLoadingComplete;
@@ -38,14 +45,15 @@ export function usePreloader({ routesLength }: PreloaderOptions) {
 
   useEffect(() => {
     const safetyTimer = setTimeout(() => {
-      setIsIntroFinished(true);
-      setTimeout(() => {
-        setShowPreloader(false);
-      }, 800);
+      beginCompletion(0);
     }, 5000);
 
-    return () => clearTimeout(safetyTimer);
-  }, []);
+    return () => {
+      clearTimeout(safetyTimer);
+      if (introTimerRef.current) clearTimeout(introTimerRef.current);
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
+  }, [beginCompletion]);
 
   return useMemo(
     () => ({

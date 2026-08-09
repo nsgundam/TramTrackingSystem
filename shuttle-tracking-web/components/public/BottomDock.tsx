@@ -36,7 +36,10 @@ function BottomDock({
   onFeedbackClick,
 }: BottomDockProps) {
   return (
-    <div className="absolute bottom-4 left-4 md:bottom-10 md:left-10 z-10 w-70 sm:w-[320px] max-w-[calc(100%-32px)] flex flex-col gap-1 md:gap-2">
+    <div
+      className="absolute bottom-4 left-4 md:bottom-10 md:left-10 z-10 w-70 max-w-[calc(100%-80px)] sm:w-[320px] sm:max-w-[calc(100%-32px)] flex flex-col gap-1 md:gap-2"
+      data-testid="bottom-dock"
+    >
       {/* Show Stop Info Card when no vehicle is selected */}
       {!selectedVehicleId && <StopInfoCard targetStop={targetStop} eta={realEta} />}
 
