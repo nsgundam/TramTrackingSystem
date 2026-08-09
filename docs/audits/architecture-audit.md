@@ -1,7 +1,7 @@
 # Architecture Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: bd34552c09eea59ad9e2adee160483b2be433744
+- Evidence baseline: 378818fd3626eb1cf000087846d3b2a1c9b16d44
 - Evidence scope: docs/project-knowledge-base.md, docs/audits/product-audit.md,
   docs/decision-queue.md, docs/research/, docs/tasks/, docs/operations/, README.md,
   Compose/environment configuration and scripts, shuttle-tracking-backend/src/,
@@ -10,12 +10,26 @@ Audit metadata:
   shuttle-tracking-web/types/, shuttle-tracking-web/services/,
   shuttle-tracking-web/components/, shuttle-tracking-web/tests/, and the T11 v3 external Mobile
   compatibility brief
-- Reviewed at: 2026-08-09T21:17:05+07:00
+- Reviewed at: 2026-08-09T21:59:16+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/project-knowledge-base.md @ 1eec86602c40c859d50dd9d369f636b103b6896f;
-  docs/audits/product-audit.md @ bd34552c09eea59ad9e2adee160483b2be433744
+  docs/audits/product-audit.md @ 378818fd3626eb1cf000087846d3b2a1c9b16d44
 
-## 2026-08-09 T14 first-slice re-audit
+## 2026-08-09 T14 accessibility/navigation re-audit
+
+Product is revalidated at `378818f...`; Discovery remains current at `1eec866...`. T14 now owns the
+scoped dialog lifecycle through one strict client hook rather than repeating focus query, Tab,
+Escape, and restoration logic across Public/Admin surfaces. Page components retain their data and
+action ownership. Mobile drawer visibility derives from the existing `lg` breakpoint through
+`useSyncExternalStore`, so `inert` is applied only to the off-screen Mobile navigation; desktop
+navigation does not inherit Mobile state.
+
+The shared boundary is exercised through 4/4 browser journeys and full TypeScript production build/
+CI. It adds no dependency, server contract, schema, cache, authorization, or second product-state
+authority. DOM/browser behavior is not an assistive-technology or deployed-runtime proof, and the
+unrelated dirty Feedback-role migration remains excluded.
+
+## 2026-08-09 truth-slice re-audit — superseded for accessibility findings
 
 Product is revalidated at `bd34552...`; Discovery remains current at `1eec866...`. T14 preserves the
 single backend-owned `CanonicalVehicleStateV1` authority and adds typed, pure frontend projections
@@ -132,12 +146,16 @@ behavior only, not TLS, forwarded-hop behavior, recovery, capacity, deployment, 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
 T9 is Partially Complete for its repository-side handoff under D-008. T10/T12 are complete for their
-bounded handoffs. T14's first truth/integrity slice is complete and revalidated; its next eligible
-bounded unit is accessibility/navigation under a new exact-path handoff. T11 needs focused technical
-and external Android evidence. Production operations, runtime retention, capacity and external-device
-facts remain open; no new owner decision is proposed.
+bounded handoffs. T14's truth and accessibility/navigation slices are complete and revalidated; the
+next eligible bounded unit must start with measured responsive/performance/visual-system evidence,
+while Admin theme remains separate. T11 needs focused technical and external Android evidence.
+Production operations, runtime retention, capacity and external-device facts remain open; no new
+owner decision is proposed.
 
-Confidence is High for code-visible authority and missing boundaries, Medium for T8 local projection because deterministic and isolated-browser tests exist, and Low for distributed recovery, deployment, load, hardware, provider, Android, and real operations outcomes.
+Confidence is High for code-visible authority, shared focus placement, and missing boundaries,
+Medium for local projection/keyboard behavior because deterministic isolated-browser tests exist,
+and Low for assistive technology, distributed recovery, deployment, load, hardware, provider,
+Android, and real operations outcomes.
 
 ## 8. Proposed Owner Decisions and Handoff
 
@@ -146,9 +164,9 @@ UX-order and general account/source lifecycle work; external T9/Mobile acceptanc
 not a policy choice to infer.
 
 Frontend and downstream profiles may consume this Architecture baseline. Backend and Database remain
-current at `1eec866...` because T14 changes no runtime API, schema, or persistence authority. None
-promotes a policy direction, local browser fixture, or simulator into implementation or runtime
-evidence.
+current at `1eec866...` because T14 changes no runtime API, schema, or persistence authority. The
+Roadmap may next create only a measured T14 responsive/performance/visual-system handoff; none of
+this evidence promotes a browser fixture into assistive-technology or runtime proof.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 
