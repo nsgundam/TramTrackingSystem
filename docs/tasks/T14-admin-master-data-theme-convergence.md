@@ -189,11 +189,48 @@
 
 ## Completion Evidence
 
-- Status: `Pending implementation`
-- Acceptance mapping: Pending measurement-first implementation and Main Agent review.
-- Changed files: Pending exact implementation commit; the unrelated dirty Feedback-role migration
-  must remain preserved and excluded.
-- Validation results: Pending focused and full acceptance checks.
-- Audit freshness changes: On accepted implementation, downgrade Product, Architecture, Frontend,
-  Dashboard & UX, Production Readiness, and Roadmap to `Needs Re-audit`. Level 3 cannot mark an
-  affected audit complete.
+- Status: `Complete — Admin master-data theme-convergence slice`
+- Acceptance mapping:
+  - Shared resource hierarchy → Vehicles, Routes, and Stops use one typed header/panel/state/action/
+    status primitive set and semantic Admin classes. Desktop tables and Mobile cards preserve the
+    existing IDs, names, status, route/color, coordinates, and actions without hard-coded page
+    palettes, invalid `bg-slate-55`, backdrop blur, or hover transforms.
+  - Truthful read state → initial loading, failed read, verified empty, and populated data are
+    distinct. Vehicles failure renders an inline alert and a named 44 px Retry using the same GET
+    boundary; retry recovers without a browser alert, fabricated row, or API/auth change.
+  - Shared dialog contract → the three CRUD forms and route-stop ordering use one solid semantic
+    dialog/focus shell. Existing field labels/values/native validation, Escape/restoration,
+    submit/cancel, active-stop filtering, ordering, error, and publish payload behavior remain.
+  - Responsive/action continuity → 1280 px tables and 390 px cards/dialogs have no horizontal
+    overflow; every measured primary/icon/dialog/order control is at least 44 by 44 CSS px and every
+    row action has a resource-specific accessible name.
+  - Scope boundary → Public, Login, Dashboard, Devices, Feedback, backend/API/auth/schema, Mobile,
+    dependencies, and external targets are unchanged. Devices/Feedback remain a later Admin theme
+    slice, so the broader theme P2 is narrowed rather than claimed closed.
+- Changed files: implementation commit `7321a25996cce10367c790e7b992e8e4f52637cf`
+  contains only the 13 exact Admin stylesheet/resource pages/shared primitives/dialogs/package/
+  config/browser-test paths in this handoff. The unrelated dirty Feedback-role migration was
+  preserved and excluded.
+- Validation results:
+  - Measurement-first focused browser coverage failed 4/4 on absent semantic resource/dialog
+    contracts, inline failure/retry, Mobile action/dialog coverage, and shared route-stop dialog.
+    The corrected suite passes 4/4 across desktop and Mobile, including the unchanged reordered
+    `{ stopIds: ["ST02", "ST01"] }` publish payload.
+  - Accessibility regression passes 4/4, contrast passes 2/2, Admin Dashboard passes 2/2, and the
+    final focused master-data suite passes 4/4. Trace screenshots for desktop tables, Mobile CRUD,
+    inline error/retry, and route-stop dialog were visually inspected against the `RSU Operations`
+    direction.
+  - `npm --prefix shuttle-tracking-web run check` passes every unit/browser suite, lint with zero
+    errors and the same two pre-existing warnings, and the 11-route production build. The first
+    sandboxed standalone build failed only because Turbopack could not bind its internal port; the
+    authorized build passed.
+  - Final `bash scripts/ci-checks.sh` passes Backend build/boundaries, Prisma validation, every
+    Frontend check including master-data 4/4, Compose, production topology, unsafe-log scan, and
+    workflow validation. The final scoped Impeccable detector returns `[]`; `git diff --check` and
+    exact staging review pass.
+  - Evidence is local/synthetic, not human/assistive-technology, physical-device, deployed-runtime,
+    or release proof. No external target, migration, retention, hardware, or Mobile action ran.
+- Audit freshness changes: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
+  and Roadmap are downgraded to `Needs Re-audit` against implementation `7321a25`. Backend,
+  Database, Infrastructure & Device, Security/DevOps/Observability, Discovery, T9/T11/T13/T15
+  gates, and owner decisions are unchanged.
