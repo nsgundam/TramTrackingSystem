@@ -40,7 +40,7 @@ Roadmap are revalidated at `db72310...`; the technical score remains 15/20 with 
 and one P3 open. The Public explanation P1 is resolved for bounded source/browser evidence; the
 remaining Research P1 is blocked on T13. The next eligible work is a bounded Admin master-data
 theme-convergence P2 that excludes Public/Login, T11/Research, API/auth/schema, and external-runtime
-work. D-012
+work. Its exact handoff is `docs/tasks/T14-admin-master-data-theme-convergence.md`. D-012
 fixes later lifecycle policy without implementing it. T15 remains deferred behind T13 and physical/
 provider facts.
 
@@ -157,7 +157,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Eligible for one bounded continuation | Create an exact Admin master-data theme-convergence handoff; preserve Public/Login and exclude T11, Research/T13, API/auth/schema, and external-runtime work. |
+| T14 | Implementation ready for one bounded continuation | `docs/tasks/T14-admin-master-data-theme-convergence.md` binds the exact paths and acceptance contract; preserve Public/Login and exclude T11, Research/T13, API/auth/schema, and external-runtime work. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
 Batch result: T14's first six slices and affected chain are revalidated at `db72310...`. T9/T13
@@ -1252,8 +1252,8 @@ The 2026-08-10 Dashboard & UX re-audits and D-011 order accept the first six T14
 `db72310...`. The sixth bounded Public service-explanation/recovery slice is implemented at
 `bf80308` with visual identity/layout substantially unchanged and without invented dependency
 causes, unavailable T11 exceptions, Research data, or external-runtime facts. The next bounded gate
-is an exact Admin master-data theme-convergence handoff that preserves Public/Login and current
-API/auth/schema/behavior ownership.
+is the exact `docs/tasks/T14-admin-master-data-theme-convergence.md` handoff, which preserves
+Public/Login and current API/auth/schema/behavior ownership.
 
 ### Blocks
 
@@ -1310,7 +1310,7 @@ component/accessibility checks, and desktop/mobile browser smoke tests.
 Partially Complete — the D-011 truth/integrity, accessibility/navigation, measured Public map-
 quality, contrast/color-governance, Admin Dashboard foundation, and Public service explanation/
 recovery slices are revalidated at `db72310...`. Bounded Admin master-data theme convergence is
-next. The map-quality handoff is
+implementation-ready through `docs/tasks/T14-admin-master-data-theme-convergence.md`. The map-quality handoff is
 `docs/tasks/T14-measured-public-map-quality.md`, covering measured route/map performance, reduced
 motion, narrow-screen collision, and audited touch targets. The exact handoff
 `docs/tasks/T14-truthful-feedback-and-live-state.md` records the bounded Public/Admin paths,
