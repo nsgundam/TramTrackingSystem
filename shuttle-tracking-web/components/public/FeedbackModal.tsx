@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, memo } from "react";
 import { X, CheckCircle2, MessageSquarePlus, Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -13,17 +14,11 @@ interface ActiveVehicle {
   id: string;
   name: string;
   route?: {
+    id: string;
     name: string;
     color: string;
   } | null;
 }
-
-const FEEDBACK_TYPES = [
-  { id: "suggestion", label: "ข้อเสนอแนะ" },
-  { id: "complaint", label: "แจ้งปัญหา / ร้องเรียน" },
-  { id: "praise", label: "ชื่นชมการบริการ" },
-  { id: "other", label: "เรื่องอื่นๆ" },
-];
 
 function FeedbackModal({
   isOpen,
@@ -31,6 +26,7 @@ function FeedbackModal({
   initialVehicleId,
   apiOrigin,
 }: FeedbackModalProps) {
+  const { locale, t } = useLanguage();
   const [type, setType] = useState<string>("suggestion");
   const [vehicleId, setVehicleId] = useState<string>(initialVehicleId || "");
   const [message, setMessage] = useState<string>("");
@@ -39,6 +35,13 @@ function FeedbackModal({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const feedbackTypes = [
+    { id: "suggestion", label: t("suggestionType") },
+    { id: "complaint", label: t("complaintType") },
+    { id: "praise", label: t("praiseType") },
+    { id: "other", label: t("otherType") },
+  ];
 
   // Setup the backend API base url
   const baseOrigin =
@@ -83,7 +86,7 @@ function FeedbackModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!type || !vehicleId || !message.trim()) {
-      setErrorMsg("กรุณากรอกข้อมูลให้ครบถ้วน");
+      setErrorMsg(t("fillAllFields"));
       return;
     }
 
@@ -106,7 +109,7 @@ function FeedbackModal({
       const result = (await response.json()) as { error?: string };
 
       if (!response.ok) {
-        throw new Error(result.error || "เกิดข้อผิดพลาดในการส่งข้อเสนอแนะ");
+        throw new Error(result.error || t("submitError"));
       }
 
       setIsSuccess(true);
@@ -117,10 +120,23 @@ function FeedbackModal({
     } catch (err: unknown) {
       console.error("Feedback submit error:", err);
       const error = err as Error;
-      setErrorMsg(error.message || "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้");
+      setErrorMsg(error.message || t("serverConnectionError"));
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const getRouteName = (route: { id: string; name: string } | undefined) => {
+    if (!route) return "";
+    if (locale === "en") {
+      switch (route.id) {
+        case "R01": return "Campus Loop";
+        case "R02": return "Train Station - University";
+        case "R03": return "University - Future Park";
+        default: return route.name;
+      }
+    }
+    return route.name;
   };
 
   if (!isOpen) return null;
@@ -132,11 +148,11 @@ function FeedbackModal({
         <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-2">
             <MessageSquarePlus className="text-primary" size={22} />
-            <h3 className="text-lg font-bold text-slate-800">ส่งข้อเสนอแนะ / แจ้งปัญหา</h3>
+            <h3 className="text-lg font-bold text-slate-800">{t("reportIssueTitle")}</h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer bg-transparent border-none"
           >
             <X size={18} />
           </button>
@@ -146,9 +162,9 @@ function FeedbackModal({
         {isSuccess ? (
           <div className="flex flex-col items-center justify-center p-10 text-center animate-scale-up">
             <CheckCircle2 className="text-green-500 mb-4 animate-pulse-dot" size={64} />
-            <h4 className="text-xl font-bold text-slate-800 mb-2">ส่งข้อมูลสำเร็จ!</h4>
+            <h4 className="text-xl font-bold text-slate-800 mb-2">{t("submitSuccess")}</h4>
             <p className="text-slate-500 text-sm">
-              ขอบคุณสำหรับข้อเสนอแนะของคุณ ระบบได้บันทึกข้อมูลเรียบร้อยแล้ว
+              {t("thankYouFeedback")}
             </p>
           </div>
         ) : (
@@ -162,10 +178,10 @@ function FeedbackModal({
             {/* Selection for Type with Emojis */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                ประเภทการติดต่อ
+                {t("contactType")}
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {FEEDBACK_TYPES.map((item) => (
+                {feedbackTypes.map((item) => (
                   <button
                     key={item.id}
                     type="button"
@@ -173,7 +189,7 @@ function FeedbackModal({
                     className={`flex items-center gap-2 p-3 text-sm rounded-xl border text-left transition-all cursor-pointer ${
                       type === item.id
                         ? "border-primary bg-primary/5 text-primary font-semibold shadow-sm"
-                        : "border-slate-200 hover:border-slate-300 text-slate-600"
+                        : "border-slate-200 hover:border-slate-300 text-slate-600 bg-transparent"
                     }`}
                   >
                     <span>{item.label}</span>
@@ -185,12 +201,12 @@ function FeedbackModal({
             {/* Vehicle selection */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                เลือกหมายเลขรถรถราง
+                {t("selectTram")}
               </label>
               {isLoadingVehicles ? (
                 <div className="flex items-center gap-2 text-slate-400 text-sm py-2">
                   <Loader2 size={16} className="animate-spin" />
-                  <span>กำลังโหลดข้อมูลรถ...</span>
+                  <span>{t("loadingTramData")}</span>
                 </div>
               ) : (
                 <select
@@ -198,10 +214,10 @@ function FeedbackModal({
                   onChange={(e) => setVehicleId(e.target.value)}
                   className="w-full p-3 rounded-xl border border-slate-200 text-slate-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
                 >
-                  <option value="" disabled>-- เลือกหมายเลขรถราง --</option>
+                  <option value="" disabled>{t("selectTramPlaceholder")}</option>
                   {vehicles.map((v) => (
                     <option key={v.id} value={v.id}>
-                      {v.name || v.id} {v.route ? `(${v.route.name})` : ""}
+                      {v.name || v.id} {v.route ? `(${getRouteName(v.route)})` : ""}
                     </option>
                   ))}
                 </select>
@@ -211,12 +227,12 @@ function FeedbackModal({
             {/* Feedback message */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                รายละเอียดข้อเสนอแนะ / ปัญหาที่พบ
+                {t("feedbackDetails")}
               </label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="กรุณาระบุรายละเอียดข้อความของคุณ..."
+                placeholder={t("feedbackPlaceholder")}
                 rows={4}
                 required
                 className="w-full p-3 rounded-xl border border-slate-200 text-slate-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm resize-none"
@@ -228,22 +244,22 @@ function FeedbackModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors text-sm font-semibold cursor-pointer text-center"
+                className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors text-sm font-semibold cursor-pointer text-center bg-transparent"
               >
-                ยกเลิก
+                {t("cancelBtn")}
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 py-3 px-4 rounded-xl bg-primary text-white hover:bg-primary-container hover:shadow-lg active:scale-[0.98] transition-all text-sm font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 py-3 px-4 rounded-xl bg-primary text-white hover:bg-primary-container hover:shadow-lg active:scale-[0.98] transition-all text-sm font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 border-none"
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    <span>กำลังส่งข้อมูล...</span>
+                    <span>{t("submittingBtn")}</span>
                   </>
                 ) : (
-                  <span>ส่งข้อมูล</span>
+                  <span>{t("submitBtn")}</span>
                 )}
               </button>
             </div>

@@ -9,6 +9,7 @@ import BrandingHeader from "@/components/public/BrandingHeader";
 import AvailabilityCard from "@/components/public/AvailabilityCard";
 import RouteSelector from "@/components/public/RouteSelector";
 import FeedbackButton from "@/components/public/FeedbackButton";
+import LanguageSelector from "@/components/public/LanguageSelector";
 import BottomDock from "@/components/public/BottomDock";
 import MapControls from "@/components/public/MapControls";
 import Preloader from "@/components/public/Preloader";
@@ -117,6 +118,7 @@ export default function ShuttleTracker() {
             menuRef={routeMenuRef}
           />
           <FeedbackButton onClick={handleFeedbackClick} />
+          <LanguageSelector />
         </div>
 
         {/* Bottom Left: Info Cards */}

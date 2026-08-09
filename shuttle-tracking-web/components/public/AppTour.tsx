@@ -1,7 +1,7 @@
 "use client";
-
 import { useState, useMemo } from "react";
 import { STATUS, ACTIONS, EVENTS, Joyride, type EventData, type Step, type TooltipRenderProps } from "react-joyride";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AppTourProps {
   onInstallClick?: () => void;
@@ -9,6 +9,7 @@ interface AppTourProps {
 }
 
 export default function AppTour({ onInstallClick, isPwaAvailable = false }: AppTourProps) {
+  const { t } = useLanguage();
   const [run, setRun] = useState(() => {
     if (typeof window === "undefined") return false;
     return !localStorage.getItem("rsu-bus-tour-seen");
@@ -19,49 +20,49 @@ export default function AppTour({ onInstallClick, isPwaAvailable = false }: AppT
     {
       target: "body",
       placement: "center",
-      title: "ยินดีต้อนรับ",
-      content: "แนะนำแอป RSU Tram Tracker",
+      title: t("welcome"),
+      content: t("tourIntro"),
       skipBeacon: true,
     },
     {
       target: '.rsu-stop-eta-box', 
-      title: 'เวลารอรถ (ETA)',
-      content: 'กดที่ป้ายบนแผนที่ → ดูเวลาที่รถจะมาถึง',
+      title: t("etaTitle"),
+      content: t("etaDesc"),
       placement: 'top',
     },
     {
       target: '.rsu-vehicle-next-stop', 
-      title: 'ข้อมูลรถ',
-      content: 'กดที่รถ → ดูว่าป้ายถัดไปคือที่ไหน',
+      title: t("busInfoTitle"),
+      content: t("busInfoDesc"),
       placement: 'top',
     },
     {
       target: '.route-selector-menu', 
-      title: 'เลือกเส้นทาง',
-      content: 'เลือกเส้นทางที่ต้องการดูได้ที่นี่',
+      title: t("selectRouteTitle"),
+      content: t("selectRouteDesc"),
       placement: 'left',
     },
     {
       target: '.rsu-feedback-btn', 
-      title: 'ส่งข้อเสนอแนะ',
-      content: 'พบปัญหาหรือมีความเห็น? กดที่นี่เพื่อแจ้งทีมงาน',
+      title: t("feedbackTitle"),
+      content: t("feedbackDesc"),
       placement: 'left',
     },
     {
       target: 'body',
       placement: 'center',
-      title: 'เพิ่มเข้าหน้า Home',
+      title: t("addToHomeTitle"),
       content: isPwaAvailable 
-        ? 'คุณสามารถติดตั้งแอปพลิเคชันลงบนหน้าจอหลักเพื่อการใช้งานที่สะดวกรวดเร็วและเสถียรยิ่งขึ้น'
-        : 'สำหรับอุปกรณ์ของคุณ: สามารถกดที่ปุ่มแชร์ "Share" ในเบราว์เซอร์ของคุณ แล้วเลือก "เพิ่มไปยังหน้าจอโฮม" (Add to Home Screen) เพื่อติดตั้งแอปได้ครับ',
+        ? t("pwaAvailableDesc")
+        : t("pwaManualDesc"),
     },
     {
       target: 'body',
       placement: 'center',
-      title: 'เริ่มต้นใช้งาน',
-      content: 'ขอบคุณที่ใช้บริการแอปพลิเคชันของเรา'
+      title: t("getStartedTitle"),
+      content: t("thankYouDesc"),
     }
-  ], [isPwaAvailable]);
+  ], [isPwaAvailable, t]);
 
   const handleJoyrideCallback = (data: EventData) => {
     const { action, index, status, type } = data;
@@ -139,7 +140,7 @@ export default function AppTour({ onInstallClick, isPwaAvailable = false }: AppT
                 className="flex items-center justify-center gap-1.5 h-10 px-4 bg-blue-600 text-white font-semibold rounded-2xl hover:bg-blue-700 shadow-xl active:scale-95 transition-all text-sm cursor-pointer border-none"
               >
                 <span className="material-symbols-outlined text-base leading-none">download</span>
-                <p className="text-white font-extrabold text-body-lg">ติดตั้ง</p>
+                <p className="text-white font-extrabold text-body-lg">{t("installBtn")}</p>
               </button>
             )}
         {/* </div> */}
@@ -151,7 +152,7 @@ export default function AppTour({ onInstallClick, isPwaAvailable = false }: AppT
               {...skipProps}
               className="px-3 py-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors cursor-pointer border-none bg-transparent"
             >
-              ข้าม
+              {t("skipBtn")}
             </button>
           ) : (
             <div />
@@ -164,17 +165,15 @@ export default function AppTour({ onInstallClick, isPwaAvailable = false }: AppT
                 {...backProps}
                 className="px-3.5 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-2xl transition-colors cursor-pointer font-medium border-none bg-transparent"
               >
-                Back
+                {t("backBtn")}
               </button>
             )}
-
-            
 
             <button 
               {...primaryProps}
               className="flex items-center justify-center h-10 px-4 bg-[#151c25] text-white font-semibold rounded-2xl hover:bg-[#202938] transition-colors cursor-pointer shadow-md border-none text-sm"
             >
-              {isLastStep ? "เริ่มใช้งานเลย!" : "ถัดไป"}
+              {isLastStep ? t("startNowBtn") : t("nextBtn")}
             </button>
           </div>
         </div>

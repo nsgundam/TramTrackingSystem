@@ -18,7 +18,7 @@ export default defineConfig({
       reuseExistingServer: false,
     },
     {
-      command: "NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1:13001 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:13001/api npm run dev -- --hostname 127.0.0.1 --port 13000",
+      command: "npx cross-env NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1:13001 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:13001/api npm run dev -- --hostname 127.0.0.1 --port 13000",
       url: "http://127.0.0.1:13000",
       timeout: 30_000,
       reuseExistingServer: false,
