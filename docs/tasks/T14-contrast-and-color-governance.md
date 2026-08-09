@@ -183,8 +183,47 @@
 
 ## Completion Evidence
 
-- Status: `Ready — exact contrast/color-governance handoff`
-- Acceptance mapping: pending implementation.
-- Changed files: pending implementation; must remain inside the allowlist.
-- Validation results: pending measurement-first baseline and final verification.
-- Audit freshness changes: none until implementation changes source behavior.
+- Status: `Complete — contrast/color-governance slice`
+- Acceptance mapping:
+  - Color boundary → strict pure parsing accepts only `#RGB`/`#RRGGBB`, normalizes case/short hex,
+    falls back to `#3B82F6`, computes sRGB luminance/contrast, and selects black or white from the
+    same normalized background. Representative light/default/dark/threshold/invalid inputs all
+    produce at least 4.5:1.
+  - Route rendering → one shared `RouteColorBadge` owns both background and foreground for Mobile/
+    Desktop Vehicle views. Valid route colors remain unchanged; invalid badge, Public selector dot,
+    and Admin route swatch display use the incumbent fallback.
+  - Light-surface foregrounds → one `#45556c` semantic token replaces only the audited non-disabled
+    400-level Public/Admin light-surface values. Public Feedback/Tour order, copy, spacing, size,
+    interaction, glass/map identity, and all Admin layouts/actions remain unchanged.
+  - Regression contract → an exact source guard prevents unqualified 400-level foregrounds from
+    returning on the selected light files while preserving disabled and dark Login/Sidebar usage.
+    Existing truth, focus/navigation, request/motion, responsive/touch, and canonical-state journeys
+    remain green.
+- Changed files: implementation commit `799905f4e11ab9d4ddcf1e612fe03f94e9b9ffd6`
+  contains only the exact allowed frontend token, audited Public/Admin foregrounds, route display
+  boundary/component, package/config, and focused unit/browser tests. The unrelated dirty Feedback-
+  role migration was preserved and excluded.
+- Validation results:
+  - Measurement-first pure baseline failed because `utils/colorContrast.ts` did not exist. The
+    corrected CSS Color 4 browser baseline failed both intended contracts: Public label contrast was
+    2.6301:1 and zero shared route badges existed.
+  - `npm --prefix shuttle-tracking-web run test:t14:contrast` — 4/4 passed for normalization,
+    luminance/foreground selection, >=4.5 route cases, and the exact light-surface source guard.
+  - `npm --prefix shuttle-tracking-web run test:e2e:t14:contrast` — 2/2 passed for Public computed
+    text/icon contrast and valid-light/valid-dark/invalid Admin route badges.
+  - `npm --prefix shuttle-tracking-web run check` — simulator 4/4, T8 unit 2/2, T9 unit 5/5,
+    truth unit 5/5, motion 4/4, contrast 4/4, T8 browser 1/1, truth browser 2/2,
+    accessibility 4/4, map-quality 2/2, contrast 2/2, lint, and 11-page production build passed.
+    Lint retains only the same two pre-existing warnings in `app/layout.tsx` and
+    `utils/IconHelpers.ts`.
+  - The final scoped Impeccable detector returned the one reviewed pre-existing `map-bg` advisory;
+    it is the actual map canvas fallback, not a new decorative grid or contrast defect.
+  - `bash scripts/ci-checks.sh` — exit 0 after Backend build/boundaries/Prisma, all Frontend checks,
+    Compose, production topology, unsafe-log scan, and workflow validation.
+  - `git diff --check` and `node scripts/validate-agent-workflow.js` — passed.
+  - Evidence is local/synthetic Chromium, not human or assistive-technology acceptance, a physical-
+    device matrix, dark-theme acceptance, or deployed runtime proof.
+- Audit freshness changes: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
+  and Roadmap are downgraded to `Needs Re-audit — T14 contrast governance` because visible Public/
+  Admin foregrounds and route-color rendering ownership changed. Backend, Database, Infrastructure
+  & Device, and Security/DevOps/Observability behavior did not change.
