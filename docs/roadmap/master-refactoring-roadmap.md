@@ -141,7 +141,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T11 | Blocked — cross-repository/external evidence | The v3 brief pins a partially compatible native app. Static-secret storage, backup/cleartext, task-removal and missing enrollment/claim/recovery gaps require a coordinated exact handoff plus writable Mobile/Android target and device acceptance. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
 | T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
-| T14 | Partially Complete — first five slices revalidated | Admin implementation `9411e36` and prior slices are accepted at `0a0fe58...`; score 15/20. Bounded Public explanation/recovery is next. |
+| T14 | Partially Complete — Public explanation handoff ready | The first five slices are accepted at `0a0fe58...`; `docs/tasks/T14-public-service-explanation-and-recovery.md` binds the next exact Public-only slice. |
 | T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
 
 ### Approved-batch continuation gate
@@ -151,12 +151,13 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Eligible next lane | Create an exact Public service-explanation/recovery handoff using existing truthful state; preserve visual identity and exclude guessed dependency causes, T11, Research, broader Admin pages, and external-runtime work. |
+| T14 | Eligible exact implementation | Execute `docs/tasks/T14-public-service-explanation-and-recovery.md`; preserve Public identity and exclude guessed dependency causes, T11, Research, Admin pages, and external-runtime work. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
 Batch result: T14's first five slices and affected chain are revalidated at `0a0fe58...`.
-T9/T13 remain deferred without dependency bypass; T11/T15 remain blocked. Bounded Public service
-explanation/recovery is selected next; broader Admin pages remain later slices.
+T9/T13 remain deferred without dependency bypass; T11/T15 remain blocked. The exact bounded Public
+service-explanation/recovery handoff is ready for measurement-first implementation; broader Admin
+pages remain separate.
 
 ## 4. Dependency Map
 
@@ -1309,6 +1310,8 @@ acceptance mapping, and remaining human/runtime limits.
 and verification. `docs/tasks/T14-contrast-and-color-governance.md` records the fourth slice's exact
 paths and passing evidence. `docs/tasks/T14-admin-dashboard-foundation.md` now binds the Admin-only
 shell/Dashboard theme and hierarchy paths, tests, invariants, stop conditions, and completion evidence.
+`docs/tasks/T14-public-service-explanation-and-recovery.md` binds the sixth slice's existing-state
+guidance, canonical age, ETA truth, snapshot retry, slow-preloader recovery, and exact Public paths.
 
 ### Evidence
 

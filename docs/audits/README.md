@@ -14,7 +14,7 @@ Last updated: 2026-08-10
 | Dashboard & UX | Complete | `docs/audits/dashboard-ux-audit.md` | `0a0fe58` | 2026-08-10 | Map-first Admin hierarchy/theme is revalidated; Theming improves to 3/4. |
 | Security, DevOps & Observability | Complete | `docs/audits/security-devops-observability-audit.md` | `1eec866` | 2026-08-08 | D-012 is approved but unimplemented; SEC-08 records external Mobile credential/backup/cleartext/lifecycle risk. |
 | Production Readiness | Complete / No-Go | `docs/audits/production-readiness-audit.md` | `0a0fe58` | 2026-08-10 | Synthetic Admin evidence is revalidated; human/assistive-technology/deployed/release gates remain open. |
-| Roadmap | Complete / Validated | `docs/roadmap/master-refactoring-roadmap.md` | `0a0fe58` | 2026-08-10 | T14's first five slices are accepted; bounded Public explanation/recovery is next. |
+| Roadmap | Complete / Validated | `docs/roadmap/master-refactoring-roadmap.md` | `0a0fe58` | 2026-08-10 | T14's first five slices are accepted; the exact Public explanation/recovery handoff is ready. |
 
 `Evidence baseline` records the immutable source/decision commit consumed by each report. Each
 report's metadata remains authoritative for its full scope and predecessor chain.
