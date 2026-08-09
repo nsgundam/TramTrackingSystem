@@ -188,8 +188,53 @@
 
 ## Completion Evidence
 
-- Status: `In Progress`
-- Acceptance mapping: Pending implementation and Main Agent verification.
-- Changed files: Pending; the unrelated dirty Feedback-role migration remains excluded.
-- Validation results: Pending.
-- Audit freshness changes: Pending implementation acceptance.
+- Status: `Complete — measured Public map quality slice`
+- Acceptance mapping:
+  - Request budget → the initial two-route fixture requests only R01 stops plus one geometry attempt;
+    first selection of R02 adds one stops/geometry attempt; repeated R01/R02 switching adds none. The
+    selected route, not the whole route catalog, owns normal preloader completion, pending loads are
+    deduplicated, successful layers are reused, and failed loads remain retryable.
+  - Motion lifecycle → one pure typed utility owns frame scheduling, replacement, explicit/all
+    cancellation, reduced-motion options, and scroll behavior. Each vehicle owns at most one marker
+    animation; replacement, non-live/removal, route removal, local expiry, and hook cleanup cancel it.
+  - Reduced motion → marker destinations resolve without a frame, Leaflet fly/pan and station-list
+    scrolling become immediate, and known continuous pulse/spin/preloader motion runs once with
+    near-zero duration under the media preference. Default motion remains enabled.
+  - Responsive/touch → every Public map control exposes a 44 px target around the existing 36 px
+    visible panel. At 320 by 568 the visible dock retains a measured 240 px width and does not
+    intersect the control stack. RouteStops move-up/down/remove targets measure at least 44 px.
+  - Regression contract → T8 canonical expiry/route switching, T14 truth, and all scoped dialog/
+    navigation focus journeys remain green. Public palette, type, component order, desktop/tablet
+    geometry, canonical state, route order, ETA, Feedback, and Admin theme remain unchanged.
+- Changed files: implementation commit `c5b2e69e3b877516eada33845cd1445c2b313478`
+  contains only the exact allowed CSS, Public/Admin components, route/preloader/tracking hooks,
+  motion/map utilities, package/config, and focused unit/browser tests. The unrelated dirty
+  Feedback-role migration was preserved and excluded.
+- Validation results:
+  - Measurement-first baseline failed as expected: startup requested R01 and R02, reduced-motion CSS
+    remained `infinite`, and no cancellable motion owner existed.
+  - `npm --prefix shuttle-tracking-web run test:t14:map-quality` — 4/4 passed for destination,
+    cancellation, replacement/cleanup, and zero-frame reduced motion.
+  - `npm --prefix shuttle-tracking-web run test:e2e:t14:map-quality` — 2/2 passed for selected-route
+    request budgets, normal preloader completion, 320 px non-overlap/44 px targets/36 px visible
+    controls, reduced motion, and Admin route-order targets.
+  - `npm --prefix shuttle-tracking-web run test:e2e:t8` — 1/1 passed; `test:e2e:t14` — 2/2 passed;
+    `test:e2e:t14:a11y` — 4/4 passed.
+  - `npm --prefix shuttle-tracking-web run lint` — zero errors and the same two pre-existing warnings
+    in `app/layout.tsx` and `utils/IconHelpers.ts`.
+  - `npm --prefix shuttle-tracking-web run build:check` — TypeScript/CSS compilation and all 11
+    static pages passed. The first sandboxed build attempt failed only because Turbopack could not
+    bind an internal port; the required elevated rerun and both full-CI builds passed.
+  - Final scoped Impeccable detector returned one reviewed advisory for the pre-existing tiled
+    `map-bg` fallback in `globals.css`; this is an actual map canvas surface, not a new decorative UI,
+    and removing it would violate the identity-preserving scope. No blocking detector result exists.
+  - `bash scripts/ci-checks.sh` — final exit 0 after Backend build/boundaries/Prisma, all Frontend
+    unit/E2E/lint/build checks, Compose, production topology, unsafe-log scan, and workflow validation.
+  - `git diff --check` and `node scripts/validate-agent-workflow.js` — passed.
+  - One diagnostic Playwright run revealed that an existing Service Worker could bypass page-level
+    mocks and made a read-only OSRM request. The final focused suite blocks Service Workers only for
+    deterministic request measurement; the separate PWA/Socket regression remains enabled and green.
+- Audit freshness changes: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
+  and Roadmap are downgraded to `Needs Re-audit — T14 measured map quality` because Public route-load,
+  preloader, motion, narrow-screen layout, and scoped Admin touch behavior changed. Backend, Database,
+  Infrastructure & Device, and Security/DevOps/Observability behavior did not change.
