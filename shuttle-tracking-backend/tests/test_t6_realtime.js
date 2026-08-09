@@ -93,7 +93,7 @@ assert.match(socketHookSource, /await hydrateActiveVehicles/);
 assert.match(vehicleTrackingSource, /data\.serviceState === "live"/);
 assert.match(vehicleTrackingSource, /data\.routeAuthority/);
 assert.doesNotMatch(vehicleTrackingSource, /vehicleRouteMapRef\.current\[id\]\s*=\s*selectedRouteRef\.current/);
-assert.match(publicTrackerSource, /<AvailabilityCard count=\{vehicleStateCounts\.live\} \/>/);
+assert.match(publicTrackerSource, /<AvailabilityCard\s+counts=\{vehicleStateCounts\}/);
 assert.doesNotMatch(publicTrackerSource, /เชื่อมต่อข้อมูลสด|กำลังเชื่อมต่อใหม่|ข้อมูลล่าสุดเก่า|ไม่มีบริการ|ข้อมูลขัดข้อง/);
 assert.match(liveMapSource, /Vehicle service state summary/);
 assert.match(liveMapSource, /Unavailable: \{stateCounts\.unknown\}/);

@@ -68,6 +68,7 @@
 - `shuttle-tracking-web/playwright.config.ts`
 - `shuttle-tracking-web/package.json`
 - `shuttle-tracking-web/public/sw.js`
+- `shuttle-tracking-backend/tests/test_t6_realtime.js`
 
 ## Read-only Context
 
@@ -158,9 +159,46 @@
 
 ## Completion Evidence
 
-- Status: `In Progress`
-- Acceptance mapping: Pending implementation and verification.
-- Changed files: `docs/tasks/T14-truthful-feedback-and-live-state.md`
-- Validation results: Pre-implementation Impeccable/source audit revalidated at `ec8f005...`; no
-  implementation check run yet.
-- Audit freshness changes: None yet; Level 3 must downgrade affected rows after implementation.
+- Status: `Complete — first D-011 truth/integrity slice`
+- Acceptance mapping:
+  - Verified Feedback association → failed and empty active-vehicle responses create no option or
+    selection, keep Submit disabled, explain the condition, and recover through Retry; only an ID
+    returned by the successful response can be submitted. The mobile Playwright journey verifies
+    failure, empty, recovery, explicit selection, and the posted vehicle ID.
+  - Truthful Public state → `AvailabilityCard` combines authoritative canonical counts with actual
+    Socket.IO state, pulses only for connected/live data, and distinguishes reconnecting,
+    disconnected, stale, no-service, unknown, and empty states. Local-expiry and route-switch
+    regression evidence remains green.
+  - Truthful Admin state → dashboard master-data loading/error/ready states no longer convert
+    failures to zero or claim unconditional liveness; Retry shows verified counts and a Bangkok-time
+    update. The map connects after snapshot failure, exposes separate realtime/snapshot state,
+    reconciles queued versions, drops snapshot-absent vehicles, and projects expired/disconnected
+    live state as last-known.
+  - PWA transport integrity → the Service Worker bypasses `/socket.io/` so Engine.IO polling and
+    upgrade requests are not wrapped in an offline fallback. The browser journey was repeated twice
+    after this repair with four of four journeys passing.
+  - Visual authority → the incumbent Public layout, palette, typography, card footprint, and modal
+    structure remain; only semantic state/copy/retry/focus affordances changed. Final Impeccable
+    detector output is `[]`. No separate human visual acceptance or deployed-runtime claim is made.
+- Changed files: implementation commit `1b2b6c1` contains the exact frontend, utility, Service
+  Worker, deterministic-test, Playwright, and task-contract paths listed above. The compatible T6
+  source assertion in `shuttle-tracking-backend/tests/test_t6_realtime.js` is the only additional
+  implementation-caused path and was added to this allowlist before acceptance. The unrelated dirty
+  Feedback-role migration was preserved and excluded from T14 ownership.
+- Validation results:
+  - `npm --prefix shuttle-tracking-web run test:t14` — 5/5 passed on 2026-08-09.
+  - `npm --prefix shuttle-tracking-web run test:e2e:t14` — 2/2 passed; the post-Service-Worker
+    repeat run passed 4/4 journeys.
+  - `npm --prefix shuttle-tracking-web run test:e2e:t8` — 1/1 passed.
+  - `npm --prefix shuttle-tracking-web run lint` — zero errors; two pre-existing warnings remain in
+    `app/layout.tsx` and `utils/IconHelpers.ts`.
+  - Final Impeccable detector — `[]`.
+  - `bash scripts/ci-checks.sh` — passed Backend build/boundaries/Prisma, Frontend tests/E2E/lint/
+    production build, Compose, production topology, safe-logging, and workflow validation on
+    2026-08-09.
+  - `git diff --check` and `node scripts/validate-agent-workflow.js` — passed.
+- Audit freshness changes: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
+  and Roadmap are downgraded to `Needs Re-audit — T14` because the completed slice changes the
+  rider Feedback journey, realtime consumer/reconciliation behavior, UI truth claims, PWA transport,
+  and roadmap eligibility. Backend, Database, Infrastructure & Device, and Security/DevOps/
+  Observability behavior did not change; the T6 file is a compatibility assertion only.
