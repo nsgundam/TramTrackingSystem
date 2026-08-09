@@ -1,7 +1,7 @@
 # Architecture Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 7aae7957647038c58ccb185042a7dc019a8d40f1
+- Evidence baseline: f42a2bb025c4756e04542fc9dbecb41009d8ce7a
 - Evidence scope: docs/project-knowledge-base.md, docs/audits/product-audit.md,
   docs/decision-queue.md, docs/research/, docs/tasks/, docs/operations/, README.md,
   Compose/environment configuration and scripts, shuttle-tracking-backend/src/,
@@ -10,12 +10,27 @@ Audit metadata:
   shuttle-tracking-web/types/, shuttle-tracking-web/services/,
   shuttle-tracking-web/components/, shuttle-tracking-web/tests/, and the T11 v3 external Mobile
   compatibility brief
-- Reviewed at: 2026-08-09T23:10:21+07:00
+- Reviewed at: 2026-08-09T23:51:01+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/project-knowledge-base.md @ 1eec86602c40c859d50dd9d369f636b103b6896f;
-  docs/audits/product-audit.md @ 7aae7957647038c58ccb185042a7dc019a8d40f1
+  docs/audits/product-audit.md @ f42a2bb025c4756e04542fc9dbecb41009d8ce7a
 
-## 2026-08-09 T14 measured Public map-quality re-audit
+## 2026-08-09 T14 contrast/color-governance re-audit
+
+Product is revalidated at `f42a2bb...`; Discovery remains current at `1eec866...`.
+`utils/colorContrast.ts` is one pure display boundary for untrusted route-color normalization,
+luminance, ratio, and readable foreground selection. `RouteColorBadge` owns the invariant that a
+badge derives background and text from the same normalized value; Public route dots and Admin route
+swatches reuse normalization. The semantic muted-on-light token is scoped to audited light surfaces
+rather than replacing dark-surface tokens globally.
+
+The change adds no dependency, server validation, API, schema, authorization, persisted color
+mutation, canonical state, or second product/data authority. Pure 4/4, browser 2/2, the 11-page
+build, and full CI establish local display behavior only. Human/assistive-technology/device/dark-
+theme/deployed outcomes remain unverified, and the unrelated dirty Feedback-role migration remains
+excluded.
+
+## 2026-08-09 measured Public map-quality re-audit — superseded for contrast findings
 
 Product is revalidated at `7aae795...`; Discovery remains current at `1eec866...`. Existing
 `useRouteGeometry` remains the owner of stop/geometry layers, but now deduplicates pending work,
@@ -160,15 +175,16 @@ behavior only, not TLS, forwarded-hop behavior, recovery, capacity, deployment, 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
 T9 is Partially Complete for its repository-side handoff under D-008. T10/T12 are complete for their
-bounded handoffs. T14's first three slices are complete and revalidated; the next eligible bounded
-unit is contrast/visual-system governance, while Admin theme remains separate. T11 needs focused
-technical and external Android evidence.
+bounded handoffs. T14's first four slices are complete and revalidated; the next eligible bounded
+unit is an Admin shell/Dashboard hierarchy and theme foundation that consumes existing truthful
+state without inventing T11 exceptions or Research data. T11 needs focused technical and external
+Android evidence.
 Production operations, runtime retention, capacity and external-device facts remain open; no new
 owner decision is proposed.
 
-Confidence is High for code-visible authority, route-load ownership, motion cancellation, and
-missing boundaries; Medium for synthetic request/viewport/motion behavior; and Low for assistive
-technology, distributed recovery, deployment, load, hardware, provider, Android, and operations.
+Confidence is High for code-visible authority, display-color ownership, and missing boundaries;
+Medium for synthetic request/viewport/motion/contrast behavior; and Low for assistive technology,
+distributed recovery, deployment, load, hardware, provider, Android, and operations.
 
 ## 8. Proposed Owner Decisions and Handoff
 
@@ -178,8 +194,8 @@ not a policy choice to infer.
 
 Frontend and downstream profiles may consume this Architecture baseline. Backend and Database remain
 current at `1eec866...` because T14 changes no runtime API, schema, or persistence authority. The
-Roadmap may next create only a bounded T14 contrast/visual-system handoff; none of this evidence
-promotes a browser fixture into assistive-technology, device, or runtime proof.
+Roadmap may next create only a bounded T14 Admin shell/Dashboard theme-foundation handoff; none of
+this evidence promotes a browser fixture into assistive-technology, device, or runtime proof.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 

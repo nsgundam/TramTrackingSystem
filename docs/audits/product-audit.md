@@ -1,7 +1,7 @@
 # Product Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: `7aae7957647038c58ccb185042a7dc019a8d40f1`
+- Evidence baseline: `f42a2bb025c4756e04542fc9dbecb41009d8ce7a`
 - Evidence scope: `docs/project-knowledge-base.md`, `docs/decision-queue.md`, `docs/research/`,
   `docs/tasks/T9-production-topology-origin-handoff.md`,
   `docs/operations/university-server-network-handoff.md`, `README.md`,
@@ -14,11 +14,28 @@ Audit metadata:
   `shuttle-tracking-backend/src/controllers/`, `shuttle-tracking-backend/src/services/`,
   `shuttle-tracking-backend/prisma/`, `shuttle-tracking-backend/tests/`, and
   `docs/audits/specialized/T11-mobile-repository-compatibility-v3.md`
-- Reviewed at: `2026-08-09T23:10:21+07:00`
+- Reviewed at: `2026-08-09T23:51:01+07:00`
 - Validation state: `Validated`
 - Predecessor baselines: `docs/project-knowledge-base.md @ 1eec86602c40c859d50dd9d369f636b103b6896f`
 
-## 2026-08-09 T14 measured Public map-quality re-audit
+## 2026-08-09 T14 contrast/color-governance re-audit
+
+Discovery remains current at `1eec866...`; this profile revalidates the product journeys at
+`f42a2bb...`. T14's fourth D-011 slice is **Complete for its bounded source/browser contract**.
+One display-only boundary normalizes route colors and selects a black/white badge foreground at
+>=4.5:1 while preserving valid route backgrounds. One scoped token raises audited non-disabled
+Public Feedback/Tour and Admin light-surface foregrounds from 2.60–2.63:1 to compliant source/
+computed-style budgets without changing Public layout, copy, type, order, glass/map identity, or
+behavior. Invalid display colors use the incumbent blue fallback without mutating stored data.
+
+Pure contrast tests pass 4/4; focused browser journeys pass 2/2; every prior T8/T14 suite, the
+11-page build, and full repository CI pass. This is synthetic local evidence, not human or
+assistive-technology acceptance, a physical-device/dark-theme matrix, or deployed readiness. The
+remaining Public explanation P1 is not bundled. D-011 now permits a separately bounded Admin shell/
+Dashboard hierarchy and complementary-theme foundation using only existing truthful data; T11 and
+the Research Dashboard remain independently blocked.
+
+## 2026-08-09 measured Public map-quality re-audit — superseded for contrast findings
 
 Discovery remains current at `1eec866...`; this profile revalidates the product journeys at
 `7aae795...`. T14's third D-011 slice is **Complete for its bounded source/browser contract**.
@@ -141,7 +158,7 @@ ownership only; no external target was operated.
 | A supported driver/mobile workflow is missing | **Partially Resolved** | A pinned external native app plus Sender/trip/Socket.IO code now exists, but it implements the current static-secret path rather than T11 enrollment/QR/claim/recovery and has no release/device acceptance artifact. |
 | Admin trip history is missing | **Still Present** | No protected list/detail controller, route, page, or exception surface is present. |
 | Feedback workflow lacks triage | **Partially Resolved** | T12 implements the approved notice, receipt, Super Admin/Dev inbox, assignment/status flow, delete/restore, and source/test retention contract. No staff/rider acceptance, migration, or retention-run evidence exists. |
-| Public/Admin keyboard journeys met the release accessibility baseline | **Partially Resolved** | T14 corrects root/dialog/focus/form/Mobile navigation plus measured reduced-motion and the audited map/route-order touch targets. Contrast, broader live-region/touch coverage, assistive technology, and human acceptance remain unverified. |
+| Public/Admin keyboard journeys met the release accessibility baseline | **Partially Resolved** | T14 corrects root/dialog/focus/form/Mobile navigation plus measured reduced-motion, touch targets, and audited light-surface/route-badge contrast. Broader live-region/touch coverage, assistive technology, and human acceptance remain unverified. |
 | Stale/offline operational visibility is missing | **Partially Resolved** | T8 keeps Marker/count/ETA coherent, and T14 now gives the Public availability card and Admin dashboard/map truthful connection, freshness, failure, retry, and last-known states. Public last-update age, dependency-specific recovery guidance, and an operations exception/action view remain absent. |
 | Device operations are incomplete | **Partially Resolved** | T12 provides an all-admin safe read-only source-health API/page. Credential, assignment, Mobile claim/recovery, revocation, and force-close operations remain absent from the supported UI. |
 | Hard-coded public route choice | **No Longer Relevant** | The tracker loads active routes from the public API. Route authority and cache invalidation remain a separate T10 concern. |
@@ -152,7 +169,7 @@ ownership only; no external target was operated.
 
 | Journey | State | Evidence-based assessment |
 |---|---|---|
-| Rider: choose route, inspect stops/vehicles, use ETA | Partial | Public REST, canonical Socket.IO projection, map, stops, and ETA components exist. T8 preserves expiry truth; T14 adds truthful state, scoped keyboard access, selected-route-only geometry, cancellable/reduced motion, and measured 320 px control separation. Last-update age, dependency guidance, contrast, and human/device comprehension remain unverified. |
+| Rider: choose route, inspect stops/vehicles, use ETA | Partial | Public REST, canonical Socket.IO projection, map, stops, and ETA components exist. T8 preserves expiry truth; T14 adds truthful state, scoped keyboard access, selected-route-only geometry, cancellable/reduced motion, measured 320 px control separation, and governed route-color display. Last-update age, dependency guidance, and human/device comprehension remain unverified. |
 | Rider: submit feedback | Partial | `FeedbackModal` has truthful validation/load/retry/success/error, verified explicit vehicle association, programmatic category/form state, and a keyboard-contained/restoring dialog. T12 adds the staff inbox, but no assistive-technology/human acceptance or actual retention evidence exists. |
 | ADMIN: maintain routes/stops/vehicles | Partial | CRUD and route-stop composition dialogs have programmatic labels/focus behavior; the three measured order controls now meet 44 px targets. The expected public-cache transition has source/test evidence but no ambient browser/database workflow evidence. |
 | ADMIN: monitor/send/recover service | Partial | The safe read-only Source Health page exposes bounded freshness/status fields. Active-trip history, timeout exception, Mobile claim/revocation, credential, and force-close journeys remain missing. |
@@ -189,9 +206,9 @@ ownership only; no external target was operated.
   approved but remains outside T11's bounded shared-phone scope.
 - T12 is complete for its D-009/D-010:A exact source/test scope. Its migration, retention, and
   staff/rider acceptance still require an approved runtime target before release evidence exists.
-- T14's truth, accessibility/navigation, and measured Public map-quality slices are complete and
-  revalidated at `7aae795...`. The next eligible work is bounded contrast/visual-system governance;
-  Admin hierarchy/theme still requires its own later handoff and must preserve Public authority.
+- T14's first four slices are complete and revalidated at `f42a2bb...`. The next eligible work is a
+  bounded Admin shell/Dashboard hierarchy and complementary-theme foundation using existing truthful
+  data; it must not absorb T11 exceptions, Research, or the remaining Public explanation gap.
 - Roadmap synthesis must preserve these separate gates; D-001=C alone does not authorize any task.
 
 ## 7. Assumptions, Unknowns, and Confidence
@@ -212,8 +229,8 @@ checklist remain unverified. Approved policy does not fabricate an operational r
 
 Architecture and every downstream profile may consume this Product baseline. The resulting Roadmap
 must preserve the selected monolith and public/data boundaries, separate repository configuration
-from external deployment evidence, and may select only a bounded T14 contrast/visual-system handoff
-next. No new owner decision is required; a later Admin-theme handoff remains separately bounded.
+from external deployment evidence, and may select only a bounded T14 Admin shell/Dashboard theme-
+foundation handoff next. No new owner decision is required; broader Admin pages remain later slices.
 
 ## 10. T12 Implementation Re-audit — 2026-08-01
 

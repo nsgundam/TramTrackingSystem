@@ -1,7 +1,7 @@
 # Dashboard & UX Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 7aae7957647038c58ccb185042a7dc019a8d40f1
+- Evidence baseline: f42a2bb025c4756e04542fc9dbecb41009d8ce7a
 - Evidence scope: docs/project-knowledge-base.md,
   Product/Architecture/Backend/Frontend/Infrastructure & Device audits,
   docs/decision-queue.md, docs/research/, docs/tasks/,
@@ -10,13 +10,28 @@ Audit metadata:
   shuttle-tracking-web/hooks/, shuttle-tracking-web/services/, shuttle-tracking-web/types/,
   shuttle-tracking-web/utils/, shuttle-tracking-web/tests/, full current frontend check evidence,
   and the current Impeccable technical audit/detector pass
-- Reviewed at: 2026-08-09T23:10:21+07:00
+- Reviewed at: 2026-08-09T23:51:01+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/audits/product-audit.md and docs/audits/frontend-audit.md @
-  7aae7957647038c58ccb185042a7dc019a8d40f1; docs/audits/infrastructure-device-audit.md @
+  f42a2bb025c4756e04542fc9dbecb41009d8ce7a; docs/audits/infrastructure-device-audit.md @
   1eec86602c40c859d50dd9d369f636b103b6896f
 
-## 2026-08-09 T14 measured Public map-quality re-audit
+## 2026-08-09 T14 contrast/color-governance re-audit
+
+Product and Frontend are revalidated at `f42a2bb...`; Infrastructure & Device remains current at
+`1eec866...`. T14 resolves P1 #8 for bounded source/browser evidence. Audited Public Feedback/Tour
+and Admin light-surface foregrounds move from 2.60–2.63:1 to the scoped `#45556c` token; browser-
+computed Public text and close-control budgets pass. One shared route badge preserves valid light/
+dark route backgrounds and chooses >=4.5:1 black/white text; invalid display values use the incumbent
+blue fallback. No Public layout, copy, type, order, glass/map identity, or behavior changed.
+
+The technical score is **14/20 — below the release baseline**: Accessibility improves to 3/4;
+Performance/Responsive/Integrity remain 3/4 and Theming 2/4. Two P1, eight P2, and one P3 remain;
+seven P1 and two P2 findings are resolved by T14. Contrast 4/4, browser 2/2, every prior T8/T14
+suite, build, and full CI pass. No assistive-technology/human session, physical-device/dark-theme
+matrix, deployed runtime, or operator acceptance occurred.
+
+## 2026-08-09 measured Public map-quality re-audit — superseded for contrast findings
 
 Product and Frontend are revalidated at `7aae795...`; Infrastructure & Device remains current at
 `1eec866...`. T14 resolves the eager route-geometry/uncancelled marker-motion P2 findings and narrows
@@ -96,10 +111,10 @@ surface. T14 must therefore preserve Public identity and split Admin restructuri
 slices. T10 and T12 provide their exact bounded operations/data-policy surfaces; T11 remains
 independently blocked. This audit does not authorize an unbounded redesign.
 
-The required Impeccable re-audit scores the current frontend **13/20 — below the release baseline**
-with no P0, three open P1, eight P2, one P3, six resolved P1, and two resolved P2 findings. Product-
-specific truth/keyboard behavior plus measured motion/request/viewport budgets are stronger, while
-contrast, the narrowed Public explanation, residual performance/responsive/theming, exception-first
+The required Impeccable re-audit scores the current frontend **14/20 — below the release baseline**
+with no P0, two open P1, eight P2, one P3, seven resolved P1, and two resolved P2 findings. Product-
+specific truth/keyboard behavior plus measured motion/request/viewport/contrast budgets are stronger,
+while the narrowed Public explanation, residual performance/responsive/theming, exception-first
 operations, and the missing research surface still constrain release evidence.
 
 T9 changed how existing REST/Socket consumers select their backend, not what any surface displayed
@@ -110,8 +125,8 @@ the T14 result above supersedes the two resolved and one narrowed truth findings
 
 This profile reviews information architecture, truthfulness, separation of public/operations/research surfaces, loading/error/accessibility states, and task placement. It is not a browser usability study, accessibility certification, user research, device/pilot, or production service test.
 
-Product and Frontend are revalidated at `7aae795...`; Infrastructure & Device remains current at
-`1eec866...`. Exact T14 paths/checks are recorded in all three T14 task specifications. Browser evidence
+Product and Frontend are revalidated at `f42a2bb...`; Infrastructure & Device remains current at
+`1eec866...`. Exact T14 paths/checks are recorded in all four T14 task specifications. Browser evidence
 uses isolated mobile/desktop fixtures, not a university proxy, real service, assistive technology,
 physical mobile device, user research, production traffic, or runtime retention; it is not
 accessibility certification.
@@ -128,8 +143,8 @@ accessibility certification.
 | Feedback capture had staff triage/privacy journey | Partially Resolved | T12 implements notice/receipt, Super Admin/Dev triage, selected reason delete/restore, and safe health fields. T14 browser-verifies the scoped Feedback form/dialog/sensitive-confirmation keyboard semantics; no human assistive-technology or runtime acceptance exists. |
 | Research data had an appropriate dashboard | Still Present | No research route/UI has session/source/time filters, metric definitions, sample counts, uncertainty labels, drill-down or bounded export. Existing absence preserves the no-raw-public invariant. |
 | Role-specific UX enforced the new hierarchy | Partially Resolved | T12 session hydration and Sidebar hide the feedback inbox from `ADMIN` while the server remains authoritative. General capability rendering, account lifecycle, research navigation, and role-denial acceptance remain absent. |
-| Dashboard public-theme direction had a bounded specification | Partially Resolved | D-011 fixes order and visual authority; truth, accessibility/navigation, and measured map-quality are complete with exact source/browser evidence. Contrast/visual-system governance is next; Admin theme still needs its own handoff. |
-| Modal, focus, form, and document accessibility met a release baseline | Partially Resolved | Root/dialog/form/Mobile behavior plus reduced-motion and audited 44 px target evidence now exist. Contrast, broader live/touch coverage, assistive technology, and human acceptance remain open. |
+| Dashboard public-theme direction had a bounded specification | Partially Resolved | D-011 fixes order and visual authority; the first four T14 slices are complete with exact source/browser evidence. A bounded Admin shell/Dashboard hierarchy/theme foundation is next. |
+| Modal, focus, form, and document accessibility met a release baseline | Partially Resolved | Root/dialog/form/Mobile behavior plus reduced-motion, audited 44 px targets, and scoped light-surface/route-badge contrast evidence now exist. Broader live/touch coverage, assistive technology, and human acceptance remain open. |
 | Feedback vehicle association failed safely | Resolved | Public Feedback exposes loading/error/empty/retry, creates no fallback vehicles or selection, and only submits an explicitly chosen ID returned by a successful list. Pure and mobile-browser evidence cover failure, recovery, selection, and posted ID. |
 
 ## 4. Audience and Information Boundary
@@ -148,9 +163,9 @@ accessibility certification.
 - T12's Feedback inbox/status/assignment and read-only source-health views implement their bounded
   source/test contract. Preserve server-authorized actions and clear privacy/retention/delete/restore
   controls; runtime/human acceptance remains separate.
-- T14's truth, accessibility/navigation, and measured Public map-quality journeys are complete. The
-  next exact slice is bounded contrast/visual-system governance. Later Admin hierarchy/theme work
-  must identify questions/actions, states, responsive criteria, and research/operations separation.
+- T14's first four journeys are complete. The next exact slice is an Admin shell/Dashboard hierarchy
+  and complementary-theme foundation. It must identify current questions/actions/states and
+  responsive criteria without inventing T11 exceptions or Research data; broader Admin pages stay later.
 
 ## 6. Impeccable Technical Audit
 
@@ -158,17 +173,17 @@ accessibility certification.
 
 | Dimension | Score | Key finding |
 |---|---:|---|
-| Accessibility | 2/4 | Root/dialog/form/sidebar plus scoped reduced-motion/touch evidence exist; contrast, broader live/touch, assistive-technology, and human evidence remain. |
+| Accessibility | 3/4 | Root/dialog/form/sidebar plus scoped motion/touch/contrast evidence exist; broader live/touch, assistive-technology, and human evidence remain. |
 | Performance | 3/4 | Selected-route/deduplicated geometry and owned marker cancellation are tested; raw/external/global assets and deployed budgets remain. |
 | Responsive Design | 3/4 | The measured 320 px collision and audited 44 px targets are corrected while retaining Public visuals; broader device/content/human coverage remains. |
 | Theming | 2/4 | Public tokens exist, while admin/legacy colors and forced light mode remain inconsistent. |
 | Implementation Integrity | 3/4 | Product-specific separation and fail-closed truth projections are tested; duplicated Public/Admin socket lifecycle and broader recovery surfaces remain. |
-| **Total** | **13/20 — Below release baseline** | **0 P0; 3 open P1; 8 P2; 1 P3; 6 P1 and 2 P2 resolved by T14.** |
+| **Total** | **14/20 — Below release baseline** | **0 P0; 2 open P1; 8 P2; 1 P3; 7 P1 and 2 P2 resolved by T14.** |
 
 Implementation integrity verdict: **Improved but not release-ready.** The rider map, source health,
 feedback, and route operations are product-specific, and T14 removes the known false live/zero/
 vehicle claims. Missing exception-first operations, human/assistive-technology evidence, deployed
-recovery, remaining contrast/touch coverage, and human/device evidence keep Dashboard/UX below the
+recovery, broader live/touch coverage, and human/device evidence keep Dashboard/UX below the
 release baseline.
 
 ### 6.2 P1 findings
@@ -191,8 +206,10 @@ release baseline.
    actions remain a separate product gap, not a false-state regression.
 7. **False Feedback vehicle — Resolved.** Failure/empty responses create no option or selection;
    recovery requires a verified response and explicit selection before submit.
-8. **Contrast is not governed end to end.** Low-emphasis slate labels appear on white surfaces, and
-   arbitrary Route colors become backgrounds under small white text without a contrast constraint.
+8. **Contrast governance — Resolved for audited source/browser scope.** One semantic light-surface
+   foreground removes the enumerated non-disabled 400-level failures; one shared badge preserves
+   valid route backgrounds and chooses >=4.5:1 text. Pure 4/4 and browser 2/2 pass. This is not
+   human, assistive-technology, physical-device, dark-theme, or deployed acceptance.
 9. **The Dev/Research Dashboard is absent.** There is no protected route/navigation for session,
    source, device, firmware, time, sample count, missingness, metric definitions, uncertainty,
    drill-down, or bounded export.
@@ -216,7 +233,7 @@ release baseline.
 
 ### 6.4 Detector verification and positive evidence
 
-The final map-quality detector reports one reviewed advisory for the pre-existing tiled `map-bg`
+The final contrast detector reports one reviewed advisory for the pre-existing tiled `map-bg`
 fallback. It is an actual map surface rather than a new decorative grid; the detector still has
 material false negatives and is not accessibility or human acceptance evidence.
 
@@ -233,19 +250,19 @@ technical audit. These are T14 handoff inputs, not implementation authorization.
 
 T9 is Partially Complete for its repository-side handoff under D-008. T10/T12 are complete for exact
 scopes. T11 needs backend/role/lifecycle and external Android evidence. T12 human/runtime acceptance
-remains unverified. T14's first three slices are complete; bounded contrast/visual-system governance
-is next, followed separately by Admin hierarchy/theme work. No new owner decision is required.
+remains unverified. T14's first four slices are complete; a bounded Admin shell/Dashboard hierarchy
+and complementary-theme foundation is next. No new owner decision is required.
 
 Confidence is High for source-visible separation/ownership, Medium for synthetic request/motion/
-viewport evidence, and Low for contrast, assistive technology, user comprehension, real operations,
-devices, and deployed behavior.
+viewport/contrast evidence, and Low for assistive technology, user comprehension, real operations,
+devices, dark-theme behavior, and deployed outcomes.
 
 ## 8. Proposed Owner Decisions and Handoff
 
-No new owner decision is proposed. D-011 binds the next contrast/visual-system slice and the same
-Public/Admin visual limits; this audit does not authorize a broad redesign.
+No new owner decision is proposed. D-011 permits a bounded Admin shell/Dashboard theme foundation;
+the exact handoff must exclude Public UI, broader Admin pages, T11 exceptions, and Research data.
 
-Dashboard & UX is validated at `7aae795...` with current predecessors and the technical audit.
+Dashboard & UX is validated at `f42a2bb...` with current predecessors and the technical audit.
 Production Readiness and Roadmap may consume these results; Security/DevOps/Observability remains
 independently current at `1eec866...`.
 
