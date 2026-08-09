@@ -162,8 +162,48 @@
 
 ## Completion Evidence
 
-- Status: `In Progress`
-- Acceptance mapping: Pending implementation and Main Agent verification.
-- Changed files: Pending; the unrelated dirty Feedback-role migration remains excluded.
-- Validation results: Pending.
-- Audit freshness changes: Pending implementation acceptance.
+- Status: `Complete — D-011 accessibility/navigation slice`
+- Acceptance mapping:
+  - Root boundary → zoom prohibition is removed, the primarily Thai document declares `lang=th`,
+    and the Admin layout declares its English content boundary.
+  - Shared dialog lifecycle → `useModalFocus` is the single typed owner for initial focus,
+    visible/enabled focusable discovery, forward/backward wrapping, current Escape callback, and
+    invoker restoration. Public Feedback/image, Admin Route/Stop/Vehicle/RouteStops, and sensitive
+    Feedback confirmation dialogs all expose a name plus `aria-modal=true` and consume that hook.
+  - Forms and selection → Login/Feedback/CRUD/route-stop/delete/password labels are associated;
+    the internal note has a case-specific accessible name; Feedback categories expose
+    `aria-pressed`; autocomplete is explicit for login/reauthentication credentials.
+  - Public identity → the existing Feedback/image geometry, palette, type, and layout are retained;
+    the stop-image wrapper is a visually unchanged semantic button. No Public redesign occurred.
+  - Mobile Admin navigation → the existing `lg` breakpoint drives `inert`/`aria-hidden` only while
+    the drawer is off-screen on Mobile; the open drawer is a labelled modal with initial/trapped/
+    restored focus, Escape/backdrop/close paths, and `aria-current=page`. Desktop navigation remains
+    visible and interactive. Existing focus suppression was replaced with focus-visible outlines.
+  - Regression contract → T14 Feedback/live-state truth and T8 route/expiry behavior remain green.
+- Changed files: implementation commit `8baa2745d70fa30776b52e6662f4e34105bdf349`
+  contains only the exact allowed frontend, shared-hook, fixture, package/config, and browser-test
+  paths. The empty, visually purposeless StopModal placeholder that triggered the scoped detector was
+  removed within the allowed Admin path. The unrelated dirty Feedback-role migration was preserved
+  and excluded.
+- Validation results:
+  - `npm --prefix shuttle-tracking-web run test:e2e:t14:a11y` — 4/4 passed across Public
+    Feedback/image, Mobile/Desktop Admin drawer, Login/CRUD/RouteStops, and sensitive Feedback focus
+    journeys on 2026-08-09.
+  - `npm --prefix shuttle-tracking-web run test:e2e:t14` — 2/2 truthfulness journeys passed.
+  - `npm --prefix shuttle-tracking-web run test:e2e:t8` — 1/1 route/expiry journey passed.
+  - `npm --prefix shuttle-tracking-web run lint` — zero errors; the two pre-existing warnings in
+    `app/layout.tsx` and `utils/IconHelpers.ts` remain.
+  - `npm --prefix shuttle-tracking-web run build:check` — TypeScript and all 11 static pages passed.
+  - Final scoped Impeccable detector — `[]`.
+  - `bash scripts/ci-checks.sh` — exit 0 after Backend build/boundaries/Prisma, Frontend unit/E2E/
+    lint/build, Compose, production topology, safe-logging, and workflow checks. The new
+    accessibility suite passed 4/4 inside full CI.
+  - `git diff --check` and `node scripts/validate-agent-workflow.js` — passed.
+  - Auxiliary `npx tsc --noEmit` remains incompatible with the repository's existing `.ts`-suffix
+    imports in T8/T9 tests (`TS5097`); it is not a configured gate. Production `next build` TypeScript
+    and the configured focused test compilers passed.
+- Audit freshness changes: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
+  and Roadmap are downgraded to `Needs Re-audit — T14 accessibility` because the slice changes Public
+  and Admin document/dialog/form/navigation behavior plus the shared frontend focus boundary.
+  Backend, Database, Infrastructure & Device, and Security/DevOps/Observability behavior did not
+  change.
