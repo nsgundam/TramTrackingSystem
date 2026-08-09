@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState, memo } from "react";
 import { X, CheckCircle2, MessageSquarePlus, Loader2, RefreshCw, TriangleAlert } from "lucide-react";
 import { backendConnection } from "@/config/backend";
+import { useModalFocus } from "@/hooks/useModalFocus";
 import { resolveVerifiedFeedbackVehicleId } from "@/utils/truthful-ui-state";
 
 interface FeedbackModalProps {
@@ -48,6 +49,11 @@ function FeedbackModal({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const dialogRef = useModalFocus<HTMLDivElement>({
+    active: isOpen,
+    onClose,
+    initialFocusSelector: "[data-modal-initial-focus]",
+  });
 
   const loadVehicles = useCallback(async (signal?: AbortSignal) => {
     setVehicleLoadState("loading");
@@ -134,27 +140,35 @@ function FeedbackModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white text-slate-800 shadow-2xl transition-all border border-slate-100 flex flex-col max-h-[90vh]">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="feedback-dialog-title"
+        tabIndex={-1}
+        className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white text-slate-800 shadow-2xl transition-all border border-slate-100 flex flex-col max-h-[90vh]"
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-2">
-            <MessageSquarePlus className="text-primary" size={22} />
-            <h3 className="text-lg font-bold text-slate-800">ส่งข้อเสนอแนะ / แจ้งปัญหา</h3>
+            <MessageSquarePlus className="text-primary" size={22} aria-hidden="true" />
+            <h3 id="feedback-dialog-title" className="text-lg font-bold text-slate-800">ส่งข้อเสนอแนะ / แจ้งปัญหา</h3>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="ปิดหน้าต่างข้อเสนอแนะ"
-            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+            data-modal-initial-focus
+            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
-            <X size={18} />
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
 
         {/* Content */}
         {isSuccess ? (
-          <div className="flex flex-col items-center justify-center p-10 text-center animate-scale-up">
-            <CheckCircle2 className="text-green-500 mb-4 animate-pulse-dot" size={64} />
+          <div className="flex flex-col items-center justify-center p-10 text-center animate-scale-up" role="status" aria-live="polite">
+            <CheckCircle2 className="text-green-500 mb-4 animate-pulse-dot" size={64} aria-hidden="true" />
             <h4 className="text-xl font-bold text-slate-800 mb-2">ส่งข้อมูลสำเร็จ!</h4>
             <p className="text-slate-500 text-sm">
               ระบบได้รับข้อมูลแล้ว ทีมงานตรวจสอบในวันทำการ แต่ไม่สามารถตอบกลับรายบุคคลได้
@@ -173,16 +187,17 @@ function FeedbackModal({
             </aside>
 
             {/* Selection for Type with Emojis */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+            <fieldset>
+              <legend className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
                 ประเภทการติดต่อ
-              </label>
+              </legend>
               <div className="grid grid-cols-2 gap-2">
                 {FEEDBACK_TYPES.map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => setType(item.id)}
+                    aria-pressed={type === item.id}
                     className={`flex items-center gap-2 p-3 text-sm rounded-xl border text-left transition-all cursor-pointer ${
                       type === item.id
                         ? "border-primary bg-primary/5 text-primary font-semibold shadow-sm"
@@ -193,7 +208,7 @@ function FeedbackModal({
                   </button>
                 ))}
               </div>
-            </div>
+            </fieldset>
 
             {/* Vehicle selection */}
             <div>
@@ -201,14 +216,14 @@ function FeedbackModal({
                 เลือกหมายเลขรถรถราง
               </label>
               {vehicleLoadState === "loading" ? (
-                <div className="flex items-center gap-2 text-slate-400 text-sm py-2">
-                  <Loader2 size={16} className="animate-spin" />
+                <div className="flex items-center gap-2 text-slate-400 text-sm py-2" role="status">
+                  <Loader2 size={16} className="animate-spin" aria-hidden="true" />
                   <span>กำลังโหลดข้อมูลรถ...</span>
                 </div>
               ) : vehicleLoadState === "error" ? (
                 <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">
                   <div className="flex items-start gap-2">
-                    <TriangleAlert className="mt-0.5 shrink-0" size={17} />
+                    <TriangleAlert className="mt-0.5 shrink-0" size={17} aria-hidden="true" />
                     <p>ไม่สามารถโหลดรายชื่อรถได้ จึงยังไม่สามารถผูกข้อเสนอแนะกับรถคันใดได้</p>
                   </div>
                   <button
@@ -216,7 +231,7 @@ function FeedbackModal({
                     onClick={() => void loadVehicles()}
                     className="mt-3 inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 font-semibold text-red-800 transition-colors hover:bg-red-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
                   >
-                    <RefreshCw size={15} />
+                    <RefreshCw size={15} aria-hidden="true" />
                     ลองโหลดรายชื่อรถอีกครั้ง
                   </button>
                 </div>
@@ -228,7 +243,7 @@ function FeedbackModal({
                     onClick={() => void loadVehicles()}
                     className="mt-3 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
                   >
-                    <RefreshCw size={15} />
+                    <RefreshCw size={15} aria-hidden="true" />
                     ลองโหลดรายชื่อรถอีกครั้ง
                   </button>
                 </div>
@@ -286,7 +301,7 @@ function FeedbackModal({
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 size={16} className="animate-spin" />
+                    <Loader2 size={16} className="animate-spin" aria-hidden="true" />
                     <span>กำลังส่งข้อมูล...</span>
                   </>
                 ) : (

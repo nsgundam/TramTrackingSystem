@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { useModalFocus } from "@/hooks/useModalFocus";
 import { Route } from "@/types/route";
 
 interface RouteModalProps {
@@ -22,6 +23,11 @@ export default function RouteModal({
     name: "",
     color: "#3B82F6",
     status: "active",
+  });
+  const dialogRef = useModalFocus<HTMLDivElement>({
+    active: isOpen,
+    onClose,
+    initialFocusSelector: "[data-modal-initial-focus]",
   });
 
   useEffect(() => {
@@ -47,14 +53,27 @@ export default function RouteModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5 sm:p-6 relative max-h-[90vh] overflow-y-auto">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="route-dialog-title"
+        tabIndex={-1}
+        className="bg-white rounded-xl shadow-xl w-full max-w-md p-5 sm:p-6 relative max-h-[90vh] overflow-y-auto"
+      >
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-slate-900 font-display">
+          <h2 id="route-dialog-title" className="text-xl font-bold text-slate-900 font-display">
             {initialData ? "Edit Route" : "Add New Route"}
           </h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-all">
-            <X size={20}/>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close route dialog"
+            data-modal-initial-focus
+            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+          >
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
 
@@ -69,10 +88,11 @@ export default function RouteModal({
 
           {/*ID Input*/}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Route ID</label>
+            <label htmlFor="route-id" className="block text-sm font-medium text-slate-700 mb-1">Route ID</label>
             <input
-            required
-            disabled={!!initialData}
+              id="route-id"
+              required
+              disabled={!!initialData}
               type="text"
               value={formData.id}
               onChange={(e) => setFormData({ ...formData, id: e.target.value })}
@@ -83,8 +103,9 @@ export default function RouteModal({
 
           {/* Route Name */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Route Name</label>
+            <label htmlFor="route-name" className="block text-sm font-medium text-slate-700 mb-1">Route Name</label>
             <input
+              id="route-name"
               required
               type="text"
               value={formData.name}
@@ -96,9 +117,10 @@ export default function RouteModal({
 
           {/* Route Color */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Route Color</label>
+            <label htmlFor="route-color" className="block text-sm font-medium text-slate-700 mb-1">Route Color</label>
             <div className="flex items-center gap-3">
               <input
+                id="route-color"
                 required
                 type="color"
                 value={formData.color}
@@ -111,8 +133,9 @@ export default function RouteModal({
 
           {/* Route Status */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+            <label htmlFor="route-status" className="block text-sm font-medium text-slate-700 mb-1">Status</label>
             <select
+              id="route-status"
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value})}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-slate-700"

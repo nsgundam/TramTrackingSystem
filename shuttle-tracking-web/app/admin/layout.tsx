@@ -24,11 +24,14 @@ export default function AdminLayout({
             <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-slate-900 text-white flex items-center justify-between px-4 z-40 border-b border-slate-800 shadow-sm">
               <div className="flex items-center gap-3">
                 <button
+                  type="button"
                   onClick={() => setIsSidebarOpen(true)}
-                  className="p-2 -ml-2 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition-colors focus:outline-none"
+                  className="p-2 -ml-2 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
                   aria-label="Open sidebar"
+                  aria-controls="admin-sidebar"
+                  aria-expanded={isSidebarOpen}
                 >
-                  <Menu size={24} />
+                  <Menu size={24} aria-hidden="true" />
                 </button>
                 <span className="font-bold text-lg text-blue-400">Shuttle Admin</span>
               </div>
@@ -39,6 +42,7 @@ export default function AdminLayout({
             {isSidebarOpen && (
               <div
                 onClick={() => setIsSidebarOpen(false)}
+                aria-hidden="true"
                 className="lg:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 transition-opacity duration-300"
               />
             )}
@@ -49,6 +53,7 @@ export default function AdminLayout({
         )}
 
         <main
+          lang="en"
           className={
             isLoginPage
               ? "h-screen w-full"

@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { ArchiveRestore, Loader2, RefreshCw, ShieldAlert, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useModalFocus } from "@/hooks/useModalFocus";
 import api from "@/services/api";
 
 type FeedbackStatus = "new" | "acknowledged" | "investigating" | "resolved" | "duplicate" | "rejected";
@@ -59,6 +60,14 @@ export default function FeedbackInboxPage() {
   const [password, setPassword] = useState("");
   const [deleteReason, setDeleteReason] = useState<DeleteReason>("privacy_request");
   const [submitting, setSubmitting] = useState(false);
+  const confirmationDialogRef = useModalFocus<HTMLFormElement>({
+    active: Boolean(confirmation),
+    onClose: () => {
+      if (!submitting) setConfirmation(null);
+    },
+    closeOnEscape: !submitting,
+    initialFocusSelector: "[data-modal-initial-focus]",
+  });
 
   const load = async () => {
     setLoading(true);
@@ -139,7 +148,7 @@ export default function FeedbackInboxPage() {
       </div>
 
       <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900">Do not add rider contact data or copy feedback content into external tools. Feedback/case data is retained for at most 180 days; deletion is recoverable for 30 days.</div>
-      {error && <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
+      {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
 
       {loading ? (
         <div className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-12 text-slate-500"><Loader2 className="animate-spin" size={18} /> Loading inbox…</div>
@@ -159,7 +168,7 @@ export default function FeedbackInboxPage() {
                 <button onClick={() => { setConfirmation({ action: "delete", caseItem }); setPassword(""); }} className="inline-flex items-center justify-center gap-2 rounded-lg border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50"><Trash2 size={15} /> Delete</button>
               </div>
               <div className="mt-4 grid gap-3 border-t border-slate-100 pt-4 lg:grid-cols-[1fr_auto]">
-                <textarea value={noteDrafts[caseItem.id] ?? caseItem.internalNote ?? ""} onChange={(event) => setNoteDrafts((current) => ({ ...current, [caseItem.id]: event.target.value }))} maxLength={2000} rows={2} placeholder="Bounded internal case note" className="w-full rounded-lg border border-slate-200 p-3 text-sm text-slate-700 focus:border-blue-500 focus:outline-none" />
+                <textarea aria-label={`Internal note for feedback ${caseItem.id}`} value={noteDrafts[caseItem.id] ?? caseItem.internalNote ?? ""} onChange={(event) => setNoteDrafts((current) => ({ ...current, [caseItem.id]: event.target.value }))} maxLength={2000} rows={2} placeholder="Bounded internal case note" className="w-full rounded-lg border border-slate-200 p-3 text-sm text-slate-700 focus:border-blue-500 focus:outline-none" />
                 <div className="flex flex-wrap items-start gap-2">
                   <button onClick={() => void updateCase(caseItem)} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Save note</button>
                   {nextStatuses[caseItem.status].map((status) => <button key={status} onClick={() => void updateCase(caseItem, status)} className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700">Mark {status}</button>)}
@@ -185,12 +194,21 @@ export default function FeedbackInboxPage() {
 
       {confirmation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
-          <form onSubmit={(event) => void confirmSensitiveAction(event)} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            <div className="flex items-center gap-3 text-slate-900"><ShieldAlert className="text-amber-600" /><h2 className="text-lg font-bold">Recent authentication required</h2></div>
-            <p className="mt-3 text-sm text-slate-600">Confirm your current password to {confirmation.action} this feedback case. The refreshed authorization is valid for 15 minutes.</p>
-            {confirmation.action === "delete" && <label className="mt-4 block text-sm font-medium text-slate-700">Deletion reason<select value={deleteReason} onChange={(event) => setDeleteReason(event.target.value as DeleteReason)} className="mt-1 w-full rounded-lg border border-slate-200 p-3">{Object.entries(reasonLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>}
-            <label className="mt-4 block text-sm font-medium text-slate-700">Current password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required className="mt-1 w-full rounded-lg border border-slate-200 p-3" /></label>
-            <div className="mt-6 flex justify-end gap-3"><button type="button" onClick={() => setConfirmation(null)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Cancel</button><button type="submit" disabled={submitting} className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">{submitting && <Loader2 className="animate-spin" size={15} />}{confirmation.action === "delete" ? "Delete" : "Restore"}</button></div>
+          <form
+            ref={confirmationDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="feedback-confirmation-title"
+            aria-describedby="feedback-confirmation-description"
+            tabIndex={-1}
+            onSubmit={(event) => void confirmSensitiveAction(event)}
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+          >
+            <div className="flex items-center gap-3 text-slate-900"><ShieldAlert className="text-amber-600" aria-hidden="true" /><h2 id="feedback-confirmation-title" className="text-lg font-bold">Recent authentication required</h2></div>
+            <p id="feedback-confirmation-description" className="mt-3 text-sm text-slate-600">Confirm your current password to {confirmation.action} this feedback case. The refreshed authorization is valid for 15 minutes.</p>
+            {confirmation.action === "delete" && <label htmlFor="feedback-delete-reason" className="mt-4 block text-sm font-medium text-slate-700">Deletion reason<select id="feedback-delete-reason" value={deleteReason} onChange={(event) => setDeleteReason(event.target.value as DeleteReason)} className="mt-1 w-full rounded-lg border border-slate-200 p-3">{Object.entries(reasonLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>}
+            <label htmlFor="feedback-current-password" className="mt-4 block text-sm font-medium text-slate-700">Current password<input id="feedback-current-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required className="mt-1 w-full rounded-lg border border-slate-200 p-3" /></label>
+            <div className="mt-6 flex justify-end gap-3"><button type="button" onClick={() => setConfirmation(null)} disabled={submitting} data-modal-initial-focus className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-60">Cancel</button><button type="submit" disabled={submitting} className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">{submitting && <Loader2 className="animate-spin" size={15} aria-hidden="true" />}{confirmation.action === "delete" ? "Delete" : "Restore"}</button></div>
           </form>
         </div>
       )}

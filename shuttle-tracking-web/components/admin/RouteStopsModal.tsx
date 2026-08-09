@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ListOrdered, Loader2, Plus, Trash2, X } from "lucide-react";
+import { useModalFocus } from "@/hooks/useModalFocus";
 import api from "@/services/api";
 import { Route } from "@/types/route";
 import { Stop } from "@/types/stop";
@@ -35,6 +36,14 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dialogRef = useModalFocus<HTMLDivElement>({
+    active: Boolean(route),
+    onClose: () => {
+      if (!saving) onClose();
+    },
+    closeOnEscape: !saving,
+    initialFocusSelector: "[data-modal-initial-focus]",
+  });
 
   useEffect(() => {
     if (!route) return;
@@ -123,12 +132,19 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-5 shadow-xl sm:p-6">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="route-stops-dialog-title"
+        tabIndex={-1}
+        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-5 shadow-xl sm:p-6"
+      >
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-blue-700">
               <ListOrdered size={20} aria-hidden="true" />
-              <h2 className="text-xl font-bold text-slate-900">Route stops</h2>
+              <h2 id="route-stops-dialog-title" className="text-xl font-bold text-slate-900">Route stops</h2>
             </div>
             <p className="mt-1 text-sm text-slate-500">
               Arrange the published stop order for {route.name} ({route.id}).
@@ -139,7 +155,8 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
             onClick={onClose}
             disabled={saving}
             aria-label="Close route stops manager"
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed"
+            data-modal-initial-focus
+            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
           >
             <X size={20} aria-hidden="true" />
           </button>
@@ -153,9 +170,10 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
         ) : (
           <>
             <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:flex sm:items-end sm:gap-3">
-              <label className="block flex-1 text-sm font-medium text-slate-700">
+              <label htmlFor="route-stop-selection" className="block flex-1 text-sm font-medium text-slate-700">
                 Add active stop
                 <select
+                  id="route-stop-selection"
                   value={selectedStopId}
                   onChange={(event) => setSelectedStopId(event.target.value)}
                   className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"

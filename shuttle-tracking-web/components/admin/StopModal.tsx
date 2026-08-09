@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { useModalFocus } from "@/hooks/useModalFocus";
 import { Stop } from "@/types/stop";
 
 interface StopModalProps {
@@ -24,6 +25,11 @@ export default function StopModal({
     lat: "", 
     lng: "",
     imageUrl: "",
+  });
+  const dialogRef = useModalFocus<HTMLDivElement>({
+    active: isOpen,
+    onClose,
+    initialFocusSelector: "[data-modal-initial-focus]",
   });
 
   useEffect(() => {
@@ -62,14 +68,27 @@ export default function StopModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
-      <div className="bg-white/95 backdrop-blur-lg border border-slate-200/50 rounded-2xl shadow-xl w-full max-w-lg p-6 relative max-h-[90vh] overflow-y-auto">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="stop-dialog-title"
+        tabIndex={-1}
+        className="bg-white/95 backdrop-blur-lg border border-slate-200/50 rounded-2xl shadow-xl w-full max-w-lg p-6 relative max-h-[90vh] overflow-y-auto"
+      >
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-slate-900 font-display">
+          <h2 id="stop-dialog-title" className="text-xl font-bold text-slate-900 font-display">
             {initialData ? "Edit Stop" : "Add New Stop"}
           </h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-all">
-            <X size={20} />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close stop dialog"
+            data-modal-initial-focus
+            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+          >
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
 
@@ -78,8 +97,9 @@ export default function StopModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* ID Input */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Stop ID</label>
+              <label htmlFor="stop-id" className="block text-sm font-medium text-slate-700 mb-1">Stop ID</label>
               <input
+                id="stop-id"
                 required
                 disabled={!!initialData}
                 type="text"
@@ -92,8 +112,9 @@ export default function StopModal({
 
             {/* Name TH */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Name (TH)</label>
+              <label htmlFor="stop-name-th" className="block text-sm font-medium text-slate-700 mb-1">Name (TH)</label>
               <input
+                id="stop-name-th"
                 required
                 type="text"
                 value={formData.nameTh}
@@ -105,8 +126,9 @@ export default function StopModal({
 
             {/* Name EN */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Name (EN)</label>
+              <label htmlFor="stop-name-en" className="block text-sm font-medium text-slate-700 mb-1">Name (EN)</label>
               <input
+                id="stop-name-en"
                 type="text"
                 value={formData.nameEn}
                 onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
@@ -117,8 +139,9 @@ export default function StopModal({
 
             {/* Latitude */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Latitude</label>
+              <label htmlFor="stop-latitude" className="block text-sm font-medium text-slate-700 mb-1">Latitude</label>
               <input
+                id="stop-latitude"
                 required
                 type="number"
                 step="any"
@@ -131,8 +154,9 @@ export default function StopModal({
 
             {/* Longitude */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Longitude</label>
+              <label htmlFor="stop-longitude" className="block text-sm font-medium text-slate-700 mb-1">Longitude</label>
               <input
+                id="stop-longitude"
                 required
                 type="number"
                 step="any"
@@ -141,9 +165,6 @@ export default function StopModal({
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm text-slate-700"
                 placeholder="100.5332"
               />
-            </div>
-            
-            <div className="col-span-2 text-xs text-slate-500 bg-blue-50 p-2 rounded-lg">
             </div>
           </div>
 

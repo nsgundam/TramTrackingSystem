@@ -44,7 +44,13 @@ const routes = [
 
 const stops = {
   R01: [
-    { id: "r01-1", name: "R01 Start", lat: 13.98, lng: 100.58 },
+    {
+      id: "r01-1",
+      name: "R01 Start",
+      lat: 13.98,
+      lng: 100.58,
+      imageUrl: "data:image/gif;base64,R0lGODlhAQABAAAAACw=",
+    },
     { id: "r01-2", name: "R01 End", lat: 13.981, lng: 100.581 },
   ],
   R02: [

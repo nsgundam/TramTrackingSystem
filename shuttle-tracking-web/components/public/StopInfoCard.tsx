@@ -1,6 +1,7 @@
 "use client";
 import { useState, memo } from "react";
 import ReactDOM from "react-dom";
+import { useModalFocus } from "@/hooks/useModalFocus";
 import { Stop } from "@/types";
 
 interface StopInfoCardProps {
@@ -30,6 +31,11 @@ const CLOSE_BTN_STYLE: React.CSSProperties = {
 
 function StopInfoCard({ targetStop, eta }: StopInfoCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const dialogRef = useModalFocus<HTMLDivElement>({
+    active: isModalOpen,
+    onClose: () => setIsModalOpen(false),
+    initialFocusSelector: "[data-modal-initial-focus]",
+  });
 
   if (!targetStop) return null;
 
@@ -54,8 +60,24 @@ function StopInfoCard({ targetStop, eta }: StopInfoCardProps) {
       {/* --- ส่วนของ Modal รูปภาพ --- */}
       {isModalOpen && imgUrl && typeof document !== "undefined" && ReactDOM.createPortal(
         <div onClick={() => setIsModalOpen(false)} style={MODAL_OVERLAY_STYLE}>
-          <div onClick={(e) => e.stopPropagation()} style={MODAL_CONTENT_STYLE}>
-            <button onClick={() => setIsModalOpen(false)} style={CLOSE_BTN_STYLE} title="ปิดรูปภาพ">×</button>
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`รูปขยาย ${targetStop.nameTh || targetStop.name}`}
+            tabIndex={-1}
+            onClick={(e) => e.stopPropagation()}
+            style={MODAL_CONTENT_STYLE}
+          >
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              style={CLOSE_BTN_STYLE}
+              aria-label="ปิดรูปภาพ"
+              data-modal-initial-focus
+            >
+              <span aria-hidden="true">×</span>
+            </button>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src={imgUrl} 
@@ -68,14 +90,17 @@ function StopInfoCard({ targetStop, eta }: StopInfoCardProps) {
       )}
 
       {imgUrl && (
-        <div 
-          className="w-full h-21.25 sm:h-30 rounded-lg overflow-hidden bg-surface-dim/30 cursor-pointer" 
-          onClick={() => setIsModalOpen(true)} 
+        <button
+          type="button"
+          className="block w-full h-21.25 sm:h-30 rounded-lg overflow-hidden bg-surface-dim/30 cursor-pointer border-0 p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          onClick={() => setIsModalOpen(true)}
+          aria-haspopup="dialog"
+          aria-label={`ขยายรูป ${targetStop.nameTh || targetStop.name}`}
           title="คลิกเพื่อขยายรูป"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={imgUrl} alt={targetStop.nameTh || "รูปป้าย"} className="w-full h-full object-cover" />
-        </div>
+        </button>
       )}
 
       <div className="flex flex-col gap-1">
