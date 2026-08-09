@@ -178,9 +178,46 @@
 
 ## Completion Evidence
 
-- Status: `Ready for measurement-first implementation`
-- Acceptance mapping: Pending.
-- Changed files: task-contract/Roadmap coordination only.
-- Validation results: pre-implementation scoped Impeccable detector returned `[]`; workflow and
-  whitespace validation are required before handoff commit.
-- Audit freshness result: Pending implementation acceptance and Level 1 re-audit.
+- Status: `Complete — Admin Dashboard foundation slice`
+- Acceptance mapping:
+  - Theme boundary → `admin.css` defines an Admin-only `RSU Operations` semantic palette and scoped
+    shell/component language. Login and every Public file remain unchanged; computed ink, muted,
+    primary, and focus ratios pass the focused browser contract.
+  - Information hierarchy → verified/unavailable Dashboard state remains first, the canonical map
+    precedes configured inventory in DOM and visual order, and the desktop map column is wider than
+    its supporting rail. Counts remain explicitly master-data values rather than live claims.
+  - Existing actions only → Dashboard shortcuts link only to `/admin/devices` and
+    `/admin/vehicles`; no T11 exception, trip/history/recovery, Research, or fabricated alert data
+    is rendered.
+  - Responsive/focus continuity → 390 px has no horizontal overflow, map/status surfaces remain in
+    bounds without colliding with Leaflet zoom controls, and the Mobile drawer retains inert,
+    focus-trap, Escape, restoration, current-page, role-filtering, and logout behavior.
+  - Canonical truth continuity → snapshot-first reconciliation, realtime status, local expiry,
+    state counts, retry, markers, and source expressions remain. Full CI caught one T6 static source
+    contract broken by presentational markup; the markup was repaired and both boundary/browser
+    truth checks passed before final acceptance.
+- Changed files: implementation commit `9411e3674106c52a076ff1de5320c95e989fa3f5` contains only the
+  eight exact Admin stylesheet/shell/Dashboard/LiveMap/Sidebar/package/config/browser-test paths.
+  The unrelated dirty Feedback-role migration was preserved and excluded.
+- Validation results:
+  - Measurement-first Admin browser baseline failed 2/2 because the incumbent shell had no
+    `rsu-operations` theme boundary. Corrected browser tests pass 2/2 at 1280 x 900 and 390 x 844,
+    covering hierarchy, computed semantic tokens/contrast, solid presentation, existing shortcuts,
+    overflow, map-overlay bounds, zoom-control separation, and drawer focus continuity.
+  - Visual QA inspected synthetic Chromium desktop/Mobile captures; the final scoped Impeccable
+    detector returned `[]` before and after responsive polish.
+  - `npm --prefix shuttle-tracking-web run check` passed simulator 4/4, T8 unit 2/2, T9 unit 5/5,
+    truth unit 5/5, motion 4/4, contrast 4/4, T8 browser 1/1, truth 2/2, accessibility 4/4,
+    map-quality 2/2, contrast 2/2, Admin Dashboard 2/2, lint, and the 11-route production build.
+    Lint retains only the same two pre-existing warnings in `app/layout.tsx` and
+    `utils/IconHelpers.ts`.
+  - The first full-CI run caught the T6 source-expression regression; after repair, the focused T6
+    boundary and truth browser 2/2 passed, then `bash scripts/ci-checks.sh` passed Backend build and
+    boundaries, Prisma validation, every Frontend check, Compose, production topology, unsafe-log
+    scan, and workflow validation.
+  - `git diff --check`, `node scripts/validate-agent-workflow.js`, and final exact staging review
+    passed. Evidence is local/synthetic, not human or assistive-technology acceptance, a physical-
+    device/dark-theme matrix, or deployed runtime proof.
+- Audit freshness result: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
+  and Roadmap are downgraded to `Needs Re-audit` against implementation `9411e36`. Backend,
+  Database, Infrastructure & Device, and Security/DevOps/Observability behavior is unchanged.

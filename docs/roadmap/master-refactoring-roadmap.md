@@ -15,7 +15,7 @@ Audit metadata:
 
 Last reviewed: 2026-08-09
 
-Validation state: **Complete / Validated**. T9's repository handoff is independently revalidated and remains
+Validation state: **Needs Re-audit after bounded T14 implementation `9411e36`**. T9's repository handoff is independently revalidated and remains
 partially complete because its University Server/Network acceptance checklist has not been executed.
 T10 and T12 are complete for their exact bounded source/test scopes. T12 applies D-009/D-010:A
 through a reviewed migration, persisted server RBAC/fresh-auth, feedback lifecycle/retention/audit
@@ -31,9 +31,10 @@ measured map-quality slice is implemented at `c5b2e69`: initial geometry is sele
 marker motion is cancellable/reduced-motion-aware, and measured 320 px/touch targets pass. Product,
 Architecture, Frontend, Dashboard & UX, Production Readiness, and this Roadmap are revalidated at
 `f42a2bb...`; the score is 14/20. The contrast/color-governance slice at `799905f` passes pure 4/4,
-browser 2/2, every prior regression, and full CI. A bounded Admin shell/Dashboard hierarchy and
-complementary-theme foundation is the next eligible T14 slice; Public UI, T11 exceptions, Research,
-and broader Admin pages remain outside it. D-012
+browser 2/2, every prior regression, and full CI. The bounded Admin shell/Dashboard hierarchy and
+complementary-theme foundation is implemented at `9411e36`; focused browser 2/2 and full CI pass,
+while Public UI, T11 exceptions, Research, and broader Admin pages remain outside it. The affected
+audit chain must be revalidated before selecting another T14 slice. D-012
 fixes later lifecycle policy without implementing it. T15 remains deferred behind T13 and physical/
 provider facts.
 
@@ -139,7 +140,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T11 | Blocked — cross-repository/external evidence | The v3 brief pins a partially compatible native app. Static-secret storage, backup/cleartext, task-removal and missing enrollment/claim/recovery gaps require a coordinated exact handoff plus writable Mobile/Android target and device acceptance. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
 | T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
-| T14 | Partially Complete — Admin Dashboard handoff ready | The first four slices are accepted at `f42a2bb...`; `docs/tasks/T14-admin-dashboard-foundation.md` binds the next exact shell/Dashboard-only slice. |
+| T14 | Partially Complete — Admin Dashboard slice implemented; re-audit pending | The first four slices are accepted at `f42a2bb...`; exact implementation `9411e36` passes browser/full CI and now requires affected-chain revalidation. |
 | T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
 
 ### Approved-batch continuation gate
@@ -149,13 +150,13 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Eligible exact implementation | Execute `docs/tasks/T14-admin-dashboard-foundation.md`; exclude Public UI, T11 exceptions, Research, and broader Admin pages. |
+| T14 | Re-audit required before continuation | Validate `9411e36` against the exact handoff and select the next eligible bounded slice without adding Public UI, T11 exceptions, Research, or broader Admin pages. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
-Batch result: T14's contrast/color-governance slice and affected chain are revalidated at
+Batch result: T14's contrast/color-governance slice and prior affected chain are revalidated at
 `f42a2bb...`. T9/T13 remain deferred without dependency bypass; T11/T15 remain blocked. The bounded
-Admin shell/Dashboard theme foundation handoff is ready for measurement-first implementation;
-broader Admin pages remain later slices.
+Admin shell/Dashboard theme foundation is implemented and accepted at `9411e36`; affected audits
+are stale until Level 1 revalidation, and broader Admin pages remain later slices.
 
 ## 4. Dependency Map
 
@@ -1296,7 +1297,8 @@ component/accessibility checks, and desktop/mobile browser smoke tests.
 ### Status
 
 Partially Complete — the D-011 truth/integrity, accessibility/navigation, measured Public map-
-quality, and contrast/color-governance slices are revalidated at `f42a2bb...`. The map-quality handoff is
+quality, and contrast/color-governance slices are revalidated at `f42a2bb...`; the Admin Dashboard
+foundation is implemented at `9411e36` with affected-chain re-audit pending. The map-quality handoff is
 `docs/tasks/T14-measured-public-map-quality.md`, covering measured route/map performance, reduced
 motion, narrow-screen collision, and audited touch targets. The exact handoff
 `docs/tasks/T14-truthful-feedback-and-live-state.md` records the bounded Public/Admin paths,
@@ -1304,7 +1306,7 @@ acceptance mapping, and remaining human/runtime limits.
 `docs/tasks/T14-accessible-dialogs-and-navigation.md` records the second slice's paths, acceptance,
 and verification. `docs/tasks/T14-contrast-and-color-governance.md` records the fourth slice's exact
 paths and passing evidence. `docs/tasks/T14-admin-dashboard-foundation.md` now binds the Admin-only
-shell/Dashboard theme and hierarchy paths, tests, invariants, and stop conditions.
+shell/Dashboard theme and hierarchy paths, tests, invariants, stop conditions, and completion evidence.
 
 ### Evidence
 
@@ -1340,6 +1342,14 @@ and exact source/browser guards. The measurement-first browser baseline failed a
 shared badges; final pure tests pass 4/4 and browser journeys 2/2. All prior frontend checks, the
 11-page build, and full repository CI pass. The detector retains only the reviewed actual-map
 fallback advisory. Human/assistive-technology/device/dark-theme/deployed acceptance remains absent.
+
+Commit `9411e36` adds a scoped `RSU Operations` Admin theme, a map-first Dashboard hierarchy,
+configured-inventory rail, existing Source Health/Vehicle shortcuts, consolidated responsive map
+status, and desktop/Mobile browser evidence. Measurement-first browser tests moved from 2/2 failing
+to 2/2 passing; every prior frontend suite, the 11-route build, final detector `[]`, and full CI pass
+after repairing the T6 exact source-expression regression found by the first CI run. Public files,
+T11 operations, Research data, broader Admin pages, APIs/auth, backend/schema, and external targets
+remain unchanged. Human/assistive-technology/device/dark-theme/deployed acceptance remains absent.
 
 ## 9. Phase 5 — Future Enhancements
 
