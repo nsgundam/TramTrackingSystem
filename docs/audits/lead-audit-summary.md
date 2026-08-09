@@ -2,11 +2,12 @@
 
 Last updated: 2026-08-10
 
-Coordination status: **T14's truth, accessibility/navigation, measured Public map-quality, and
-contrast/color-governance plus Admin Dashboard foundation and every affected audit are revalidated;
-bounded Public service explanation/recovery is the next eligible lane; production remains No-Go.** Product,
+Coordination status: **T14's truth, accessibility/navigation, measured Public map-quality,
+contrast/color-governance, Admin Dashboard foundation, Public service explanation/recovery, and
+every affected audit are revalidated; bounded Admin master-data theme convergence is the next
+eligible lane; production remains No-Go.** Product,
 Architecture, Frontend, Dashboard & UX, Production Readiness, and Roadmap are current at
-`0a0fe58...`; unaffected Level 1 records remain current at `1eec866...`.
+`db72310...`; unaffected Level 1 records remain current at `1eec866...`.
 The owner defers T9 continuation and T13 without satisfying their external gates. T11 now has pinned
 native Mobile source but remains blocked on coordinated implementation, writable Mobile/Android
 acceptance authority, and a device report. D-012 is approved but unimplemented. T15 remains deferred
@@ -17,7 +18,8 @@ credential-rotation, UX-acceptance, or physical-device proof.
 
 This update supersedes prior active coordination statements while retaining the historical snapshots
 below. The immutable source baseline is
-`0a0fe58a59dbdcfc1a4cc59c7d71cb9b4b74639d`; the unrelated dirty Feedback-role migration is
+`db723107e024fb293f75dc2268ba7a3c4f6f3bbe`; implementation `bf80308` supplies the changed Public
+evidence; the unrelated dirty Feedback-role migration is
 preserved and excluded.
 
 - D-011 approves data integrity/truthful Public/Admin state as T14's first slice, preserves Public
@@ -33,16 +35,18 @@ preserved and excluded.
 - Infrastructure & Device records the build as Unable to Verify without Android SDK and retains all
   ESP32/LoRaWAN/provider/field unknowns. Security records SEC-08 High for external Mobile credential,
   backup, cleartext, and lifecycle gaps.
-- T14's first five handoffs are complete: fail-closed/truth projections; root zoom/language and
+- T14's first six handoffs are complete: fail-closed/truth projections; root zoom/language and
   scoped dialog/form/focus/navigation; selected-route request budgets; owned/reduced marker and map
   motion; a non-colliding 320 px Public layout; audited 44 px targets; and scoped light-surface/route-
   badge contrast; plus an Admin-only semantic theme, map-first hierarchy, configured inventory, and
-  existing safe shortcuts pass focused browser/unit and full-CI evidence. Public identity remains
-  intact. The Dashboard & UX score is 15/20; two P1, eight P2, and one P3 remain open.
+  existing safe shortcuts; plus Public snapshot/connection explanation, canonical last-update age,
+  state-aware ETA/StopInfo, guarded Retry, and slow-load recovery pass focused browser/unit and
+  full-CI evidence. Public identity remains intact. The Dashboard & UX score is 15/20; one P1,
+  eight P2, and one P3 remain open.
 - Production Readiness remains No-Go. T9/T13 are deferred by owner, not completed; T11/T12 runtime,
   SEC-08, UX, operations, device/provider and field gates remain.
-- Roadmap revalidation selects bounded Public service explanation/recovery next without bypassing
-  T9/T11/T13/T15, changing Public visual identity, or inventing dependency/exception/Research data.
+- Roadmap revalidation selects bounded Admin master-data theme convergence next without bypassing
+  T9/T11/T13/T15 or changing Public/Login, API/auth/schema, or owner-controlled behavior.
 
 The controlled local demo remains Conditional only; research field trials, daily operations, and
 public service remain No-Go.
@@ -69,27 +73,28 @@ now supersedes that release assumption without changing the already-tested T6 co
 ## 2. Current profile status
 
 - Discovery: **Complete / Validated** at `1eec866...`; owner decisions and pinned external Mobile facts are current.
-- Product: **Complete / Validated** at `0a0fe58...`; five T14 journeys are revalidated and Mobile remains partial.
-- Architecture: **Complete / Validated** at `0a0fe58...`; canonical, focus, motion, selected-route, display-color, and Admin presentation boundaries are current.
+- Product: **Complete / Validated** at `db72310...`; six T14 journeys are revalidated and Mobile remains partial.
+- Architecture: **Complete / Validated** at `db72310...`; canonical, focus, motion, selected-route, display-color, Admin presentation, and Public recovery boundaries are current.
 - Backend: **Complete / Validated** at `1eec866...`; current sender contract and missing T11 lifecycle are revalidated.
-- Frontend: **Complete / Validated** at `0a0fe58...`; five T14 slices are verified, Public identity is preserved, and the source score is 15/20.
+- Frontend: **Complete / Validated** at `db72310...`; six T14 slices are verified, Public identity is preserved, and the source score is 15/20.
 - Database: **Complete / Validated** at `1eec866...`; D-012 target invariants are approved but absent from schema/runtime.
 - Infrastructure & Device: **Complete / Validated** at `1eec866...`; native source is partial and Android runtime remains unverified.
-- Dashboard & UX: **Complete / Validated** at `0a0fe58...`; seven P1/two P2 are resolved, the theme P2 is narrowed, and Public explanation is next.
+- Dashboard & UX: **Complete / Validated** at `db72310...`; eight P1/two P2 are resolved, the theme P2 is narrowed, and Admin master-data convergence is next.
 - Security, DevOps & Observability: **Complete / Validated** at `1eec866...`; SEC-08 is open and D-012 controls are unimplemented.
-- Production Readiness: **Complete / Validated / No-Go** at `0a0fe58...`; external/release gates remain open.
-- Roadmap: **Complete / Validated** at `0a0fe58...`; bounded Public explanation/recovery is next.
+- Production Readiness: **Complete / Validated / No-Go** at `db72310...`; external/release gates remain open.
+- Roadmap: **Complete / Validated** at `db72310...`; bounded Admin master-data theme convergence is next.
 
 ## 3. Evidence and validation
 
-Current validation passed Admin Dashboard Playwright 2/2, T14 contrast unit 4/4 and Playwright 2/2,
-motion unit 4/4, map-quality Playwright 2/2, truth Playwright 2/2, accessibility Playwright 4/4, the
+Current validation passed Public recovery truth unit 8/8 and Playwright 2/2, Admin Dashboard
+Playwright 2/2, T14 contrast unit 4/4 and Playwright 2/2, motion unit 4/4, map-quality Playwright
+2/2, truth Playwright 2/2, accessibility Playwright 4/4, the
 T8 browser regression 1/1,
 and full `bash scripts/ci-checks.sh`:
 backend build/boundaries/Prisma,
 frontend tests/E2E/lint/production build, development/production Compose, topology, unsafe dynamic-
-log scan, and workflow validation. Frontend lint retains two existing warnings; the final Admin-
-foundation detector returned `[]`, while the broader contrast detector retains one reviewed actual-
+log scan, and workflow validation. Frontend lint retains two existing warnings; the final Public-
+recovery detector returned `[]`, while the broader contrast detector retains one reviewed actual-
 map fallback advisory and no blocking result. No required check failed. These are synthetic/local
 checks, not human, physical-device, network-budget, or deployed acceptance.
 
@@ -132,8 +137,8 @@ one TLS origin, private data services, application-team artifact/migration/runbo
 University Server/Network infrastructure/recovery/operations ownership. Its external acceptance
 checklist remains unverified. The repository-side T9 handoff is implemented and revalidated by every
 audit profile, but T9 cannot be completed from static tests alone. The owner defers T9 continuation
-and T13 without satisfying those gates. T14's first five slices are complete and revalidated while
-preserving Public identity; bounded Public service explanation/recovery is the next eligible action.
+and T13 without satisfying those gates. T14's first six slices are complete and revalidated while
+preserving Public identity; bounded Admin master-data theme convergence is the next eligible action.
 T11 remains blocked on coordinated Mobile/Backend implementation and Android acceptance,
 and T15 awaits physical facts and T13. A later
 approved target may supply T12 runtime evidence but does not bypass these gates or grant deployment

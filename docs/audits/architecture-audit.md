@@ -1,7 +1,7 @@
 # Architecture Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 0a0fe58a59dbdcfc1a4cc59c7d71cb9b4b74639d
+- Evidence baseline: db723107e024fb293f75dc2268ba7a3c4f6f3bbe
 - Evidence scope: docs/project-knowledge-base.md, docs/audits/product-audit.md,
   docs/decision-queue.md, docs/research/, docs/tasks/, docs/operations/, README.md,
   Compose/environment configuration and scripts, shuttle-tracking-backend/src/,
@@ -10,12 +10,32 @@ Audit metadata:
   shuttle-tracking-web/types/, shuttle-tracking-web/services/,
   shuttle-tracking-web/components/, shuttle-tracking-web/tests/, and the T11 v3 external Mobile
   compatibility brief
-- Reviewed at: 2026-08-10T00:41:42+07:00
+- Reviewed at: 2026-08-10T01:49:03+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/project-knowledge-base.md @ 1eec86602c40c859d50dd9d369f636b103b6896f;
-  docs/audits/product-audit.md @ 0a0fe58a59dbdcfc1a4cc59c7d71cb9b4b74639d
+  docs/audits/product-audit.md @ db723107e024fb293f75dc2268ba7a3c4f6f3bbe
 
-## 2026-08-10 T14 Admin Dashboard foundation re-audit
+## 2026-08-10 T14 Public service explanation/recovery re-audit
+
+Product is revalidated at `db72310...`; Discovery remains current at `1eec866...`. The sixth T14
+slice adds a typed `PublicVehicleSnapshotState` and one pure Public presentation projection that
+combines the existing snapshot outcome, Socket.IO connection state, canonical service state, and
+accepted canonical timestamp. `useShuttleTracker` remains the snapshot/realtime owner; Retry calls
+the existing snapshot boundary and guards overlapping requests rather than creating another data
+authority. ETA remains numeric only for authoritative connected-live input.
+
+The change adds no dependency, endpoint, schema, persistence, cache, authorization, canonical-state
+model, external asset origin, or backend/mobile behavior. It deliberately cannot identify a route-
+or dependency-specific failure cause because no such contract exists. Pure 8/8, Public browser 2/2,
+the 11-route build, and full repository CI establish local state projection and recovery behavior
+only; deployed transport/recovery, history/exceptions, human comprehension, and assistive-
+technology evidence remain open.
+
+The next eligible architecture-safe unit is a bounded Admin master-data presentation convergence
+slice that reuses the existing `.admin-shell` semantic tokens and current page/API/auth ownership.
+It must exclude Public/Login, T11/Research, schema/API/auth changes, and any second state authority.
+
+## 2026-08-10 T14 Admin Dashboard foundation re-audit — superseded for Public service findings
 
 Product is revalidated at `0a0fe58...`; Discovery remains current at `1eec866...`. One Admin-only
 stylesheet scopes semantic canvas/surface/text/border/navigation/focus/status tokens under
@@ -128,10 +148,10 @@ safe-view boundaries. None is a reason to split the appropriate monolith into un
 
 This profile covers boundaries, authority, data products, temporal semantics, cache/realtime behavior, and task placement. It does not certify deployment, physical devices, provider behavior, browser runtime, load, or an Android client.
 
-Discovery remains current at `1eec866...`; Product is revalidated at `0a0fe58...`, and the preceding
-affected Architecture baseline was `f42a2bb...`. Exact changed architecture evidence is the fifth
-T14 handoff plus `app/admin/admin.css`, the Admin layout/Dashboard, `Sidebar`, `LiveMap`, package/
-Playwright registration, focused browser tests, and completion coordination. Existing T9 topology,
+Discovery remains current at `1eec866...`; Product is revalidated at `db72310...`, and the preceding
+affected Architecture baseline was `0a0fe58...`. Exact changed architecture evidence is the sixth
+T14 handoff plus the Public presentation projection, `useShuttleTracker` snapshot state/Retry,
+Availability/StopInfo/ETA/preloader consumers, focused tests, and completion coordination. Existing T9 topology,
 canonical selection, research capture, relational schema, route-stop ownership, Feedback lifecycle,
 and Mobile/ESP32/LoRaWAN acquisition semantics are unchanged. Source/browser/full-CI evidence proves
 local composition only, not TLS, recovery, capacity, deployment, devices, or Android behavior.
@@ -147,7 +167,7 @@ local composition only, not TLS, recovery, capacity, deployment, devices, or And
 | Redis current state is durable truth | Still Present | Redis current state/version allocation remains transient. PostgreSQL holds sampled canonical history and separate research evidence, not durable recovery/replay for public live state. |
 | Route-stop cache ownership is incomplete | Resolved | T10 provides bounded active-membership validation, contiguous ordered replacement in one Prisma transaction, and post-success shared public-cache invalidation; legacy create/delete use the same invalidator. Deterministic tests/CI cover the pure boundary, not a stateful cache/DB runtime. |
 | Realtime fan-out/scaling is proven | Unable to Verify | The Redis adapter exists, but publication is global and no rooms, replay, load threshold, or fan-out measurement is evidenced. |
-| Public/admin service-state behavior is an operational contract | Partially Resolved | Canonical state distinguishes live, stale, no_service, and unknown; T8 keeps public projection coherent; T14 now projects truthful Public connection/service state and Admin snapshot/realtime/local-expiry state. History, actionable exceptions, last-update/dependency guidance, deployed recovery, and ownership remain incomplete. |
+| Public/admin service-state behavior is an operational contract | Partially Resolved | Canonical state distinguishes live, stale, no_service, and unknown; T8 keeps Public projection coherent; T14 now projects truthful snapshot/connection/service/last-update/retry/ETA/slow-load state and Admin snapshot/realtime/local-expiry state. History, actionable exceptions, unavailable causal diagnosis, deployed recovery, and operational ownership remain incomplete. |
 | Production topology and REST/Socket origin authority were unresolved | Partially Resolved | T9 establishes one checked-in university topology, one fail-closed backend runtime parser, and one frontend REST/Socket origin resolver with deterministic tests. Actual reverse proxy, TLS, data-service exposure, restart, recovery, and capacity remain Unable to Verify externally. |
 
 ## 4. Data Products and Authority
@@ -183,10 +203,10 @@ local composition only, not TLS, recovery, capacity, deployment, devices, or And
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
 T9 is Partially Complete for its repository-side handoff under D-008. T10/T12 are complete for their
-bounded handoffs. T14's first five slices are complete and revalidated; the next eligible bounded
-unit is a Public service-explanation/recovery handoff that consumes existing truthful connection/
-canonical state without inventing dependency causes. T11 still needs focused technical and
-external Android evidence.
+bounded handoffs. T14's first six slices are complete and revalidated; the Public explanation P1 is
+closed for bounded source/browser evidence. The next eligible bounded unit extends the Admin
+semantic theme to master-data pages without changing page/API/auth ownership. T11 still needs
+focused technical and external Android evidence; Research remains blocked on T13.
 Production operations, runtime retention, capacity and external-device facts remain open; no new
 owner decision is proposed.
 
@@ -202,7 +222,7 @@ not a policy choice to infer.
 
 Frontend and downstream profiles may consume this Architecture baseline. Backend and Database remain
 current at `1eec866...` because T14 changes no runtime API, schema, or persistence authority. The
-Roadmap may next create only a bounded T14 Public service-explanation/recovery handoff; none of this
+Roadmap may next create only a bounded T14 Admin master-data visual-system handoff; none of this
 evidence promotes a browser fixture into assistive-technology, device, or runtime proof.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
