@@ -1292,7 +1292,9 @@ component/accessibility checks, and desktop/mobile browser smoke tests.
 
 Partially Complete — the first D-011 truth/integrity slice is implemented at `1b2b6c1`; the second
 accessibility/navigation slice is implemented at `8baa274`; both are revalidated at `378818f...`.
-Measurement-led responsive/performance/visual-system work is the next eligible exact handoff. The exact Level 3 handoff
+Measurement-led responsive/performance/visual-system work is the next eligible lane. Its first exact
+Level 3 handoff is `docs/tasks/T14-measured-public-map-quality.md`, covering measured route/map
+performance, reduced motion, narrow-screen collision, and audited touch targets. The exact handoff
 `docs/tasks/T14-truthful-feedback-and-live-state.md` records the bounded Public/Admin paths,
 acceptance mapping, and remaining human/runtime limits.
 `docs/tasks/T14-accessible-dialogs-and-navigation.md` records the second slice's paths, acceptance,
