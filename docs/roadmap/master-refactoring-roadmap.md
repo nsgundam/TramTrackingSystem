@@ -139,7 +139,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T11 | Blocked — cross-repository/external evidence | The v3 brief pins a partially compatible native app. Static-secret storage, backup/cleartext, task-removal and missing enrollment/claim/recovery gaps require a coordinated exact handoff plus writable Mobile/Android target and device acceptance. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
 | T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
-| T14 | Partially Complete — first four slices revalidated | Commit `799905f` and the prior three slices are accepted at `f42a2bb...`; score 14/20. A bounded Admin shell/Dashboard hierarchy and complementary-theme foundation is next. |
+| T14 | Partially Complete — Admin Dashboard handoff ready | The first four slices are accepted at `f42a2bb...`; `docs/tasks/T14-admin-dashboard-foundation.md` binds the next exact shell/Dashboard-only slice. |
 | T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
 
 ### Approved-batch continuation gate
@@ -149,12 +149,13 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Eligible next lane | Create an exact Admin shell/Dashboard hierarchy and theme-foundation handoff; exclude Public UI, T11 exceptions, Research, and broader Admin pages. |
+| T14 | Eligible exact implementation | Execute `docs/tasks/T14-admin-dashboard-foundation.md`; exclude Public UI, T11 exceptions, Research, and broader Admin pages. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
 Batch result: T14's contrast/color-governance slice and affected chain are revalidated at
 `f42a2bb...`. T9/T13 remain deferred without dependency bypass; T11/T15 remain blocked. The bounded
-Admin shell/Dashboard theme foundation is selected next; broader Admin pages remain later slices.
+Admin shell/Dashboard theme foundation handoff is ready for measurement-first implementation;
+broader Admin pages remain later slices.
 
 ## 4. Dependency Map
 
@@ -1302,7 +1303,8 @@ motion, narrow-screen collision, and audited touch targets. The exact handoff
 acceptance mapping, and remaining human/runtime limits.
 `docs/tasks/T14-accessible-dialogs-and-navigation.md` records the second slice's paths, acceptance,
 and verification. `docs/tasks/T14-contrast-and-color-governance.md` records the fourth slice's exact
-paths and passing evidence; Admin theme/hierarchy remains later and separately bounded.
+paths and passing evidence. `docs/tasks/T14-admin-dashboard-foundation.md` now binds the Admin-only
+shell/Dashboard theme and hierarchy paths, tests, invariants, and stop conditions.
 
 ### Evidence
 
