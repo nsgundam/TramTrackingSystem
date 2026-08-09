@@ -1,7 +1,7 @@
 # Architecture Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 378818fd3626eb1cf000087846d3b2a1c9b16d44
+- Evidence baseline: 7aae7957647038c58ccb185042a7dc019a8d40f1
 - Evidence scope: docs/project-knowledge-base.md, docs/audits/product-audit.md,
   docs/decision-queue.md, docs/research/, docs/tasks/, docs/operations/, README.md,
   Compose/environment configuration and scripts, shuttle-tracking-backend/src/,
@@ -10,12 +10,26 @@ Audit metadata:
   shuttle-tracking-web/types/, shuttle-tracking-web/services/,
   shuttle-tracking-web/components/, shuttle-tracking-web/tests/, and the T11 v3 external Mobile
   compatibility brief
-- Reviewed at: 2026-08-09T21:59:16+07:00
+- Reviewed at: 2026-08-09T23:10:21+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/project-knowledge-base.md @ 1eec86602c40c859d50dd9d369f636b103b6896f;
-  docs/audits/product-audit.md @ 378818fd3626eb1cf000087846d3b2a1c9b16d44
+  docs/audits/product-audit.md @ 7aae7957647038c58ccb185042a7dc019a8d40f1
 
-## 2026-08-09 T14 accessibility/navigation re-audit
+## 2026-08-09 T14 measured Public map-quality re-audit
+
+Product is revalidated at `7aae795...`; Discovery remains current at `1eec866...`. Existing
+`useRouteGeometry` remains the owner of stop/geometry layers, but now deduplicates pending work,
+records only successful routes as ready, and loads the selected route rather than every catalog
+entry. Successful layers/cache remain reusable and route selection remains the same authority.
+`utils/motion.ts` is one pure typed boundary for frame scheduling, cancellation, reduced-motion map
+options, and scroll behavior; `useVehicleTracking` owns one canceller per vehicle and cleans it up.
+
+The change adds no dependency, server/cache format, API, schema, authorization, canonical state, or
+second route authority. Unit/browser/full-CI evidence proves local request/cancellation/viewport
+budgets, not deployed OSRM latency, device rendering, capacity, or human experience. The unrelated
+dirty Feedback-role migration remains excluded.
+
+## 2026-08-09 accessibility/navigation re-audit — superseded for map-quality findings
 
 Product is revalidated at `378818f...`; Discovery remains current at `1eec866...`. T14 now owns the
 scoped dialog lifecycle through one strict client hook rather than repeating focus query, Tab,
@@ -146,16 +160,15 @@ behavior only, not TLS, forwarded-hop behavior, recovery, capacity, deployment, 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
 T9 is Partially Complete for its repository-side handoff under D-008. T10/T12 are complete for their
-bounded handoffs. T14's truth and accessibility/navigation slices are complete and revalidated; the
-next eligible bounded unit must start with measured responsive/performance/visual-system evidence,
-while Admin theme remains separate. T11 needs focused technical and external Android evidence.
+bounded handoffs. T14's first three slices are complete and revalidated; the next eligible bounded
+unit is contrast/visual-system governance, while Admin theme remains separate. T11 needs focused
+technical and external Android evidence.
 Production operations, runtime retention, capacity and external-device facts remain open; no new
 owner decision is proposed.
 
-Confidence is High for code-visible authority, shared focus placement, and missing boundaries,
-Medium for local projection/keyboard behavior because deterministic isolated-browser tests exist,
-and Low for assistive technology, distributed recovery, deployment, load, hardware, provider,
-Android, and real operations outcomes.
+Confidence is High for code-visible authority, route-load ownership, motion cancellation, and
+missing boundaries; Medium for synthetic request/viewport/motion behavior; and Low for assistive
+technology, distributed recovery, deployment, load, hardware, provider, Android, and operations.
 
 ## 8. Proposed Owner Decisions and Handoff
 
@@ -165,8 +178,8 @@ not a policy choice to infer.
 
 Frontend and downstream profiles may consume this Architecture baseline. Backend and Database remain
 current at `1eec866...` because T14 changes no runtime API, schema, or persistence authority. The
-Roadmap may next create only a measured T14 responsive/performance/visual-system handoff; none of
-this evidence promotes a browser fixture into assistive-technology or runtime proof.
+Roadmap may next create only a bounded T14 contrast/visual-system handoff; none of this evidence
+promotes a browser fixture into assistive-technology, device, or runtime proof.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 

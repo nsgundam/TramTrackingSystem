@@ -234,7 +234,9 @@
   - One diagnostic Playwright run revealed that an existing Service Worker could bypass page-level
     mocks and made a read-only OSRM request. The final focused suite blocks Service Workers only for
     deterministic request measurement; the separate PWA/Socket regression remains enabled and green.
-- Audit freshness changes: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
-  and Roadmap are downgraded to `Needs Re-audit — T14 measured map quality` because Public route-load,
-  preloader, motion, narrow-screen layout, and scoped Admin touch behavior changed. Backend, Database,
-  Infrastructure & Device, and Security/DevOps/Observability behavior did not change.
+- Audit freshness result: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
+  and Roadmap were revalidated at `7aae7957647038c58ccb185042a7dc019a8d40f1`. The technical score
+  is 13/20 with three P1, eight P2, and one P3 open; Production remains No-Go. Backend, Database,
+  Infrastructure & Device, and Security/DevOps/Observability remain current at `1eec866...` because
+  their behavior did not change. The next eligible exact T14 slice is bounded contrast/visual-system
+  governance; Admin hierarchy/theme remains separate and later.
