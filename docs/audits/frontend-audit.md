@@ -1,7 +1,7 @@
 # Frontend Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: db723107e024fb293f75dc2268ba7a3c4f6f3bbe
+- Evidence baseline: 4e609e327347163edf2e725d5ae40e7a9a6c0ecd
 - Evidence scope: docs/project-knowledge-base.md, Product/Architecture audits, Backend audit as
   cross-boundary context, docs/decision-queue.md, docs/tasks/,
   shuttle-tracking-web/app/, shuttle-tracking-web/components/, shuttle-tracking-web/config/,
@@ -9,13 +9,44 @@ Audit metadata:
   shuttle-tracking-web/types/, shuttle-tracking-web/utils/, shuttle-tracking-web/package.json,
   shuttle-tracking-web/tests/, full frontend check evidence, and the current Impeccable technical
   audit/detector pass
-- Reviewed at: 2026-08-10T01:49:03+07:00
+- Reviewed at: 2026-08-10T02:40:21+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/project-knowledge-base.md @
   1eec86602c40c859d50dd9d369f636b103b6896f; docs/audits/product-audit.md and
-  docs/audits/architecture-audit.md @ db723107e024fb293f75dc2268ba7a3c4f6f3bbe
+  docs/audits/architecture-audit.md @ 4e609e327347163edf2e725d5ae40e7a9a6c0ecd
 
-## 2026-08-10 T14 Public service explanation/recovery re-audit
+## 2026-08-10 T14 Admin master-data theme-convergence re-audit
+
+Product and Architecture are revalidated at `4e609e3...`; Discovery remains current at
+`1eec866...`. T14 extends the semantic Admin system through Vehicles, Routes, Stops, and all four
+existing master-data dialogs. One typed resource hierarchy owns headers, panels, loading/error/
+empty states, status badges, and named actions; one dialog shell owns the incumbent focus contract.
+Desktop tables and Mobile cards preserve domain data and actions, initial read failure is no longer
+rendered as verified empty, and Retry uses the existing request boundary. Route-stop browser evidence
+retains the ordered `{ stopIds: ["ST02", "ST01"] }` payload.
+
+The source score remains **15/20 — below the release baseline**: Accessibility, Performance,
+Responsive Design, Theming, and Implementation Integrity each remain 3/4. One P1, eight P2, and one
+P3 remain open; eight P1 and two P2 findings are resolved across T14. The Admin theme P2 is further
+narrowed because the shell, Dashboard, master-data pages, and their dialogs now use a coherent
+semantic system; the legacy-failure P2 is narrowed because these three initial reads now distinguish
+error from empty. Source Health/Feedback palettes and error projections, broader live/touch/device/
+human evidence, raw/external assets, forced-light/no-switch behavior, duplicated Public/Admin socket
+lifecycle, and the T13-blocked Research surface remain.
+
+Measurement-first master-data browser coverage moved from 4/4 failing to 4/4 passing; the fresh
+re-audit repeat also passes 4/4. Accessibility 4/4, contrast 2/2, Admin Dashboard 2/2, every earlier
+frontend suite, lint with the same two warnings, the 11-route build, scoped detector `[]`, and full
+repository CI pass. Public/Login and out-of-scope Admin pages are unchanged. This is synthetic local
+Chromium/source evidence, not human, assistive-technology, physical-device, stateful backend, dark-
+theme, deployed, or release acceptance.
+
+Because the remaining P1 is blocked on T13 evidence, the next eligible unit is the narrowed Admin
+operations/support theme-and-state P2 for Source Health and Feedback only. It must preserve T12 role,
+privacy, retention, status-transition, fresh-auth, and read-only boundaries and exclude Public/Login,
+T11, Research, API/auth/schema, Mobile, and external-runtime work.
+
+## 2026-08-10 T14 Public service explanation/recovery re-audit — superseded for Admin master-data findings
 
 Product and Architecture are revalidated at `db72310...`; Discovery remains current at
 `1eec866...`. T14 closes the Public service-explanation P1 for its bounded existing-state source/
@@ -166,8 +197,9 @@ evidence, while assistive-technology, human, and runtime acceptance remain absen
 D-007 is implemented for the bounded T12 session/navigation surfaces: the client hydrates the
 server-provided role and hides the Feedback Inbox from `ADMIN`; server authorization remains
 authoritative. T14's bounded Admin shell/Dashboard now uses the complementary `RSU Operations`
-theme, while the Public surface keeps its current identity. This does not authorize broader styling
-without another exact handoff.
+theme, and the same semantic system now governs Vehicles, Routes, Stops, and their existing dialogs,
+while the Public surface keeps its current identity. Source Health and Feedback remain outside that
+slice and require another exact handoff.
 
 T9 removes the per-consumer production fallback chains and routes public/admin REST and Socket.IO
 through one resolver. Production defaults to same-origin `/api` and current-origin Socket.IO; a
@@ -181,11 +213,12 @@ behavior, configuration, route/geometry/ETA presentation, and relevant tests. Th
 a static technical audit, not accessibility certification or human usability evidence; this profile
 does not certify load, real devices, deployed origin, or provider behavior.
 
-The preceding affected baseline was `0a0fe58...`. Exact T14 evidence is recorded in all six task
+The preceding affected baseline was `db72310...`. Exact T14 evidence is recorded in all seven task
 specifications and their implementation/test paths, including truth projections, Public Feedback/
 availability/StopInfo/ETA/preloader/socket consumers, map-quality/color boundaries, the Admin
-theme/shell/Dashboard/map, focused tests, and Service Worker. No browser path through the university
-proxy or deployed origin was authorized. The unrelated dirty Feedback-role migration is excluded.
+theme/shell/Dashboard/map/master-data pages/dialogs, focused tests, and Service Worker. No browser
+path through the university proxy or deployed origin was authorized. The unrelated dirty Feedback-
+role migration is excluded.
 
 ## 3. Prior-Finding Revalidation
 
@@ -201,7 +234,7 @@ proxy or deployed origin was authorized. The unrelated dirty Feedback-role migra
 | Admin role-specific UX enforced D-007 | Partially Resolved | Session hydration receives the server role and navigation hides the feedback inbox from ADMIN. Backend authorization remains authoritative and general role management is out of scope. |
 | Public/backend origin contract was settled | Resolved | T9 centralizes every listed REST/Socket consumer, defaults production to same origin, rejects unsafe/conflicting overrides, and removes hidden localhost rewrites/fallback loops. Focused tests pass; deployed proxy behavior remains Unable to Verify. |
 | Research dashboard exposed raw diagnostic work appropriately | Still Present | No Dev Dashboard exists; this correctly avoids exposing raw telemetry but leaves D-004 research UI incomplete. |
-| Static frontend technical quality met a production release baseline | Partially Resolved | The post-Public-recovery score is 15/20: every dimension is 3/4. One P1, eight P2, and one P3 remain across residual accessibility/performance/responsive/theming/recovery and Research. |
+| Static frontend technical quality met a production release baseline | Partially Resolved | The post-master-data score remains 15/20: every dimension is 3/4. One P1, eight P2, and one P3 remain across residual accessibility/performance/responsive/theming/recovery and Research. |
 
 ## 4. Surface Assessment
 
@@ -209,9 +242,9 @@ proxy or deployed origin was authorized. The unrelated dirty Feedback-role migra
 |---|---|---|
 | Public tracker | Canonical/truth/keyboard behavior plus snapshot/connection explanation, canonical age, state-aware ETA, Retry/slow-load recovery, selected-route-only geometry, cancellable/reduced motion, measured 320 px non-overlap/44 px controls, and normalized route-color display. | Broader touch/device/human assistive-technology and deployed recovery evidence; route/dependency causal diagnosis requires a future server contract rather than UI inference. |
 | Public feedback | Verified association, truthful states, programmatic category/form state, a named focus-trapped/restoring dialog, and measured light-surface contrast. | Runtime privacy/retention and human assistive-technology acceptance. |
-| Admin shell/dashboard | Truthful data/map state plus breakpoint-aware navigation, scoped semantic tokens, map-first hierarchy, configured-inventory labels, existing safe shortcuts, reduced motion, and contrast. | T11-backed exception/actions, broader Admin-page theming/touch, and human/runtime evidence. |
-| Admin routes/stops | CRUD UI plus T10 ordered route-stop management and measured 44 px order controls. | The modal exposes local order/membership errors; an approved stateful browser/cache target is still needed for published-read confirmation. |
-| Admin operations | Safe read-only source health and Super Admin feedback triage. | Claim, active/timeout exception, history, and recovery paths remain T11. |
+| Admin shell/dashboard | Truthful data/map state plus breakpoint-aware navigation, scoped semantic tokens, map-first hierarchy, configured-inventory labels, existing safe shortcuts, reduced motion, and contrast. | T11-backed exception/actions and human/runtime evidence. |
+| Admin master data | Vehicles/Routes/Stops share semantic hierarchy, truthful initial read states, desktop tables/Mobile cards, named 44 px actions, and focus-contained CRUD/route-order dialogs. | Human/device evidence and an approved stateful browser/cache target for published-read confirmation. |
+| Admin operations/support | Safe read-only source health and Super Admin/Dev feedback triage retain T12 policy. | Hard-coded page palettes, sub-44 px actions, and error-plus-empty projection remain; claim, active/timeout exception, history, and recovery paths remain T11. |
 | Research/Dev | None. | Separate authenticated comparison dashboard, reproducible filters and metric labels; not part of T9-T12 unless a future task says so. |
 
 ## 5. Task Placement
@@ -222,9 +255,10 @@ proxy or deployed origin was authorized. The unrelated dirty Feedback-role migra
 - T10 is complete for its narrow route-detail composition UI; preserve server-side validation and record stateful published-read evidence only on an approved target.
 - T11 needs an operations UI only after backend authorization/lifecycle APIs and the external Android acceptance contract are specified. It must not embed an Android driver runtime or expose sender secrets/source identifiers.
 - T12 has D-009 policy. Future triage/device views require explicit server role checks, privacy wording, retention/deletion controls, and read-only safe DTOs rather than generic admin CRUD.
-- T14's first six slices are complete. The Public explanation P1 is closed for bounded source/
-  browser evidence. The next eligible unit is a bounded Admin master-data theme-convergence P2;
-  Public/Login, T11 exceptions, Research/T13, API/auth/schema, and external-runtime work remain separate.
+- T14's first seven slices are complete. The Public explanation P1 is closed and Admin master-data
+  theme/error findings are narrowed for bounded source/browser evidence. The next eligible unit is
+  bounded Source Health/Feedback Admin operations-support convergence; Public/Login, T11 exceptions,
+  Research/T13, API/auth/schema, Mobile, and external-runtime work remain separate.
 
 ## 6. Usability and Technical Risks
 
@@ -234,11 +268,11 @@ Public tracker state remains broadly coordinated in useShuttleTracker, though su
 
 | Dimension | Score | Current result |
 |---|---:|---|
-| Accessibility | 3/4 | Root/dialog/focus/form/sidebar plus scoped motion/touch/contrast evidence exist; broader live regions/touch coverage, assistive technology, and human evidence remain. |
+| Accessibility | 3/4 | Root/dialog/focus/form/sidebar plus scoped master-data action, motion, touch, and contrast evidence exist; broader live regions/touch coverage, assistive technology, and human evidence remain. |
 | Performance | 3/4 | Selected-route/deduplicated geometry and cancellable marker motion are tested; raw images, external/global assets, broad backdrop work, and deployed budgets remain. |
-| Responsive Design | 3/4 | The measured 320 px dock/control collision and audited 44 px targets are corrected; broader device/content/human coverage remains. |
-| Theming | 3/4 | Public tokens plus an Admin-only semantic shell/Dashboard foundation exist; broader Admin/legacy palettes and the forced light/no-switch posture remain. |
-| Implementation Integrity | 3/4 | Product-specific separation, fail-closed truth projections, and bounded Public recovery are tested; Public/Admin socket lifecycle duplication and broader recovery surfaces remain. |
+| Responsive Design | 3/4 | The measured 320 px Public collision plus 390 px master-data cards/dialogs and audited 44 px targets are corrected; broader device/content/human coverage remains. |
+| Theming | 3/4 | Public tokens plus a semantic Admin shell/Dashboard/master-data system exist; Source Health/Feedback hard-coded palettes and the forced light/no-switch posture remain. |
+| Implementation Integrity | 3/4 | Product-specific separation, fail-closed truth projections, bounded Public recovery, and shared Admin resource/dialog ownership are tested; Public/Admin socket lifecycle duplication and broader recovery surfaces remain. |
 | **Total** | **15/20 — Below release baseline** | **0 P0; 1 open P1; 8 P2; 1 P3; 8 P1 and 2 P2 resolved by T14; the theme P2 is narrowed.** |
 
 The final contrast detector has one reviewed advisory for the pre-existing tiled `map-bg` fallback;
@@ -250,8 +284,9 @@ tests, fail-closed projections, code splitting, role-aware safe pages, and zero 
 
 T9 is Partially Complete for its repository-side handoff; T10/T12 are complete for exact scopes. T11
 requires backend contract/role gates and external Android acceptance evidence. T12 browser role/
-human/assistive-technology acceptance is still unverified. T14's first six slices are revalidated;
-the next exact slice is bounded Admin master-data theme convergence. Research remains blocked on T13.
+human/assistive-technology acceptance is still unverified. T14's first seven slices are revalidated;
+the next exact slice is bounded Source Health/Feedback Admin operations-support convergence.
+Research remains blocked on T13.
 
 Confidence is High for source-visible ownership and missing UI surfaces, Medium for synthetic
 request/motion/viewport/contrast evidence, and Low for assistive-technology, production
@@ -259,10 +294,11 @@ configuration, real Socket.IO failures, hardware, Android, and operator/rider ou
 
 ## 8. Proposed Owner Decisions and Handoff
 
-No new owner decision is proposed. D-011 permits a bounded Admin master-data theme-convergence slice
-next; the handoff must preserve Public/Login identity and current data/auth/behavior ownership.
+No new owner decision is proposed. D-011 permits a bounded Source Health/Feedback Admin operations-
+support convergence slice next; the handoff must preserve Public/Login identity and current T12
+data/auth/privacy/retention/action ownership.
 
-Frontend is validated at `db72310...`. Dashboard & UX and downstream profiles may consume this
+Frontend is validated at `4e609e3...`. Dashboard & UX and downstream profiles may consume this
 baseline; Database remains independently current at `1eec866...`.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01

@@ -1,7 +1,7 @@
 # Architecture Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: db723107e024fb293f75dc2268ba7a3c4f6f3bbe
+- Evidence baseline: 4e609e327347163edf2e725d5ae40e7a9a6c0ecd
 - Evidence scope: docs/project-knowledge-base.md, docs/audits/product-audit.md,
   docs/decision-queue.md, docs/research/, docs/tasks/, docs/operations/, README.md,
   Compose/environment configuration and scripts, shuttle-tracking-backend/src/,
@@ -10,12 +10,35 @@ Audit metadata:
   shuttle-tracking-web/types/, shuttle-tracking-web/services/,
   shuttle-tracking-web/components/, shuttle-tracking-web/tests/, and the T11 v3 external Mobile
   compatibility brief
-- Reviewed at: 2026-08-10T01:49:03+07:00
+- Reviewed at: 2026-08-10T02:40:21+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/project-knowledge-base.md @ 1eec86602c40c859d50dd9d369f636b103b6896f;
-  docs/audits/product-audit.md @ db723107e024fb293f75dc2268ba7a3c4f6f3bbe
+  docs/audits/product-audit.md @ 4e609e327347163edf2e725d5ae40e7a9a6c0ecd
 
-## 2026-08-10 T14 Public service explanation/recovery re-audit
+## 2026-08-10 T14 Admin master-data theme-convergence re-audit
+
+Product is revalidated at `4e609e3...`; Discovery remains current at `1eec866...`. The seventh T14
+slice introduces one typed `AdminResourcePage` hierarchy and one `AdminFormModal` focus/presentation
+shell across Vehicles, Routes, Stops, and route-stop ordering. The existing page components retain
+request ownership and endpoint selection; each initial list read now owns a narrowed
+loading/error/empty/ready state, and Retry reuses that same read boundary. Route-color normalization,
+CRUD form DTOs, native validation, active-stop filtering, ordered replacement, and the published
+`stopIds` contract remain authoritative where they were before.
+
+No dependency, endpoint, schema, persistence, cache, authorization, canonical-state model, external
+asset origin, backend, or Mobile behavior changed. The shared components remove repeated
+presentation/focus structure without creating a second data or permission authority. Fresh focused
+browser 4/4, all earlier frontend regressions, the 11-route build, detector `[]`, and full repository
+CI establish local composition only; stateful cache/database publication, human/assistive-
+technology, device, deployed, and operations evidence remain open.
+
+The next architecture-safe unit is bounded convergence of the existing Source Health and Feedback
+Admin pages. It may reuse semantic Admin state/action/dialog primitives and correct error-plus-empty
+projection, but must preserve T12's read-only DTO, role gates, privacy/retention copy, status graph,
+fresh-auth delete/restore contract, and current APIs. Public/Login, T11, Research, schema/auth/API,
+Mobile, and external-runtime work remain separate.
+
+## 2026-08-10 T14 Public service explanation/recovery re-audit — superseded for Admin master-data findings
 
 Product is revalidated at `db72310...`; Discovery remains current at `1eec866...`. The sixth T14
 slice adds a typed `PublicVehicleSnapshotState` and one pure Public presentation projection that
@@ -143,18 +166,20 @@ single-origin logical topology and operations handoff. T9 now statically validat
 template, runtime/origin authorities, and runbook; the external runtime remains unvalidated.
 T10/T12 supply their bounded route-stop, authorization, Feedback and
 safe-view boundaries. None is a reason to split the appropriate monolith into unrelated services.
+T14 now also centralizes repeated Admin master-data presentation and dialog focus structure while
+leaving each request, DTO, authorization, and mutation contract at its incumbent boundary.
 
 ## 2. Scope and Freshness
 
 This profile covers boundaries, authority, data products, temporal semantics, cache/realtime behavior, and task placement. It does not certify deployment, physical devices, provider behavior, browser runtime, load, or an Android client.
 
-Discovery remains current at `1eec866...`; Product is revalidated at `db72310...`, and the preceding
-affected Architecture baseline was `0a0fe58...`. Exact changed architecture evidence is the sixth
-T14 handoff plus the Public presentation projection, `useShuttleTracker` snapshot state/Retry,
-Availability/StopInfo/ETA/preloader consumers, focused tests, and completion coordination. Existing T9 topology,
-canonical selection, research capture, relational schema, route-stop ownership, Feedback lifecycle,
-and Mobile/ESP32/LoRaWAN acquisition semantics are unchanged. Source/browser/full-CI evidence proves
-local composition only, not TLS, recovery, capacity, deployment, devices, or Android behavior.
+Discovery remains current at `1eec866...`; Product is revalidated at `4e609e3...`, and the preceding
+affected Architecture baseline was `db72310...`. Exact changed architecture evidence is the seventh
+T14 handoff plus the Admin resource/dialog primitives, Vehicles/Routes/Stops consumers, focused
+tests, and completion coordination. Existing T9 topology, canonical selection, research capture,
+relational schema, route-stop mutation/cache ownership, Feedback lifecycle, and Mobile/ESP32/
+LoRaWAN acquisition semantics are unchanged. Source/browser/full-CI evidence proves local
+composition only, not TLS, recovery, capacity, deployment, devices, or Android behavior.
 
 ## 3. Prior-Finding Revalidation
 
@@ -203,9 +228,10 @@ local composition only, not TLS, recovery, capacity, deployment, devices, or And
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
 T9 is Partially Complete for its repository-side handoff under D-008. T10/T12 are complete for their
-bounded handoffs. T14's first six slices are complete and revalidated; the Public explanation P1 is
-closed for bounded source/browser evidence. The next eligible bounded unit extends the Admin
-semantic theme to master-data pages without changing page/API/auth ownership. T11 still needs
+bounded handoffs. T14's first seven slices are complete and revalidated at `4e609e3...`; the Public
+explanation P1 is closed and the Admin theme/error P2s are further narrowed for bounded source/
+browser evidence. The next eligible unit converges the existing Source Health/Feedback Admin pages
+without changing their T12 policy, page/API/auth ownership, or action semantics. T11 still needs
 focused technical and external Android evidence; Research remains blocked on T13.
 Production operations, runtime retention, capacity and external-device facts remain open; no new
 owner decision is proposed.
@@ -222,8 +248,8 @@ not a policy choice to infer.
 
 Frontend and downstream profiles may consume this Architecture baseline. Backend and Database remain
 current at `1eec866...` because T14 changes no runtime API, schema, or persistence authority. The
-Roadmap may next create only a bounded T14 Admin master-data visual-system handoff; none of this
-evidence promotes a browser fixture into assistive-technology, device, or runtime proof.
+Roadmap may next create only a bounded T14 Source Health/Feedback Admin operations-support handoff;
+none of this evidence promotes a browser fixture into assistive-technology, device, or runtime proof.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 

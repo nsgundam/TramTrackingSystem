@@ -1,7 +1,7 @@
 # Product Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: `db723107e024fb293f75dc2268ba7a3c4f6f3bbe`
+- Evidence baseline: `4e609e327347163edf2e725d5ae40e7a9a6c0ecd`
 - Evidence scope: `docs/project-knowledge-base.md`, `docs/decision-queue.md`, `docs/research/`,
   `docs/tasks/T9-production-topology-origin-handoff.md`,
   `docs/operations/university-server-network-handoff.md`, `README.md`,
@@ -14,11 +14,38 @@ Audit metadata:
   `shuttle-tracking-backend/src/controllers/`, `shuttle-tracking-backend/src/services/`,
   `shuttle-tracking-backend/prisma/`, `shuttle-tracking-backend/tests/`, and
   `docs/audits/specialized/T11-mobile-repository-compatibility-v3.md`
-- Reviewed at: `2026-08-10T01:49:03+07:00`
+- Reviewed at: `2026-08-10T02:40:21+07:00`
 - Validation state: `Validated`
 - Predecessor baselines: `docs/project-knowledge-base.md @ 1eec86602c40c859d50dd9d369f636b103b6896f`
 
-## 2026-08-10 T14 Public service explanation/recovery re-audit
+## 2026-08-10 T14 Admin master-data theme-convergence re-audit
+
+Discovery remains current at `1eec866...`; this profile revalidates product journeys through
+completion baseline `4e609e3...` and implementation `7321a25`. T14's seventh D-011 slice is
+**Complete for its bounded source/browser contract**. Vehicles, Routes, and Stops now share an
+authenticated Admin hierarchy with explicit loading, failed read, verified empty, and populated
+states. Failed initial reads provide inline Retry rather than a browser alert followed by an
+empty-looking list. Desktop tables and Mobile cards retain the existing identifiers, names, route/
+color, coordinates, status, CRUD actions, and ordered route-stop publish behavior.
+
+The four existing master-data dialogs share the established focus lifecycle and a semantic Admin
+shell without changing field requirements, authorization, endpoint, payload, or delete/save
+behavior. Public/Login, Dashboard, Source Health, Feedback, Mobile, Research, backend, schema, and
+external targets are unchanged. Focused master-data browser journeys pass 4/4 at desktop and Mobile
+widths, including the unchanged reordered stop payload; every prior frontend regression, the
+11-route build, scoped detector `[]`, and full repository CI pass. This is synthetic local evidence,
+not staff/human, assistive-technology, physical-device, stateful database/cache, deployed, or release
+acceptance.
+
+The broader Admin-theme and legacy failure-state P2 findings are therefore **Narrowed, not closed**:
+Source Health and Feedback still use hard-coded page palettes, sub-44 px actions, and error-plus-
+empty rendering paths, and no theme switch/dark mode exists. The remaining Research P1 stays blocked
+on T13. No owner decision is needed for the next eligible bounded T14 unit: converge only those two
+existing Admin operations/support pages and the existing sensitive confirmation dialog while
+preserving T12 role/privacy/retention/action policy and excluding Public/Login, T11, Research,
+API/auth/schema, Mobile, and external-runtime work.
+
+## 2026-08-10 T14 Public service explanation/recovery re-audit — superseded for Admin master-data findings
 
 Discovery remains current at `1eec866...`; this profile revalidates the product journeys through
 completion baseline `db72310...` and implementation `bf80308`. T14's sixth D-011 slice is
@@ -165,6 +192,11 @@ T8 public-map correction is retained as
 **Resolved for its limited truthful-local-state scope**; it does not supply the C-scope operational state
 model.
 
+T14 also gives the existing Vehicles, Routes, and Stops journeys one semantic Admin hierarchy,
+truthful initial read states, inline Retry, responsive tables/cards, named actions, and shared CRUD/
+route-order dialog behavior. This improves maintainability and staff task clarity without changing
+the underlying T10/T12 product contracts or completing T11 operations.
+
 T9 does not intentionally change a screen, role, or journey. It replaces the public/admin clients'
 multiple fallback origins with one production same-origin-capable REST/Socket authority and adds a
 checked-in university deployment handoff. This improves deterministic delivery of existing journeys
@@ -174,10 +206,10 @@ but supplies no deployed or human acceptance evidence.
 
 This re-audit covers the selected rider/Admin/research journeys, role and information boundaries,
 approved decisions, exact T14 task evidence, and remaining release capabilities. Discovery remains
-current at `1eec866...`; the preceding affected Product baseline was `0a0fe58...`. Changed evidence
-is limited to the sixth T14 Public service-explanation/recovery handoff, implementation, browser/
-full-CI result, and completion coordination at `db72310...`. No external target, Mobile source,
-migration, backend/schema contract, authentication, or Admin behavior changed.
+current at `1eec866...`; the preceding affected Product baseline was `db72310...`. Changed evidence
+is limited to the seventh T14 Admin master-data handoff, implementation, focused browser/full-CI
+result, and completion coordination at `4e609e3...`. No external target, Mobile source, migration,
+backend/schema contract, authentication, Public/Login, Source Health, or Feedback behavior changed.
 
 This audit revalidates product roles, journeys, release promises, ownership, and roadmap impact. It does
 not establish deployment, provider, physical-device, browser-runtime, or field-performance behavior.
@@ -224,7 +256,7 @@ ownership only; no external target was operated.
 |---|---|---|
 | Rider: choose route, inspect stops/vehicles, use ETA | Partial | Public REST, canonical Socket.IO projection, map, stops, and ETA components exist. T8 preserves expiry truth; T14 adds truthful state, canonical last-update age, state-specific recovery/ETA/slow-load guidance, scoped keyboard access, selected-route-only geometry, cancellable/reduced motion, measured 320 px control separation, and governed route-color display. Human/device comprehension and deployed recovery remain unverified. |
 | Rider: submit feedback | Partial | `FeedbackModal` has truthful validation/load/retry/success/error, verified explicit vehicle association, programmatic category/form state, and a keyboard-contained/restoring dialog. T12 adds the staff inbox, but no assistive-technology/human acceptance or actual retention evidence exists. |
-| ADMIN: maintain routes/stops/vehicles | Partial | The coherent Admin shell links to CRUD and route-stop composition dialogs with programmatic labels/focus behavior; the three measured order controls meet 44 px targets. Broader page theming and ambient browser/database published-read evidence remain absent. |
+| ADMIN: maintain routes/stops/vehicles | Partial | The coherent Admin shell and semantic master-data pages expose truthful loading/failure/empty/ready state, desktop tables/Mobile cards, named 44 px actions, and shared labelled/focus-contained CRUD and route-stop dialogs. The ordered publish payload is browser-verified; ambient database/cache published-read and human acceptance remain absent. |
 | ADMIN: monitor/send/recover service | Partial | The map-first Dashboard preserves truthful canonical state and links to the safe read-only Source Health page. Active-trip history, timeout exception, Mobile claim/revocation, credential, and force-close journeys remain missing. |
 | Driver: select vehicle, start, send, reconnect, end | Partial | The external native app can authenticate, start/end and foreground-send against the old static-secret contract. It cannot perform the approved enrollment/QR/claim/recovery journey and task removal can end tracking without authoritative acknowledgement. |
 | SUPER_ADMIN/DEV: privileged data/research operation | Partial | Persisted hierarchy, current-role checks, feedback triage with recent-auth delete/restore, and protected T7 research reads/export are implemented. General account/source lifecycle, privileged Trip/GPSTrack controls, a research dashboard, and complete recovery remain gated. |
@@ -259,10 +291,11 @@ ownership only; no external target was operated.
   approved but remains outside T11's bounded shared-phone scope.
 - T12 is complete for its D-009/D-010:A exact source/test scope. Its migration, retention, and
   staff/rider acceptance still require an approved runtime target before release evidence exists.
-- T14's first six slices are complete and revalidated at `db72310...`. The Public explanation P1 is
-  closed for bounded source/browser evidence. Because the remaining Research P1 is blocked on T13,
-  the next eligible work is a bounded Admin master-data visual-system P2 that extends existing
-  semantic tokens without changing Public UI, API/auth/schema behavior, or owner-controlled policy.
+- T14's first seven slices are complete and revalidated at `4e609e3...`. The Public explanation P1
+  is closed for bounded source/browser evidence; Admin master-data theme/error findings are further
+  narrowed. Because the remaining Research P1 is blocked on T13, the next eligible work is bounded
+  Source Health/Feedback Admin operations-support convergence that preserves T12 policy, roles,
+  status/action semantics, and current APIs.
 - Roadmap synthesis must preserve these separate gates; D-001=C alone does not authorize any task.
 
 ## 7. Assumptions, Unknowns, and Confidence
@@ -283,9 +316,9 @@ checklist remain unverified. Approved policy does not fabricate an operational r
 
 Architecture and every downstream profile may consume this Product baseline. The resulting Roadmap
 must preserve the selected monolith and public/data boundaries, separate repository configuration
-from external deployment evidence, and may select only a bounded T14 Admin master-data visual-
-system handoff next. No new owner decision is required; Public UI, T11, Research/T13, Login, and
-external-runtime work remain outside that slice.
+from external deployment evidence, and may select only a bounded T14 Source Health/Feedback Admin
+operations-support handoff next. No new owner decision is required; Public UI, T11, Research/T13,
+Login, API/auth/schema, Mobile, and external-runtime work remain outside that slice.
 
 ## 10. T12 Implementation Re-audit — 2026-08-01
 
