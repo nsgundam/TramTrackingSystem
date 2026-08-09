@@ -1,7 +1,7 @@
 # Product Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: `f42a2bb025c4756e04542fc9dbecb41009d8ce7a`
+- Evidence baseline: `0a0fe58a59dbdcfc1a4cc59c7d71cb9b4b74639d`
 - Evidence scope: `docs/project-knowledge-base.md`, `docs/decision-queue.md`, `docs/research/`,
   `docs/tasks/T9-production-topology-origin-handoff.md`,
   `docs/operations/university-server-network-handoff.md`, `README.md`,
@@ -14,11 +14,34 @@ Audit metadata:
   `shuttle-tracking-backend/src/controllers/`, `shuttle-tracking-backend/src/services/`,
   `shuttle-tracking-backend/prisma/`, `shuttle-tracking-backend/tests/`, and
   `docs/audits/specialized/T11-mobile-repository-compatibility-v3.md`
-- Reviewed at: `2026-08-09T23:51:01+07:00`
+- Reviewed at: `2026-08-10T00:41:42+07:00`
 - Validation state: `Validated`
 - Predecessor baselines: `docs/project-knowledge-base.md @ 1eec86602c40c859d50dd9d369f636b103b6896f`
 
-## 2026-08-09 T14 contrast/color-governance re-audit
+## 2026-08-10 T14 Admin Dashboard foundation re-audit
+
+Discovery remains current at `1eec866...`; this profile revalidates the product journeys through
+completion baseline `0a0fe58...` and implementation `9411e36`. T14's fifth D-011 slice is
+**Complete for its bounded source/browser contract**. The authenticated Dashboard now asks whether
+its configured data is verified, presents the canonical map as the primary workspace, and labels
+vehicles/routes/stops as supporting master-data inventory. Existing Source Health and Vehicles
+destinations are visible without inventing trip/history/timeout exceptions, recovery promises, or
+Research data.
+
+The `RSU Operations` direction is limited to the Admin shell and Dashboard. Public files, layout,
+copy, palette, component order, and behavior are unchanged. Loading/error/retry/updated counts,
+snapshot/realtime/canonical state, local expiry, role-filtered navigation, and Mobile drawer focus
+behavior remain. Focused Admin browser journeys pass 2/2 at 1280 and 390 CSS px; every prior
+frontend regression, the 11-route build, final detector `[]`, and full repository CI pass. This is
+synthetic local evidence, not staff/human or assistive-technology acceptance, physical-device/dark-
+theme coverage, exception operations, or deployed readiness.
+
+The remaining eligible product P1 is the narrowed Public service explanation. D-011 permits a
+separately exact source/UX recovery handoff that preserves Public visual identity and consumes only
+existing truthful state. It must stop rather than fabricate dependency causes or absorb T11,
+Research, broader Admin pages, or external-runtime work.
+
+## 2026-08-09 T14 contrast/color-governance re-audit — superseded for Admin Dashboard findings
 
 Discovery remains current at `1eec866...`; this profile revalidates the product journeys at
 `f42a2bb...`. T14's fourth D-011 slice is **Complete for its bounded source/browser contract**.
@@ -126,6 +149,13 @@ but supplies no deployed or human acceptance evidence.
 
 ## 2. Scope and Freshness
 
+This re-audit covers the selected rider/Admin/research journeys, role and information boundaries,
+approved decisions, exact T14 task evidence, and remaining release capabilities. Discovery remains
+current at `1eec866...`; the preceding affected Product baseline was `f42a2bb...`. Changed evidence
+is limited to the fifth T14 Admin shell/Dashboard handoff, implementation, browser/full-CI result,
+and completion coordination at `0a0fe58...`. No external target, Mobile source, migration, backend/
+schema behavior, or Public file changed.
+
 This audit revalidates product roles, journeys, release promises, ownership, and roadmap impact. It does
 not establish deployment, provider, physical-device, browser-runtime, or field-performance behavior.
 
@@ -159,7 +189,7 @@ ownership only; no external target was operated.
 | Admin trip history is missing | **Still Present** | No protected list/detail controller, route, page, or exception surface is present. |
 | Feedback workflow lacks triage | **Partially Resolved** | T12 implements the approved notice, receipt, Super Admin/Dev inbox, assignment/status flow, delete/restore, and source/test retention contract. No staff/rider acceptance, migration, or retention-run evidence exists. |
 | Public/Admin keyboard journeys met the release accessibility baseline | **Partially Resolved** | T14 corrects root/dialog/focus/form/Mobile navigation plus measured reduced-motion, touch targets, and audited light-surface/route-badge contrast. Broader live-region/touch coverage, assistive technology, and human acceptance remain unverified. |
-| Stale/offline operational visibility is missing | **Partially Resolved** | T8 keeps Marker/count/ETA coherent, and T14 now gives the Public availability card and Admin dashboard/map truthful connection, freshness, failure, retry, and last-known states. Public last-update age, dependency-specific recovery guidance, and an operations exception/action view remain absent. |
+| Stale/offline operational visibility is missing | **Partially Resolved** | T8 keeps Marker/count/ETA coherent, and T14 gives the Public availability card and map-first Admin Dashboard truthful connection, freshness, failure, retry, and last-known states. Public last-update age/dependency-specific recovery guidance and a T11-backed operations exception/action view remain absent. |
 | Device operations are incomplete | **Partially Resolved** | T12 provides an all-admin safe read-only source-health API/page. Credential, assignment, Mobile claim/recovery, revocation, and force-close operations remain absent from the supported UI. |
 | Hard-coded public route choice | **No Longer Relevant** | The tracker loads active routes from the public API. Route authority and cache invalidation remain a separate T10 concern. |
 | Controlled-demo scope was the release boundary | **No Longer Relevant** | D-001=C supersedes it; the required C-scope capabilities remain unimplemented and block a wider public-service claim. |
@@ -171,8 +201,8 @@ ownership only; no external target was operated.
 |---|---|---|
 | Rider: choose route, inspect stops/vehicles, use ETA | Partial | Public REST, canonical Socket.IO projection, map, stops, and ETA components exist. T8 preserves expiry truth; T14 adds truthful state, scoped keyboard access, selected-route-only geometry, cancellable/reduced motion, measured 320 px control separation, and governed route-color display. Last-update age, dependency guidance, and human/device comprehension remain unverified. |
 | Rider: submit feedback | Partial | `FeedbackModal` has truthful validation/load/retry/success/error, verified explicit vehicle association, programmatic category/form state, and a keyboard-contained/restoring dialog. T12 adds the staff inbox, but no assistive-technology/human acceptance or actual retention evidence exists. |
-| ADMIN: maintain routes/stops/vehicles | Partial | CRUD and route-stop composition dialogs have programmatic labels/focus behavior; the three measured order controls now meet 44 px targets. The expected public-cache transition has source/test evidence but no ambient browser/database workflow evidence. |
-| ADMIN: monitor/send/recover service | Partial | The safe read-only Source Health page exposes bounded freshness/status fields. Active-trip history, timeout exception, Mobile claim/revocation, credential, and force-close journeys remain missing. |
+| ADMIN: maintain routes/stops/vehicles | Partial | The coherent Admin shell links to CRUD and route-stop composition dialogs with programmatic labels/focus behavior; the three measured order controls meet 44 px targets. Broader page theming and ambient browser/database published-read evidence remain absent. |
+| ADMIN: monitor/send/recover service | Partial | The map-first Dashboard preserves truthful canonical state and links to the safe read-only Source Health page. Active-trip history, timeout exception, Mobile claim/revocation, credential, and force-close journeys remain missing. |
 | Driver: select vehicle, start, send, reconnect, end | Partial | The external native app can authenticate, start/end and foreground-send against the old static-secret contract. It cannot perform the approved enrollment/QR/claim/recovery journey and task removal can end tracking without authoritative acknowledgement. |
 | SUPER_ADMIN/DEV: privileged data/research operation | Partial | Persisted hierarchy, current-role checks, feedback triage with recent-auth delete/restore, and protected T7 research reads/export are implemented. General account/source lifecycle, privileged Trip/GPSTrack controls, a research dashboard, and complete recovery remain gated. |
 | Researcher: compare three physical sources | Partially Resolved | T7's protected research APIs and D-004 definitions exist. The Dev Dashboard, ESP32/TTN/mobile field evidence, and metric outcome evidence remain unavailable. |
@@ -206,9 +236,10 @@ ownership only; no external target was operated.
   approved but remains outside T11's bounded shared-phone scope.
 - T12 is complete for its D-009/D-010:A exact source/test scope. Its migration, retention, and
   staff/rider acceptance still require an approved runtime target before release evidence exists.
-- T14's first four slices are complete and revalidated at `f42a2bb...`. The next eligible work is a
-  bounded Admin shell/Dashboard hierarchy and complementary-theme foundation using existing truthful
-  data; it must not absorb T11 exceptions, Research, or the remaining Public explanation gap.
+- T14's first five slices are complete and revalidated at `0a0fe58...`. The next eligible work is a
+  bounded Public service-explanation/recovery handoff using only existing truthful state while
+  preserving visual identity; it must not fabricate dependency causes or absorb T11, Research,
+  broader Admin pages, or external-runtime work.
 - Roadmap synthesis must preserve these separate gates; D-001=C alone does not authorize any task.
 
 ## 7. Assumptions, Unknowns, and Confidence
@@ -229,8 +260,8 @@ checklist remain unverified. Approved policy does not fabricate an operational r
 
 Architecture and every downstream profile may consume this Product baseline. The resulting Roadmap
 must preserve the selected monolith and public/data boundaries, separate repository configuration
-from external deployment evidence, and may select only a bounded T14 Admin shell/Dashboard theme-
-foundation handoff next. No new owner decision is required; broader Admin pages remain later slices.
+from external deployment evidence, and may select only a bounded T14 Public service-explanation/
+recovery handoff next. No new owner decision is required; broader Admin pages remain later slices.
 
 ## 10. T12 Implementation Re-audit — 2026-08-01
 

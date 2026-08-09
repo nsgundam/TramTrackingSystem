@@ -1,21 +1,21 @@
 # Master Refactoring Roadmap
 
 Audit metadata:
-- Evidence baseline: `f42a2bb025c4756e04542fc9dbecb41009d8ce7a`
+- Evidence baseline: `0a0fe58a59dbdcfc1a4cc59c7d71cb9b4b74639d`
 - Evidence scope: `docs/project-knowledge-base.md`, every validated domain and production-readiness audit, `docs/decision-queue.md`, `docs/tasks/`, and the repository evidence cited by the revalidated reports.
-- Reviewed at: `2026-08-09T23:51:01+07:00`
+- Reviewed at: `2026-08-10T00:41:42+07:00`
 - Validation state: **Complete / Validated**
 - Predecessor baselines: `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`,
   `docs/audits/frontend-audit.md`, `docs/audits/dashboard-ux-audit.md`, and
-  `docs/audits/production-readiness-audit.md` @ `f42a2bb025c4756e04542fc9dbecb41009d8ce7a`;
+  `docs/audits/production-readiness-audit.md` @ `0a0fe58a59dbdcfc1a4cc59c7d71cb9b4b74639d`;
   `docs/project-knowledge-base.md`, `docs/audits/backend-audit.md`,
   `docs/audits/database-audit.md`, `docs/audits/infrastructure-device-audit.md`,
   `docs/audits/security-devops-observability-audit.md`, and `docs/decision-queue.md` @
   `1eec86602c40c859d50dd9d369f636b103b6896f`; D-001 through D-012 are approved.
 
-Last reviewed: 2026-08-09
+Last reviewed: 2026-08-10
 
-Validation state: **Needs Re-audit after bounded T14 implementation `9411e36`**. T9's repository handoff is independently revalidated and remains
+Validation state: **Complete / Validated**. T9's repository handoff is independently revalidated and remains
 partially complete because its University Server/Network acceptance checklist has not been executed.
 T10 and T12 are complete for their exact bounded source/test scopes. T12 applies D-009/D-010:A
 through a reviewed migration, persisted server RBAC/fresh-auth, feedback lifecycle/retention/audit
@@ -28,13 +28,14 @@ passes focused/browser/full-CI checks, and is revalidated through `7aae795...`. 
 accessibility/navigation slice is implemented at `8baa274`, with 4/4 focused browser journeys and
 full CI passing; both first slices and their affected chain are revalidated at `7aae795...`. The
 measured map-quality slice is implemented at `c5b2e69`: initial geometry is selected-route-only,
-marker motion is cancellable/reduced-motion-aware, and measured 320 px/touch targets pass. Product,
-Architecture, Frontend, Dashboard & UX, Production Readiness, and this Roadmap are revalidated at
-`f42a2bb...`; the score is 14/20. The contrast/color-governance slice at `799905f` passes pure 4/4,
-browser 2/2, every prior regression, and full CI. The bounded Admin shell/Dashboard hierarchy and
-complementary-theme foundation is implemented at `9411e36`; focused browser 2/2 and full CI pass,
-while Public UI, T11 exceptions, Research, and broader Admin pages remain outside it. The affected
-audit chain must be revalidated before selecting another T14 slice. D-012
+marker motion is cancellable/reduced-motion-aware, and measured 320 px/touch targets pass. The
+contrast/color-governance slice at `799905f` passes pure 4/4, browser 2/2, every prior regression,
+and full CI. The bounded Admin shell/Dashboard foundation at `9411e36` passes browser 2/2, visual
+QA, every prior regression, detector `[]`, and full CI. Product, Architecture, Frontend, Dashboard &
+UX, Production Readiness, and this Roadmap are revalidated at `0a0fe58...`; the technical score is
+15/20. Public UI, T11 exceptions, Research, and broader Admin pages remain outside that slice. The
+next eligible T14 unit is bounded Public service explanation/recovery using existing truthful state
+without a visual redesign or guessed dependency causes. D-012
 fixes later lifecycle policy without implementing it. T15 remains deferred behind T13 and physical/
 provider facts.
 
@@ -86,15 +87,15 @@ playback, microservices, a second ingestion pipeline, or unbounded operations/re
 | Input | Date | Status | Use |
 |---|---:|---|---|
 | Knowledge Base | 2026-08-08 | Complete / Validated | Discovery is current at `1eec866...`; external Mobile source is pinned and its static/runtime limits are recorded. |
-| Product | 2026-08-09 | Complete / Validated at `f42a2bb...` | T14's first four slices are accepted; Native Mobile/T11 remains independently current. |
-| Architecture, Backend, and Database audits | 2026-08-09 | Architecture current at `f42a2bb...`; Backend/Database current at `1eec866...` | Display-color/contrast ownership is accepted; backend/data authority is unchanged. |
+| Product | 2026-08-10 | Complete / Validated at `0a0fe58...` | T14's first five slices are accepted; Native Mobile/T11 remains independently current. |
+| Architecture, Backend, and Database audits | 2026-08-10 | Architecture current at `0a0fe58...`; Backend/Database current at `1eec866...` | Admin presentation ownership is bounded; backend/data authority is unchanged. |
 | Infrastructure & Device and Security/DevOps/Observability audits | 2026-08-08 | Complete / Validated | Native foreground code is visible, while Android runtime is unverified and SEC-08 credential/backup/cleartext gaps block T11. |
-| Frontend audit | 2026-08-09 | Complete / Validated at `f42a2bb...` | Contrast 4/4 and computed-style browser 2/2 pass without a Public redesign; score is 14/20. |
-| Dashboard & UX audit | 2026-08-09 | Complete / Validated at `f42a2bb...` | Audited light-surface and route-badge contrast is accepted; bounded Admin theme foundation is next. |
-| Production Readiness Audit | 2026-08-09 | Complete / Validated / No-Go at `f42a2bb...` | Synthetic contrast evidence changes no human, deployment, operations, Mobile, provider/device, or field gate. |
+| Frontend audit | 2026-08-10 | Complete / Validated at `0a0fe58...` | Admin Dashboard browser 2/2 and prior suites pass without Public changes; score is 15/20. |
+| Dashboard & UX audit | 2026-08-10 | Complete / Validated at `0a0fe58...` | Bounded map-first Admin hierarchy/theme passes; Public explanation is the next eligible P1. |
+| Production Readiness Audit | 2026-08-10 | Complete / Validated / No-Go at `0a0fe58...` | Synthetic Admin evidence changes no human, deployment, operations, Mobile, provider/device, or field gate. |
 | Decision Queue and owner/task evidence | 2026-08-08 | D-001–D-012 approved | D-011 permits a separately bounded Admin restructure/theme using documented accessible direction. |
 
-Level 1 revalidated the T14-affected chain and implementation `799905f` at `f42a2bb...`.
+Level 1 revalidated the T14-affected chain and implementation `9411e36` at `0a0fe58...`.
 Unaffected profiles remain current at `1eec866...`.
 Actual
 hosting, TLS, production recovery, Android build/device behavior, browser/runtime behavior, physical
@@ -117,7 +118,7 @@ devices, and TTN console state remain external unknowns.
 | T11 | Supported sender operations, trip history, and exception view | Critical/High for daily operations | Production 3.1, 3.3; Product 7–9; Dashboard 7, 10 | Phase 3; native source pinned, but coordinated Backend/Mobile handoff, compatible patch, Android target, and acceptance artifact pending |
 | T12 | Feedback triage and device/source operations views | High for broad public support | Product 7, 11; Frontend 12; Dashboard 10; Database 12 | Phase 3; complete for the D-009/D-010:A exact handoff; runtime rollout remains unverified |
 | T13 | Production deployment/recovery drill and monitoring | High before production | Production 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16 | Phase 4; blocked on T9 external acceptance and target authority |
-| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; first four slices revalidated; bounded Admin shell/Dashboard theme foundation next |
+| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; first five slices revalidated; bounded Public service explanation/recovery next |
 | T15 | Physical senders, research dashboard, playback/reports, scale extensions | Deferred | Product 11; Architecture 9–10, 12; Infrastructure 7–9; D-002 | Phase 5; blocked on T13 and physical/provider facts |
 
 Every Critical/High finding remains represented. D-001=C opens T10–T12's release-scope gate, but
@@ -140,7 +141,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T11 | Blocked — cross-repository/external evidence | The v3 brief pins a partially compatible native app. Static-secret storage, backup/cleartext, task-removal and missing enrollment/claim/recovery gaps require a coordinated exact handoff plus writable Mobile/Android target and device acceptance. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
 | T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
-| T14 | Partially Complete — Admin Dashboard slice implemented; re-audit pending | The first four slices are accepted at `f42a2bb...`; exact implementation `9411e36` passes browser/full CI and now requires affected-chain revalidation. |
+| T14 | Partially Complete — first five slices revalidated | Admin implementation `9411e36` and prior slices are accepted at `0a0fe58...`; score 15/20. Bounded Public explanation/recovery is next. |
 | T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
 
 ### Approved-batch continuation gate
@@ -150,13 +151,12 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Re-audit required before continuation | Validate `9411e36` against the exact handoff and select the next eligible bounded slice without adding Public UI, T11 exceptions, Research, or broader Admin pages. |
+| T14 | Eligible next lane | Create an exact Public service-explanation/recovery handoff using existing truthful state; preserve visual identity and exclude guessed dependency causes, T11, Research, broader Admin pages, and external-runtime work. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
-Batch result: T14's contrast/color-governance slice and prior affected chain are revalidated at
-`f42a2bb...`. T9/T13 remain deferred without dependency bypass; T11/T15 remain blocked. The bounded
-Admin shell/Dashboard theme foundation is implemented and accepted at `9411e36`; affected audits
-are stale until Level 1 revalidation, and broader Admin pages remain later slices.
+Batch result: T14's first five slices and affected chain are revalidated at `0a0fe58...`.
+T9/T13 remain deferred without dependency bypass; T11/T15 remain blocked. Bounded Public service
+explanation/recovery is selected next; broader Admin pages remain later slices.
 
 ## 4. Dependency Map
 
@@ -1242,10 +1242,10 @@ T8 completion evidence.
 
 ### Decision Gates
 
-The 2026-08-09 Dashboard & UX re-audits and D-011 order accept the first four T14 slices at
-`f42a2bb...`. Public visual identity/layout remains substantially unchanged. A bounded Admin shell/
-Dashboard hierarchy and complementary-theme foundation is selected next; broader Admin pages remain
-separate and no unavailable T11 exception or Research data may be invented.
+The 2026-08-10 Dashboard & UX re-audits and D-011 order accept the first five T14 slices at
+`0a0fe58...`. Public visual identity/layout remains substantially unchanged. A bounded Public
+service-explanation/recovery handoff using existing truthful state is selected next; it may not
+invent dependency causes, unavailable T11 exceptions, Research data, or external-runtime facts.
 
 ### Blocks
 
@@ -1276,9 +1276,10 @@ contract, not tool availability.
 The first slice removed fabricated Feedback association and false Public/Admin state. The second
 establishes labelled modal/focus/form/navigation behavior. The third establishes selected-route-
 only geometry, owned/reduced marker and map motion, a non-colliding 320 px Public overlay, and audited
-44 px targets. Public identity and existing product behavior are preserved. The next slice governs
-contrast and route-color foreground selection without broad styling; Admin theme/hierarchy,
-research, rooms, and backend ETA remain separate.
+44 px targets. The fourth governs contrast/route colors, and the fifth establishes a bounded Admin
+semantic theme and map-first hierarchy. Public identity and existing product behavior are preserved.
+The next slice may improve Public service explanation/recovery only from existing truthful state;
+T11, Research, broader Admin pages, rooms, and backend ETA remain separate.
 
 ### Related Files
 
@@ -1286,9 +1287,10 @@ Public tracker/map/helpers/tour/cards, admin dashboard/CRUD feedback, frontend t
 
 ### Acceptance Criteria and Verification
 
-The selected admin Dashboard screens expose a documented priority order for service status,
-exceptions, actions, and supporting metrics; every element uses shared public-theme tokens or a
-documented semantic extension; loading/empty/error/stale/unauthorized/destructive states are clear;
+The selected Admin Dashboard exposes a documented priority order for verified data, canonical
+service state, available actions, and supporting metrics without inventing unavailable exceptions;
+every element uses shared Public tokens or a documented semantic extension; scoped loading/error/
+stale/navigation states are clear;
 responsive layout, keyboard order, focus, contrast, Thai/English text, and role-specific navigation
 are browser-verified. One maintained public realtime map path remains; extracted units clean up
 correctly; no scale work occurs without captured measurement. Run lint, production build, focused
@@ -1297,8 +1299,8 @@ component/accessibility checks, and desktop/mobile browser smoke tests.
 ### Status
 
 Partially Complete — the D-011 truth/integrity, accessibility/navigation, measured Public map-
-quality, and contrast/color-governance slices are revalidated at `f42a2bb...`; the Admin Dashboard
-foundation is implemented at `9411e36` with affected-chain re-audit pending. The map-quality handoff is
+quality, contrast/color-governance, and Admin Dashboard foundation slices are revalidated at
+`0a0fe58...`. The map-quality handoff is
 `docs/tasks/T14-measured-public-map-quality.md`, covering measured route/map performance, reduced
 motion, narrow-screen collision, and audited touch targets. The exact handoff
 `docs/tasks/T14-truthful-feedback-and-live-state.md` records the bounded Public/Admin paths,
@@ -1311,7 +1313,7 @@ shell/Dashboard theme and hierarchy paths, tests, invariants, stop conditions, a
 ### Evidence
 
 `docs/audits/dashboard-ux-audit.md` records the pre-implementation 9/20 audit, the post-truth 10/20
-checkpoint, the post-accessibility 11/20 audit, and the current measured map-quality 13/20 re-audit
+checkpoint, the post-accessibility 11/20 audit, and the measured map-quality 13/20 checkpoint
 (no P0; three open P1, eight P2, one P3; six resolved P1 and two resolved P2). Commit `1b2b6c1`
 removes fabricated Feedback association, adds
 truthful Public/Admin loading/connection/freshness/recovery, reconciles Admin snapshot/event state,
@@ -1443,7 +1445,7 @@ Repository simulators exist; physical/provider evidence is unavailable.
 |---|---|---|
 | Driver, trip-history, and exception workflows are absent | D-001=C now requires them, so this is no longer an accepted release omission. T10 route-stop operations are complete for their bounded scope. | Complete T11 with external Android evidence before release. |
 | Feedback runtime rollout is unverified | T12 source/test scope is complete, but no migration, retention run, staff/rider acceptance, backup, or deployed scheduling evidence exists. | Execute an approved disposable/staging rollout and retention/role acceptance before release. |
-| Dashboard/public UX is not release-ready | The validated score is 14/20. Four T14 slices are revalidated, but human assistive-technology/usability, broader device/runtime evidence, coherent Admin hierarchy/theme, and the remaining Public/Research P1s stay open. | Complete a bounded Admin shell/Dashboard theme foundation, then re-audit before broader Admin work. |
+| Dashboard/public UX is not release-ready | The validated score is 15/20. Five T14 slices are revalidated, but human assistive-technology/usability, broader device/runtime evidence, broader Admin/legacy theming, T11-backed exceptions, and the remaining Public/Research P1s stay open. | Complete the bounded Public explanation/recovery P1 next without changing visual identity or inventing causes. |
 | Deployment/TLS/backup/recovery evidence is absent | D-008 policy and the T9 repository handoff exist, but University Server/Network acceptance checks are incomplete. | Obtain T9 external acceptance, then complete T13. |
 | Physical device/TTN evidence is absent | Provider/hardware/provisioning facts are unknown. | Record facts and execute T15. |
 | Playback/reports are absent | D-002=B authorizes bounded diagnostics, not unbounded fidelity claims. | Approve query/fidelity scope after T7 evidence. |
@@ -1461,7 +1463,7 @@ external-evidence gates but no additional focused owner-policy blocker:
 | D-012 implementation paths and external `DEV` allowlist/recovery/backup target facts | T15 and later role-management work | Policy is approved but intentionally outside T11/T12/T14; target facts and exact implementation evidence remain absent. |
 | TTN application/device IDs; physical device/module models; firmware/provisioning; clock/reference and field protocol | T15 | D-004 fixes transport roles and dashboard scope, but repository evidence cannot establish physical behavior or absolute accuracy. |
 | None for feedback policy | — | D-009 approves owner, anonymous/no-reply scope, business-day lifecycle, retention, deletion/restore, and safe read-only source fields. |
-| None for the completed measured/contrast T14 slices | — | D-011 fixes the order and Public/Admin visual authority; `c5b2e69` and `799905f` are revalidated at `f42a2bb...`. |
+| None for the completed T14 slices | — | D-011 fixes the order and Public/Admin visual authority; the first five slices, including `9411e36`, are revalidated at `0a0fe58...`. |
 
 ## 13. Recommended Level 2/3 Agent Usage
 
@@ -1469,7 +1471,7 @@ Route every focused technical question through `agents/level-2-specialist/AGENT.
 `tram-specialist-consultation`. Route every implementation through
 `agents/level-3-refactor/AGENT.md` with `tram-refactoring-workflow`.
 
-- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and T14's truth, accessibility/navigation, measured map-quality, and contrast/color-governance slices. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. Continue T14 with an exact Admin shell/Dashboard theme-foundation handoff; use Level 2 only if a new focused cross-domain question appears.
+- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and T14's truth, accessibility/navigation, measured map-quality, contrast/color-governance, and Admin Dashboard foundation slices. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. Continue T14 with an exact Public service-explanation/recovery handoff; use Level 2 only if a new focused cross-domain question appears.
 - Specialist-led: T2 security/abuse; T4, T9, T13 observability/deployment; T5 database transactions; T6/T7 realtime and time-series; T11 operations/mobile; T15 device/LoRaWAN.
 - T12's D-010:A account-transition choice and all exact source/test acceptance evidence are complete; runtime rollout remains separately gated.
 
@@ -1489,9 +1491,9 @@ The monolith remains the supported architecture; this roadmap does not authorize
 T1–T8, T10, and T12 are complete for their recorded scopes; M-20260807-01/02/03 are complete corrective
 maintenance outside roadmap ordering. T9's repository handoff is validated and partially complete;
 the owner defers its external continuation and T13 without satisfying their gates. T11 remains
-blocked on coordinated Backend/Mobile implementation and Android acceptance. T14's first four
-D-011 slices are revalidated at `f42a2bb...`; a bounded Admin shell/Dashboard hierarchy and theme
-foundation is next. Broader Admin pages remain separate. T15 remains
+blocked on coordinated Backend/Mobile implementation and Android acceptance. T14's first five
+D-011 slices are revalidated at `0a0fe58...`; bounded Public service explanation/recovery is next.
+Broader Admin pages remain separate. T15 remains
 deferred behind T13 and external physical facts. T12/
 T14 source acceptance is not deployment/public-release authorization.
 
@@ -1508,12 +1510,12 @@ policy; D-007 introduces a three-tier role direction; D-008 fixes the university
 handoff and separates the now-validated repository work from pending Server/Network acceptance;
 D-009 binds feedback/privacy/read-only device policy; D-010:A maps legacy roles while requiring
 unknown roles to fail closed; D-011 orders T14 and separates preserved Public identity from later
-Admin redesign authority; and D-012 fixes later least-privilege lifecycle controls. T14's first four
-slices are accepted by the 2026-08-09 14/20 technical re-audit at `f42a2bb...`.
+Admin redesign authority; and D-012 fixes later least-privilege lifecycle controls. T14's first five
+slices are accepted by the 2026-08-10 15/20 technical re-audit at `0a0fe58...`.
 M-20260807-01/02/03
 correct logging, simulator, and generated-artifact boundaries without changing roadmap order. The
-affected audits and this Roadmap are current at `f42a2bb...`; unaffected audits remain current at
-`1eec866...`. The bounded Admin shell/Dashboard theme foundation is selected next.
+affected audits and this Roadmap are current at `0a0fe58...`; unaffected audits remain current at
+`1eec866...`. Bounded Public service explanation/recovery is selected next.
 
 **Assumptions and unknowns:** the target is C but no daily/public readiness claim is made before the
 required work passes. Diagnostics remain bounded/protected; no external host/provider/device fact or

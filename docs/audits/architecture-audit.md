@@ -1,7 +1,7 @@
 # Architecture Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: f42a2bb025c4756e04542fc9dbecb41009d8ce7a
+- Evidence baseline: 0a0fe58a59dbdcfc1a4cc59c7d71cb9b4b74639d
 - Evidence scope: docs/project-knowledge-base.md, docs/audits/product-audit.md,
   docs/decision-queue.md, docs/research/, docs/tasks/, docs/operations/, README.md,
   Compose/environment configuration and scripts, shuttle-tracking-backend/src/,
@@ -10,12 +10,33 @@ Audit metadata:
   shuttle-tracking-web/types/, shuttle-tracking-web/services/,
   shuttle-tracking-web/components/, shuttle-tracking-web/tests/, and the T11 v3 external Mobile
   compatibility brief
-- Reviewed at: 2026-08-09T23:51:01+07:00
+- Reviewed at: 2026-08-10T00:41:42+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/project-knowledge-base.md @ 1eec86602c40c859d50dd9d369f636b103b6896f;
-  docs/audits/product-audit.md @ f42a2bb025c4756e04542fc9dbecb41009d8ce7a
+  docs/audits/product-audit.md @ 0a0fe58a59dbdcfc1a4cc59c7d71cb9b4b74639d
 
-## 2026-08-09 T14 contrast/color-governance re-audit
+## 2026-08-10 T14 Admin Dashboard foundation re-audit
+
+Product is revalidated at `0a0fe58...`; Discovery remains current at `1eec866...`. One Admin-only
+stylesheet scopes semantic canvas/surface/text/border/navigation/focus/status tokens under
+`.admin-shell`; the Login branch and every Public surface remain outside that boundary. The
+Dashboard uses one typed metric-definition list for repeated presentation and retains the existing
+API/list-validation/count authority. Sidebar presentation still consumes the established Auth
+context and role hierarchy rather than creating a second permission model.
+
+`LiveMap` changes only the status surface and map container presentation. Snapshot-first hydration,
+queued version reconciliation, local expiry, Socket lifecycle, canonical projection, markers, and
+T6's exact unknown-state source expression remain authoritative and pass boundary/browser tests.
+The first full-CI attempt caught that source expression being obscured by markup; the repaired form
+and final full CI pass. No dependency, endpoint, schema, persistence, cache, authorization,
+canonical-state model, external asset origin, or backend/mobile behavior changed.
+
+The architecture can next support a bounded Public explanation/recovery slice only through current
+typed connection/canonical state. An exact handoff must stop if route/dependency-specific causes
+would require a new server contract; it may not infer them in presentation or become a second state
+authority.
+
+## 2026-08-09 T14 contrast/color-governance re-audit — superseded for Admin Dashboard findings
 
 Product is revalidated at `f42a2bb...`; Discovery remains current at `1eec866...`.
 `utils/colorContrast.ts` is one pure display boundary for untrusted route-color normalization,
@@ -107,26 +128,13 @@ safe-view boundaries. None is a reason to split the appropriate monolith into un
 
 This profile covers boundaries, authority, data products, temporal semantics, cache/realtime behavior, and task placement. It does not certify deployment, physical devices, provider behavior, browser runtime, load, or an Android client.
 
-Discovery and Product are revalidated at `1eec866...`. The preceding Architecture baseline was
-`82f4d97...`. T9 changes the checked-in topology and architectural authorities but does not change
+Discovery remains current at `1eec866...`; Product is revalidated at `0a0fe58...`, and the preceding
+affected Architecture baseline was `f42a2bb...`. Exact changed architecture evidence is the fifth
+T14 handoff plus `app/admin/admin.css`, the Admin layout/Dashboard, `Sidebar`, `LiveMap`, package/
+Playwright registration, focused browser tests, and completion coordination. Existing T9 topology,
 canonical selection, research capture, relational schema, route-stop ownership, Feedback lifecycle,
-or Mobile/ESP32/LoRaWAN acquisition semantics.
-
-Exact changed architecture evidence includes `docker-compose.prod.yml`, `env.production.example`,
-`scripts/ci-checks.sh`, `scripts/test-production-topology.mjs`,
-`docs/tasks/T9-production-topology-origin-handoff.md`,
-`docs/operations/university-server-network-handoff.md`,
-`shuttle-tracking-backend/src/config/prisma.ts`, `shuttle-tracking-backend/src/config/redis.ts`,
-`shuttle-tracking-backend/src/config/runtime.ts`,
-`shuttle-tracking-backend/src/config/validate-runtime.ts`,
-`shuttle-tracking-backend/src/middleware/rate-limit.ts`,
-`shuttle-tracking-backend/src/server.ts`,
-`shuttle-tracking-backend/tests/test_t9_runtime_config.js`,
-`shuttle-tracking-web/config/backend.ts`, the changed `LiveMap`, `FeedbackModal`, tracker/socket
-hooks and API services, and `shuttle-tracking-web/tests/t9-backend-origin.test.ts`; current
-predecessor/decision records changed as listed in the evidence scope. Focused backend, frontend
-(5/5), and static topology checks pass. They prove repository composition and pure configuration
-behavior only, not TLS, forwarded-hop behavior, recovery, capacity, deployment, or Android behavior.
+and Mobile/ESP32/LoRaWAN acquisition semantics are unchanged. Source/browser/full-CI evidence proves
+local composition only, not TLS, recovery, capacity, deployment, devices, or Android behavior.
 
 ## 3. Prior-Finding Revalidation
 
@@ -175,10 +183,10 @@ behavior only, not TLS, forwarded-hop behavior, recovery, capacity, deployment, 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
 T9 is Partially Complete for its repository-side handoff under D-008. T10/T12 are complete for their
-bounded handoffs. T14's first four slices are complete and revalidated; the next eligible bounded
-unit is an Admin shell/Dashboard hierarchy and theme foundation that consumes existing truthful
-state without inventing T11 exceptions or Research data. T11 needs focused technical and external
-Android evidence.
+bounded handoffs. T14's first five slices are complete and revalidated; the next eligible bounded
+unit is a Public service-explanation/recovery handoff that consumes existing truthful connection/
+canonical state without inventing dependency causes. T11 still needs focused technical and
+external Android evidence.
 Production operations, runtime retention, capacity and external-device facts remain open; no new
 owner decision is proposed.
 
@@ -194,8 +202,8 @@ not a policy choice to infer.
 
 Frontend and downstream profiles may consume this Architecture baseline. Backend and Database remain
 current at `1eec866...` because T14 changes no runtime API, schema, or persistence authority. The
-Roadmap may next create only a bounded T14 Admin shell/Dashboard theme-foundation handoff; none of
-this evidence promotes a browser fixture into assistive-technology, device, or runtime proof.
+Roadmap may next create only a bounded T14 Public service-explanation/recovery handoff; none of this
+evidence promotes a browser fixture into assistive-technology, device, or runtime proof.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 
