@@ -1,7 +1,7 @@
 # Architecture Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 1eec86602c40c859d50dd9d369f636b103b6896f
+- Evidence baseline: bd34552c09eea59ad9e2adee160483b2be433744
 - Evidence scope: docs/project-knowledge-base.md, docs/audits/product-audit.md,
   docs/decision-queue.md, docs/research/, docs/tasks/, docs/operations/, README.md,
   Compose/environment configuration and scripts, shuttle-tracking-backend/src/,
@@ -10,11 +10,28 @@ Audit metadata:
   shuttle-tracking-web/types/, shuttle-tracking-web/services/,
   shuttle-tracking-web/components/, shuttle-tracking-web/tests/, and the T11 v3 external Mobile
   compatibility brief
-- Reviewed at: 2026-08-08T00:07:30+07:00
+- Reviewed at: 2026-08-09T21:17:05+07:00
 - Validation state: Validated
-- Predecessor baselines: docs/project-knowledge-base.md and docs/audits/product-audit.md @ 1eec86602c40c859d50dd9d369f636b103b6896f
+- Predecessor baselines: docs/project-knowledge-base.md @ 1eec86602c40c859d50dd9d369f636b103b6896f;
+  docs/audits/product-audit.md @ bd34552c09eea59ad9e2adee160483b2be433744
 
-## 2026-08-08 Decision and Mobile boundary re-audit
+## 2026-08-09 T14 first-slice re-audit
+
+Product is revalidated at `bd34552...`; Discovery remains current at `1eec866...`. T14 preserves the
+single backend-owned `CanonicalVehicleStateV1` authority and adds typed, pure frontend projections
+instead of creating another service-state model. Public presentation combines canonical counts with
+the actual Socket.IO connection state. Admin presentation treats the successful snapshot as the
+base, removes snapshot-absent vehicles, queues events during hydration, lets the newer version win,
+and locally expires live data into last-known state. The Service Worker bypass for `/socket.io/`
+prevents an offline cache/fallback from becoming a second realtime transport authority.
+
+This is source, deterministic-test, local-browser, and CI evidence only. Public and Admin socket
+lifecycle code remains independently implemented and can drift; Redis loss/replay, distributed
+fan-out, deployed transport, history/exceptions, and the T11 lifecycle remain unresolved. The
+unrelated dirty Feedback-role migration was excluded from this baseline and no schema/backend
+behavior changed; the T6 edit is a compatibility assertion only.
+
+## 2026-08-08 decision/Mobile snapshot — superseded for T14 findings
 
 Discovery and Product are current at `1eec866...`; application source in this repository is
 unchanged. The pinned external Android source confirms a concrete consumer of the present
@@ -79,7 +96,7 @@ behavior only, not TLS, forwarded-hop behavior, recovery, capacity, deployment, 
 | Redis current state is durable truth | Still Present | Redis current state/version allocation remains transient. PostgreSQL holds sampled canonical history and separate research evidence, not durable recovery/replay for public live state. |
 | Route-stop cache ownership is incomplete | Resolved | T10 provides bounded active-membership validation, contiguous ordered replacement in one Prisma transaction, and post-success shared public-cache invalidation; legacy create/delete use the same invalidator. Deterministic tests/CI cover the pure boundary, not a stateful cache/DB runtime. |
 | Realtime fan-out/scaling is proven | Unable to Verify | The Redis adapter exists, but publication is global and no rooms, replay, load threshold, or fan-out measurement is evidenced. |
-| Public/admin service-state behavior is an operational contract | Partially Resolved | Canonical state distinguishes live, stale, no_service, and unknown; T8 keeps public projection coherent. C-scope user-facing wording, history, exception handling, and ownership are not implemented. |
+| Public/admin service-state behavior is an operational contract | Partially Resolved | Canonical state distinguishes live, stale, no_service, and unknown; T8 keeps public projection coherent; T14 now projects truthful Public connection/service state and Admin snapshot/realtime/local-expiry state. History, actionable exceptions, last-update/dependency guidance, deployed recovery, and ownership remain incomplete. |
 | Production topology and REST/Socket origin authority were unresolved | Partially Resolved | T9 establishes one checked-in university topology, one fail-closed backend runtime parser, and one frontend REST/Socket origin resolver with deterministic tests. Actual reverse proxy, TLS, data-service exposure, restart, recovery, and capacity remain Unable to Verify externally. |
 
 ## 4. Data Products and Authority
@@ -115,8 +132,10 @@ behavior only, not TLS, forwarded-hop behavior, recovery, capacity, deployment, 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
 T9 is Partially Complete for its repository-side handoff under D-008. T10/T12 are complete for their
-bounded handoffs. T11 needs focused technical and external Android evidence. Production operations,
-runtime retention, capacity and external-device facts remain open; no new owner decision is proposed.
+bounded handoffs. T14's first truth/integrity slice is complete and revalidated; its next eligible
+bounded unit is accessibility/navigation under a new exact-path handoff. T11 needs focused technical
+and external Android evidence. Production operations, runtime retention, capacity and external-device
+facts remain open; no new owner decision is proposed.
 
 Confidence is High for code-visible authority and missing boundaries, Medium for T8 local projection because deterministic and isolated-browser tests exist, and Low for distributed recovery, deployment, load, hardware, provider, Android, and real operations outcomes.
 
@@ -126,9 +145,10 @@ No new owner decision is proposed. D-011 and D-012 are approved and constrain on
 UX-order and general account/source lifecycle work; external T9/Mobile acceptance remains evidence,
 not a policy choice to infer.
 
-Backend, Frontend, and Database completed their independent T9 revalidations using this Architecture
-baseline, and every downstream profile is current. None promotes a policy direction or simulator
-into implementation or runtime evidence.
+Frontend and downstream profiles may consume this Architecture baseline. Backend and Database remain
+current at `1eec866...` because T14 changes no runtime API, schema, or persistence authority. None
+promotes a policy direction, local browser fixture, or simulator into implementation or runtime
+evidence.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 

@@ -1,27 +1,43 @@
 # Production Readiness Audit
 
 Audit metadata:
-- Evidence baseline: 1eec86602c40c859d50dd9d369f636b103b6896f
+- Evidence baseline: bd34552c09eea59ad9e2adee160483b2be433744
 - Evidence scope: docs/project-knowledge-base.md; every validated domain audit;
   docs/decision-queue.md; docs/tasks/; docs/operations/; scripts/ci-checks.sh;
   scripts/test-production-topology.mjs; Compose/environment configuration; the current Impeccable
   Dashboard & UX technical audit evidence; the current full repository CI; and source paths cited
   by validated findings; the D-012 matrix; and the T11 v3 external Mobile compatibility brief
-- Reviewed at: 2026-08-08T00:07:30+07:00
+- Reviewed at: 2026-08-09T21:17:05+07:00
 - Validation state: Validated
-- Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md,
-  docs/audits/architecture-audit.md, docs/audits/backend-audit.md,
-  docs/audits/frontend-audit.md, docs/audits/database-audit.md,
-  docs/audits/infrastructure-device-audit.md, docs/audits/dashboard-ux-audit.md, and
+- Predecessor baselines: docs/audits/product-audit.md, docs/audits/architecture-audit.md,
+  docs/audits/frontend-audit.md, and docs/audits/dashboard-ux-audit.md @
+  bd34552c09eea59ad9e2adee160483b2be433744; docs/project-knowledge-base.md,
+  docs/audits/backend-audit.md, docs/audits/database-audit.md,
+  docs/audits/infrastructure-device-audit.md, and
   docs/audits/security-devops-observability-audit.md @
   1eec86602c40c859d50dd9d369f636b103b6896f
 
-## 2026-08-08 release-gate re-audit
+## 2026-08-09 T14 first-slice readiness re-audit
 
-Every predecessor is validated at `1eec866...`. D-011/D-012 are approved, removing two owner-policy
-gates but not their implementation/runtime evidence. D-011 permits the bounded T14 truth/integrity
-slice with minimal Public visual change; D-012 supplies future lifecycle safeguards but none is
-implemented. The selected D-001=C release remains **No-Go**.
+T14's first D-011 slice is complete and its affected predecessors are validated at `bd34552...`.
+Source, pure tests, isolated mobile/desktop browser journeys, the T8 regression, production build,
+and full repository CI establish that Feedback fails closed, Public/Admin live-state claims are
+truthful for their bounded projections, and the PWA does not intercept Socket.IO transport. The
+Dashboard & UX score improves from 9/20 to 10/20 because two misleading-state P1s close; seven P1,
+ten P2, one P3, accessibility/navigation, exception-first operations, and human/runtime evidence
+remain.
+
+The selected D-001=C release remains **No-Go**. No migration, deployment, university proxy,
+production Socket.IO interruption, accessibility session, staff/rider acceptance, physical device,
+provider, backup/recovery, or operations drill occurred. The unrelated dirty Feedback-role migration
+was preserved and excluded; no external target was operated.
+
+## 2026-08-08 release-gate snapshot — superseded for T14 findings
+
+At that baseline every predecessor was validated at `1eec866...`. D-011/D-012 were approved,
+removing two owner-policy gates but not their implementation/runtime evidence. D-011 permitted the
+bounded T14 truth/integrity slice; the 2026-08-09 section above now records its source/browser result.
+D-012 supplies future lifecycle safeguards but none is implemented. D-001=C remains **No-Go**.
 
 The external native Android source is now available and partially compatible with the current
 Sender API. It adds a concrete foreground/Socket.IO/Trip code path, but also creates SEC-08: reusable
@@ -46,26 +62,25 @@ The release determination remains **No-Go**. D-008 resolves the logical universi
 responsibility boundary, and T9 now aligns the repository template/runtime/origin/runbook with
 deterministic checks. The University Server/Network Team has not supplied host, TLS, firewall,
 forwarded-hop, deployed secret, backup/restore, logs/alerts, incident or capacity acceptance evidence.
-T11 still lacks its coordinated lifecycle/Mobile patch and Android runtime evidence; T12 lacks target migration/retention/human
-acceptance; physical senders/provider/field behavior is unavailable; and the Dashboard & UX technical
-audit is 9/20 (Poor) with truthful live-state and accessibility P1 findings.
+T11 still lacks its coordinated lifecycle/Mobile patch and Android runtime evidence; T12 lacks target
+migration/retention/human acceptance; physical senders/provider/field behavior is unavailable; and
+the Dashboard & UX technical audit is 10/20 with seven open P1 findings led by accessibility,
+navigation, the narrowed Public explanation gap, and missing exception/research surfaces.
 
 ## 2. Freshness and Validated Predecessor Coverage
 
-The preceding baseline was `cdedcc2...`. Every domain report now consumes `1eec866...`. Changed
-release evidence is the T9 task/runbook/decision set; `docker-compose.prod.yml` and
-`env.production.example`; static topology/CI scripts; backend entrypoint/runtime/Prisma/Redis/
-server/rate-limit/tests; and the central frontend connection resolver with its listed consumers and
-tests. These changes close repository configuration findings but do not create external acceptance.
-The current full `bash scripts/ci-checks.sh` passes, including backend boundaries and Prisma,
-frontend simulator/T8/T9/Playwright/lint/build, Compose and production topology, dynamic-log scan,
-and workflow validation. No production target or stateful acceptance target was operated.
+The preceding baseline was `1eec866...`. Product, Architecture, Frontend, and Dashboard & UX now
+consume `bd34552...`; unaffected reports remain current at `1eec866...`. Changed release evidence is
+the exact T14 task/implementation and focused/full validation recorded there. The current full
+`bash scripts/ci-checks.sh` passes, including backend boundaries and Prisma, frontend tests/E2E/lint/
+build, Compose and production topology, dynamic-log scan, and workflow validation. No production or
+stateful acceptance target was operated.
 
 | Domain | Readiness implication |
 |---|---|
-| Discovery/Product | The implemented tracker remains a partial product; T10/T12 exact scopes are complete, while sender/trip accountability and truthful service communication remain. |
+| Discovery/Product | The implemented tracker remains a partial product; T10/T12 exact scopes and T14's first truth slice are complete, while sender/trip accountability, deeper service guidance, and human/runtime acceptance remain. |
 | Architecture/Backend/Database | Canonical, Operations and research data boundaries are coherent; T10/T12 server/schema controls are implemented in source/test form, while T11 and runtime rollout remain open. |
-| Frontend/Dashboard UX | T8 rider projection plus T10/T12 operations surfaces are complete for bounded scope; the 9/20 technical audit confirms recovery, accessibility, truthful admin state, dashboard hierarchy, and research surfaces remain incomplete. |
+| Frontend/Dashboard UX | T8 plus T14 provide bounded truthful rider/Admin projection, and T10/T12 operations surfaces are complete for their scopes; the 10/20 technical audit confirms accessibility/navigation, recovery guidance, dashboard hierarchy/exceptions, and research surfaces remain incomplete. |
 | Infrastructure/Device | T9's private/authenticated static topology and runbook pass; no deployed topology or physical sender/provider/field evidence exists. |
 | Security/DevOps | Core sender/TTN/T12 controls, T9 repository port/origin/auth/proxy/health boundaries, and CI exist; SEC-01 is repaired. TLS/firewall/forwarded-hop behavior, credential rotation, broad scanning, durable monitoring/alerts, incident controls, and runtime rollout remain unresolved. |
 
@@ -76,7 +91,7 @@ and workflow validation. No production target or stateful acceptance target was 
 | Local controlled development demonstration | Conditional only | Use a known, disposable/isolated environment and configured sender; no service/reliability/accuracy/production claim; stop immediately on incorrect/stale/no-source state. |
 | Research field trial | No-Go | No physical Mobile/ESP32/TTN/provider evidence, field protocol execution, checkpoint/reference evidence, topology/operations controls or production-quality lifecycle evidence. |
 | Internal daily operations | No-Go | T10/T12 exact scopes exist, but supported sender/claim/timeout workflow, protected history/exceptions, production topology/TLS/backups/alerts/on-call, runtime migration/retention, or field recovery evidence are absent. |
-| D-001=C public rider service | No-Go | All internal gates plus public service/recovery truth, accessibility/runtime evidence, and release approval are absent. |
+| D-001=C public rider service | No-Go | A bounded truthful service projection now exists, but all internal gates plus accessibility/human/deployed recovery evidence and release approval remain absent. |
 
 ## 4. Consolidated Material Findings
 
@@ -90,7 +105,7 @@ and workflow validation. No production target or stateful acceptance target was 
 | PR-06 | SEC-01 raw Socket.IO invalid payload logging can leak sensitive coordinates/payloads. | Resolved | Source/test blocker removed by M-20260807-01; retain guards and obtain deployed-log evidence on an approved target. |
 | PR-07 | Durable metrics/logs/alerts, on-call, recovery drill and backup/restore/rollback evidence are absent. | Still Present | Internal, public |
 | PR-08 | Mobile, ESP32, TTN/gateway/provider and field/recovery evidence are unavailable; simulators are not physical evidence. | Unable to Verify | Research, internal, public |
-| PR-09 | T8 canonical projection is resolved, but public C-scope service-state/retry explanation, accessibility and real user/runtime evidence remain incomplete; Admin status/fallback truth is also unsafe for a release claim. | Partially Resolved | Internal, public |
+| PR-09 | T8 canonical projection and T14's first Public/Admin truth slice are resolved at source/browser level. Accessibility/navigation, deeper service/retry guidance, exception-first operations, and real user/deployed-runtime evidence remain incomplete. | Partially Resolved | Internal, public |
 | PR-10 | The external Mobile revision stores reusable Sender material in ordinary preferences with backup/cleartext enabled and lacks installation revocation/recovery. | New Finding | Internal, public |
 
 ## 5. Stop Conditions
@@ -110,7 +125,9 @@ stale, dependency, or ingestion failure.
    data services, backup/restore, migration/rollback, logs/alerts and named incident contacts.
 3. Preserve T10 route-operation evidence and obtain approved-target cache/browser verification if a release claim needs it; then implement T11 sender/lifecycle/history/exception controls and obtain external Android acceptance evidence.
 4. Roll out and verify T12's approved RBAC/feedback migration, retention/purge, backup/restore, proxy-IP handling, and accountable staff/rider workflow on an approved target.
-5. Correct and accept the Dashboard & UX P1 truthfulness/accessibility findings through a bounded T14 handoff; keep public/Admin/research information boundaries distinct.
+5. Preserve T14's truthful-state regressions; complete and accept the bounded accessibility/
+   navigation slice, then separately evidence any Admin hierarchy/theme work while keeping public/
+   Admin/research information boundaries distinct.
 6. Demonstrate actual sender/device/provider behavior across representative routes, coverage, mounting, duration, reconnect/power cycles and failure recovery, with limits documented.
 7. Run release/readiness, security, accessibility and operations evidence on the selected non-production target before release approval.
 
@@ -126,7 +143,7 @@ No new owner decision is proposed. D-011 and D-012 are approved and cannot be ex
 recorded scope; T9/T11/T12 external/runtime acceptance is missing evidence rather than a decision to
 infer.
 
-Roadmap may now consume this release synthesis and create only the first exact T14 truth/integrity
+Roadmap may now consume this release synthesis and create the next exact T14 accessibility/navigation
 handoff. T9 remains repository-partial, T11/T12 runtime proof remains open, and T13/T15 dependencies
 cannot be bypassed.
 

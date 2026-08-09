@@ -5,16 +5,16 @@ Last updated: 2026-08-09
 | Phase | Status | Report / evidence | Evidence baseline | Last reviewed | Notes |
 |---|---|---|---|---|---|
 | Discovery | Complete | `docs/project-knowledge-base.md` | `1eec866` | 2026-08-08 | D-011/D-012 and pinned external Mobile source are current; Android runtime and external infrastructure/device facts remain unavailable. |
-| Product | Needs Re-audit — T14 | `docs/audits/product-audit.md` | `1eec866` | 2026-08-09 | T14 commit `1b2b6c1` changes the Public Feedback and live-state journey; prior Mobile/T11 findings remain independently current. |
-| Architecture | Needs Re-audit — T14 | `docs/audits/architecture-audit.md` | `1eec866` | 2026-08-09 | T14 changes frontend snapshot/event reconciliation and PWA realtime transport; T11/D-012 placement remains independently current. |
+| Product | Complete | `docs/audits/product-audit.md` | `bd34552` | 2026-08-09 | T14 Feedback/live-state journeys are revalidated; Mobile/T11 and human/runtime limits remain. |
+| Architecture | Complete | `docs/audits/architecture-audit.md` | `bd34552` | 2026-08-09 | T14 preserves one canonical authority and validates snapshot/event/PWA transport placement; distributed/runtime evidence remains open. |
 | Backend | Complete | `docs/audits/backend-audit.md` | `1eec866` | 2026-08-08 | Current static-secret consumer is evidenced; additive installation/claim/lifecycle and Android acceptance remain blocked. |
-| Frontend | Needs Re-audit — T14 | `docs/audits/frontend-audit.md` | `1eec866` | 2026-08-09 | T14 implements fail-closed Feedback and truthful Public connection/freshness while preserving the incumbent identity; findings need evidence refresh. |
+| Frontend | Complete | `docs/audits/frontend-audit.md` | `bd34552` | 2026-08-09 | T14 closes two P1 truth defects and narrows Public explanation; current score 10/20, with accessibility/navigation next. |
 | Database | Complete | `docs/audits/database-audit.md` | `1eec866` | 2026-08-08 | D-012 lifecycle/recovery invariants are approved but absent from schema/runtime; no target action occurred. |
 | Infrastructure & Device | Complete | `docs/audits/infrastructure-device-audit.md` | `1eec866` | 2026-08-08 | Native foreground source is visible; build/device/OS evidence is unavailable and ESP32/LoRaWAN facts remain external. |
-| Dashboard & UX | Needs Re-audit — T14 | `docs/audits/dashboard-ux-audit.md` | `1eec866` | 2026-08-09 | T14 changes loading/error/retry/freshness journeys and passes focused desktop/mobile browser checks; the 9/20 baseline must be rescored. |
+| Dashboard & UX | Complete | `docs/audits/dashboard-ux-audit.md` | `bd34552` | 2026-08-09 | Post-T14 score is 10/20; focused journeys pass, two P1s close, and seven P1s remain. |
 | Security, DevOps & Observability | Complete | `docs/audits/security-devops-observability-audit.md` | `1eec866` | 2026-08-08 | D-012 is approved but unimplemented; SEC-08 records external Mobile credential/backup/cleartext/lifecycle risk. |
-| Production Readiness | Needs Re-audit — T14 | `docs/audits/production-readiness-audit.md` | `1eec866` | 2026-08-09 | Source/browser/CI evidence closes part of the UX truth gap, but No-Go and every external/runtime gate require revalidation. |
-| Roadmap | Needs Re-audit — T14 | `docs/roadmap/master-refactoring-roadmap.md` | `1eec866` | 2026-08-09 | T14's first slice is implemented and verified; Level 1 must validate it before selecting the next accessibility/Admin slice. |
+| Production Readiness | Complete / No-Go | `docs/audits/production-readiness-audit.md` | `bd34552` | 2026-08-09 | T14 closes bounded truth gaps; accessibility, operations, deployment, Mobile/device, and every release gate remain open. |
+| Roadmap | Complete | `docs/roadmap/master-refactoring-roadmap.md` | `bd34552` | 2026-08-09 | T14's first slice is revalidated; accessibility/navigation is next under a new exact handoff, with Admin theme later. |
 
 `Evidence baseline` records the immutable source/decision commit consumed by each report. Each
 report's metadata remains authoritative for its full scope and predecessor chain.

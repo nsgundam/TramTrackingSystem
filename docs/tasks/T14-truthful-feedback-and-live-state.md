@@ -197,8 +197,8 @@
     production build, Compose, production topology, safe-logging, and workflow validation on
     2026-08-09.
   - `git diff --check` and `node scripts/validate-agent-workflow.js` — passed.
-- Audit freshness changes: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
-  and Roadmap are downgraded to `Needs Re-audit — T14` because the completed slice changes the
-  rider Feedback journey, realtime consumer/reconciliation behavior, UI truth claims, PWA transport,
-  and roadmap eligibility. Backend, Database, Infrastructure & Device, and Security/DevOps/
-  Observability behavior did not change; the T6 file is a compatibility assertion only.
+- Audit freshness result: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
+  and Roadmap are revalidated at `bd34552...` on 2026-08-09. Backend, Database, Infrastructure &
+  Device, and Security/DevOps/Observability remain independently current at `1eec866...`; the T6
+  file is a compatibility assertion only. The next eligible T14 unit is accessibility/navigation
+  under a new exact-path handoff.

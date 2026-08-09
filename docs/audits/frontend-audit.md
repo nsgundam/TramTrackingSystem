@@ -1,7 +1,7 @@
 # Frontend Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 1eec86602c40c859d50dd9d369f636b103b6896f
+- Evidence baseline: bd34552c09eea59ad9e2adee160483b2be433744
 - Evidence scope: docs/project-knowledge-base.md, Product/Architecture audits, Backend audit as
   cross-boundary context, docs/decision-queue.md, docs/tasks/,
   shuttle-tracking-web/app/, shuttle-tracking-web/components/, shuttle-tracking-web/config/,
@@ -9,12 +9,31 @@ Audit metadata:
   shuttle-tracking-web/types/, shuttle-tracking-web/utils/, shuttle-tracking-web/package.json,
   shuttle-tracking-web/tests/, full frontend check evidence, and the current Impeccable technical
   audit/detector pass
-- Reviewed at: 2026-08-08T00:07:30+07:00
+- Reviewed at: 2026-08-09T21:17:05+07:00
 - Validation state: Validated
-- Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md, and
-  docs/audits/architecture-audit.md @ 1eec86602c40c859d50dd9d369f636b103b6896f
+- Predecessor baselines: docs/project-knowledge-base.md @
+  1eec86602c40c859d50dd9d369f636b103b6896f; docs/audits/product-audit.md and
+  docs/audits/architecture-audit.md @ bd34552c09eea59ad9e2adee160483b2be433744
 
-## 2026-08-08 D-011 scope re-audit
+## 2026-08-09 T14 first-slice re-audit
+
+Product and Architecture are revalidated at `bd34552...`; Discovery remains current at
+`1eec866...`. T14 closes the two misleading-state P1 findings for false Feedback vehicle association
+and unconditional/zero-on-failure Admin liveness. It also narrows the Public service-state P1:
+connection, canonical live/stale/no-service/unknown, absence, and retry are now explicit in the
+incumbent availability-card layout, while route/dependency-specific explanation and last-update age
+remain open. Admin hydration/event reconciliation and local expiry now have pure regression tests,
+and `/socket.io/` bypasses PWA offline fallback.
+
+The focused T14 tests passed 5/5; mobile/desktop browser journeys passed 2/2 and the repaired
+transport repeat passed 4/4; T8 browser regression passed; lint has zero errors and the same two
+pre-existing warnings; the production build and full CI passed. The final scoped Impeccable detector
+returned `[]`. No keyboard, screen-reader, contrast, human usability, deployed proxy, or real
+interruption session was observed. The current source score is therefore **10/20 — below the release
+baseline**: Implementation Integrity improves to 3/4, two P1 findings are resolved, and seven P1,
+ten P2, and one P3 remain open.
+
+## 2026-08-08 D-011 pre-implementation snapshot — superseded by the T14 re-audit
 
 Required predecessors are current at `1eec866...`; no web source changed. D-011 now approves the
 first T14 slice in this order: data integrity/truthful Public and Admin state, then accessibility/
@@ -22,9 +41,9 @@ navigation, then measured responsive/performance/visual-system work. The Public 
 its incumbent visual identity; only minimal semantic, copy/state, accessibility, and source-quality
 changes are allowed. Admin pages may receive a separately bounded visual restructure.
 
-The 9/20 Impeccable score and all source findings remain current. Approval changes task eligibility,
-not finding state: the hard-coded Feedback vehicle fallback and unconditional/stale Admin “live”
-claims remain P1 until an exact handoff is implemented and browser-verified. The external Android
+At that pre-implementation baseline, the 9/20 Impeccable score and all source findings remained
+current. Approval changed task eligibility, not finding state; the later T14 implementation and
+2026-08-09 section above now supersede those truth-finding states. The external Android
 repository changes no web surface and does not authorize a T11 Admin UI before server APIs exist.
 
 ## 1. Executive Summary
@@ -32,10 +51,10 @@ repository changes no web surface and does not authorize a T11 Admin UI before s
 The public tracker consumes the canonical state contract and T8 is resolved for its approved projection: native and isolated Playwright tests cover an initial live Marker/count, local expiry removal, route switch non-restoration, and restoration only after a newer authoritative live state. Raw research data and credentials are not exposed to riders.
 
 D-001=C changes the release expectation. T10 adds authenticated route-stop management and T12 adds
-the bounded feedback inbox and safe read-only source-health page. There is still no public service-
-state/recovery explanation, sender/claim/trip-history/exception UI, or authenticated research dashboard.
-The current dashboard has useful Socket.IO connection and service-state summaries, but its
-static Live System Active label and master-data count do not make it an accountable operations surface.
+the bounded feedback inbox and safe read-only source-health page. T14 now supplies a truthful basic
+Public connection/service-state explanation and removes false Admin live/zero claims. There is still
+no sender/claim/trip-history/exception UI, accountable operations summary, or authenticated research
+dashboard, and accessibility/human/runtime acceptance remains absent.
 
 D-007 is implemented for the bounded T12 session/navigation surfaces: the client hydrates the
 server-provided role and hides the Feedback Inbox from `ADMIN`; server authorization remains
@@ -55,17 +74,11 @@ behavior, configuration, route/geometry/ETA presentation, and relevant tests. Th
 a static technical audit, not accessibility certification or human usability evidence; this profile
 does not certify load, real devices, deployed origin, or provider behavior.
 
-The preceding baseline was `82f4d97...`. Exact changed frontend evidence is
-`docs/tasks/T9-production-topology-origin-handoff.md`, `docs/decision-queue.md`,
-`shuttle-tracking-web/components/admin/LiveMap.tsx`,
-`shuttle-tracking-web/components/public/FeedbackModal.tsx`,
-`shuttle-tracking-web/config/backend.ts`, `shuttle-tracking-web/hooks/useShuttleTracker.ts`,
-`shuttle-tracking-web/hooks/useSocketConnection.ts`, `shuttle-tracking-web/package.json`,
-`shuttle-tracking-web/services/api.ts`, `shuttle-tracking-web/services/publicApi.ts`, and
-`shuttle-tracking-web/tests/t9-backend-origin.test.ts`. The current full frontend check passes:
-simulator tooling 4/4, T8 native tests 2/2, T9 origin tests 5/5, isolated Playwright 1/1,
-lint with two pre-existing warnings, and production build. No browser path through the university
-proxy or deployed origin was authorized.
+The preceding baseline was `1eec866...`. Exact T14 evidence is recorded in
+`docs/tasks/T14-truthful-feedback-and-live-state.md` and the implementation/test paths it lists,
+including the truth projection utility, Public Feedback/availability/socket consumers, Admin
+dashboard/map, focused tests, and Service Worker. No browser path through the university proxy or
+deployed origin was authorized. The unrelated dirty Feedback-role migration is excluded.
 
 ## 3. Prior-Finding Revalidation
 
@@ -74,22 +87,22 @@ proxy or deployed origin was authorized.
 | Public canonical state/version ownership was missing | Resolved | Hydration and Socket.IO updates accept V1 canonical state with epoch/version ordering and backend route authority. |
 | Locally expired live state could leave a Marker/count/ETA visible | Resolved | T8 projects local expiry consistently and its deterministic plus isolated-browser tests cover expiry and newer-live restoration. |
 | Route switching could restore stale/expired Marker | Resolved | Marker eligibility requires current live state, known matching route authority, and no local expiry; T8 tests cover R01 to R02 to R01. |
-| Public connection/service failure is explained to riders | Still Present | The public socket hook silently reconnects/hydrates; route/API failure has no persistent rider recovery state or C-scope no-service explanation. |
+| Public connection/service failure is explained to riders | Partially Resolved | The socket hook exposes connection state and the availability card distinguishes authoritative live/stale/no-service/unknown, reconnecting, disconnected, unavailable, and empty states with a retry boundary. Route/dependency-specific guidance, last-update age, and human comprehension remain open. |
 | Route-stop management UI existed | Resolved | The authenticated Routes page launches `RouteStopsModal`, which loads current order and active stops, prevents duplicate local selection, supports add/remove/reorder, reports errors, and publishes the full list. Build/lint/CI passed; no ambient admin browser workflow was run. |
 | Admin sender/trip/history/exception operations existed | Partially Resolved | T12 adds a safe read-only source-health page. Mobile claim/revocation, credentials, active/timeout trips, history, and force-close remain absent. |
-| Feedback had accountable triage | Partially Resolved | T12 adds the notice/receipt, Super Admin/Dev inbox, case transitions, password-confirmed delete/restore, and safe health page. Browser staff/rider acceptance remains unavailable. |
+| Feedback had accountable triage | Partially Resolved | T12 adds the notice/receipt, Super Admin/Dev inbox, case transitions, password-confirmed delete/restore, and safe health page. T14 removes fabricated/auto-selected vehicle association and browser-verifies failure/empty/retry/explicit selection. Staff/rider human acceptance remains unavailable. |
 | Admin role-specific UX enforced D-007 | Partially Resolved | Session hydration receives the server role and navigation hides the feedback inbox from ADMIN. Backend authorization remains authoritative and general role management is out of scope. |
 | Public/backend origin contract was settled | Resolved | T9 centralizes every listed REST/Socket consumer, defaults production to same origin, rejects unsafe/conflicting overrides, and removes hidden localhost rewrites/fallback loops. Focused tests pass; deployed proxy behavior remains Unable to Verify. |
 | Research dashboard exposed raw diagnostic work appropriately | Still Present | No Dev Dashboard exists; this correctly avoids exposing raw telemetry but leaves D-004 research UI incomplete. |
-| Static frontend technical quality met a production release baseline | New Finding | The required Impeccable audit remains 9/20 (Poor): no P0, nine P1, ten P2, and one P3 across modal/focus/form accessibility, truthful service/feedback state, responsive targets, performance, and theming. T9 introduced none of these defects and resolves none. |
+| Static frontend technical quality met a production release baseline | Partially Resolved | The post-T14 source score is 10/20: integrity improves from 2/4 to 3/4 and the false Feedback/Admin truth P1s close. Seven P1, ten P2, and one P3 remain across accessibility, the narrowed Public explanation gap, responsive targets, performance, theming, and the missing research surface. |
 
 ## 4. Surface Assessment
 
 | Surface | Current behavior | C-scope gap |
 |---|---|---|
-| Public tracker | Canonical REST hydration, Socket.IO updates, route filtering, local expiry, Marker/count/ETA projection, route/stop map and feedback capture. | Explicit fresh/no-service/stale/recovery messaging and resilient retry states. |
-| Public feedback | Validation, submit/error/success, vehicle fallback, privacy notice, and no-reply receipt. | Runtime privacy/retention acceptance. |
-| Admin shell/dashboard | Session role hydration, API token, master-data counts, live map with connection/service-state summary, role-aware inbox/health navigation. | Dashboard exception-first truth and accessibility evidence. |
+| Public tracker | Canonical REST hydration, Socket.IO updates, route filtering, local expiry, Marker/count/ETA projection, route/stop map, and truthful availability/connection state. | Last-update/dependency guidance plus accessibility, human, and deployed recovery evidence. |
+| Public feedback | Validation, explicit verified vehicle selection, truthful load/empty/error/retry, submit/success, privacy notice, and no-reply receipt. | Runtime privacy/retention and human accessibility acceptance. |
+| Admin shell/dashboard | Session role hydration, API token, explicit master-data loading/error/retry/updated state, snapshot/realtime/last-known map state, role-aware inbox/health navigation. | Exception-first actions, dialog/navigation accessibility, and human/runtime evidence. |
 | Admin routes/stops | CRUD UI plus T10 ordered route-stop management. | The modal exposes local order/membership errors; an approved stateful browser/cache target is still needed for published-read confirmation. |
 | Admin operations | Safe read-only source health and Super Admin feedback triage. | Claim, active/timeout exception, history, and recovery paths remain T11. |
 | Research/Dev | None. | Separate authenticated comparison dashboard, reproducible filters and metric labels; not part of T9-T12 unless a future task says so. |
@@ -102,6 +115,9 @@ proxy or deployed origin was authorized.
 - T10 is complete for its narrow route-detail composition UI; preserve server-side validation and record stateful published-read evidence only on an approved target.
 - T11 needs an operations UI only after backend authorization/lifecycle APIs and the external Android acceptance contract are specified. It must not embed an Android driver runtime or expose sender secrets/source identifiers.
 - T12 has D-009 policy. Future triage/device views require explicit server role checks, privacy wording, retention/deletion controls, and read-only safe DTOs rather than generic admin CRUD.
+- T14's first truth/integrity slice is complete. The next eligible unit is a bounded
+  accessibility/navigation handoff for dialog/form/focus/keyboard behavior and the Mobile Admin
+  sidebar; it must preserve Public identity and precede any separately bounded Admin-theme work.
 
 ## 6. Usability and Technical Risks
 
@@ -115,33 +131,31 @@ Public tracker state remains broadly coordinated in useShuttleTracker, though su
 | Performance | 2/4 | Code splitting/memoization exist; eager route geometry, uncancelled map animation, raw images, and broad transition/backdrop work remain. |
 | Responsive Design | 2/4 | Admin card/table breakpoints exist; small touch targets and narrow-screen overlay collisions remain. |
 | Theming | 2/4 | Public tokens exist; admin/legacy hard-coded palettes and forced light mode remain inconsistent. |
-| Implementation Integrity | 2/4 | Product-specific separation is clear, but service/dashboard and Feedback fallback states can mislead. |
-| **Total** | **9/20 — Poor** | **0 P0; 9 P1; 10 P2; 1 P3.** |
+| Implementation Integrity | 3/4 | Product-specific separation and fail-closed truth projections are tested; Public/Admin socket lifecycle duplication and broader recovery surfaces remain. |
+| **Total** | **10/20 — Below release baseline** | **0 P0; 7 open P1; 10 P2; 1 P3; 2 P1 resolved by T14.** |
 
-The detector returned two mechanistic candidates. `app/globals.css:91-95` is a permitted map-surface
-grid and `components/admin/StopModal.tsx:146-147` is an empty element, so neither is an actionable
-contrast/design-pattern finding after context review. Manual verification retains the material
-findings above. Preserve the positive evidence: canonical expiry/route tests, code splitting,
-role-aware safe pages, explicit loading/error/empty text, RouteStopsModal semantics, and zero lint
-errors. Recommended T14 sequence remains `$impeccable harden`, `$impeccable adapt`,
-`$impeccable optimize`, `$impeccable document`, then `$impeccable polish`, followed by re-audit.
+The pre-T14 full detector's two mechanistic candidates remained non-actionable after context review;
+the post-change scoped detector returned `[]`. Manual verification retains the material findings
+above. Preserve canonical expiry/route tests, fail-closed projections, code splitting, role-aware safe
+pages, explicit state text, RouteStopsModal semantics, and zero lint errors. The next T14 slice must
+address accessibility/navigation before responsive/performance/theme work and be re-audited again.
 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
 T9 is Partially Complete for its repository-side handoff; T10/T12 are complete for exact scopes. T11
 requires backend contract/role gates and external Android acceptance evidence. T12 browser role/
-accessibility acceptance is still unverified. T14 owns the public-theme Dashboard redesign after its
-own re-audit/brief.
+accessibility acceptance is still unverified. T14's first slice is revalidated; the next exact slice
+owns accessibility/navigation, while an Admin theme/hierarchy change remains separately bounded.
 
 Confidence is High for source-visible canonical projection and missing UI surfaces, Medium for T8 synthetic test coverage, and Low for accessibility, production configuration, real Socket.IO failures, hardware, Android, and actual operator/rider outcomes.
 
 ## 8. Proposed Owner Decisions and Handoff
 
-No new owner decision is proposed. D-011 is approved and binds the first exact T14 slice; this audit
-evidence is not permission for an unbounded redesign.
+No new owner decision is proposed. D-011 permits the next bounded accessibility/navigation slice;
+this audit evidence is not permission for an unbounded redesign.
 
-Frontend is validated at `1eec866...` for the current decision evidence. Database and every dependent
-profile through Roadmap have now completed their revalidations.
+Frontend is validated at `bd34552...`. Dashboard & UX and downstream profiles may consume this
+baseline; Database remains independently current at `1eec866...`.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 
