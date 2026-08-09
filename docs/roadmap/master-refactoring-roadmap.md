@@ -164,13 +164,13 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Eligible for one bounded handoff | Define an exact Source Health/Feedback Admin operations-support task before implementation; preserve T12 policy/roles/actions, Public/Login, and blocked lanes. |
+| T14 | Implementation ready for one bounded continuation | `docs/tasks/T14-admin-operations-support-convergence.md` binds Source Health/Feedback exact paths and acceptance; preserve T12 policy/roles/actions, Public/Login, and blocked lanes. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
 Batch result: T14's first seven slices and affected chain are revalidated at `4e609e3...`.
-T9/T13 remain deferred without dependency bypass; T11/T15 remain blocked. Only a bounded Source
-Health/Feedback Admin operations-support handoff may be defined next; no exact implementation starts
-before that contract exists.
+T9/T13 remain deferred without dependency bypass; T11/T15 remain blocked. The exact bounded Source
+Health/Feedback Admin operations-support handoff is implementation-ready and remains separate from
+Public/Login, T11/Research, API/auth/schema, Mobile, and external-runtime work.
 
 ## 4. Dependency Map
 
@@ -1332,6 +1332,8 @@ paths and passing evidence. `docs/tasks/T14-admin-dashboard-foundation.md` now b
 shell/Dashboard theme and hierarchy paths, tests, invariants, stop conditions, and completion evidence.
 `docs/tasks/T14-public-service-explanation-and-recovery.md` binds the sixth slice's existing-state
 guidance, canonical age, ETA truth, snapshot retry, slow-preloader recovery, and exact Public paths.
+`docs/tasks/T14-admin-operations-support-convergence.md` binds the next Source Health/Feedback
+Admin-only paths, T12 invariants, measurement-first browser evidence, and stop conditions.
 
 ### Evidence
 
@@ -1516,7 +1518,7 @@ Route every focused technical question through `agents/level-2-specialist/AGENT.
 `tram-specialist-consultation`. Route every implementation through
 `agents/level-3-refactor/AGENT.md` with `tram-refactoring-workflow`.
 
-- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and T14's truth, accessibility/navigation, measured map-quality, contrast/color-governance, Admin Dashboard foundation, Public service-explanation/recovery, and Admin master-data slices. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. Define the exact bounded Source Health/Feedback handoff next; use Level 2 only if a new focused cross-domain question appears.
+- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and T14's truth, accessibility/navigation, measured map-quality, contrast/color-governance, Admin Dashboard foundation, Public service-explanation/recovery, and Admin master-data slices. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. Continue through the exact Source Health/Feedback handoff; use Level 2 only if a new focused cross-domain question appears.
 - Specialist-led: T2 security/abuse; T4, T9, T13 observability/deployment; T5 database transactions; T6/T7 realtime and time-series; T11 operations/mobile; T15 device/LoRaWAN.
 - T12's D-010:A account-transition choice and all exact source/test acceptance evidence are complete; runtime rollout remains separately gated.
 
@@ -1562,8 +1564,7 @@ slices through implementation `7321a25` are accepted by the 2026-08-10 15/20 tec
 M-20260807-01/02/03
 correct logging, simulator, and generated-artifact boundaries without changing roadmap order. The
 affected audits and this Roadmap are current at `4e609e3...`; unaffected audits remain current at
-`1eec866...`. The next bounded Source Health/Feedback slice is selected for exact handoff definition,
-not implementation without that contract.
+`1eec866...`. The exact bounded Source Health/Feedback implementation handoff is selected next.
 
 **Assumptions and unknowns:** the target is C but no daily/public readiness claim is made before the
 required work passes. Diagnostics remain bounded/protected; no external host/provider/device fact or
