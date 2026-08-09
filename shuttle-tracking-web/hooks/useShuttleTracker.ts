@@ -32,6 +32,10 @@ import {
   mapMotionOptions,
   type OwnedMotionRegistry,
 } from "@/utils/motion";
+import {
+  selectLatestCanonicalUpdateAt,
+  type PublicVehicleSnapshotState,
+} from "@/utils/truthful-ui-state";
 
 const BACKEND_ORIGINS = [backendConnection.origin];
 
@@ -54,6 +58,10 @@ export function useShuttleTracker() {
     unknown: 0,
   });
   const [hasAuthoritativeVehicleState, setHasAuthoritativeVehicleState] = useState(false);
+  const [vehicleSnapshotState, setVehicleSnapshotState] =
+    useState<PublicVehicleSnapshotState>("loading");
+  const [lastCanonicalUpdateAt, setLastCanonicalUpdateAt] = useState<string | null>(null);
+  const [isVehicleStateRetrying, setIsVehicleStateRetrying] = useState(false);
   const [targetStop, setTargetStop] = useState<Stop | null>(null);
   const [realEta, setRealEta] = useState<number | null>(null);
   const [isAppLocked, setIsAppLocked] = useState<boolean>(true);
@@ -100,6 +108,7 @@ export function useShuttleTracker() {
   const expiredVehiclesRef = useRef<Record<string, boolean>>({});
   const expiryTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const vehicleAnimationsRef = useRef<OwnedMotionRegistry>({});
+  const vehicleStateRetryInFlightRef = useRef(false);
 
   const isZoomingRef = useRef<boolean>(false);
   const hasInitRoutesRef = useRef<boolean>(false);
@@ -164,6 +173,9 @@ export function useShuttleTracker() {
     };
     vehicleStatesRef.current[state.vehicleId] = state;
     setHasAuthoritativeVehicleState(true);
+    setLastCanonicalUpdateAt((current) =>
+      selectLatestCanonicalUpdateAt(current, state.timing.selectedAt)
+    );
     scheduleLocalExpiry(state);
     refreshVehicleStateCounts();
     return true;
@@ -251,9 +263,9 @@ export function useShuttleTracker() {
   });
 
   const hydrateActiveVehicles = useCallback(async () => {
+    setVehicleSnapshotState("loading");
     try {
       const vehicles = await getActiveVehicles();
-      setHasAuthoritativeVehicleState(true);
       const names = vehicles.reduce<Record<string, string>>((mapping, vehicle) => {
         mapping[String(vehicle.id)] = vehicle.name || String(vehicle.id);
         return mapping;
@@ -265,13 +277,26 @@ export function useShuttleTracker() {
           processLocationUpdateRef.current(vehicle.state);
         }
       });
+      setHasAuthoritativeVehicleState(true);
+      setVehicleSnapshotState("ready");
     } catch {
+      setVehicleSnapshotState("error");
       // The Socket.IO connection can still recover if this REST snapshot is unavailable.
     } finally {
       namesLoadedRef.current = true;
       checkLoadingCompleteRef.current();
     }
   }, [acceptCanonicalState, namesLoadedRef, checkLoadingCompleteRef]);
+
+  const handleRetryVehicleState = useCallback(() => {
+    if (vehicleStateRetryInFlightRef.current) return;
+    vehicleStateRetryInFlightRef.current = true;
+    setIsVehicleStateRetrying(true);
+    void hydrateActiveVehicles().finally(() => {
+      vehicleStateRetryInFlightRef.current = false;
+      setIsVehicleStateRetrying(false);
+    });
+  }, [hydrateActiveVehicles]);
 
   // === Sync Socket Connection ===
   const realtimeConnectionState = useSocketConnection({
@@ -566,6 +591,9 @@ export function useShuttleTracker() {
     vehicleStateCounts,
     realtimeConnectionState,
     hasAuthoritativeVehicleState,
+    vehicleSnapshotState,
+    lastCanonicalUpdateAt,
+    isVehicleStateRetrying,
     userLoc,
     targetStop,
     realEta,
@@ -580,6 +608,7 @@ export function useShuttleTracker() {
     deferredPrompt,
     showPreloader: preloader.showPreloader,
     isIntroFinished: preloader.isIntroFinished,
+    isPreloaderTakingLong: preloader.isTakingLong,
     isRouteMenuOpen,
     routeMenuRef,
 
@@ -594,6 +623,7 @@ export function useShuttleTracker() {
     handleLocateUser,
     handleRecenter,
     handleOpenFeedback,
+    handleRetryVehicleState,
     handleInstallClick,
     setIsRouteMenuOpen,
     setIsFeedbackOpen,

@@ -3,6 +3,7 @@ import { memo } from "react";
 import { Stop } from "@/types";
 import StopInfoCard from "@/components/public/StopInfoCard";
 import VehicleInfoCard from "@/components/public/VehicleInfoCard";
+import type { PublicAvailabilityReason } from "@/utils/truthful-ui-state";
 
 interface ActiveVehicleInfo {
   prev: string;
@@ -20,6 +21,7 @@ interface BottomDockProps {
   isTracking: boolean;
   targetStop: Stop | null;
   realEta: number | null;
+  availabilityReason: PublicAvailabilityReason;
   onRecenter: () => void;
   onFeedbackClick: (vehicleId?: string | null) => void;
 }
@@ -32,6 +34,7 @@ function BottomDock({
   isTracking,
   targetStop,
   realEta,
+  availabilityReason,
   onRecenter,
   onFeedbackClick,
 }: BottomDockProps) {
@@ -41,7 +44,13 @@ function BottomDock({
       data-testid="bottom-dock"
     >
       {/* Show Stop Info Card when no vehicle is selected */}
-      {!selectedVehicleId && <StopInfoCard targetStop={targetStop} eta={realEta} />}
+      {!selectedVehicleId && (
+        <StopInfoCard
+          targetStop={targetStop}
+          eta={realEta}
+          availabilityReason={availabilityReason}
+        />
+      )}
 
       {/* Show Vehicle Info Card when a vehicle is selected */}
       {selectedVehicleId && activeVehicleInfo && (

@@ -8,6 +8,7 @@ interface PreloaderOptions {
 export function usePreloader({ routesLength }: PreloaderOptions) {
   const [showPreloader, setShowPreloader] = useState<boolean>(true);
   const [isIntroFinished, setIsIntroFinished] = useState<boolean>(false);
+  const [isTakingLong, setIsTakingLong] = useState<boolean>(false);
 
   const namesLoadedRef = useRef<boolean>(false);
   const loadedRoutesRef = useRef<Set<string>>(new Set());
@@ -16,10 +17,13 @@ export function usePreloader({ routesLength }: PreloaderOptions) {
   const completionStartedRef = useRef(false);
   const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const slowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const beginCompletion = useCallback((introDelayMs: number) => {
     if (completionStartedRef.current) return;
     completionStartedRef.current = true;
+    if (slowTimerRef.current) clearTimeout(slowTimerRef.current);
+    setIsTakingLong(false);
     introTimerRef.current = setTimeout(() => {
       setIsIntroFinished(true);
       hideTimerRef.current = setTimeout(() => setShowPreloader(false), 800);
@@ -44,12 +48,16 @@ export function usePreloader({ routesLength }: PreloaderOptions) {
   }, [checkLoadingComplete]);
 
   useEffect(() => {
+    slowTimerRef.current = setTimeout(() => {
+      setIsTakingLong(true);
+    }, 2500);
     const safetyTimer = setTimeout(() => {
       beginCompletion(0);
     }, 5000);
 
     return () => {
       clearTimeout(safetyTimer);
+      if (slowTimerRef.current) clearTimeout(slowTimerRef.current);
       if (introTimerRef.current) clearTimeout(introTimerRef.current);
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     };
@@ -59,12 +67,13 @@ export function usePreloader({ routesLength }: PreloaderOptions) {
     () => ({
       showPreloader,
       isIntroFinished,
+      isTakingLong,
       namesLoadedRef,
       loadedRoutesRef,
       mapReadyRef,
       checkLoadingCompleteRef,
       checkLoadingComplete,
     }),
-    [showPreloader, isIntroFinished, checkLoadingComplete]
+    [showPreloader, isIntroFinished, isTakingLong, checkLoadingComplete]
   );
 }

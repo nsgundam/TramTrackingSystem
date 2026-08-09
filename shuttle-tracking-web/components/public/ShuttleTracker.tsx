@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
 import "@/app/shuttle-tracker.css";
 import { useShuttleTracker } from "@/hooks/useShuttleTracker";
+import { getPublicAvailabilityReason } from "@/utils/truthful-ui-state";
 
 import BrandingHeader from "@/components/public/BrandingHeader";
 import AvailabilityCard from "@/components/public/AvailabilityCard";
@@ -30,6 +31,9 @@ export default function ShuttleTracker() {
     vehicleStateCounts,
     realtimeConnectionState,
     hasAuthoritativeVehicleState,
+    vehicleSnapshotState,
+    lastCanonicalUpdateAt,
+    isVehicleStateRetrying,
     targetStop,
     realEta,
     isAppLocked,
@@ -43,6 +47,7 @@ export default function ShuttleTracker() {
     deferredPrompt,
     showPreloader,
     isIntroFinished,
+    isPreloaderTakingLong,
     isRouteMenuOpen,
     routeMenuRef,
     mapRef,
@@ -51,10 +56,18 @@ export default function ShuttleTracker() {
     handleLocateUser,
     handleRecenter,
     handleOpenFeedback,
+    handleRetryVehicleState,
     handleInstallClick,
     setIsRouteMenuOpen,
     setIsFeedbackOpen,
   } = useShuttleTracker();
+
+  const availabilityReason = getPublicAvailabilityReason({
+    counts: vehicleStateCounts,
+    connectionState: realtimeConnectionState,
+    hasAuthoritativeState: hasAuthoritativeVehicleState,
+    snapshotState: vehicleSnapshotState,
+  });
 
   // Prevent downloading/rendering the tour React Joyride code chunk for returning users
   const [shouldShowTour, setShouldShowTour] = useState<boolean>(false);
@@ -94,7 +107,11 @@ export default function ShuttleTracker() {
 
   return (
     <div className="h-dvh w-screen overflow-hidden font-body-sm text-on-surface bg-surface map-bg relative select-none">
-      <Preloader show={showPreloader} isFinished={isIntroFinished} />
+      <Preloader
+        show={showPreloader}
+        isFinished={isIntroFinished}
+        isTakingLong={isPreloaderTakingLong}
+      />
       <AppLockOverlay locked={isAppLocked} />
 
       <div
@@ -108,11 +125,15 @@ export default function ShuttleTracker() {
         <BrandingHeader />
 
         {/* Top Right: Status & Toggles */}
-        <div className="absolute top-4 right-4 md:top-10 md:right-10 z-10 flex flex-col items-stretch gap-3 w-40 md:w-45">
+        <div className="absolute top-4 right-4 md:top-10 md:right-10 z-10 flex w-[152px] flex-col items-stretch gap-3 sm:w-40 md:w-45">
           <AvailabilityCard
             counts={vehicleStateCounts}
             connectionState={realtimeConnectionState}
             hasAuthoritativeState={hasAuthoritativeVehicleState}
+            snapshotState={vehicleSnapshotState}
+            lastCanonicalUpdateAt={lastCanonicalUpdateAt}
+            isRetrying={isVehicleStateRetrying}
+            onRetry={handleRetryVehicleState}
           />
           <RouteSelector
             routes={routes}
@@ -135,6 +156,7 @@ export default function ShuttleTracker() {
           isTracking={isTracking}
           targetStop={targetStop}
           realEta={realEta}
+          availabilityReason={availabilityReason}
           onRecenter={handleRecenter}
           onFeedbackClick={handleOpenFeedback}
         />

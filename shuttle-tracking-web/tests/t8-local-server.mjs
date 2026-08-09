@@ -3,6 +3,8 @@ import { Server } from "socket.io";
 
 const port = Number(process.env.T8_MOCK_PORT ?? "13001");
 
+const serverStartedAt = new Date().toISOString();
+
 const canonicalState = (stateVersion, freshness) => ({
   schemaVersion: 1,
   eventType: "canonical_vehicle_state",
@@ -24,9 +26,9 @@ const canonicalState = (stateVersion, freshness) => ({
   },
   lastKnownLocation: null,
   timing: {
-    observedAt: "2026-08-01T00:00:00.000Z",
-    receivedAt: "2026-08-01T00:00:00.000Z",
-    selectedAt: "2026-08-01T00:00:00.000Z",
+    observedAt: serverStartedAt,
+    receivedAt: serverStartedAt,
+    selectedAt: serverStartedAt,
     freshnessClock: "server_receive",
   },
   freshness,
@@ -61,6 +63,8 @@ const stops = {
 
 let activeVehicleFailuresRemaining = 0;
 let emptyActiveVehicleResponsesRemaining = 0;
+let activeVehicleDelayMs = 0;
+let activeVehicleDelayResponsesRemaining = 0;
 let adminStatsMode = "ready";
 
 const respondJson = (response, status, payload) => {
@@ -115,6 +119,21 @@ const server = createServer(async (request, response) => {
     respondJson(response, 200, { armed: true });
     return;
   }
+  if (url.pathname === "/t14/delay-next-active-vehicles") {
+    const requestedDelayMs = Number(url.searchParams.get("ms") ?? "0");
+    const requestedCount = Number(url.searchParams.get("count") ?? "1");
+    activeVehicleDelayMs = Number.isFinite(requestedDelayMs)
+      ? Math.max(0, Math.min(10_000, requestedDelayMs))
+      : 0;
+    activeVehicleDelayResponsesRemaining = Number.isInteger(requestedCount) && requestedCount > 0
+      ? requestedCount
+      : 1;
+    respondJson(response, 200, {
+      delayMs: activeVehicleDelayMs,
+      responses: activeVehicleDelayResponsesRemaining,
+    });
+    return;
+  }
   if (url.pathname === "/t8/restore") {
     io.emit("location-update", restoredState);
     respondJson(response, 200, { restored: true });
@@ -130,6 +149,14 @@ const server = createServer(async (request, response) => {
     return;
   }
   if (url.pathname === "/api/public/active-vehicles") {
+    const responseDelayMs = activeVehicleDelayResponsesRemaining > 0 ? activeVehicleDelayMs : 0;
+    if (activeVehicleDelayResponsesRemaining > 0) {
+      activeVehicleDelayResponsesRemaining -= 1;
+      if (activeVehicleDelayResponsesRemaining === 0) activeVehicleDelayMs = 0;
+    }
+    if (responseDelayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, responseDelayMs));
+    }
     if (activeVehicleFailuresRemaining > 0) {
       activeVehicleFailuresRemaining -= 1;
       respondJson(response, 503, { error: "Active vehicles temporarily unavailable" });

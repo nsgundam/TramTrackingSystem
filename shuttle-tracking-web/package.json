@@ -20,7 +20,8 @@
     "test:e2e:t14:map-quality": "playwright test -c playwright.config.ts tests/t14-map-quality.spec.ts",
     "test:e2e:t14:contrast": "playwright test -c playwright.config.ts tests/t14-contrast.spec.ts",
     "test:e2e:t14:admin-dashboard": "playwright test -c playwright.config.ts tests/t14-admin-dashboard.spec.ts",
-    "check": "npm run test:simulator-tooling && npm run test:t8 && npm run test:t9 && npm run test:t14 && npm run test:t14:map-quality && npm run test:t14:contrast && npm run test:e2e:t8 && npm run test:e2e:t14 && npm run test:e2e:t14:a11y && npm run test:e2e:t14:map-quality && npm run test:e2e:t14:contrast && npm run test:e2e:t14:admin-dashboard && npm run lint && npm run build:check"
+    "test:e2e:t14:public-service": "playwright test -c playwright.config.ts tests/t14-public-service-explanation.spec.ts",
+    "check": "npm run test:simulator-tooling && npm run test:t8 && npm run test:t9 && npm run test:t14 && npm run test:t14:map-quality && npm run test:t14:contrast && npm run test:e2e:t8 && npm run test:e2e:t14 && npm run test:e2e:t14:a11y && npm run test:e2e:t14:map-quality && npm run test:e2e:t14:contrast && npm run test:e2e:t14:admin-dashboard && npm run test:e2e:t14:public-service && npm run lint && npm run build:check"
   },
   "dependencies": {
     "@turf/turf": "^7.3.4",
