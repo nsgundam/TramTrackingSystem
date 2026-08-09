@@ -137,7 +137,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T11 | Blocked — cross-repository/external evidence | The v3 brief pins a partially compatible native app. Static-secret storage, backup/cleartext, task-removal and missing enrollment/claim/recovery gaps require a coordinated exact handoff plus writable Mobile/Android target and device acceptance. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
 | T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
-| T14 | Partially Complete — first three slices revalidated | Commit `c5b2e69` and the prior truth/accessibility slices are accepted at `7aae795...`; score 13/20. Bounded contrast/visual-system governance is the next exact slice; Admin hierarchy/theme remains separate. |
+| T14 | Partially Complete — contrast handoff ready | Commit `c5b2e69` and the prior truth/accessibility slices are accepted at `7aae795...`; score 13/20. `docs/tasks/T14-contrast-and-color-governance.md` binds the next exact slice; Admin hierarchy/theme remains separate. |
 | T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
 
 ### Approved-batch continuation gate
@@ -147,12 +147,12 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Eligible next lane | Create an exact bounded contrast/visual-system handoff that preserves Public identity. Do not bundle the later Admin hierarchy/theme slice. |
+| T14 | Ready — exact handoff | Execute `docs/tasks/T14-contrast-and-color-governance.md`; preserve Public identity and do not bundle the later Admin hierarchy/theme slice. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
 Batch result: T14's measured map-quality slice and affected chain are revalidated at `7aae795...`.
-T9/T13 remain deferred without dependency bypass; T11/T15 remain blocked. Bounded contrast/visual-
-system governance is selected next; Admin theme remains later and separately bounded.
+T9/T13 remain deferred without dependency bypass; T11/T15 remain blocked. The exact contrast/color-
+governance handoff is ready; Admin theme remains later and separately bounded.
 
 ## 4. Dependency Map
 
@@ -1300,8 +1300,8 @@ motion, narrow-screen collision, and audited touch targets. The exact handoff
 `docs/tasks/T14-truthful-feedback-and-live-state.md` records the bounded Public/Admin paths,
 acceptance mapping, and remaining human/runtime limits.
 `docs/tasks/T14-accessible-dialogs-and-navigation.md` records the second slice's paths, acceptance,
-and verification. Bounded contrast/visual-system governance is selected next; Admin theme/hierarchy
-remains later and separately bounded.
+and verification. `docs/tasks/T14-contrast-and-color-governance.md` binds the next exact contrast/
+visual-system slice; Admin theme/hierarchy remains later and separately bounded.
 
 ### Evidence
 
