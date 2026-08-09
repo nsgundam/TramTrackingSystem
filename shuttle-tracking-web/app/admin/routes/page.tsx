@@ -6,6 +6,7 @@ import { Plus, Pencil, Trash2, RefreshCw, ListOrdered } from "lucide-react";
 import { Route } from "@/types/route";
 import RouteModal from "@/components/admin/RouteModal";
 import RouteStopsModal from "@/components/admin/RouteStopsModal";
+import { normalizeHexColor } from "@/utils/colorContrast";
 
 export default function RoutesPage() {
   const [routes, setRoutes] = useState<Route[]>([]);
@@ -111,7 +112,7 @@ export default function RoutesPage() {
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <span className="font-mono text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">
+                      <span className="font-mono text-xs font-semibold text-muted-on-light bg-slate-100 px-2 py-1 rounded-md">
                         {route.id}
                       </span>
                       <h3 className="text-lg font-bold text-slate-900 mt-2 font-display">
@@ -133,7 +134,7 @@ export default function RoutesPage() {
                     <div className="flex items-center gap-2">
                       <span
                         className="inline-block w-4 h-4 rounded-full shadow-xs"
-                        style={{ backgroundColor: route.color }}
+                        style={{ backgroundColor: normalizeHexColor(route.color) }}
                       ></span>
                       <span className="font-mono text-xs text-slate-500 uppercase">{route.color}</span>
                     </div>
@@ -195,7 +196,7 @@ export default function RoutesPage() {
                         <div className="flex items-center gap-2">
                           <span
                             className="inline-block w-4 h-4 rounded-full shadow-xs"
-                            style={{ backgroundColor: route.color }}
+                            style={{ backgroundColor: normalizeHexColor(route.color) }}
                           ></span>
                           <span className="font-mono text-xs text-slate-500 uppercase">{route.color}</span>
                         </div>
@@ -243,7 +244,7 @@ export default function RoutesPage() {
 
         {/* Empty State */}
         {!loading && routes.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400 font-medium shadow-xs">
+          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-muted-on-light font-medium shadow-xs">
             No routes found. Click &ldquo;Add Route&rdquo; to start.
           </div>
         )}

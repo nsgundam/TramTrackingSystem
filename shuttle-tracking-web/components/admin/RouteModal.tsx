@@ -71,7 +71,7 @@ export default function RouteModal({
             onClick={onClose}
             aria-label="Close route dialog"
             data-modal-initial-focus
-            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            className="text-muted-on-light hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
           >
             <X size={20} aria-hidden="true" />
           </button>

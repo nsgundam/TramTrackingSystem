@@ -156,7 +156,7 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
             disabled={saving}
             aria-label="Close route stops manager"
             data-modal-initial-focus
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            className="rounded-lg p-2 text-muted-on-light transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
           >
             <X size={20} aria-hidden="true" />
           </button>

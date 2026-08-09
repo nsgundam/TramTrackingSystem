@@ -2,7 +2,7 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests",
-  testMatch: ["t8-route-switch.spec.ts", "t14-truthful-state.spec.ts", "t14-accessibility.spec.ts", "t14-map-quality.spec.ts"],
+  testMatch: ["t8-route-switch.spec.ts", "t14-truthful-state.spec.ts", "t14-accessibility.spec.ts", "t14-map-quality.spec.ts", "t14-contrast.spec.ts"],
   timeout: 30_000,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,

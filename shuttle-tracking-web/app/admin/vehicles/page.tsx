@@ -5,6 +5,7 @@ import api from "@/services/api";
 import { Plus, Pencil, Trash2, RefreshCw } from "lucide-react";
 import { Vehicle } from "@/types/vehicle";
 import VehicleModal from "@/components/admin/VehicleModal";
+import RouteColorBadge from "@/components/shared/RouteColorBadge";
 
 export default function VehiclesPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -112,7 +113,7 @@ export default function VehiclesPage() {
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <span className="font-mono text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">
+                      <span className="font-mono text-xs font-semibold text-muted-on-light bg-slate-100 px-2 py-1 rounded-md">
                         {vehicle.id}
                       </span>
                       <h3 className="text-lg font-bold text-slate-900 mt-2 font-display">
@@ -137,17 +138,17 @@ export default function VehiclesPage() {
 
                   <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                     <div>
-                      <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Assigned Route</p>
+                      <p className="text-xs text-muted-on-light font-semibold uppercase tracking-wider">Assigned Route</p>
                       <div className="mt-1">
                         {vehicle.route ? (
-                          <span
-                            className="px-2.5 py-1 rounded-md text-xs font-semibold text-white shadow-xs"
-                            style={{ backgroundColor: vehicle.route.color }}
+                          <RouteColorBadge
+                            className="px-2.5 py-1 rounded-md text-xs font-semibold shadow-xs"
+                            routeColor={vehicle.route.color}
                           >
                             {vehicle.route.name}
-                          </span>
+                          </RouteColorBadge>
                         ) : (
-                          <span className="text-slate-400 text-xs font-medium">-</span>
+                          <span className="text-muted-on-light text-xs font-medium">-</span>
                         )}
                       </div>
                     </div>
@@ -201,14 +202,14 @@ export default function VehiclesPage() {
                       <td className="p-4 text-slate-600 font-medium">{vehicle.type}</td>
                       <td className="p-4">
                         {vehicle.route ? (
-                          <span
-                            className="px-2.5 py-1 rounded-md text-xs font-semibold text-white shadow-xs"
-                            style={{ backgroundColor: vehicle.route.color }}
+                          <RouteColorBadge
+                            className="px-2.5 py-1 rounded-md text-xs font-semibold shadow-xs"
+                            routeColor={vehicle.route.color}
                           >
                             {vehicle.route.name}
-                          </span>
+                          </RouteColorBadge>
                         ) : (
-                          <span className="text-slate-400 text-sm font-medium">-</span>
+                          <span className="text-muted-on-light text-sm font-medium">-</span>
                         )}
                       </td>
                       <td className="p-4">
@@ -248,7 +249,7 @@ export default function VehiclesPage() {
 
         {/* Empty State */}
         {!loading && vehicles.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400 font-medium shadow-xs">
+          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-muted-on-light font-medium shadow-xs">
             No vehicles found. Click &ldquo;Add Vehicle&rdquo; to start.
           </div>
         )}

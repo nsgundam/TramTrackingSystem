@@ -159,7 +159,7 @@ function FeedbackModal({
             onClick={onClose}
             aria-label="ปิดหน้าต่างข้อเสนอแนะ"
             data-modal-initial-focus
-            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="p-1.5 text-muted-on-light hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <X size={18} aria-hidden="true" />
           </button>
@@ -188,7 +188,7 @@ function FeedbackModal({
 
             {/* Selection for Type with Emojis */}
             <fieldset>
-              <legend className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+              <legend className="block text-xs font-bold uppercase tracking-wider text-muted-on-light mb-2">
                 ประเภทการติดต่อ
               </legend>
               <div className="grid grid-cols-2 gap-2">
@@ -212,11 +212,11 @@ function FeedbackModal({
 
             {/* Vehicle selection */}
             <div>
-              <label htmlFor="feedback-vehicle" className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+              <label htmlFor="feedback-vehicle" className="block text-xs font-bold uppercase tracking-wider text-muted-on-light mb-1.5">
                 เลือกหมายเลขรถรถราง
               </label>
               {vehicleLoadState === "loading" ? (
-                <div className="flex items-center gap-2 text-slate-400 text-sm py-2" role="status">
+                <div className="flex items-center gap-2 text-muted-on-light text-sm py-2" role="status">
                   <Loader2 size={16} className="animate-spin" aria-hidden="true" />
                   <span>กำลังโหลดข้อมูลรถ...</span>
                 </div>
@@ -266,7 +266,7 @@ function FeedbackModal({
 
             {/* Feedback message */}
             <div>
-              <label htmlFor="feedback-message" className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+              <label htmlFor="feedback-message" className="block text-xs font-bold uppercase tracking-wider text-muted-on-light mb-1.5">
                 รายละเอียดข้อเสนอแนะ / ปัญหาที่พบ
               </label>
               <textarea

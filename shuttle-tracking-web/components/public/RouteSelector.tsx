@@ -1,6 +1,7 @@
 "use client";
 import { memo } from "react";
 import { ChevronDown } from "lucide-react";
+import { normalizeHexColor } from "@/utils/colorContrast";
 
 interface RouteData {
   id: string;
@@ -39,7 +40,7 @@ function RouteSelector({
             <span
               className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.3)]"
               style={{
-                backgroundColor: currentRoute?.color || "#3B82F6",
+                backgroundColor: normalizeHexColor(currentRoute?.color),
               }}
             />
             <span className="truncate max-w-25 md:max-w-30">
@@ -69,7 +70,7 @@ function RouteSelector({
               >
                 <span
                   className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: route.color }}
+                  style={{ backgroundColor: normalizeHexColor(route.color) }}
                 />
                 <span className="truncate">{route.name}</span>
               </button>

@@ -56,6 +56,7 @@
   --color-outline-variant: #c2c6d6;
   --color-surface-variant: #dce3f0;
   --color-on-surface-variant: #424754;
+  --color-muted-on-light: #45556c;
   --color-surface-container: #e7eefb;
 
   --radius-default: 0.125rem;

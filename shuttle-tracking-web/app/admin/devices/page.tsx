@@ -77,10 +77,10 @@ export default function DeviceHealthPage() {
                 <span className={`rounded-full border px-2.5 py-1 text-xs font-bold uppercase ${freshnessStyle[device.freshness]}`}>{device.freshness.replace("_", " ")}</span>
               </div>
               <dl className="mt-5 grid gap-3 text-sm">
-                <div><dt className="text-slate-400">Assigned vehicle</dt><dd className="font-medium text-slate-800">{device.vehicle ? `${device.vehicle.name} (${device.vehicle.id})` : "Unassigned"}</dd></div>
-                <div><dt className="text-slate-400">Last seen</dt><dd className="font-medium text-slate-800">{device.lastSeenAt ? new Date(device.lastSeenAt).toLocaleString() : "Never"}</dd></div>
-                <div className="flex items-center gap-2"><AlertTriangle size={15} className="text-slate-400" /><span className="text-slate-500">Error category:</span><span className="font-medium text-slate-800">{device.errorCategory}</span></div>
-                <div className="flex items-center gap-2"><Activity size={15} className="text-slate-400" /><span className="text-slate-500">Source status:</span><span className="font-medium text-slate-800">{device.status}</span></div>
+                <div><dt className="text-muted-on-light">Assigned vehicle</dt><dd className="font-medium text-slate-800">{device.vehicle ? `${device.vehicle.name} (${device.vehicle.id})` : "Unassigned"}</dd></div>
+                <div><dt className="text-muted-on-light">Last seen</dt><dd className="font-medium text-slate-800">{device.lastSeenAt ? new Date(device.lastSeenAt).toLocaleString() : "Never"}</dd></div>
+                <div className="flex items-center gap-2"><AlertTriangle size={15} className="text-muted-on-light" /><span className="text-slate-500">Error category:</span><span className="font-medium text-slate-800">{device.errorCategory}</span></div>
+                <div className="flex items-center gap-2"><Activity size={15} className="text-muted-on-light" /><span className="text-slate-500">Source status:</span><span className="font-medium text-slate-800">{device.status}</span></div>
               </dl>
             </article>
           ))}

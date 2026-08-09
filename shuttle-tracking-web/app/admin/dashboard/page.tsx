@@ -8,7 +8,7 @@ import api from "@/services/api";
 const LiveMap = dynamic(() => import("@/components/admin/LiveMap"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[500px] bg-slate-100 animate-pulse rounded-xl flex items-center justify-center text-slate-400">
+    <div className="w-full h-[500px] bg-slate-100 animate-pulse rounded-xl flex items-center justify-center text-muted-on-light">
       Loading Map...
     </div>
   ),

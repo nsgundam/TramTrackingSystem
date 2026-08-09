@@ -100,7 +100,7 @@ export default function StopsPage() {
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <span className="font-mono text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">
+                      <span className="font-mono text-xs font-semibold text-muted-on-light bg-slate-100 px-2 py-1 rounded-md">
                         {stop.id}
                       </span>
                       <h3 className="text-lg font-bold text-slate-900 mt-2 font-display">
@@ -178,14 +178,14 @@ export default function StopsPage() {
                       <td className="p-4 text-right space-x-2 whitespace-nowrap">
                         <button
                           onClick={() => openEditModal(stop)}
-                          className="p-2 text-slate-400 hover:text-blue-600 transition-colors inline-flex items-center justify-center hover:scale-105"
+                          className="p-2 text-muted-on-light hover:text-blue-600 transition-colors inline-flex items-center justify-center hover:scale-105"
                           title="Edit Stop"
                         >
                           <Pencil size={18} />
                         </button>
                         <button
                           onClick={() => handleDelete(stop.id)}
-                          className="p-2 text-slate-400 hover:text-red-600 transition-colors inline-flex items-center justify-center hover:scale-105"
+                          className="p-2 text-muted-on-light hover:text-red-600 transition-colors inline-flex items-center justify-center hover:scale-105"
                           title="Delete Stop"
                         >
                           <Trash2 size={18} />
@@ -201,7 +201,7 @@ export default function StopsPage() {
 
         {/* Empty State */}
         {!loading && stops.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400 font-medium shadow-xs">
+          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-muted-on-light font-medium shadow-xs">
             No stops found. Click &ldquo;Add Stop&rdquo; to start.
           </div>
         )}

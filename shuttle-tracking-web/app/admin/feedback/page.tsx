@@ -160,7 +160,7 @@ export default function FeedbackInboxPage() {
             <article key={caseItem.id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <div className="flex flex-wrap items-center gap-2"><span className={`rounded-full border px-2.5 py-1 text-xs font-bold uppercase ${statusStyle[caseItem.status]}`}>{caseItem.status}</span><span className="font-mono text-xs text-slate-400">{caseItem.id}</span></div>
+                  <div className="flex flex-wrap items-center gap-2"><span className={`rounded-full border px-2.5 py-1 text-xs font-bold uppercase ${statusStyle[caseItem.status]}`}>{caseItem.status}</span><span className="font-mono text-xs text-muted-on-light">{caseItem.id}</span></div>
                   <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-800">{caseItem.message}</p>
                   <p className="mt-3 text-xs text-slate-500">{caseItem.type || "other"} · {caseItem.vehicle ? `${caseItem.vehicle.name} (${caseItem.vehicle.id})` : "No vehicle"} · received {new Date(caseItem.createdAt).toLocaleString()}</p>
                   {caseItem.assignedTo && <p className="mt-1 text-xs text-slate-500">Responsible: {caseItem.assignedTo.username}</p>}
@@ -185,7 +185,7 @@ export default function FeedbackInboxPage() {
         <div className="mt-4 space-y-3">
           {deletedCases.length === 0 ? <p className="text-sm text-slate-500">No feedback is awaiting purge.</p> : deletedCases.map((caseItem) => (
             <div key={caseItem.id} className="flex flex-col gap-3 rounded-lg border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="text-sm"><p className="font-mono text-xs text-slate-400">{caseItem.id}</p><p className="mt-1 text-slate-700">{caseItem.deletionReason ? reasonLabels[caseItem.deletionReason] : "Deletion recorded"}</p><p className="text-xs text-slate-500">Restore until {caseItem.restoreExpiresAt ? new Date(caseItem.restoreExpiresAt).toLocaleString() : "unavailable"}</p></div>
+              <div className="text-sm"><p className="font-mono text-xs text-muted-on-light">{caseItem.id}</p><p className="mt-1 text-slate-700">{caseItem.deletionReason ? reasonLabels[caseItem.deletionReason] : "Deletion recorded"}</p><p className="text-xs text-slate-500">Restore until {caseItem.restoreExpiresAt ? new Date(caseItem.restoreExpiresAt).toLocaleString() : "unavailable"}</p></div>
               <button onClick={() => { setConfirmation({ action: "restore", caseItem }); setPassword(""); }} className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"><ArchiveRestore size={15} /> Restore</button>
             </div>
           ))}

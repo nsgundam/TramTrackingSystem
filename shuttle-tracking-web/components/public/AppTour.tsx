@@ -115,7 +115,7 @@ export default function AppTour({ onInstallClick, isPwaAvailable = false }: AppT
         {/* Close Button (X) */}
         <button 
           {...skipProps}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer border-none bg-transparent"
+          className="absolute top-4 right-4 text-muted-on-light hover:text-gray-600 transition-colors cursor-pointer border-none bg-transparent"
         >
           <span className="material-symbols-outlined text-lg leading-none">close</span>
         </button>
@@ -149,7 +149,7 @@ export default function AppTour({ onInstallClick, isPwaAvailable = false }: AppT
           {!isLastStep ? (
             <button 
               {...skipProps}
-              className="px-3 py-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors cursor-pointer border-none bg-transparent"
+              className="px-3 py-1.5 text-sm text-muted-on-light hover:text-gray-600 transition-colors cursor-pointer border-none bg-transparent"
             >
               ข้าม
             </button>
