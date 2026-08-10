@@ -52,7 +52,7 @@ test("T14 Admin Dashboard prioritizes canonical state over configured inventory"
   await useReadyDashboardData(page);
 
   await page.goto("/admin/dashboard");
-  const shell = page.locator('[data-admin-theme="rsu-operations"]');
+  const shell = page.locator('[data-admin-theme="signal-lens"]');
   await expect(shell).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, name: "Live operations" })).toBeVisible();
 
@@ -68,11 +68,11 @@ test("T14 Admin Dashboard prioritizes canonical state over configured inventory"
     };
   });
   expect(themeTokens).toMatchObject({
-    canvas: "#f3f6fa",
-    ink: "#142033",
-    muted: "#526176",
+    canvas: "#f2f2f7",
+    ink: "#1c1c1e",
+    muted: "#5f5f66",
     primary: "#075dc7",
-    focus: "#2563eb",
+    focus: "#075dc7",
   });
   expect(["#fff", "#ffffff"]).toContain(themeTokens.surface);
   expect(contrastRatio(themeTokens.ink, themeTokens.surface)).toBeGreaterThanOrEqual(4.5);
@@ -133,7 +133,7 @@ test("T14 Admin Dashboard stays ordered and operable at the Mobile shell breakpo
   await useReadyDashboardData(page);
 
   await page.goto("/admin/dashboard");
-  await expect(page.locator('[data-admin-theme="rsu-operations"]')).toBeVisible();
+  await expect(page.locator('[data-admin-theme="signal-lens"]')).toBeVisible();
   await expect(page.getByTestId("admin-dashboard-status")).toContainText("Updated");
 
   const overflow = await page.evaluate(() => ({

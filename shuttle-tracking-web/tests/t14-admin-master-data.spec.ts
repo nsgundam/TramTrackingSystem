@@ -188,11 +188,11 @@ test("T14 Admin Mobile cards and CRUD dialog keep data, focus, and 44 px control
       transform: styles.transform,
     };
   });
-  expect(dialogPresentation).toEqual({
+  expect(dialogPresentation).toMatchObject({
     backgroundImage: "none",
-    backdropFilter: "none",
     transform: "none",
   });
+  expect(dialogPresentation.backdropFilter).toContain("blur(");
   await expectMinimumTarget(dialog.locator("[data-admin-control]:visible"));
 
   await page.keyboard.press("Escape");

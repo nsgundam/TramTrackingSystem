@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-10T03:59:55Z",
+  "title": "Design System: RSU Operations — Signal Lens Workbench",
+  "extensions": {
+    "colorMeta": {
+      "frost-canvas": {
+        "role": "neutral",
+        "displayName": "Frost Canvas",
+        "canonical": "#f2f2f7",
+        "tonalRamp": ["oklch(15% 0.006 286)", "oklch(27% 0.006 286)", "oklch(39% 0.006 286)", "oklch(51% 0.006 286)", "oklch(63% 0.006 286)", "oklch(75% 0.006 286)", "oklch(87% 0.006 286)", "oklch(95% 0.006 286)"]
+      },
+      "porcelain-content": {
+        "role": "neutral",
+        "displayName": "Porcelain Content",
+        "canonical": "#ffffff",
+        "tonalRamp": ["oklch(15% 0 0)", "oklch(27% 0 0)", "oklch(39% 0 0)", "oklch(51% 0 0)", "oklch(63% 0 0)", "oklch(75% 0 0)", "oklch(87% 0 0)", "oklch(95% 0 0)"]
+      },
+      "opaque-frost": {
+        "role": "neutral",
+        "displayName": "Opaque Frost",
+        "canonical": "#f8f8fa",
+        "tonalRamp": ["oklch(15% 0.004 286)", "oklch(27% 0.004 286)", "oklch(39% 0.004 286)", "oklch(51% 0.004 286)", "oklch(63% 0.004 286)", "oklch(75% 0.004 286)", "oklch(87% 0.004 286)", "oklch(95% 0.004 286)"]
+      },
+      "graphite-ink": {
+        "role": "neutral",
+        "displayName": "Graphite Ink",
+        "canonical": "#1c1c1e",
+        "tonalRamp": ["oklch(15% 0.004 286)", "oklch(27% 0.004 286)", "oklch(39% 0.004 286)", "oklch(51% 0.004 286)", "oklch(63% 0.004 286)", "oklch(75% 0.004 286)", "oklch(87% 0.004 286)", "oklch(95% 0.004 286)"]
+      },
+      "graphite-muted": {
+        "role": "neutral",
+        "displayName": "Graphite Muted",
+        "canonical": "#5f5f66",
+        "tonalRamp": ["oklch(15% 0.008 286)", "oklch(27% 0.008 286)", "oklch(39% 0.008 286)", "oklch(51% 0.008 286)", "oklch(63% 0.008 286)", "oklch(75% 0.008 286)", "oklch(87% 0.008 286)", "oklch(95% 0.008 286)"]
+      },
+      "graphite-placeholder": {
+        "role": "neutral",
+        "displayName": "Graphite Placeholder",
+        "canonical": "#6e6e73",
+        "tonalRamp": ["oklch(15% 0.008 286)", "oklch(27% 0.008 286)", "oklch(39% 0.008 286)", "oklch(51% 0.008 286)", "oklch(63% 0.008 286)", "oklch(75% 0.008 286)", "oklch(87% 0.008 286)", "oklch(95% 0.008 286)"]
+      },
+      "quiet-boundary": {
+        "role": "neutral",
+        "displayName": "Quiet Boundary",
+        "canonical": "#d1d1d6",
+        "tonalRamp": ["oklch(15% 0.006 286)", "oklch(27% 0.006 286)", "oklch(39% 0.006 286)", "oklch(51% 0.006 286)", "oklch(63% 0.006 286)", "oklch(75% 0.006 286)", "oklch(87% 0.006 286)", "oklch(95% 0.006 286)"]
+      },
+      "content-boundary": {
+        "role": "neutral",
+        "displayName": "Content Boundary",
+        "canonical": "#d5d5da",
+        "tonalRamp": ["oklch(15% 0.005 286)", "oklch(27% 0.005 286)", "oklch(39% 0.005 286)", "oklch(51% 0.005 286)", "oklch(63% 0.005 286)", "oklch(75% 0.005 286)", "oklch(87% 0.005 286)", "oklch(95% 0.005 286)"]
+      },
+      "functional-blue": {
+        "role": "primary",
+        "displayName": "Functional Blue",
+        "canonical": "#075dc7",
+        "tonalRamp": ["oklch(15% 0.16 255)", "oklch(27% 0.16 255)", "oklch(39% 0.16 255)", "oklch(51% 0.16 255)", "oklch(63% 0.16 255)", "oklch(75% 0.16 255)", "oklch(87% 0.16 255)", "oklch(95% 0.16 255)"]
+      },
+      "functional-blue-hover": {
+        "role": "primary",
+        "displayName": "Functional Blue Hover",
+        "canonical": "#064b9f",
+        "tonalRamp": ["oklch(15% 0.14 255)", "oklch(27% 0.14 255)", "oklch(39% 0.14 255)", "oklch(51% 0.14 255)", "oklch(63% 0.14 255)", "oklch(75% 0.14 255)", "oklch(87% 0.14 255)", "oklch(95% 0.14 255)"]
+      },
+      "identity-graphite": {
+        "role": "neutral",
+        "displayName": "Identity Graphite",
+        "canonical": "#2c2c2e",
+        "tonalRamp": ["oklch(15% 0.005 286)", "oklch(27% 0.005 286)", "oklch(39% 0.005 286)", "oklch(51% 0.005 286)", "oklch(63% 0.005 286)", "oklch(75% 0.005 286)", "oklch(87% 0.005 286)", "oklch(95% 0.005 286)"]
+      },
+      "navigation-glass": {
+        "role": "neutral",
+        "displayName": "Navigation Glass",
+        "canonical": "rgb(255 255 255 / 76%)",
+        "tonalRamp": ["oklch(15% 0 0 / 76%)", "oklch(27% 0 0 / 76%)", "oklch(39% 0 0 / 76%)", "oklch(51% 0 0 / 76%)", "oklch(63% 0 0 / 76%)", "oklch(75% 0 0 / 76%)", "oklch(87% 0 0 / 76%)", "oklch(95% 0 0 / 76%)"]
+      },
+      "control-glass": {
+        "role": "neutral",
+        "displayName": "Control Glass",
+        "canonical": "rgb(255 255 255 / 74%)",
+        "tonalRamp": ["oklch(15% 0 0 / 74%)", "oklch(27% 0 0 / 74%)", "oklch(39% 0 0 / 74%)", "oklch(51% 0 0 / 74%)", "oklch(63% 0 0 / 74%)", "oklch(75% 0 0 / 74%)", "oklch(87% 0 0 / 74%)", "oklch(95% 0 0 / 74%)"]
+      },
+      "strong-glass": {
+        "role": "neutral",
+        "displayName": "Strong Glass",
+        "canonical": "rgb(255 255 255 / 86%)",
+        "tonalRamp": ["oklch(15% 0 0 / 86%)", "oklch(27% 0 0 / 86%)", "oklch(39% 0 0 / 86%)", "oklch(51% 0 0 / 86%)", "oklch(63% 0 0 / 86%)", "oklch(75% 0 0 / 86%)", "oklch(87% 0 0 / 86%)", "oklch(95% 0 0 / 86%)"]
+      },
+      "luminous-glass-border": {
+        "role": "neutral",
+        "displayName": "Luminous Glass Border",
+        "canonical": "rgb(255 255 255 / 90%)",
+        "tonalRamp": ["oklch(15% 0 0 / 90%)", "oklch(27% 0 0 / 90%)", "oklch(39% 0 0 / 90%)", "oklch(51% 0 0 / 90%)", "oklch(63% 0 0 / 90%)", "oklch(75% 0 0 / 90%)", "oklch(87% 0 0 / 90%)", "oklch(95% 0 0 / 90%)"]
+      },
+      "positive": {
+        "role": "semantic",
+        "displayName": "Operational Positive",
+        "canonical": "#08714f",
+        "tonalRamp": ["oklch(15% 0.12 162)", "oklch(27% 0.12 162)", "oklch(39% 0.12 162)", "oklch(51% 0.12 162)", "oklch(63% 0.12 162)", "oklch(75% 0.12 162)", "oklch(87% 0.12 162)", "oklch(95% 0.12 162)"]
+      },
+      "information": {
+        "role": "semantic",
+        "displayName": "Operational Information",
+        "canonical": "#07549f",
+        "tonalRamp": ["oklch(15% 0.14 253)", "oklch(27% 0.14 253)", "oklch(39% 0.14 253)", "oklch(51% 0.14 253)", "oklch(63% 0.14 253)", "oklch(75% 0.14 253)", "oklch(87% 0.14 253)", "oklch(95% 0.14 253)"]
+      },
+      "warning": {
+        "role": "semantic",
+        "displayName": "Operational Warning",
+        "canonical": "#765000",
+        "tonalRamp": ["oklch(15% 0.13 85)", "oklch(27% 0.13 85)", "oklch(39% 0.13 85)", "oklch(51% 0.13 85)", "oklch(63% 0.13 85)", "oklch(75% 0.13 85)", "oklch(87% 0.13 85)", "oklch(95% 0.13 85)"]
+      },
+      "danger": {
+        "role": "semantic",
+        "displayName": "Operational Danger",
+        "canonical": "#a8271d",
+        "tonalRamp": ["oklch(15% 0.16 28)", "oklch(27% 0.16 28)", "oklch(39% 0.16 28)", "oklch(51% 0.16 28)", "oklch(63% 0.16 28)", "oklch(75% 0.16 28)", "oklch(87% 0.16 28)", "oklch(95% 0.16 28)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Login Display", "purpose": "Admin Login heading only." },
+      "headline": { "displayName": "Route Headline", "purpose": "Top-level Admin route titles." },
+      "title": { "displayName": "Panel Title", "purpose": "Panel, section, and modal headings." },
+      "body": { "displayName": "Operational Body", "purpose": "Dense operational copy, forms, and descriptions." },
+      "label": { "displayName": "Operational Label", "purpose": "Eyebrows, status, section labels, and fact keys." }
+    },
+    "shadows": [
+      { "name": "navigation-ambient", "value": "0 1.25rem 3.75rem rgb(28 28 30 / 13%)", "purpose": "Floating desktop Sidebar and Mobile drawer." },
+      { "name": "modal-deep", "value": "0 1.75rem 5rem rgb(28 28 30 / 18%)", "purpose": "Shared modal and Admin Login glass panels." },
+      { "name": "context-control", "value": "0 0.5rem 1.5rem rgb(28 28 30 / 10%)", "purpose": "Mobile header and compact contextual glass controls." },
+      { "name": "primary-action", "value": "0 0.625rem 1.5rem rgb(0 78 172 / 22%)", "purpose": "Opaque primary actions only." }
+    ],
+    "motion": [
+      { "name": "state-fast", "value": "160ms ease", "purpose": "Navigation, action, and control hover/state transitions." },
+      { "name": "login-state", "value": "180ms cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Login field and submit state transitions." },
+      { "name": "drawer-travel", "value": "220ms ease", "purpose": "Mobile Sidebar opening and closing transform." },
+      { "name": "resource-spinner", "value": "900ms linear infinite", "purpose": "Functional resource loading indicator only." },
+      { "name": "reduced-motion", "value": "0.001ms; one iteration", "purpose": "Reduced-motion replacement for transitions and animations." }
+    ],
+    "breakpoints": [
+      { "name": "layout-room", "value": "40rem" },
+      { "name": "desktop-shell", "value": "64rem" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Navigation Glass",
+      "kind": "nav",
+      "refersTo": "navigation-glass",
+      "description": "Admin navigation surface from .admin-sidebar, .admin-mobile-header, and the Mobile drawer state.",
+      "html": "<aside class='ds-navigation'><div class='ds-navigation-brand'><span class='ds-navigation-mark'>RSU</span><strong>RSU Operations</strong></div><a class='ds-navigation-link' href='#' aria-current='page'><svg viewBox='0 0 24 24' width='19' height='19' fill='none' stroke='currentColor' stroke-width='2' aria-hidden='true'><rect width='7' height='9' x='3' y='3' rx='1'/><rect width='7' height='5' x='14' y='3' rx='1'/><rect width='7' height='9' x='14' y='12' rx='1'/><rect width='7' height='5' x='3' y='16' rx='1'/></svg><span>Dashboard</span></a></aside>",
+      "css": ".ds-navigation { width: 17.5rem; border: 1px solid rgb(60 60 67 / 15%); border-radius: 1.5rem; background: rgb(255 255 255 / 76%); box-shadow: 0 1.25rem 3.75rem rgb(28 28 30 / 13%); color: #1c1c1e; padding: 1rem 0.75rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-backdrop-filter: blur(1.5rem) saturate(145%); backdrop-filter: blur(1.5rem) saturate(145%); } .ds-navigation-brand { display: flex; align-items: center; gap: 0.75rem; padding: 0 0.25rem 1rem; } .ds-navigation-mark { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border-radius: 0.875rem; background: #2c2c2e; color: #fff; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; } .ds-navigation-link { display: flex; min-height: 2.75rem; align-items: center; gap: 0.75rem; border: 1px solid transparent; border-radius: 0.75rem; color: #3a3a3c; padding: 0.6875rem 0.75rem; font-size: 0.875rem; font-weight: 650; text-decoration: none; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; } .ds-navigation-link:hover { background: rgb(28 28 30 / 5%); color: #1c1c1e; } .ds-navigation-link[aria-current='page'] { border-color: rgb(7 93 199 / 22%); background: rgb(7 93 199 / 10%); color: #064b9f; } .ds-navigation-link:focus-visible { outline: 2px solid #075dc7; outline-offset: 3px; } @supports not (backdrop-filter: blur(1px)) { .ds-navigation { background: #f8f8fa; -webkit-backdrop-filter: none; backdrop-filter: none; } } @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) { .ds-navigation { background: #f8f8fa; -webkit-backdrop-filter: none; backdrop-filter: none; } } @media (forced-colors: active) { .ds-navigation { border-color: CanvasText; background: Canvas; box-shadow: none; color: CanvasText; -webkit-backdrop-filter: none; backdrop-filter: none; } }"
+    },
+    {
+      "name": "Contextual Glass Control",
+      "kind": "button",
+      "refersTo": "contextual-control",
+      "description": "Compact context material from .admin-dashboard__status, .admin-map-status-surface, .admin-secondary-action, and untoned .admin-icon-action.",
+      "html": "<button class='ds-context-control' type='button'><span>Current service</span><svg viewBox='0 0 24 24' width='16' height='16' fill='none' stroke='currentColor' stroke-width='2' aria-hidden='true'><path d='m9 18 6-6-6-6'/></svg></button>",
+      "css": ".ds-context-control { display: inline-flex; min-height: 2.75rem; align-items: center; justify-content: center; gap: 0.5rem; border: 1px solid rgb(255 255 255 / 90%); border-radius: 0.75rem; background: rgb(255 255 255 / 74%); box-shadow: 0 0.5rem 1.5rem rgb(28 28 30 / 10%); color: #1c1c1e; padding: 0.625rem 0.875rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.875rem; font-weight: 750; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; -webkit-backdrop-filter: blur(0.875rem) saturate(135%); backdrop-filter: blur(0.875rem) saturate(135%); } .ds-context-control:hover { border-color: #d1d1d6; background: rgb(255 255 255 / 86%); } .ds-context-control:focus-visible { outline: 2px solid #075dc7; outline-offset: 3px; } .ds-context-control:active { background: #f8f8fa; } @supports not (backdrop-filter: blur(1px)) { .ds-context-control { background: #f8f8fa; -webkit-backdrop-filter: none; backdrop-filter: none; } } @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) { .ds-context-control { background: #f8f8fa; -webkit-backdrop-filter: none; backdrop-filter: none; } }"
+    },
+    {
+      "name": "Primary Action",
+      "kind": "button",
+      "refersTo": "primary-action",
+      "description": "Opaque action authority from .admin-primary-action, .admin-button[data-tone='primary'], and .admin-login__submit.",
+      "html": "<button class='ds-primary-action' type='button'>Save changes</button>",
+      "css": ".ds-primary-action { display: inline-flex; min-height: 2.75rem; align-items: center; justify-content: center; border: 1px solid rgb(255 255 255 / 24%); border-radius: 0.75rem; background: #075dc7; box-shadow: 0 0.625rem 1.5rem rgb(0 78 172 / 22%); color: #fff; padding: 0.625rem 0.875rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.875rem; font-weight: 750; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; } .ds-primary-action:hover { background: #064b9f; } .ds-primary-action:focus-visible { outline: 2px solid #075dc7; outline-offset: 3px; } .ds-primary-action:active { box-shadow: 0 0.25rem 0.75rem rgb(0 78 172 / 18%); } .ds-primary-action:disabled { cursor: not-allowed; opacity: 0.48; }"
+    },
+    {
+      "name": "Opaque Content Panel",
+      "kind": "card",
+      "refersTo": "content-panel",
+      "description": "Stable reading plane from .admin-panel, .admin-resource-panel, .admin-live-map, and .admin-resource-table.",
+      "html": "<section class='ds-content-panel'><p class='ds-content-eyebrow'>Live operations</p><h3>Verified service state</h3><p>Operational content stays opaque beneath the glass chrome.</p></section>",
+      "css": ".ds-content-panel { overflow: hidden; border: 1px solid #d5d5da; border-radius: 0.875rem; background: #fff; box-shadow: none; color: #1c1c1e; padding: 1rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-backdrop-filter: none; backdrop-filter: none; } .ds-content-panel h3 { margin: 0.2rem 0 0; font-size: 1.125rem; font-weight: 750; letter-spacing: -0.015em; } .ds-content-panel p { margin: 0.375rem 0 0; color: #5f5f66; font-size: 0.875rem; line-height: 1.55; } .ds-content-panel .ds-content-eyebrow { margin: 0; font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.11em; text-transform: uppercase; }"
+    },
+    {
+      "name": "Operational Record",
+      "kind": "card",
+      "refersTo": "operational-record",
+      "description": "Opaque state-bearing record from .admin-resource-card, .admin-operation-record, .admin-feedback-recovery__item, and .admin-route-stops__item.",
+      "html": "<article class='ds-record' data-signal='online'><div><span class='ds-record-label'>Vehicle source</span><h3>TRAM-01</h3></div><span class='ds-record-state'>Online</span><dl><div><dt>Last update</dt><dd>12 seconds ago</dd></div><div><dt>Route</dt><dd>Campus loop</dd></div></dl></article>",
+      "css": ".ds-record { border: 1px solid #8fcdb7; border-radius: 0.75rem; background: #fff; color: #1c1c1e; padding: 1rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-backdrop-filter: none; backdrop-filter: none; } .ds-record > div:first-child { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; } .ds-record h3 { margin: 0.2rem 0 0; font-size: 1rem; font-weight: 800; } .ds-record-label, .ds-record dt { color: #5f5f66; font-size: 0.6875rem; font-weight: 750; letter-spacing: 0.04em; text-transform: uppercase; } .ds-record-state { display: inline-flex; border: 1px solid #8fcdb7; border-radius: 999px; background: #e7f6f0; color: #08714f; padding: 0.3rem 0.55rem; font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; } .ds-record dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin: 1rem 0 0; border-top: 1px solid #d1d1d6; padding-top: 1rem; } .ds-record dd { margin: 0.2rem 0 0; font-size: 0.8125rem; font-weight: 650; }"
+    },
+    {
+      "name": "Positive Status Badge",
+      "kind": "chip",
+      "refersTo": "status-positive",
+      "description": "One semantic example of .admin-status-badge[data-tone]; warning, information, neutral, and danger use the same structure.",
+      "html": "<span class='ds-status-positive'>Online</span>",
+      "css": ".ds-status-positive { display: inline-flex; align-items: center; border: 1px solid #8fcdb7; border-radius: 999px; background: #e7f6f0; color: #08714f; padding: 0.3rem 0.55rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.04em; line-height: 1.2; text-transform: uppercase; white-space: nowrap; } @media (forced-colors: active) { .ds-status-positive { border-color: CanvasText; background: Canvas; color: CanvasText; } }"
+    },
+    {
+      "name": "Form Field",
+      "kind": "input",
+      "refersTo": "form-field",
+      "description": "Opaque input authority from .admin-form-control and .admin-login__control.",
+      "html": "<label class='ds-field'>Vehicle name<input type='text' placeholder='Enter a vehicle name'></label>",
+      "css": ".ds-field { display: grid; gap: 0.375rem; color: #1c1c1e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.8125rem; font-weight: 700; } .ds-field input { width: 100%; min-height: 2.75rem; border: 1px solid #d1d1d6; border-radius: 0.75rem; background: #fff; color: #1c1c1e; padding: 0.625rem 0.75rem; font: 400 0.875rem/1.55 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; transition: border-color 160ms ease; } .ds-field input::placeholder { color: #6e6e73; opacity: 1; } .ds-field input:hover { border-color: #91a6bf; } .ds-field input:focus, .ds-field input:focus-visible { border-color: #075dc7; outline: 2px solid #075dc7; outline-offset: 2px; } .ds-field input:disabled { cursor: not-allowed; background: #f2f2f7; color: #6e6e73; }"
+    },
+    {
+      "name": "Shared Modal",
+      "kind": "custom",
+      "refersTo": "modal-glass",
+      "description": "Glass dialog chrome from .admin-modal and .admin-modal-backdrop; inner form content remains opaque.",
+      "html": "<div class='ds-modal-backdrop'><section class='ds-modal' role='dialog' aria-modal='true' aria-labelledby='ds-modal-title'><header><div><p>Vehicle record</p><h2 id='ds-modal-title'>Edit vehicle</h2></div><button type='button' aria-label='Close'><svg viewBox='0 0 24 24' width='20' height='20' fill='none' stroke='currentColor' stroke-width='2' aria-hidden='true'><path d='M18 6 6 18M6 6l12 12'/></svg></button></header><p class='ds-modal-copy'>Confirm the operational details before saving.</p></section></div>",
+      "css": ".ds-modal-backdrop { display: grid; min-height: 18rem; place-items: center; background: rgb(28 28 30 / 28%); padding: 1rem; -webkit-backdrop-filter: blur(0.375rem); backdrop-filter: blur(0.375rem); } .ds-modal { width: min(100%, 30rem); border: 1px solid rgb(255 255 255 / 90%); border-radius: 1.25rem; background: rgb(255 255 255 / 86%); box-shadow: 0 1.75rem 5rem rgb(28 28 30 / 18%); color: #1c1c1e; padding: 1.25rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-backdrop-filter: blur(1.5rem) saturate(145%); backdrop-filter: blur(1.5rem) saturate(145%); } .ds-modal header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; border-bottom: 1px solid #d1d1d6; padding-bottom: 1rem; } .ds-modal header p { margin: 0; color: #5f5f66; font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; } .ds-modal h2 { margin: 0.2rem 0 0; font-size: 1.125rem; line-height: 1.3; } .ds-modal button { display: inline-flex; width: 2.75rem; height: 2.75rem; align-items: center; justify-content: center; border: 1px solid rgb(255 255 255 / 90%); border-radius: 0.75rem; background: rgb(255 255 255 / 74%); color: #5f5f66; } .ds-modal button:hover { color: #1c1c1e; } .ds-modal button:focus-visible { outline: 2px solid #075dc7; outline-offset: 3px; } .ds-modal-copy { color: #5f5f66; font-size: 0.875rem; line-height: 1.55; } @supports not (backdrop-filter: blur(1px)) { .ds-modal { background: #f8f8fa; -webkit-backdrop-filter: none; backdrop-filter: none; } } @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) { .ds-modal, .ds-modal-backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; } .ds-modal { background: #f8f8fa; } }"
+    },
+    {
+      "name": "Login Glass Panel",
+      "kind": "card",
+      "refersTo": "login-panel",
+      "description": "Admin-only authentication surface from .admin-login-shell, .admin-login__panel, and .admin-login__mark.",
+      "html": "<section class='ds-login-panel'><div class='ds-login-mark'><svg viewBox='0 0 24 24' width='30' height='30' fill='none' stroke='currentColor' stroke-width='2' aria-hidden='true'><path d='M20 13c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V5l8-3 8 3z'/></svg></div><h2>Admin Portal</h2><p>Sign in to manage the Tram Tracking System</p><label>Username<input type='text' autocomplete='username' placeholder='Enter your username'></label><button type='button'>Sign In</button></section>",
+      "css": ".ds-login-panel { width: min(100%, 29rem); border: 1px solid rgb(255 255 255 / 90%); border-radius: 1.75rem; background: rgb(255 255 255 / 86%); box-shadow: 0 1.75rem 5rem rgb(28 28 30 / 18%); color: #1c1c1e; padding: clamp(1.5rem, 6vw, 2.25rem); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; text-align: center; -webkit-backdrop-filter: blur(1.75rem) saturate(150%); backdrop-filter: blur(1.75rem) saturate(150%); } .ds-login-mark { display: grid; width: 4rem; height: 4rem; place-items: center; margin: 0 auto 1rem; border-radius: 1rem; background: #2c2c2e; color: #fff; } .ds-login-panel h2 { max-width: 16ch; margin: 0 auto; font-size: clamp(2rem, 9vw, 2.625rem); font-weight: 780; letter-spacing: -0.035em; line-height: 1.05; } .ds-login-panel > p { max-width: 34ch; margin: 0.625rem auto 1.25rem; color: #5f5f66; font-size: 0.875rem; line-height: 1.55; } .ds-login-panel label { display: grid; gap: 0.5rem; color: #1c1c1e; font-size: 0.8125rem; font-weight: 700; text-align: left; } .ds-login-panel input { min-height: 3rem; border: 1px solid #d1d1d6; border-radius: 0.75rem; background: #fff; color: #1c1c1e; padding: 0.75rem 0.875rem; font-size: 1rem; } .ds-login-panel input:focus, .ds-login-panel input:focus-visible { border-color: #075dc7; outline: 2px solid #075dc7; outline-offset: 2px; } .ds-login-panel button { min-height: 3rem; width: 100%; margin-top: 1.125rem; border: 1px solid rgb(255 255 255 / 26%); border-radius: 0.75rem; background: #075dc7; box-shadow: 0 0.75rem 1.75rem rgb(0 78 172 / 22%); color: #fff; font-size: 0.9375rem; font-weight: 750; } .ds-login-panel button:hover { background: #064b9f; } .ds-login-panel button:focus-visible { outline: 2px solid #075dc7; outline-offset: 3px; } @supports not (backdrop-filter: blur(1px)) { .ds-login-panel { background: #f8f8fa; -webkit-backdrop-filter: none; backdrop-filter: none; } } @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) { .ds-login-panel { background: #f8f8fa; -webkit-backdrop-filter: none; backdrop-filter: none; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Signal Lens Workbench",
+    "overview": "Signal Lens Workbench puts operational truth on a quiet luminous plane. It is a deliberately light, minimal-premium, iOS-inspired Liquid Glass world for authenticated Admin routes, identified in source by `[data-admin-theme=\"signal-lens\"]`. It does not govern the Public rider interface: Public retains its incumbent visual identity, layout authority, and separately approved change process.\n\nGlass carries orientation and immediate interaction, while opaque porcelain carries evidence. The Sidebar, Mobile header and drawer, compact status/context controls, shared modal, and Login panel may refract the pale neutral canvas. Maps, tables, ledgers, resource panels, records, form fields, alerts, and long operational content remain opaque so density, contrast, and state never depend on transparency.\n\nThe system is locked to a bright white, porcelain, frost-gray, and graphite palette. Functional blue appears only for action, current selection, focus, and existing information meaning; semantic green, amber, and red retain their operational roles. The built direction contract and seed `7c756d3a` are preserved in a non-rendered Admin-root template.",
+    "keyCharacteristics": [
+      "Admin-only, explicitly light visual authority with no automatic dark appearance.",
+      "Functional glass around stable opaque operational content.",
+      "System UI typography and the incumbent Lucide icon set only.",
+      "Concentric rounded geometry, quiet boundaries, and restrained luminous depth.",
+      "Accessible opaque and high-contrast fallbacks for every glass-bearing surface."
+    ],
+    "rules": [
+      { "name": "The Blue Means Work Rule", "body": "Blue is reserved for action, current selection, focus, and existing information state; it never becomes ambient chrome.", "section": "colors" },
+      { "name": "The Bright Lock Rule", "body": "Admin declares a light color scheme and does not switch visual worlds in response to an operating-system dark preference.", "section": "colors" },
+      { "name": "The Native Voice Rule", "body": "Use the system UI stack and existing Lucide icons only; do not add a webfont, icon font, external image, or substitute illustration language.", "section": "typography" },
+      { "name": "The Reading Plane Rule", "body": "Responsive composition may change, but operational content never becomes glass to make a layout fit.", "section": "layout" },
+      { "name": "The Functional Glass Rule", "body": "Glass belongs to navigation, context/control chrome, modal chrome, and the Login panel—never to maps, tables, ledgers, form content, alerts, or long text.", "section": "elevation" },
+      { "name": "The Opaque Truth Rule", "body": "Content surfaces are flat, white, and shadowless because operational evidence must remain stable beneath moving chrome.", "section": "elevation" },
+      { "name": "The Nested Radius Rule", "body": "Outer navigation and modal shells use larger curves than their controls and content, preserving a readable material hierarchy.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do scope Signal Lens to authenticated Admin and Admin Login roots marked with `[data-admin-theme=\"signal-lens\"]`.",
+      "Do keep navigation, contextual controls, shared modals, and Login on the functional glass tier while maps, tables, ledgers, forms, records, alerts, and long text stay opaque.",
+      "Do preserve visible focus, 44 CSS px targets, semantic text/boundaries, and the implemented reduced-transparency, increased/forced-contrast, unsupported-filter, and reduced-motion fallbacks.",
+      "Do use the system UI type stack and existing Lucide icons for every extension."
+    ],
+    "donts": [
+      "Don't apply this Admin visual world, its theme marker, or its glass hierarchy to the Public rider UI.",
+      "Don't introduce automatic dark mode, navy/campus-sky chrome, cyan/violet ambience, or decorative blue.",
+      "Don't apply backdrop blur to dense operational content or use translucency/color as the sole carrier of hierarchy or status.",
+      "Don't add hover scale, parallax, spring simulation, looping decoration, new fonts, icon packs, external imagery, or Apple trademarks/assets."
+    ]
+  }
+}

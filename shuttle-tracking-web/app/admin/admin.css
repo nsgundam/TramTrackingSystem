@@ -1755,3 +1755,772 @@
     animation: none !important;
   }
 }
+
+/* Signal Lens Workbench ---------------------------------------------------- */
+
+:is(.admin-shell, .admin-login-shell)[data-admin-theme="signal-lens"] {
+  --admin-canvas: #f2f2f7;
+  --admin-content: #ffffff;
+  --admin-surface: #ffffff;
+  --admin-surface-subtle: #f2f2f7;
+  --admin-ink: #1c1c1e;
+  --admin-muted: #5f5f66;
+  --admin-placeholder: #6e6e73;
+  --admin-border: #d1d1d6;
+  --admin-content-border: #d5d5da;
+  --admin-primary: #075dc7;
+  --admin-primary-hover: #064b9f;
+  --admin-action-fill: #075dc7;
+  --admin-action-fill-hover: #064b9f;
+  --admin-identity-fill: #2c2c2e;
+  --admin-focus: #075dc7;
+  --admin-focus-on-dark: #075dc7;
+  --admin-positive: #08714f;
+  --admin-positive-surface: #e7f6f0;
+  --admin-positive-border: #8fcdb7;
+  --admin-info: #07549f;
+  --admin-info-surface: #eaf3ff;
+  --admin-info-border: #a9c9ee;
+  --admin-warning: #765000;
+  --admin-warning-surface: #fff6df;
+  --admin-warning-border: #ddbc70;
+  --admin-danger: #a8271d;
+  --admin-danger-surface: #fff0ed;
+  --admin-danger-border: #e5a49e;
+  --admin-nav: #ffffff;
+  --admin-nav-surface: rgb(28 28 30 / 5%);
+  --admin-nav-border: rgb(60 60 67 / 15%);
+  --admin-nav-muted: #6e6e73;
+  --admin-glass: rgb(255 255 255 / 70%);
+  --admin-glass-strong: rgb(255 255 255 / 86%);
+  --admin-glass-control: rgb(255 255 255 / 74%);
+  --admin-glass-opaque: #f8f8fa;
+  --admin-nav-glass: rgb(255 255 255 / 76%);
+  --admin-nav-opaque: #f8f8fa;
+  --admin-glass-border: rgb(255 255 255 / 90%);
+  --admin-glass-shadow: 0 1.25rem 3.75rem rgb(28 28 30 / 13%);
+  --admin-modal-shadow: 0 1.75rem 5rem rgb(28 28 30 / 18%);
+  --admin-control-shadow: 0 0.5rem 1.5rem rgb(28 28 30 / 10%);
+
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 4%, rgb(255 255 255 / 96%), transparent 34rem),
+    radial-gradient(circle at 88% 18%, rgb(209 211 218 / 42%), transparent 32rem),
+    linear-gradient(145deg, #f8f8fa 0%, var(--admin-canvas) 46%, #e9eaee 100%);
+  color: var(--admin-ink);
+  color-scheme: light;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+:is(.admin-shell, .admin-login-shell)[data-admin-theme="signal-lens"]
+  :where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--admin-focus);
+  outline-offset: 3px;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] {
+  position: relative;
+  isolation: isolate;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] > template,
+.admin-login-shell[data-admin-theme="signal-lens"] > template {
+  display: none;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-shell__main {
+  position: relative;
+  z-index: 1;
+  padding-top: 5rem;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-shell__content {
+  padding: 1rem;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-mobile-header {
+  inset: 0.75rem 0.75rem auto;
+  height: 3.5rem;
+  border: 1px solid var(--admin-nav-border);
+  border-radius: 1.125rem;
+  background: var(--admin-nav-glass);
+  box-shadow: var(--admin-control-shadow);
+  color: var(--admin-ink);
+  padding: 0 0.75rem;
+  -webkit-backdrop-filter: blur(1.25rem) saturate(145%);
+  backdrop-filter: blur(1.25rem) saturate(145%);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-mobile-header__button,
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar__close {
+  border-radius: 0.75rem;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar-backdrop {
+  background: rgb(28 28 30 / 28%);
+  -webkit-backdrop-filter: blur(0.375rem);
+  backdrop-filter: blur(0.375rem);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar {
+  inset: 0.75rem auto 0.75rem 0.75rem;
+  width: min(18rem, calc(100vw - 1.5rem));
+  height: calc(100dvh - 1.5rem);
+  border: 1px solid var(--admin-nav-border);
+  border-radius: 1.5rem;
+  background: var(--admin-nav-glass);
+  box-shadow: var(--admin-glass-shadow);
+  transform: translateX(calc(-100% - 1.5rem));
+  -webkit-backdrop-filter: blur(1.5rem) saturate(145%);
+  backdrop-filter: blur(1.5rem) saturate(145%);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] :where(
+  .admin-mobile-header__title,
+  .admin-sidebar__brand-title,
+  .admin-sidebar__username
+) {
+  color: var(--admin-ink);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] :where(
+  .admin-mobile-header__button,
+  .admin-mobile-header__context,
+  .admin-sidebar__brand-subtitle,
+  .admin-sidebar__section-label,
+  .admin-sidebar__user-role,
+  .admin-sidebar__close
+) {
+  color: var(--admin-nav-muted);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar[data-open="true"] {
+  transform: translateX(0);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar__brand {
+  min-height: 5.5rem;
+  border-color: var(--admin-nav-border);
+  padding: 1rem;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar__mark {
+  border-color: rgb(255 255 255 / 18%);
+  border-radius: 0.875rem;
+  background: var(--admin-identity-fill);
+  box-shadow: 0 0.5rem 1.25rem rgb(28 28 30 / 18%);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar__nav {
+  padding: 1rem 0.75rem;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar__link,
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar__logout {
+  border-radius: 0.75rem;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar__link {
+  color: #3a3a3c;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar__link:hover,
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar__close:hover,
+.admin-shell[data-admin-theme="signal-lens"] .admin-mobile-header__button:hover {
+  background: var(--admin-nav-surface);
+  color: var(--admin-ink);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar__link[aria-current="page"] {
+  border-color: rgb(7 93 199 / 22%);
+  background: rgb(7 93 199 / 10%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 70%);
+  color: #064b9f;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar__logout {
+  color: var(--admin-danger);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar__logout:hover {
+  background: var(--admin-danger-surface);
+  color: var(--admin-danger);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-sidebar__footer {
+  border-color: var(--admin-nav-border);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] :where(
+  .admin-dashboard__eyebrow,
+  .admin-panel__eyebrow,
+  .admin-resource__eyebrow
+) {
+  color: var(--admin-muted);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-panel__tag {
+  border-color: var(--admin-border);
+  background: var(--admin-surface-subtle);
+  color: var(--admin-muted);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] :where(
+  .admin-dashboard__status,
+  .admin-map-status-surface,
+  .admin-secondary-action,
+  .admin-button[data-tone="secondary"],
+  .admin-icon-action:not([data-tone])
+) {
+  border-color: var(--admin-glass-border);
+  background: var(--admin-glass-control);
+  box-shadow: var(--admin-control-shadow);
+  -webkit-backdrop-filter: blur(0.875rem) saturate(135%);
+  backdrop-filter: blur(0.875rem) saturate(135%);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] :where(
+  .admin-primary-action,
+  .admin-button[data-tone="primary"]
+) {
+  border-color: rgb(255 255 255 / 24%);
+  background: var(--admin-action-fill);
+  box-shadow: 0 0.625rem 1.5rem rgb(0 78 172 / 22%);
+  color: #ffffff;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] :where(
+  .admin-primary-action,
+  .admin-button[data-tone="primary"]
+):hover {
+  border-color: rgb(255 255 255 / 30%);
+  background: var(--admin-action-fill-hover);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-modal-backdrop {
+  background: rgb(28 28 30 / 28%);
+  -webkit-backdrop-filter: blur(0.375rem);
+  backdrop-filter: blur(0.375rem);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-modal {
+  border-color: var(--admin-glass-border);
+  border-radius: 1.25rem;
+  background: var(--admin-glass-strong);
+  box-shadow: var(--admin-modal-shadow);
+  -webkit-backdrop-filter: blur(1.5rem) saturate(145%);
+  backdrop-filter: blur(1.5rem) saturate(145%);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] :where(
+  .admin-panel,
+  .admin-resource-panel,
+  .admin-resource-card,
+  .admin-operation-record,
+  .admin-feedback-recovery__item,
+  .admin-route-stops__item,
+  .admin-route-stops__add,
+  .admin-metric,
+  .admin-live-map,
+  .admin-resource-table,
+  .admin-form-control
+) {
+  background-color: var(--admin-content);
+  background-image: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] :where(
+  .admin-panel,
+  .admin-resource-panel,
+  .admin-resource-card,
+  .admin-operation-record,
+  .admin-feedback-recovery__item
+) {
+  border-color: var(--admin-content-border);
+  border-radius: 0.875rem;
+  box-shadow: none;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] :where(
+  .admin-resource-card,
+  .admin-operation-record,
+  .admin-feedback-recovery__item,
+  .admin-dashboard__alert,
+  .admin-resource-state--error,
+  .admin-notice,
+  .admin-access-denied,
+  .admin-inline-alert,
+  .admin-scope-note
+) {
+  border-left-width: 1px;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-operation-record[data-admin-signal="online"],
+.admin-shell[data-admin-theme="signal-lens"] .admin-operation-record[data-admin-signal="resolved"] {
+  border-color: var(--admin-positive-border);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-operation-record[data-admin-signal="stale"],
+.admin-shell[data-admin-theme="signal-lens"] .admin-operation-record[data-admin-signal="investigating"] {
+  border-color: var(--admin-warning-border);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-operation-record[data-admin-signal="new"],
+.admin-shell[data-admin-theme="signal-lens"] .admin-operation-record[data-admin-signal="acknowledged"] {
+  border-color: var(--admin-info-border);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-operation-record[data-admin-signal="disabled"],
+.admin-shell[data-admin-theme="signal-lens"] .admin-operation-record[data-admin-signal="rejected"] {
+  border-color: var(--admin-danger-border);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] :where(
+  .admin-panel,
+  .admin-resource-panel
+) {
+  overflow: hidden;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] :where(
+  .admin-resource-card,
+  .admin-operation-record,
+  .admin-feedback-recovery__item,
+  .admin-route-stops__item,
+  .admin-route-stops__add,
+  .admin-metric,
+  .admin-form-control,
+  .admin-icon-action,
+  .admin-primary-action,
+  .admin-secondary-action,
+  .admin-button,
+  .admin-modal__close
+) {
+  border-radius: 0.75rem;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-resource-table thead,
+.admin-shell[data-admin-theme="signal-lens"] .admin-resource-table tbody tr:hover,
+.admin-shell[data-admin-theme="signal-lens"] .admin-state-summary__item,
+.admin-shell[data-admin-theme="signal-lens"] .admin-resource-id,
+.admin-shell[data-admin-theme="signal-lens"] .admin-coordinate,
+.admin-shell[data-admin-theme="signal-lens"] .admin-operation-record__icon,
+.admin-shell[data-admin-theme="signal-lens"] .admin-feedback-section__count {
+  background: var(--admin-surface-subtle);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-dashboard__alert,
+.admin-shell[data-admin-theme="signal-lens"] .admin-resource-state--error,
+.admin-shell[data-admin-theme="signal-lens"] .admin-inline-alert {
+  border-color: var(--admin-danger-border);
+  background: var(--admin-danger-surface);
+  color: var(--admin-danger);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-dashboard__status[data-state="error"] {
+  border-color: var(--admin-danger-border);
+  background: var(--admin-danger-surface);
+  color: var(--admin-danger);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] :where(
+  .admin-notice,
+  .admin-scope-note
+) {
+  border-color: var(--admin-info-border);
+  background: var(--admin-info-surface);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-access-denied {
+  border-color: var(--admin-warning-border);
+  background: var(--admin-warning-surface);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] :where(
+  .admin-metric__icon,
+  .admin-modal__leading,
+  .admin-route-stops__order
+) {
+  background: var(--admin-info-surface);
+  color: var(--admin-primary);
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-metric__icon,
+.admin-shell[data-admin-theme="signal-lens"] .admin-metric[data-tone="indigo"] .admin-metric__icon {
+  background: var(--admin-surface-subtle);
+  color: #3a3a3c;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-metric[data-tone="green"] .admin-metric__icon {
+  background: var(--admin-surface-subtle);
+  color: #3a3a3c;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-form-control::placeholder,
+.admin-login-shell[data-admin-theme="signal-lens"] .admin-login__control::placeholder {
+  color: var(--admin-placeholder);
+  opacity: 1;
+}
+
+.admin-shell[data-admin-theme="signal-lens"] .admin-form-control:focus,
+.admin-login-shell[data-admin-theme="signal-lens"] .admin-login__control:focus {
+  border-color: var(--admin-focus);
+  outline: 2px solid var(--admin-focus);
+  outline-offset: 2px;
+}
+
+.admin-login-shell[data-admin-theme="signal-lens"] {
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+.admin-login-shell__content,
+.admin-login {
+  min-height: 100dvh;
+}
+
+.admin-login {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.admin-login__panel {
+  width: min(100%, 29rem);
+  border: 1px solid var(--admin-glass-border);
+  border-radius: 1.75rem;
+  background: var(--admin-glass-strong);
+  box-shadow: var(--admin-modal-shadow);
+  color: var(--admin-ink);
+  padding: clamp(1.5rem, 6vw, 2.25rem);
+  -webkit-backdrop-filter: blur(1.75rem) saturate(150%);
+  backdrop-filter: blur(1.75rem) saturate(150%);
+}
+
+.admin-login__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.admin-login__mark {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  place-items: center;
+  margin-bottom: 1rem;
+  border: 1px solid rgb(255 255 255 / 28%);
+  border-radius: 1rem;
+  background: var(--admin-identity-fill);
+  box-shadow: 0 0.75rem 1.75rem rgb(28 28 30 / 18%);
+  color: #ffffff;
+}
+
+.admin-login__title {
+  max-width: 16ch;
+  color: var(--admin-ink);
+  font-size: clamp(2rem, 9vw, 2.625rem);
+  font-weight: 780;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.admin-login__description {
+  max-width: 34ch;
+  margin-top: 0.625rem;
+  color: var(--admin-muted);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.admin-login__alert {
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--admin-danger-border);
+  border-radius: 0.75rem;
+  background: var(--admin-danger-surface);
+  color: var(--admin-danger);
+  padding: 0.875rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 650;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.admin-login__form {
+  display: grid;
+  gap: 1.125rem;
+}
+
+.admin-login__field label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--admin-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.admin-login__control {
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 0.75rem;
+  background: var(--admin-content);
+  color: var(--admin-ink);
+  padding: 0.75rem 0.875rem;
+  font-size: 1rem;
+  transition: border-color 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-login__control:hover {
+  border-color: #91a6bf;
+}
+
+.admin-login__submit {
+  display: inline-flex;
+  min-height: 3rem;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.25rem;
+  border: 1px solid rgb(255 255 255 / 26%);
+  border-radius: 0.75rem;
+  background: var(--admin-action-fill);
+  box-shadow: 0 0.75rem 1.75rem rgb(0 78 172 / 22%);
+  color: #ffffff;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 750;
+  transition: background-color 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-login__submit:hover:not(:disabled) {
+  background: var(--admin-action-fill-hover);
+  box-shadow: 0 0.875rem 2rem rgb(0 69 153 / 28%);
+}
+
+.admin-login__submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.admin-login__capabilities {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 1.75rem;
+  border-top: 1px solid var(--admin-border);
+  padding-top: 1.25rem;
+  color: var(--admin-muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.admin-login__capabilities span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+@media (min-width: 40rem) {
+  .admin-shell[data-admin-theme="signal-lens"] .admin-shell__content {
+    padding: 1.5rem;
+  }
+
+  .admin-login {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .admin-shell[data-admin-theme="signal-lens"] .admin-sidebar {
+    inset: 1rem auto 1rem 1rem;
+    width: 17.5rem;
+    height: calc(100vh - 2rem);
+    transform: translateX(0);
+  }
+
+  .admin-shell[data-admin-theme="signal-lens"] .admin-shell__main {
+    margin-left: 19.5rem;
+    padding-top: 0;
+  }
+
+  .admin-shell[data-admin-theme="signal-lens"] .admin-shell__content {
+    padding: 2rem 2.5rem 2.5rem 1rem;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :is(.admin-shell, .admin-login-shell)[data-admin-theme="signal-lens"] {
+    background: var(--admin-canvas);
+  }
+
+  .admin-shell[data-admin-theme="signal-lens"] :is(
+    .admin-mobile-header,
+    .admin-sidebar,
+    .admin-dashboard__status,
+    .admin-map-status-surface,
+    .admin-secondary-action,
+    .admin-button[data-tone="secondary"],
+    .admin-icon-action:not([data-tone]),
+    .admin-modal,
+    .admin-modal-backdrop,
+    .admin-sidebar-backdrop
+  ),
+  .admin-login-shell[data-admin-theme="signal-lens"] :is(
+    .admin-login__panel,
+    .admin-login__submit
+  ) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .admin-shell[data-admin-theme="signal-lens"] :is(
+    .admin-dashboard__status,
+    .admin-map-status-surface,
+    .admin-secondary-action,
+    .admin-button[data-tone="secondary"],
+    .admin-icon-action:not([data-tone]),
+    .admin-modal
+  ),
+  .admin-login-shell[data-admin-theme="signal-lens"] .admin-login__panel {
+    background: var(--admin-glass-opaque);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .admin-shell[data-admin-theme="signal-lens"] :is(.admin-mobile-header, .admin-sidebar) {
+    background: var(--admin-nav-opaque);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :is(.admin-shell, .admin-login-shell)[data-admin-theme="signal-lens"] {
+    --admin-border: #8293a9;
+    --admin-content-border: #8293a9;
+    --admin-glass-border: currentColor;
+  }
+
+  .admin-shell[data-admin-theme="signal-lens"] :is(
+    .admin-mobile-header,
+    .admin-sidebar,
+    .admin-dashboard__status,
+    .admin-map-status-surface,
+    .admin-secondary-action,
+    .admin-button[data-tone="secondary"],
+    .admin-icon-action:not([data-tone]),
+    .admin-modal
+  ),
+  .admin-login-shell[data-admin-theme="signal-lens"] .admin-login__panel {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .admin-shell[data-admin-theme="signal-lens"] :is(
+    .admin-dashboard__status,
+    .admin-map-status-surface,
+    .admin-secondary-action,
+    .admin-button[data-tone="secondary"],
+    .admin-icon-action:not([data-tone]),
+    .admin-modal
+  ),
+  .admin-login-shell[data-admin-theme="signal-lens"] .admin-login__panel {
+    background: var(--admin-glass-opaque);
+  }
+
+  .admin-shell[data-admin-theme="signal-lens"] :is(.admin-mobile-header, .admin-sidebar) {
+    background: var(--admin-nav-opaque);
+  }
+}
+
+@media (forced-colors: active) {
+  :is(.admin-shell, .admin-login-shell)[data-admin-theme="signal-lens"] {
+    --admin-canvas: Canvas;
+    --admin-content: Canvas;
+    --admin-surface: Canvas;
+    --admin-surface-subtle: Canvas;
+    --admin-ink: CanvasText;
+    --admin-muted: CanvasText;
+    --admin-border: CanvasText;
+    --admin-content-border: CanvasText;
+    --admin-primary: LinkText;
+    --admin-focus: Highlight;
+    background: Canvas;
+  }
+
+  .admin-shell[data-admin-theme="signal-lens"] :is(
+    .admin-mobile-header,
+    .admin-sidebar,
+    .admin-dashboard__status,
+    .admin-map-status-surface,
+    .admin-secondary-action,
+    .admin-button,
+    .admin-icon-action,
+    .admin-modal,
+    .admin-modal-backdrop,
+    .admin-sidebar-backdrop
+  ),
+  .admin-login-shell[data-admin-theme="signal-lens"] :is(
+    .admin-login__panel,
+    .admin-login__submit
+  ) {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    box-shadow: none;
+    color: CanvasText;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    forced-color-adjust: auto;
+  }
+
+  .admin-shell[data-admin-theme="signal-lens"] .admin-sidebar__link[aria-current="page"] {
+    outline: 2px solid Highlight;
+    outline-offset: -3px;
+  }
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .admin-shell[data-admin-theme="signal-lens"] :is(
+    .admin-dashboard__status,
+    .admin-map-status-surface,
+    .admin-secondary-action,
+    .admin-button[data-tone="secondary"],
+    .admin-icon-action:not([data-tone]),
+    .admin-modal
+  ),
+  .admin-login-shell[data-admin-theme="signal-lens"] .admin-login__panel {
+    background: var(--admin-glass-opaque);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .admin-shell[data-admin-theme="signal-lens"] :is(.admin-mobile-header, .admin-sidebar) {
+    background: var(--admin-nav-opaque);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.admin-shell, .admin-login-shell)[data-admin-theme="signal-lens"] *,
+  :is(.admin-shell, .admin-login-shell)[data-admin-theme="signal-lens"] *::before,
+  :is(.admin-shell, .admin-login-shell)[data-admin-theme="signal-lens"] *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

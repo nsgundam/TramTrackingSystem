@@ -104,6 +104,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       tabIndex={isMobileDialogOpen ? -1 : undefined}
       className="admin-sidebar"
       data-open={isOpen}
+      data-admin-material="glass"
     >
       <div className="admin-sidebar__brand">
         <div className="admin-sidebar__identity">

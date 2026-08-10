@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosError } from "axios";
 import { getCookie, deleteCookie } from "cookies-next";
 import { backendConnection } from "@/config/backend";
 
@@ -8,6 +8,10 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+const isAdminLoginRequest = (requestUrl: string | undefined): boolean => (
+  typeof requestUrl === "string" && /(?:^|\/)auth\/login(?:\?|$)/.test(requestUrl)
+);
 
 api.interceptors.request.use(
   (config) => {
@@ -26,11 +30,13 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  (error: AxiosError) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
       if (typeof window !== "undefined") {
         deleteCookie("admin_token");
-        window.location.href = "/admin/login";
+        if (!isAdminLoginRequest(error.config?.url)) {
+          window.location.href = "/admin/login";
+        }
       }
     }
     return Promise.reject(error);

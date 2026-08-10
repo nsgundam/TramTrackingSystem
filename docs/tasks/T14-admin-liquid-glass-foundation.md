@@ -9,7 +9,9 @@
   premium iOS-inspired Liquid Glass / glassmorphism. Public UI remains substantially unchanged;
   T9/T13 are deferred, T11 remains dependency-gated, and no dependency or owner decision may be
   bypassed.
-- Approved decision: D-011 refinement at `a0a0ce1`. D-012 is not implemented by this slice.
+- Approved decision: D-011 at `a0a0ce1`, refined by the owner's 2026-08-10 implementation-preview
+  feedback to require one explicitly light white/gray minimal-premium palette. D-012 is not
+  implemented by this slice.
 - Specialist briefs: None required. Product, Architecture, Frontend, Dashboard & UX, Production
   Readiness, and Roadmap are revalidated at `f1d0103`; the owner has fixed the visual direction and
   the remaining question is bounded web implementation/measurement.
@@ -24,26 +26,30 @@
 
 - Outcome: establish one durable **Signal Lens Workbench** visual foundation for every current Admin
   route. Admin shell, desktop/Mobile navigation, Login presentation, shared modals, and important
-  controls use restrained adaptive glass; maps, tables, ledgers, forms, and long operational content
-  use more opaque standard materials. Existing semantic hierarchy, content, state, role, focus,
-  responsive, and request behavior remain intact.
+  controls use restrained light-neutral glass; maps, tables, ledgers, forms, and long operational
+  content use more opaque white/porcelain materials. Existing semantic hierarchy, content, state,
+  role, focus, responsive, and request behavior remain intact.
 - Non-goals: no Public source/style/layout change; no page data or workflow redesign; no new
-  capability, metric, field, copy claim, role, route, endpoint, request body, auth behavior, schema,
-  persistence, migration, cache, dependency, backend, Mobile, T9/T11/T13/T15, Research, deployment,
-  or external-target work. Master-data mutation feedback follows this foundation and is not bundled.
+  capability, metric, field, copy claim, role, route, endpoint, request body, successful-auth/session
+  behavior, schema, persistence, migration, cache, dependency, backend, Mobile, T9/T11/T13/T15,
+  Research, deployment, or external-target work. The one admitted Login-error repair prevents the
+  shared interceptor from reloading the Login page on its own rejected request; protected-route
+  rejection behavior remains unchanged. Master-data mutation feedback follows this foundation and
+  is not bundled.
 
 ## Direction Contract
 
-- **THESIS:** operational truth seen through a calm signal lens; reject both flat generic enterprise
-  chrome and glass applied indiscriminately to every content card.
-- **OWN-WORLD:** campus-sky/cobalt ambient field; adaptive regular glass for navigation, contextual
-  controls, and modal chrome; white/graphite standard material for dense content; concentric rounded
-  geometry; system UI type; sparse cyan/violet ambient refraction that never replaces status color.
+- **THESIS:** operational truth on a quiet luminous plane; reject flat generic enterprise chrome,
+  colored-theme spectacle, and glass applied indiscriminately to every content card.
+- **OWN-WORLD:** white, porcelain, and soft frost-gray field; regular light glass for navigation,
+  contextual controls, and modal chrome; opaque white and graphite standard material for dense
+  content; concentric rounded geometry; system UI type; blue only for functional action, selection,
+  focus, and existing status meaning.
 - **STORY:** the operator first recognizes the secure RSU workspace, then sees current context and
   actions in the glass layer, then reads verified operational content on stable opaque surfaces.
-- **FIRST VIEWPORT:** desktop floats a compact glass navigation rail beside a spacious operational
-  canvas; Mobile uses one glass top capsule and drawer; Login uses the same material grammar and one
-  clear primary action.
+- **FIRST VIEWPORT:** desktop floats a compact white-glass navigation rail beside a spacious pale-gray
+  operational canvas; Mobile uses one white-glass top capsule and drawer; Login uses the same
+  light-neutral material grammar and one clear primary action.
 - **FORM:** Signal Lens Workbench, the third grounded direction; seed `7c756d3a`.
 - **FINISH:** unreviewed and undocumented is unfinished; this build ends with the finish review, the
   verdict, and DESIGN.md.
@@ -55,10 +61,10 @@ and authenticated branches. Browser evidence and built-output search must find `
 
 ## Visual and Interaction System
 
-- **Color strategy — restrained:** retain RSU cobalt as the functional accent. Light context uses a
-  cool campus-sky canvas, deep navy ink, high-opacity content material, and regular white glass.
-  Dark context uses midnight navy, near-white ink, graphite content material, and regular dark
-  glass. Cyan/violet appear only in the ambient field/refraction, not as status meaning.
+- **Color strategy — bright neutral:** use white, porcelain, soft gray, and graphite as the Admin
+  world. Retain blue only as the functional primary/current/focus accent and keep existing semantic
+  status colors. Do not use navy/campus-sky chrome, cyan/violet ambient theme color, or an automatic
+  dark-mode switch.
 - **Material hierarchy:** glass is limited to Sidebar/Mobile header, Login panel, shared modal,
   primary/secondary contextual controls, and compact status/context chrome. Resource panels,
   tables, cards, ledgers, form bodies, alerts, and map canvas remain visually stable and more opaque.
@@ -77,8 +83,9 @@ and authenticated branches. Browser evidence and built-output search must find `
 ## Baseline Measurements
 
 - Current authenticated Admin uses `data-admin-theme="rsu-operations"`, `color-scheme: light`, an
-  opaque dark Sidebar/Mobile header, and opaque light page/modal/control surfaces. No shared dark,
-  reduced-transparency, forced-contrast, or unsupported-filter material variant exists.
+  opaque dark Sidebar/Mobile header, and opaque light page/modal/control surfaces. No shared
+  light-neutral glass, reduced-transparency, forced-contrast, or unsupported-filter material variant
+  exists.
 - Login already uses Tailwind `backdrop-blur`, gradients, white transparency, and hover scale, but it
   is an independent visual system rather than the semantic Admin tokens/components. It must converge
   without changing `POST auth/login`, form labels/autocomplete, error projection, or session login.
@@ -86,7 +93,7 @@ and authenticated branches. Browser evidence and built-output search must find `
   Dashboard/master-data/operations-support/a11y suites pass at their recorded baselines, and all
   audited actions are 44 px. These are preservation requirements.
 - Measurement-first browser coverage must fail before implementation on absent Signal Lens theme,
-  shared material hierarchy, adaptive/fallback contract, and converged Login presentation.
+  shared material hierarchy, bright-neutral/fallback contract, and converged Login presentation.
 
 ## Impact Triage
 
@@ -94,7 +101,7 @@ and authenticated branches. Browser evidence and built-output search must find `
 |---|---|---|
 | Product / UX | Bounded redesign | D-011 fixes Admin-only visual authority and keeps Public/behavior unchanged. |
 | Architecture | Bounded | One shared CSS/token/layout authority; page/API/domain owners remain unchanged. |
-| Security / privacy | None | Login request and role/privacy boundaries remain exact; no credential/content logging. |
+| Security / privacy | Bounded | Login request and role/privacy boundaries remain exact; the rejected-login exception is endpoint-specific, protected 401/403 redirect remains, and no credential/content logging is added. |
 | Data / migration | None | No schema, persistence, migration, seed, retention, or cache action. |
 | Performance | Bounded risk | Blur is limited to functional layers and requires source/browser budgets plus fallbacks. |
 | Operations / rollout | Bounded | Frontend source/test rollback only; no deployment or runtime target. |
@@ -109,6 +116,10 @@ and authenticated branches. Browser evidence and built-output search must find `
 - `shuttle-tracking-web/app/admin/layout.tsx`
 - `shuttle-tracking-web/app/admin/login/page.tsx`
 - `shuttle-tracking-web/components/admin/Sidebar.tsx`
+- `shuttle-tracking-web/services/api.ts`
+- `shuttle-tracking-web/tests/t14-admin-dashboard.spec.ts`
+- `shuttle-tracking-web/tests/t14-admin-master-data.spec.ts`
+- `shuttle-tracking-web/tests/t14-admin-operations-support.spec.ts`
 - `shuttle-tracking-web/tests/t14-admin-liquid-glass.spec.ts`
 - `shuttle-tracking-web/playwright.config.ts`
 - `shuttle-tracking-web/package.json`
@@ -120,8 +131,9 @@ and authenticated branches. Browser evidence and built-output search must find `
 - `PRODUCT.md`, `docs/decision-queue.md`, current audits, and prior `docs/tasks/T14-*.md`
 - all Admin Dashboard/Vehicles/Routes/Stops/Source Health/Feedback page logic
 - all Admin resource/form/route-stop/feedback-confirmation/LiveMap component logic and modal focus hook
-- all Public/Login API service, auth context, API/auth/schema/backend/Mobile/deployment paths
-- existing T8/T10/T12/T14 tests and local Playwright fixture
+- all Public API service behavior, auth context, API/auth/schema/backend/Mobile/deployment paths
+- existing T8/T10/T12 tests, T14 assertions other than the admitted Admin theme/token and shared
+  modal-presentation expectations, and the local Playwright fixture
 
 ## Invariants
 
@@ -129,13 +141,15 @@ and authenticated branches. Browser evidence and built-output search must find `
 - Admin route content, field labels, status/privacy/read-only guidance, roles, endpoints, payloads,
   cache/canonical behavior, load/error/empty/ready projections, and action availability do not change.
 - Login still posts exactly `{ username, password }` to `auth/login`, preserves autocomplete and
-  safe error behavior, and delegates session handling to the incumbent Auth context.
+  safe inline error behavior, and delegates successful session handling to the incumbent Auth
+  context. A rejected `auth/login` request does not trigger the shared protected-route redirect;
+  other 401/403 responses retain the incumbent cookie-clear and Login redirect behavior.
 - Sidebar role filtering, active page semantics, Mobile inert/aria-hidden/dialog behavior,
   initial/wrapped focus, Escape/restoration, and Logout behavior remain.
 - Existing modal naming/focus/close-disabled behavior and 44 px controls remain; CSS material changes
   must not add a focus target, hide an alert, or reorder an action.
 - Glass is not applied to map tiles, table/ledger/form content layers, long text, alerts, or status
-  meaning. Every translucent surface has legible adaptive and opaque fallbacks.
+  meaning. Every translucent surface has a legible light context and opaque fallbacks.
 - No Apple asset/trademark, external image/font, package, `any`, lint disable, or unsafe assertion is
   introduced.
 
@@ -143,9 +157,10 @@ and authenticated branches. Browser evidence and built-output search must find `
 
 1. Change the Admin surface marker to `data-admin-theme="signal-lens"` and emit the six-part
    direction contract/seed through a non-rendered template in authenticated and Login roots.
-2. Refactor Admin CSS tokens into adaptive light/dark semantic values plus explicit glass/content/
-   ambient/elevation roles. Add restrained ambient signal-field depth without an asset or content
-   claim.
+2. Refactor Admin CSS tokens into one explicit light white/gray semantic system plus glass/content/
+   ambient/elevation roles. Add restrained neutral luminous depth without an asset, color-theme
+   field, or content claim; an OS dark preference must not switch Admin away from this owner-selected
+   light world.
 3. Restyle desktop Sidebar, Mobile header/drawer/backdrop, primary/secondary/context controls, and
    shared modal as regular glass functional layers. Keep navigation labels, role behavior, action
    order, and focus unchanged.
@@ -156,28 +171,40 @@ and authenticated branches. Browser evidence and built-output search must find `
    the same theme/material hierarchy, and no hover scale. Preserve fields, request, error, loading,
    and session behavior.
 6. Add reduced-transparency, increased/forced-contrast, reduced-motion, and no-backdrop-filter
-   fallbacks. Keep both light and dark context at WCAG AA for text and meaningful controls.
+   fallbacks. Keep the light-neutral context at WCAG AA for text and meaningful controls.
 7. Add deterministic browser/source evidence at 1280 x 900 and 390 x 844 for material hierarchy,
-   Login request/error, Sidebar/focus/44 px/no-overflow, light/dark tokens, accessibility fallbacks,
+   Login request/error, Sidebar/focus/44 px/no-overflow, light-neutral tokens, accessibility fallbacks,
    direction-contract survival, and unchanged representative page content.
+   Update the existing Admin Dashboard theme marker and light-token expectations from the
+   superseded `rsu-operations` world to the implemented `signal-lens` world; do not alter its route,
+   data, hierarchy, map, focus, responsive, or other behavioral assertions.
+   Update only the superseded `backdrop-filter: none` expectations for the shared form and sensitive
+   confirmation modal chrome to require the approved glass blur; retain every data, payload, focus,
+   target-size, card/panel opacity, and other assertion in those suites.
 8. After implementation/visual QA, run the Impeccable finish reviewer. Resolve material findings
    within its bounded rounds, then use the documenter to write `DESIGN.md` and
    `.impeccable/design.json` from built ground truth, not aspiration.
+9. Repair the shared response interceptor only as required for the existing Login error contract:
+   recognize the exact `auth/login` request, clear any stale Admin cookie without hard navigation,
+   and let its typed rejection reach the form. Preserve hard navigation for every other 401/403.
 
 ## Acceptance Criteria
 
-- Desktop and Mobile Admin surfaces visibly share Signal Lens Workbench: premium adaptive glass
-  navigation/control/modal layers float over a coherent ambient field while operational content
-  remains stable, legible, and recognizably RSU transport-specific.
+- Desktop and Mobile Admin surfaces visibly share Signal Lens Workbench: premium white/gray glass
+  navigation/control/modal layers float over a coherent pale neutral field while operational content
+  remains stable, legible, and recognizably RSU transport-specific. Sidebar and Login do not become
+  navy/dark or color-themed.
 - `backdrop-filter` is present only on scoped functional layers; content panels/tables/ledgers/forms/
   map canvas compute to `none`. Blur/shadow/radius usage is bounded and introduces no horizontal
   overflow or measured action below 44 by 44 CSS px.
-- Light and dark contexts retain at least 4.5:1 normal-text contrast on the tested standard-material
-  surfaces. Reduced transparency and unsupported-filter rules replace glass with opaque materials;
+- The light context retains at least 4.5:1 normal-text contrast on the tested standard-material
+  surfaces and remains light under an OS dark preference. Reduced transparency and unsupported-filter
+  rules replace glass with opaque materials;
   forced/increased contrast and reduced motion retain visible boundaries, focus, and state.
 - Login uses the shared theme, no independent Tailwind gradient/glass/hover-scale world, and posts
-  the exact incumbent body. Invalid login remains an inline alert; pending state prevents repeat
-  submission.
+  the exact incumbent body. Invalid login remains an inline alert without a page reload; pending
+  state prevents repeat submission. A source regression proves protected 401/403 requests still
+  retain the interceptor redirect rather than broadening the exception.
 - Sidebar navigation/roles/current page, Mobile drawer inert/focus/Escape/restoration, Admin route
   headings, resource data/state, Feedback/Source Health policy, and modal behavior remain covered by
   prior suites.
@@ -185,7 +212,8 @@ and authenticated branches. Browser evidence and built-output search must find `
   seed `7c756d3a` in both Admin branches; the production build contains the seed.
 - No Public, backend, API/auth/schema, dependency, Mobile, migration, Research, T9/T11/T13/T15,
   deployment, or external-target path changes.
-- Measurement-first focused evidence fails before source implementation and passes afterward. Every
+- Measurement-first focused evidence failed 4/4 before source implementation because the Signal
+  Lens roots were absent (including Login); it must pass afterward. Every
   prior frontend suite, lint, production build, full repository CI, final one-shot detector,
   `git diff --check`, and workflow validation pass. Visual QA is one desktop/Mobile batch plus at
   most one confirmation batch; final review verdict and any open items are recorded honestly.
@@ -216,8 +244,9 @@ authorized.
 ## Stop Conditions
 
 - Stop if another write path is required; revise and revalidate this exact allowlist first.
-- Stop if implementation requires changed content/workflow, endpoint/payload, API/schema/auth/role,
-  persistence/cache, dependency, Public source/identity, or owner policy.
+- Stop if implementation requires changed content/workflow, endpoint/payload, API/schema/auth/role
+  beyond the exact rejected-`auth/login` interceptor exception above, persistence/cache, dependency,
+  Public source/identity, or owner policy.
 - Stop rather than applying glass to dense content/status meaning, weakening contrast/focus/
   transparency fallbacks, changing Login/session behavior, or absorbing mutation feedback,
   T11/Research/T13/T15, backend/Mobile, deployment, or external runtime.
@@ -228,8 +257,11 @@ authorized.
 ## Completion Evidence
 
 - Status: `Ready for measurement-first implementation`
-- Baseline: exact handoff created from revalidated commit `f1d0103`; source implementation has not
-  started and the unrelated dirty Feedback-role migration remains excluded.
+- Baseline: exact handoff created from revalidated commit `f1d0103`; focused browser evidence failed
+  4/4 in `/private/tmp/t14-glass-baseline.ehfQSh` on the absent Signal Lens roots before source
+  implementation. The unrelated dirty Feedback-role migration remains excluded. Exact-path scope
+  was revised before implementation to admit only the two superseded theme-marker assertions in
+  `tests/t14-admin-dashboard.spec.ts`.
 - Acceptance mapping, visual verdict, design-system paths, and final validation results: pending.
 - Audit freshness after implementation: Product, Architecture, Frontend, Dashboard & UX,
   Production Readiness, and Roadmap must be downgraded to `Needs Re-audit`; unaffected profiles and

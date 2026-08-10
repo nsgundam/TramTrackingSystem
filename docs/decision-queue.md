@@ -29,11 +29,19 @@ feedback or page-specific polish consumes it.
 The web interpretation follows Apple's material hierarchy rather than treating blur as decoration:
 glass is the functional layer for navigation, toolbars, modals, and important controls; dense tables,
 ledgers, maps, forms, and operational content retain a more opaque standard material. The foundation
-must support light/dark context, reduced transparency, increased/forced contrast, reduced motion,
-legible fallbacks when `backdrop-filter` is unavailable, and existing 44 px/focus/keyboard contracts.
-It may not copy Apple trademarks or assets. References:
+must support reduced transparency, increased/forced contrast, reduced motion, legible fallbacks when
+`backdrop-filter` is unavailable, and existing 44 px/focus/keyboard contracts. It may not copy Apple
+trademarks or assets. References:
 <https://developer.apple.com/design/human-interface-guidelines/materials> and
 <https://developer.apple.com/documentation/TechnologyOverviews/liquid-glass>.
+
+Owner palette refinement: **Approved on 2026-08-10 after the first implementation preview.** Admin
+must remain a bright minimal premium world comparable to the light iOS material hierarchy: white,
+porcelain, and restrained gray canvas/materials with graphite text. Blue is a bounded functional
+accent for primary action, current selection, focus, and existing status meaning—not an ambient
+theme. This refinement rejects the previewed navy/campus-sky navigation and automatic dark-theme
+switching; Sidebar, Mobile header/drawer, modal chrome, operational content, and Login all share the
+same light-neutral system. Opaque accessibility fallbacks remain mandatory.
 
 The Public UI must preserve its incumbent visual identity and layout as far as practical. Public
 changes are limited to source quality, semantics, accessibility, state/copy truthfulness, and small

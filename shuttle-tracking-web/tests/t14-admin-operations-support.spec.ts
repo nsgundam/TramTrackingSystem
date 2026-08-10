@@ -106,6 +106,22 @@ const expectSolidPresentation = async (locator: Locator) => {
   });
 };
 
+const expectGlassPresentation = async (locator: Locator) => {
+  const presentation = await locator.evaluate((element) => {
+    const styles = getComputedStyle(element);
+    return {
+      backgroundImage: styles.backgroundImage,
+      backdropFilter: styles.backdropFilter,
+      transform: styles.transform,
+    };
+  });
+  expect(presentation).toMatchObject({
+    backgroundImage: "none",
+    transform: "none",
+  });
+  expect(presentation.backdropFilter).toContain("blur(");
+};
+
 const useFeedbackApi = async (
   page: Page,
   options: {
@@ -274,7 +290,7 @@ test("T14 Feedback Mobile actions and sensitive dialog preserve focus and payloa
   await expect(dialog.getByRole("button", { name: "Cancel" })).toBeFocused();
   await expect(dialog.getByLabel("Deletion reason")).toBeVisible();
   await expect(dialog.getByLabel("Current password")).toHaveAttribute("autocomplete", "current-password");
-  await expectSolidPresentation(dialog);
+  await expectGlassPresentation(dialog);
   await expectMinimumTarget(dialog.locator("[data-admin-control]:visible"));
 
   await dialog.getByLabel("Deletion reason").focus();

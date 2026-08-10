@@ -64,6 +64,10 @@ Research observations remain separate from canonical operational truth.
 - Owner direction on 2026-08-10: move the authenticated Admin web experience to a premium,
   iOS-inspired Liquid Glass / glassmorphism visual world. This is a binding Admin direction, not
   permission to imitate Apple trademarks/assets or to apply transparency indiscriminately.
+- Owner palette refinement on 2026-08-10: keep that Admin world explicitly light and neutral—white,
+  porcelain, and restrained grays with graphite text. Blue is limited to functional actions,
+  current selection, focus, and existing status meaning. Do not use a navy/campus-sky ambient world
+  or automatically switch Admin into a dark theme when the operating system requests dark mode.
 - Public visual identity remains substantially unchanged and is not absorbed into the Admin world.
 - Product copy stays calm, operational, and truthful. Do not invent availability, root cause,
   recovery, capacity, accuracy, or service promises.
