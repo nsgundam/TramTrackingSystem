@@ -1,16 +1,18 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
 
 interface AdminResourcePageProps {
-  resource: "vehicles" | "routes" | "stops";
+  resource: "vehicles" | "routes" | "stops" | "source-health" | "feedback";
   eyebrow: string;
   title: string;
   description: string;
   actionLabel: string;
   actionIcon: ReactNode;
   onAction: () => void;
+  actionTone?: "primary" | "secondary";
+  actionBusy?: boolean;
   children: ReactNode;
 }
 
@@ -22,6 +24,8 @@ export function AdminResourcePage({
   actionLabel,
   actionIcon,
   onAction,
+  actionTone = "primary",
+  actionBusy = false,
   children,
 }: AdminResourcePageProps) {
   return (
@@ -35,10 +39,14 @@ export function AdminResourcePage({
         <button
           type="button"
           onClick={onAction}
-          className="admin-primary-action"
+          disabled={actionBusy}
+          aria-busy={actionBusy}
+          className={actionTone === "primary" ? "admin-primary-action" : "admin-secondary-action"}
           data-admin-resource-action
         >
-          {actionIcon}
+          {actionBusy
+            ? <Loader2 className="admin-resource-state__spinner" size={18} aria-hidden="true" />
+            : actionIcon}
           {actionLabel}
         </button>
       </header>
@@ -60,6 +68,7 @@ type AdminResourceStateProps =
   | { state: "empty"; message: string }
   | {
     state: "error";
+    title?: string;
     message: string;
     retryLabel: string;
     onRetry: () => void;
@@ -79,7 +88,7 @@ export function AdminResourceState(props: AdminResourceStateProps) {
     return (
       <div className="admin-resource-state admin-resource-state--error" role="alert">
         <div>
-          <p className="admin-resource-state__title">Unable to verify this list</p>
+          <p className="admin-resource-state__title">{props.title ?? "Unable to verify this list"}</p>
           <p className="admin-resource-state__message">{props.message}</p>
         </div>
         <button
@@ -139,11 +148,56 @@ export function AdminStatusBadge({
   tone,
 }: {
   label: string;
-  tone: "positive" | "warning" | "neutral";
+  tone: "positive" | "warning" | "neutral" | "info" | "danger";
 }) {
   return (
     <span className="admin-status-badge" data-tone={tone}>
       {label}
     </span>
+  );
+}
+
+interface AdminNoticeProps {
+  kind: "read-only" | "privacy";
+  title: string;
+  icon: ReactNode;
+  children: ReactNode;
+}
+
+export function AdminNotice({ kind, title, icon, children }: AdminNoticeProps) {
+  return (
+    <aside className="admin-notice" data-admin-notice={kind} role="note">
+      <span className="admin-notice__icon" aria-hidden="true">{icon}</span>
+      <div>
+        <p className="admin-notice__title">{title}</p>
+        <p className="admin-notice__text">{children}</p>
+      </div>
+    </aside>
+  );
+}
+
+interface AdminButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className"> {
+  tone?: "primary" | "secondary" | "danger";
+  icon?: ReactNode;
+}
+
+export function AdminButton({
+  tone = "secondary",
+  icon,
+  children,
+  type = "button",
+  ...buttonProps
+}: AdminButtonProps) {
+  return (
+    <button
+      {...buttonProps}
+      type={type}
+      className="admin-button"
+      data-tone={tone}
+      data-admin-control
+    >
+      {icon}
+      {children}
+    </button>
   );
 }
