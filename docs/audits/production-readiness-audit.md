@@ -1,23 +1,58 @@
 # Production Readiness Audit
 
 Audit metadata:
-- Evidence baseline: a0a0ce1608c31818235a785f24baa1d4ceeab214
+- Evidence baseline: c4fdc3abd4b66b00e784e2c0738266e6fa8413d3
 - Evidence scope: PRODUCT.md; docs/project-knowledge-base.md; every validated domain audit;
   docs/decision-queue.md; docs/tasks/; docs/operations/; scripts/ci-checks.sh;
   scripts/test-production-topology.mjs; Compose/environment configuration; the current Impeccable
   Dashboard & UX technical audit evidence; the current full repository CI; and source paths cited
   by validated findings; the D-012 matrix; and the T11 v3 external Mobile compatibility brief
-- Reviewed at: 2026-08-10T09:39:16+07:00
+- Reviewed at: 2026-08-10T13:39:08+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/audits/product-audit.md, docs/audits/architecture-audit.md,
   docs/audits/frontend-audit.md, and docs/audits/dashboard-ux-audit.md @
-  a0a0ce1608c31818235a785f24baa1d4ceeab214; docs/project-knowledge-base.md,
+  c4fdc3abd4b66b00e784e2c0738266e6fa8413d3; docs/project-knowledge-base.md,
   docs/audits/backend-audit.md, docs/audits/database-audit.md,
   docs/audits/infrastructure-device-audit.md, and
   docs/audits/security-devops-observability-audit.md @
   1eec86602c40c859d50dd9d369f636b103b6896f
 
-## 2026-08-10 D-011 Admin Liquid Glass direction readiness re-audit
+## 2026-08-10 T14 bright-neutral Admin Liquid Glass foundation readiness re-audit
+
+Every required predecessor is validated: the affected Product, Architecture, Frontend, and
+Dashboard & UX profiles consume `c4fdc3a`; unchanged profiles remain current at `1eec866...`. The
+ninth T14 slice is **Complete for its exact source/browser contract**. The owner-selected fixed-light
+white/gray Admin foundation, converged Login, functional glass/opaque-content hierarchy,
+accessibility fallbacks, exact rejected-Login recovery, and protected-route redirect regression pass
+focused browser, prior frontend, production build, finish review, detector, and full local CI
+evidence. Public source/identity, backend/API/schema, dependencies, Mobile, migration, Research,
+deployment, and external targets remain unchanged.
+
+This source/browser success does not change a release gate. The Dashboard & UX score remains
+**15/20**, now with one P1, seven P2, and one P3 open, and the selected D-001=C release remains
+**No-Go**. No operator/human, assistive-technology, physical-device, university proxy, production
+interruption, migration/retention, backup/restore, Android, provider/field, monitoring/alert, or
+incident-response evidence was created. The controlled local demonstration remains Conditional;
+research field trial, internal daily operations, and public rider service remain No-Go.
+
+| Material finding | State | Readiness result |
+|---|---|---|
+| PR-01 route-stop composition/invalidation | Resolved | Exact T10 evidence remains; ambient stateful proof is absent. |
+| PR-02 supported Mobile/T11 lifecycle/history/exceptions | Partially Resolved | Pinned source remains incompatible with approved lifecycle and lacks Android acceptance. |
+| PR-03 feedback/source-health policy rollout | Partially Resolved | Exact source/test/browser behavior exists; migration, retention, and human rollout are absent. |
+| PR-04 production topology/operations | Partially Resolved | T9 repository contract exists; every external acceptance result remains absent. |
+| PR-05 hierarchy/general lifecycle controls | Partially Resolved | Bounded role enforcement remains; D-012 implementation is absent. |
+| PR-06 sensitive invalid-payload logging | Resolved | Existing regression guards remain. |
+| PR-07 durable operations/recovery evidence | Still Present | Metrics/alerts/on-call/drill/backup/rollback evidence remains absent. |
+| PR-08 physical/provider/field evidence | Unable to Verify | No Mobile/ESP32/TTN/gateway field evidence was added. |
+| PR-09 truthful T8/T14 UX and release evidence | Partially Resolved | Ninth Admin foundation is source/browser-complete; native mutation recovery, T11 exceptions, and human/device/deployed evidence remain. |
+| PR-10 external Mobile credential/lifecycle risk | Still Present | Ordinary preference/backup/cleartext and revocation/recovery gaps remain unchanged. |
+
+Master-data mutation feedback is the next repository-eligible T14 handoff, but it cannot satisfy or
+bypass T9/T11/T13/T15, T12 runtime, human/assistive-technology, device/provider, deployment,
+operations, or release gates. No owner decision or external action is authorized by this re-audit.
+
+## 2026-08-10 D-011 Admin Liquid Glass direction readiness re-audit — superseded by built foundation evidence
 
 The first eight T14 source/browser slices remain accepted. Owner refinement `a0a0ce1` changes only
 the remaining Admin visual target and records its Public/product boundaries; no application source,
@@ -207,23 +242,23 @@ forwarded-hop, deployed secret, backup/restore, logs/alerts, incident or capacit
 T11 still lacks its coordinated lifecycle/Mobile patch and Android runtime evidence; T12 lacks target
 migration/retention/human acceptance; physical senders/provider/field behavior is unavailable; and
 the Dashboard & UX technical audit is 15/20 with one open P1 finding: the missing Research
-Dashboard, which remains blocked on physical/provider evidence.
-The approved Admin Liquid Glass direction changes neither this score nor release status. It creates
-a bounded visual-foundation task with explicit contrast/transparency/motion fallbacks, not deployed
-or human evidence.
+Dashboard, which remains blocked on physical/provider evidence. The approved bright-neutral Admin
+Liquid Glass foundation is implemented for exact source/browser scope at `c4fdc3a`; it changes
+neither this score nor release status and supplies no deployed or human evidence.
 
 ## 2. Freshness and Validated Predecessor Coverage
 
-The preceding affected baseline was `23b4d6f...`. Product, Architecture, Frontend, and Dashboard &
-UX now consume `a0a0ce1`; unaffected reports remain current at `1eec866...`. Changed evidence is the
-D-011 visual-direction refinement and product record only; application source and the last full
-repository CI evidence are unchanged. No production or stateful acceptance target was operated.
+The preceding affected baseline was `a0a0ce1...`. Product, Architecture, Frontend, and Dashboard &
+UX now consume `c4fdc3a`; unaffected reports remain current at `1eec866...`. Changed evidence is the
+exact Admin/Login/design/test implementation, completion record `2b49fd8`, focused/prior browser
+suites, production build, detector/finish review, and full repository CI. No production or stateful
+acceptance target was operated.
 
 | Domain | Readiness implication |
 |---|---|
-| Discovery/Product | The implemented tracker remains partial; T10/T12 exact scopes and T14's first eight slices are complete, while sender/trip accountability and human/runtime acceptance remain. |
+| Discovery/Product | The implemented tracker remains partial; T10/T12 exact scopes and T14's first nine slices are complete for their recorded contracts, while sender/trip accountability and human/runtime acceptance remain. |
 | Architecture/Backend/Database | Canonical, Operations and research data boundaries are coherent; T10/T12 server/schema controls are implemented in source/test form, while T11 and runtime rollout remain open. |
-| Frontend/Dashboard UX | T8/T14 provide bounded truthful explanation/recovery, keyboard-operable, reduced-motion, request-budget, 320/390 px, touch/contrast, and semantic Admin journeys. The 15/20 audit confirms the owner-selected adaptive Liquid Glass foundation, native mutation recovery, T11-backed exceptions, human acceptance, and Research remain incomplete. |
+| Frontend/Dashboard UX | T8/T14 provide bounded truthful explanation/recovery, keyboard-operable, reduced-motion, request-budget, 320/390 px, touch/contrast, and bright-neutral Admin/Login journeys. The 15/20 audit confirms native mutation recovery, T11-backed exceptions, human acceptance, and Research remain incomplete. |
 | Infrastructure/Device | T9's private/authenticated static topology and runbook pass; no deployed topology or physical sender/provider/field evidence exists. |
 | Security/DevOps | Core sender/TTN/T12 controls, T9 repository port/origin/auth/proxy/health boundaries, and CI exist; SEC-01 is repaired. TLS/firewall/forwarded-hop behavior, credential rotation, broad scanning, durable monitoring/alerts, incident controls, and runtime rollout remain unresolved. |
 
@@ -248,8 +283,8 @@ repository CI evidence are unchanged. No production or stateful acceptance targe
 | PR-06 | SEC-01 raw Socket.IO invalid payload logging can leak sensitive coordinates/payloads. | Resolved | Source/test blocker removed by M-20260807-01; retain guards and obtain deployed-log evidence on an approved target. |
 | PR-07 | Durable metrics/logs/alerts, on-call, recovery drill and backup/restore/rollback evidence are absent. | Still Present | Internal, public |
 | PR-08 | Mobile, ESP32, TTN/gateway/provider and field/recovery evidence are unavailable; simulators are not physical evidence. | Unable to Verify | Research, internal, public |
-| PR-09 | T8 canonical projection and T14's first eight slices are resolved at source/browser level. D-011 now selects an unimplemented adaptive Admin Liquid Glass foundation; native mutation recovery, broader touch, T11-backed exceptions, and real assistive-technology/user/device/deployed evidence remain incomplete. | Partially Resolved | Internal, public |
-| PR-10 | The external Mobile revision stores reusable Sender material in ordinary preferences with backup/cleartext enabled and lacks installation revocation/recovery. | New Finding | Internal, public |
+| PR-09 | T8 canonical projection and T14's first nine slices, including the fixed-light Admin Liquid Glass foundation and Login repair, are resolved at source/browser level; native mutation recovery, broader touch, T11-backed exceptions, and real assistive-technology/user/device/deployed evidence remain incomplete. | Partially Resolved | Internal, public |
+| PR-10 | The external Mobile revision stores reusable Sender material in ordinary preferences with backup/cleartext enabled and lacks installation revocation/recovery. | Still Present | Internal, public |
 
 ## 5. Stop Conditions
 
@@ -269,10 +304,10 @@ stale, dependency, or ingestion failure.
 3. Preserve T10 route-operation evidence and obtain approved-target cache/browser verification if a release claim needs it; then implement T11 sender/lifecycle/history/exception controls and obtain external Android acceptance evidence.
 4. Roll out and verify T12's approved RBAC/feedback migration, retention/purge, backup/restore, proxy-IP handling, and accountable staff/rider workflow on an approved target.
 5. Preserve T14's truthful-state/explanation/recovery, keyboard, request/motion, 320/390 px/touch,
-   contrast, and bounded Admin hierarchy/master-data/operations-support regressions. Implement the
-   selected Admin visual foundation only with reduced-transparency/contrast/motion and no-filter
-   fallbacks; keep Public/Admin/Research boundaries distinct and do not invent dependency causes or
-   unavailable T11 exception data.
+   contrast, bounded Admin hierarchy/master-data/operations-support, bright-neutral material, Login,
+   and accessibility-fallback regressions. Replace native master-data mutation recovery only through
+   its exact handoff; keep Public/Admin/Research boundaries distinct and do not invent dependency
+   causes or unavailable T11 exception data.
 6. Demonstrate actual sender/device/provider behavior across representative routes, coverage, mounting, duration, reconnect/power cycles and failure recovery, with limits documented.
 7. Run release/readiness, security, accessibility and operations evidence on the selected non-production target before release approval.
 
@@ -288,11 +323,11 @@ No new owner decision is proposed. D-011 and D-012 are approved and cannot be ex
 recorded scope; T9/T11/T12 external/runtime acceptance is missing evidence rather than a decision to
 infer.
 
-Roadmap may now consume this release synthesis and create only a bounded shared Admin Liquid Glass
-foundation handoff next. Login presentation is inside that foundation, but its authentication
-behavior is unchanged. T9 remains repository-partial, T11/T12 runtime proof remains open, and
-T13/T15 dependencies cannot be bypassed. Public source/identity, API/auth/schema, Mobile,
-dependencies, and external-runtime work stay excluded.
+Roadmap may now consume this release synthesis and create only a bounded master-data mutation-
+feedback handoff next. Login presentation and rejected-error recovery are accepted and remain out of
+that slice. T9 remains repository-partial, T11/T12 runtime proof remains open, and T13/T15
+dependencies cannot be bypassed. Public source/identity, API/auth/schema, Mobile, dependencies, and
+external-runtime work stay excluded.
 
 ## 8. T12 Implementation Re-audit — 2026-08-01
 
