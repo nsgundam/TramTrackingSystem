@@ -256,13 +256,33 @@ authorized.
 
 ## Completion Evidence
 
-- Status: `Ready for measurement-first implementation`
-- Baseline: exact handoff created from revalidated commit `f1d0103`; focused browser evidence failed
-  4/4 in `/private/tmp/t14-glass-baseline.ehfQSh` on the absent Signal Lens roots before source
-  implementation. The unrelated dirty Feedback-role migration remains excluded. Exact-path scope
-  was revised before implementation to admit only the two superseded theme-marker assertions in
-  `tests/t14-admin-dashboard.spec.ts`.
-- Acceptance mapping, visual verdict, design-system paths, and final validation results: pending.
-- Audit freshness after implementation: Product, Architecture, Frontend, Dashboard & UX,
-  Production Readiness, and Roadmap must be downgraded to `Needs Re-audit`; unaffected profiles and
-  external/owner gates remain unchanged.
+- Status: `Complete for the exact source/browser contract`
+- Implementation: `c4fdc3a` establishes the bright-neutral Signal Lens theme on authenticated Admin
+  and Login roots, the shared glass/content material hierarchy, accessibility fallbacks, production-
+  build design contract, and the endpoint-specific rejected-Login interceptor repair. No Public,
+  backend, API/schema, dependency, Mobile, migration, Research, deployment, or external-target path
+  changed. The unrelated dirty Feedback-role migration remained excluded.
+- Measurement first: the focused suite failed 4/4 in
+  `/private/tmp/t14-glass-baseline.ehfQSh` before source implementation because the authenticated and
+  Login Signal Lens roots were absent. The completed implementation passes 5/5, including desktop
+  material hierarchy, Mobile focus/44 px/no-overflow, exact Login request/error/pending behavior,
+  protected-request 401 redirect preservation, and bright-lock/accessibility fallbacks.
+- Login acceptance: the form still posts exactly `{ username, password }` to `auth/login`, retains
+  autocomplete and pending-state protection, and now receives a rejected Login response as its
+  inline alert instead of being reloaded by the shared interceptor. A separate browser regression
+  proves non-Login 401 remains a hard `/admin/login` redirect.
+- Regression evidence: Admin Dashboard passes 2/2; Admin master-data plus operations-support pass
+  9/9; the accessibility/contrast groups pass; `npm run check` passes with only the two recorded
+  pre-existing warnings; the production build contains seed `7c756d3a` in every Admin branch; the
+  final Impeccable detector returns `[]`; and full `bash scripts/ci-checks.sh`, workflow validation,
+  and `git diff --check` pass in the clean verification copy
+  `/private/tmp/t14-glass-verify.H1OmVT`.
+- Visual evidence: final desktop Dashboard, Mobile drawer, desktop Login, and Mobile Login captures
+  under `/private/tmp/t14-glass-verify.H1OmVT/shuttle-tracking-web/test-results/` show the approved
+  white/gray minimal-premium world, restrained functional glass, opaque operational content, and no
+  clipped drawer. The final Impeccable reviewer verdict is `PASS` with no P1/P2/P3 findings.
+- Design-system evidence: root `DESIGN.md` and `.impeccable/design.json` record only implemented
+  tokens, materials, motion, breakpoints, and canonical components; `jq empty` passes for the JSON.
+- Freshness consequence: Product, Architecture, Frontend, Dashboard & UX, Production Readiness, and
+  Roadmap are downgraded to `Needs Re-audit` at baseline `c4fdc3a`. Level 1 must accept this ninth
+  T14 slice before master-data mutation feedback receives an exact-path implementation handoff.

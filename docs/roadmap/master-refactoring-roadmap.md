@@ -60,11 +60,13 @@ revalidated at `23b4d6f...`; the technical score remains 15/20 with one P1, eigh
 The owner then refines D-011 at `a0a0ce1`: the remaining Admin visual world should use a premium
 iOS-inspired Liquid Glass direction while Public identity stays unchanged. Product, Architecture,
 Frontend, Dashboard & UX, Production Readiness, and this Roadmap revalidate that decision without
-changing the 15/20 score or first-eight-slice acceptance. The next eligible bounded unit is one
-shared Admin Liquid Glass shell/navigation/Login/modal/control/token foundation with adaptive light/
-dark and transparency/contrast/motion/filter fallbacks. Master-data mutation feedback follows that
-foundation and preserves current CRUD endpoints, payloads, authorization, fields, and T10 route-stop
-behavior. The Research P1 stays blocked on T13. D-012
+changing the 15/20 score or first-eight-slice acceptance. The ninth T14 slice at `c4fdc3a` now
+implements the owner-refined explicitly light white/gray Admin shell/navigation/Login/modal/control/
+token foundation with transparency/contrast/motion/filter fallbacks; it does not add an automatic
+dark theme or change Public source/identity. Level 3 completion evidence downgrades the affected
+audit chain to `Needs Re-audit`. Master-data mutation feedback is the next candidate only after that
+Level 1 gate and its own exact-path handoff; it must preserve current CRUD endpoints, payloads,
+authorization, fields, and T10 route-stop behavior. The Research P1 stays blocked on T13. D-012
 fixes later lifecycle policy without implementing it. T15 remains deferred behind T13 and physical/
 provider facts.
 
@@ -116,16 +118,18 @@ playback, microservices, a second ingestion pipeline, or unbounded operations/re
 | Input | Date | Status | Use |
 |---|---:|---|---|
 | Knowledge Base | 2026-08-08 | Complete / Validated | Discovery is current at `1eec866...`; external Mobile source is pinned and its static/runtime limits are recorded. |
-| Product | 2026-08-10 | Complete / Validated at `a0a0ce1...` | Eight T14 journeys remain accepted; owner-selected Admin Liquid Glass direction and Public boundary are recorded. |
-| Architecture, Backend, and Database audits | 2026-08-10 | Architecture validated at `a0a0ce1...`; Backend/Database current at `1eec866...` | Shared Admin material/token foundation is presentation-only; backend/data authority is unchanged. |
+| Product | 2026-08-10 | Needs Re-audit at `c4fdc3a...` | Ninth T14 slice implements the owner-refined bright-neutral Admin foundation and Login presentation; Public remains unchanged. |
+| Architecture, Backend, and Database audits | 2026-08-10 | Architecture needs re-audit at `c4fdc3a...`; Backend/Database current at `1eec866...` | Shared Admin material authority and exact rejected-Login exception changed frontend source; backend/data authority is unchanged. |
 | Infrastructure & Device and Security/DevOps/Observability audits | 2026-08-08 | Complete / Validated | Native foreground code is visible, while Android runtime is unverified and SEC-08 credential/backup/cleartext gaps block T11. |
-| Frontend audit | 2026-08-10 | Complete / Validated at `a0a0ce1...` | Baseline detector `[]`; score remains 15/20 and the shared Admin foundation is next. |
-| Dashboard & UX audit | 2026-08-10 | Complete / Validated at `a0a0ce1...` | Signal Lens Workbench direction is bounded; mutation feedback follows the foundation. |
-| Production Readiness Audit | 2026-08-10 | Complete / Validated / No-Go at `a0a0ce1...` | Visual direction changes no human, deployment, operations, Mobile, provider/device, or field gate. |
+| Frontend audit | 2026-08-10 | Needs Re-audit at `c4fdc3a...` | Bright-neutral Signal Lens, Login convergence, accessibility fallbacks, detector `[]`, browser regressions, build, and CI pass. |
+| Dashboard & UX audit | 2026-08-10 | Needs Re-audit at `c4fdc3a...` | Built desktop/Mobile Dashboard and Login evidence passes finish review; mutation feedback awaits this gate. |
+| Production Readiness Audit | 2026-08-10 | Needs Re-audit / No-Go at `c4fdc3a...` | Local source/browser/CI evidence changes no human, deployment, operations, Mobile, provider/device, or field gate. |
 | Decision Queue and owner/task evidence | 2026-08-10 | D-001–D-012 approved | D-011 now selects bounded Admin Liquid Glass with accessible fallbacks; Public identity remains preserved. |
 
 Level 1 revalidated the owner-selected Admin direction at `a0a0ce1...`; the first eight T14 slices
-through implementation `06e0291` remain accepted at `23b4d6f...`.
+through implementation `06e0291` remain accepted at `23b4d6f...`. Level 3 completed the ninth,
+bright-neutral Admin foundation slice at `c4fdc3a`; the affected chain now requires re-audit before
+another T14 implementation handoff.
 Unaffected profiles remain current at `1eec866...`.
 Actual
 hosting, TLS, production recovery, Android build/device behavior, browser/runtime behavior, physical
@@ -148,7 +152,7 @@ devices, and TTN console state remain external unknowns.
 | T11 | Supported sender operations, trip history, and exception view | Critical/High for daily operations | Production 3.1, 3.3; Product 7–9; Dashboard 7, 10 | Phase 3; native source pinned, but coordinated Backend/Mobile handoff, compatible patch, Android target, and acceptance artifact pending |
 | T12 | Feedback triage and device/source operations views | High for broad public support | Product 7, 11; Frontend 12; Dashboard 10; Database 12 | Phase 3; complete for the D-009/D-010:A exact handoff; runtime rollout remains unverified |
 | T13 | Production deployment/recovery drill and monitoring | High before production | Production 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16 | Phase 4; blocked on T9 external acceptance and target authority |
-| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; first eight slices accepted; owner-selected shared Admin Liquid Glass foundation is next |
+| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; first eight slices accepted; ninth bright-neutral Admin foundation implemented at `c4fdc3a`; re-audit required before mutation feedback |
 | T15 | Physical senders, research dashboard, playback/reports, scale extensions | Deferred | Product 11; Architecture 9–10, 12; Infrastructure 7–9; D-002 | Phase 5; blocked on T13 and physical/provider facts |
 
 Every Critical/High finding remains represented. D-001=C opens T10–T12's release-scope gate, but
@@ -171,7 +175,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T11 | Blocked — cross-repository/external evidence | The v3 brief pins a partially compatible native app. Static-secret storage, backup/cleartext, task-removal and missing enrollment/claim/recovery gaps require a coordinated exact handoff plus writable Mobile/Android target and device acceptance. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
 | T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
-| T14 | Partially Complete — first eight slices plus visual direction revalidated | Implementation `06e0291` remains accepted; D-011 refinement `a0a0ce1` selects the shared Admin Liquid Glass foundation next, then mutation feedback. |
+| T14 | Partially Complete — ninth slice implemented; affected chain needs re-audit | First eight slices remain accepted; `c4fdc3a` implements the bright-neutral Admin Liquid Glass foundation and Login convergence. Mutation feedback is not yet implementation-eligible. |
 | T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
 
 ### Approved-batch continuation gate
@@ -181,13 +185,13 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Exact bounded handoff ready | Execute `docs/tasks/T14-admin-liquid-glass-foundation.md` measurement-first; preserve Public source/identity, Login/page behavior, APIs, dependencies, and blocked lanes. |
+| T14 | Re-audit required before next handoff | Validate `c4fdc3a` against Product, Architecture, Frontend, Dashboard & UX, Production Readiness, and Roadmap findings; only then may mutation feedback receive an exact-path task. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
-Batch result: T14's first eight slices remain accepted, and the refined D-011 direction plus affected
-chain are revalidated at `a0a0ce1...`. T9/T13 remain deferred without dependency bypass; T11/T15
-remain blocked. The exact shared Admin Liquid Glass foundation handoff is now ready; mutation
-feedback follows it, and implementation may touch only its recorded paths and contract.
+Batch result: T14's first eight slices remain accepted, and `c4fdc3a` implements the ninth slice under
+the refined D-011 bright-neutral direction. T9/T13 remain deferred without dependency bypass;
+T11/T15 remain blocked. The affected T14 chain is now `Needs Re-audit`; mutation feedback cannot
+start until Level 1 accepts the foundation and Level 3 creates its own exact-path contract.
 
 ## 4. Dependency Map
 
@@ -1276,12 +1280,13 @@ T8 completion evidence.
 The 2026-08-10 affected-chain re-audit accepts the first eight T14 slices at `23b4d6f...`, including
 the bounded Source Health/Feedback Admin operations-support implementation at `06e0291`. D-011 owner
 refinement at `a0a0ce1` then selects premium iOS-inspired Liquid Glass for the remaining Admin visual
-world. The next eligible finding is one shared foundation for Admin shell, navigation, Login
-presentation, modal/control material, adaptive tokens, and transparency/contrast/motion/filter
-fallbacks. It requires an exact handoff before implementation. Existing page behavior, CRUD
-endpoints, payloads, authorization, fields, T10/T12 behavior, Public source/identity, T11, Research,
-backend/API/auth/schema ownership, dependencies, and external-runtime facts remain exclusions.
-Master-data mutation feedback follows the foundation.
+world. Commit `c4fdc3a` implements that ninth slice as one explicitly light white/gray foundation for
+Admin shell, navigation, Login presentation, modal/control material, semantic tokens, and
+transparency/contrast/motion/filter fallbacks; no automatic dark palette is admitted. Existing page
+behavior, successful Login/session handling, CRUD endpoints, payloads, authorization, fields,
+T10/T12 behavior, Public source/identity, T11, Research, backend/API/schema ownership, dependencies,
+and external-runtime facts remain exclusions. The affected audit chain must accept this evidence
+before master-data mutation feedback receives its own exact handoff.
 
 ### Blocks
 
@@ -1321,10 +1326,11 @@ existing dialogs while preserving payload and authorization behavior. The eighth
 system to Source Health, Feedback Inbox, and the existing sensitive confirmation dialog; it corrects
 failure-versus-empty projection and measured action sizing while preserving T12 policy and request
 boundaries. The next planning unit may replace the master-data pages' native mutation alerts and
-confirmations only after the owner-selected visual foundation exists. The immediate planning unit is
-the shared **Signal Lens Workbench** foundation: restrained glass navigation/context/control/modal
-layers over more opaque operational maps, tables, ledgers, forms, and long text, with adaptive and
-accessibility fallbacks. T11, Research/T13, Public source/identity, rooms, backend ETA,
+confirmations only after Level 1 accepts the now-implemented owner-selected visual foundation.
+Commit `c4fdc3a` delivers the shared **Signal Lens Workbench** foundation: restrained bright-neutral
+glass navigation/context/control/modal layers over more opaque operational maps, tables, ledgers,
+forms, and long text, with accessibility fallbacks and no automatic dark theme. T11, Research/T13,
+Public source/identity, rooms, backend ETA,
 API/auth/schema changes, dependencies, and external runtime remain separate.
 
 ### Related Files
@@ -1345,8 +1351,9 @@ component/accessibility checks, and desktop/mobile browser smoke tests.
 ### Status
 
 Partially Complete — the first eight D-011 slices, including bounded Admin operations-support
-convergence at `06e0291`, remain accepted at `23b4d6f...`. D-011 direction refinement is revalidated
-at `a0a0ce1`; `docs/tasks/T14-admin-liquid-glass-foundation.md` now supplies the exact-path contract.
+convergence at `06e0291`, remain accepted at `23b4d6f...`. The ninth bright-neutral Admin Liquid
+Glass foundation and Login convergence are implemented at `c4fdc3a`; the affected audit chain is
+`Needs Re-audit`, so this source completion is not yet acceptance for the next slice.
 The eighth slice's exact completion evidence is in
 `docs/tasks/T14-admin-operations-support-convergence.md`. The master-data completion evidence is in
 `docs/tasks/T14-admin-master-data-theme-convergence.md`. The map-quality handoff is
@@ -1362,8 +1369,10 @@ shell/Dashboard theme and hierarchy paths, tests, invariants, stop conditions, a
 guidance, canonical age, ETA truth, snapshot retry, slow-preloader recovery, and exact Public paths.
 `docs/tasks/T14-admin-operations-support-convergence.md` records the eighth slice's exact Admin-only
 paths, T12 invariants, measurement-first/final browser evidence, stop conditions, and completion.
-Master-data mutation feedback follows the foundation and still requires its own later exact-path
-task contract before source implementation.
+`docs/tasks/T14-admin-liquid-glass-foundation.md` records the ninth slice's exact Admin/Login paths,
+measurement-first/final browser evidence, visual verdict, design-system record, stop conditions, and
+source completion. Master-data mutation feedback follows only after re-audit and still requires its
+own exact-path task contract before source implementation.
 
 ### Evidence
 
@@ -1538,7 +1547,7 @@ Repository simulators exist; physical/provider evidence is unavailable.
 |---|---|---|
 | Driver, trip-history, and exception workflows are absent | D-001=C now requires them, so this is no longer an accepted release omission. T10 route-stop operations are complete for their bounded scope. | Complete T11 with external Android evidence before release. |
 | Feedback runtime rollout is unverified | T12 source/test scope is complete, but no migration, retention run, staff/rider acceptance, backup, or deployed scheduling evidence exists. | Execute an approved disposable/staging rollout and retention/role acceptance before release. |
-| Dashboard/public UX is not release-ready | The validated score remains 15/20 at `a0a0ce1...`. The first eight slices remain accepted, but the owner-selected adaptive Admin Liquid Glass foundation, native mutation recovery, human assistive-technology/usability, broader device/runtime evidence, T11-backed exceptions, and Research remain open. | Define and verify the shared Admin Liquid Glass foundation without bypassing external gates; mutation feedback follows it. |
+| Dashboard/public UX is not release-ready | The last validated score remains 15/20 at `a0a0ce1...`. The first eight slices remain accepted and the bright-neutral Admin Liquid Glass foundation is implemented at `c4fdc3a`, but its re-audit, native mutation recovery, human assistive-technology/usability, broader device/runtime evidence, T11-backed exceptions, and Research remain open. | Re-audit the ninth slice without bypassing external gates; mutation feedback may follow only under its own exact handoff. |
 | Deployment/TLS/backup/recovery evidence is absent | D-008 policy and the T9 repository handoff exist, but University Server/Network acceptance checks are incomplete. | Obtain T9 external acceptance, then complete T13. |
 | Physical device/TTN evidence is absent | Provider/hardware/provisioning facts are unknown. | Record facts and execute T15. |
 | Playback/reports are absent | D-002=B authorizes bounded diagnostics, not unbounded fidelity claims. | Approve query/fidelity scope after T7 evidence. |
@@ -1556,7 +1565,7 @@ external-evidence gates but no additional focused owner-policy blocker:
 | D-012 implementation paths and external `DEV` allowlist/recovery/backup target facts | T15 and later role-management work | Policy is approved but intentionally outside T11/T12/T14; target facts and exact implementation evidence remain absent. |
 | TTN application/device IDs; physical device/module models; firmware/provisioning; clock/reference and field protocol | T15 | D-004 fixes transport roles and dashboard scope, but repository evidence cannot establish physical behavior or absolute accuracy. |
 | None for feedback policy | — | D-009 approves owner, anonymous/no-reply scope, business-day lifecycle, retention, deletion/restore, and safe read-only source fields. |
-| None for the completed T14 slices, Liquid Glass foundation, or later bounded mutation-feedback finding | — | D-011 now fixes the Admin Liquid Glass direction and Public boundary; the first eight slices remain accepted, and both remaining bounded units preserve accepted product/API/auth behavior. |
+| None for the completed T14 slices, Liquid Glass foundation, or later bounded mutation-feedback finding | — | D-011 fixes the bright-neutral Admin Liquid Glass direction and Public boundary; the first eight slices remain accepted, the ninth is implemented pending re-audit, and later mutation feedback preserves accepted product/API/auth behavior. |
 
 ## 13. Recommended Level 2/3 Agent Usage
 
@@ -1564,7 +1573,7 @@ Route every focused technical question through `agents/level-2-specialist/AGENT.
 `tram-specialist-consultation`. Route every implementation through
 `agents/level-3-refactor/AGENT.md` with `tram-refactoring-workflow`.
 
-- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and T14's truth, accessibility/navigation, measured map-quality, contrast/color-governance, Admin Dashboard foundation, Public service-explanation/recovery, Admin master-data, and Admin operations-support slices. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. Define the exact shared Admin Liquid Glass foundation next; mutation feedback follows it. Use Level 2 only if a new focused cross-domain question appears.
+- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and T14's truth, accessibility/navigation, measured map-quality, contrast/color-governance, Admin Dashboard foundation, Public service-explanation/recovery, Admin master-data, Admin operations-support, and bright-neutral Admin Liquid Glass foundation slices. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. Re-audit `c4fdc3a` before defining the exact mutation-feedback handoff. Use Level 2 only if a new focused cross-domain question appears.
 - Specialist-led: T2 security/abuse; T4, T9, T13 observability/deployment; T5 database transactions; T6/T7 realtime and time-series; T11 operations/mobile; T15 device/LoRaWAN.
 - T12's D-010:A account-transition choice and all exact source/test acceptance evidence are complete; runtime rollout remains separately gated.
 
@@ -1586,11 +1595,12 @@ maintenance outside roadmap ordering. T9's repository handoff is validated and p
 the owner defers its external continuation and T13 without satisfying their gates. T11 remains
 blocked on coordinated Backend/Mobile implementation and Android acceptance. T14's first eight
 D-011 slices, including bounded Source Health/Feedback Admin operations-support convergence at
-`06e0291`, remain accepted at `23b4d6f...`. D-011 refinement and affected audits are revalidated at
-`a0a0ce1...`; `docs/tasks/T14-admin-liquid-glass-foundation.md` is the ready exact-path handoff for
-the next implementation. Mutation feedback follows it. Public source/identity, T11, and
-Research/T13 remain separate; Admin Login presentation is inside the foundation but its behavior is
-unchanged. T15 remains
+`06e0291`, remain accepted at `23b4d6f...`. D-011 refinement and affected audits were revalidated at
+`a0a0ce1...`; `c4fdc3a` implements the ninth bright-neutral Admin Liquid Glass foundation and Login
+convergence under its exact task. The affected chain is `Needs Re-audit`; mutation feedback follows
+only after acceptance and a new exact handoff. Public source/identity, T11, and Research/T13 remain
+separate; successful Admin Login/session behavior is unchanged, and rejected Login errors now reach
+the inline form instead of the protected-route redirect. T15 remains
 deferred behind T13 and external physical facts. T12/
 T14 source acceptance is not deployment/public-release authorization.
 
@@ -1609,13 +1619,13 @@ D-009 binds feedback/privacy/read-only device policy; D-010:A maps legacy roles 
 unknown roles to fail closed; D-011 orders T14, preserves Public identity, and now selects a premium
 iOS-inspired Liquid Glass world for bounded Admin redesign; and D-012 fixes later least-privilege
 lifecycle controls. T14's first eight slices through implementation `06e0291` remain accepted at
-`23b4d6f...`; the shared Admin visual foundation is selected at `a0a0ce1`, with mutation feedback
-sequenced after it. Neither is implemented.
+`23b4d6f...`; the shared explicitly light Admin visual foundation selected at `a0a0ce1` is implemented
+at `c4fdc3a`, while mutation feedback remains sequenced after its re-audit and exact handoff.
 M-20260807-01/02/03
 correct logging, simulator, and generated-artifact boundaries without changing roadmap order. The
-affected audits and this Roadmap are current at `a0a0ce1...`; unaffected audits remain current at
-`1eec866...`. Liquid Glass foundation source work may now start only under its exact task contract;
-no mutation-feedback work starts before that foundation is accepted.
+affected audits and this Roadmap need re-audit at `c4fdc3a...`; unaffected audits remain current at
+`1eec866...`. No mutation-feedback source work starts before the foundation is accepted and its own
+exact task contract exists.
 
 **Assumptions and unknowns:** the target is C but no daily/public readiness claim is made before the
 required work passes. Diagnostics remain bounded/protected; no external host/provider/device fact or
