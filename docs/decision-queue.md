@@ -18,6 +18,23 @@ truthful public/Admin connection and freshness behavior. The next slice addresse
 focus, keyboard navigation, and the Mobile Admin sidebar. Responsive/performance work and broader
 visual-system polish follow only after measured evidence and a separately bounded handoff.
 
+Owner visual-direction refinement: **Approved on 2026-08-10.** The remaining authenticated Admin
+web experience, including its Login entry, should move to a premium iOS-inspired Liquid Glass /
+glassmorphism visual world. This replaces the interim `RSU Operations` look as the target Admin
+identity without changing product truth, information, workflows, roles, APIs, or the Public visual
+world. Apply the direction through bounded exact-path slices, beginning with one shared shell,
+navigation, modal/control, token, accessibility-fallback, and Login foundation before later mutation
+feedback or page-specific polish consumes it.
+
+The web interpretation follows Apple's material hierarchy rather than treating blur as decoration:
+glass is the functional layer for navigation, toolbars, modals, and important controls; dense tables,
+ledgers, maps, forms, and operational content retain a more opaque standard material. The foundation
+must support light/dark context, reduced transparency, increased/forced contrast, reduced motion,
+legible fallbacks when `backdrop-filter` is unavailable, and existing 44 px/focus/keyboard contracts.
+It may not copy Apple trademarks or assets. References:
+<https://developer.apple.com/design/human-interface-guidelines/materials> and
+<https://developer.apple.com/documentation/TechnologyOverviews/liquid-glass>.
+
 The Public UI must preserve its incumbent visual identity and layout as far as practical. Public
 changes are limited to source quality, semantics, accessibility, state/copy truthfulness, and small
 UX corrections that do not constitute a redesign. Admin Dashboard/Admin pages may be restructured
@@ -25,9 +42,11 @@ and visually improved substantially, using a theme complementary to the Public U
 documented accessible Dashboard theme. Each slice still requires exact screens/actions and browser
 journeys; this decision is not permission for one unbounded redesign.
 
-Roadmap effect: closes the owner-order gate for the first T14 slice. T14 becomes eligible only after
-the affected audits are fresh and an exact-path Level 3 handoff binds the limited Public changes,
-Admin scope, checks, and stop conditions.
+Roadmap effect: closes the owner-order gate and now fixes the remaining Admin visual direction. The
+first eight T14 slices stay accepted. Before the previously selected master-data mutation-feedback
+finding, Level 1 must re-audit the new design target and bind one exact shared Admin Liquid Glass
+foundation; later slices consume that foundation. Public limits, dependency gates, browser evidence,
+and exact-path stop conditions remain unchanged.
 
 ## D-012 — Remaining administrative and credential lifecycle matrix
 
