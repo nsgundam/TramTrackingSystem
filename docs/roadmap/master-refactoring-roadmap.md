@@ -181,13 +181,13 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Eligible for one bounded handoff | Define an exact shared Admin Liquid Glass foundation before implementation; preserve Public source/identity, Login/page behavior, APIs, dependencies, and blocked lanes. |
+| T14 | Exact bounded handoff ready | Execute `docs/tasks/T14-admin-liquid-glass-foundation.md` measurement-first; preserve Public source/identity, Login/page behavior, APIs, dependencies, and blocked lanes. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
 Batch result: T14's first eight slices remain accepted, and the refined D-011 direction plus affected
 chain are revalidated at `a0a0ce1...`. T9/T13 remain deferred without dependency bypass; T11/T15
-remain blocked. Only the shared Admin Liquid Glass foundation handoff may be defined next; mutation
-feedback follows it, and no exact implementation starts before that contract exists.
+remain blocked. The exact shared Admin Liquid Glass foundation handoff is now ready; mutation
+feedback follows it, and implementation may touch only its recorded paths and contract.
 
 ## 4. Dependency Map
 
@@ -1346,7 +1346,7 @@ component/accessibility checks, and desktop/mobile browser smoke tests.
 
 Partially Complete — the first eight D-011 slices, including bounded Admin operations-support
 convergence at `06e0291`, remain accepted at `23b4d6f...`. D-011 direction refinement is revalidated
-at `a0a0ce1`; the shared Admin Liquid Glass foundation still requires an exact-path task contract.
+at `a0a0ce1`; `docs/tasks/T14-admin-liquid-glass-foundation.md` now supplies the exact-path contract.
 The eighth slice's exact completion evidence is in
 `docs/tasks/T14-admin-operations-support-convergence.md`. The master-data completion evidence is in
 `docs/tasks/T14-admin-master-data-theme-convergence.md`. The map-quality handoff is
@@ -1587,8 +1587,8 @@ the owner defers its external continuation and T13 without satisfying their gate
 blocked on coordinated Backend/Mobile implementation and Android acceptance. T14's first eight
 D-011 slices, including bounded Source Health/Feedback Admin operations-support convergence at
 `06e0291`, remain accepted at `23b4d6f...`. D-011 refinement and affected audits are revalidated at
-`a0a0ce1...`; the shared Admin Liquid Glass foundation is next and still requires its exact-path
-handoff before implementation. Mutation feedback follows it. Public source/identity, T11, and
+`a0a0ce1...`; `docs/tasks/T14-admin-liquid-glass-foundation.md` is the ready exact-path handoff for
+the next implementation. Mutation feedback follows it. Public source/identity, T11, and
 Research/T13 remain separate; Admin Login presentation is inside the foundation but its behavior is
 unchanged. T15 remains
 deferred behind T13 and external physical facts. T12/
@@ -1614,8 +1614,8 @@ sequenced after it. Neither is implemented.
 M-20260807-01/02/03
 correct logging, simulator, and generated-artifact boundaries without changing roadmap order. The
 affected audits and this Roadmap are current at `a0a0ce1...`; unaffected audits remain current at
-`1eec866...`. No Liquid Glass foundation source work starts before its exact task contract exists,
-and no mutation-feedback work starts before that foundation is accepted.
+`1eec866...`. Liquid Glass foundation source work may now start only under its exact task contract;
+no mutation-feedback work starts before that foundation is accepted.
 
 **Assumptions and unknowns:** the target is C but no daily/public readiness claim is made before the
 required work passes. Diagnostics remain bounded/protected; no external host/provider/device fact or
