@@ -1,8 +1,8 @@
 # Architecture Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 23b4d6fe69de162eb42f9763ae928361c21c6e17
-- Evidence scope: docs/project-knowledge-base.md, docs/audits/product-audit.md,
+- Evidence baseline: a0a0ce1608c31818235a785f24baa1d4ceeab214
+- Evidence scope: PRODUCT.md, docs/project-knowledge-base.md, docs/audits/product-audit.md,
   docs/decision-queue.md, docs/research/, docs/tasks/, docs/operations/, README.md,
   Compose/environment configuration and scripts, shuttle-tracking-backend/src/,
   shuttle-tracking-backend/prisma/, shuttle-tracking-backend/tests/,
@@ -10,12 +10,31 @@ Audit metadata:
   shuttle-tracking-web/types/, shuttle-tracking-web/services/,
   shuttle-tracking-web/components/, shuttle-tracking-web/tests/, and the T11 v3 external Mobile
   compatibility brief
-- Reviewed at: 2026-08-10T09:16:18+07:00
+- Reviewed at: 2026-08-10T09:39:16+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/project-knowledge-base.md @ 1eec86602c40c859d50dd9d369f636b103b6896f;
-  docs/audits/product-audit.md @ 23b4d6fe69de162eb42f9763ae928361c21c6e17
+  docs/audits/product-audit.md @ a0a0ce1608c31818235a785f24baa1d4ceeab214
 
-## 2026-08-10 T14 Admin operations-support convergence re-audit
+## 2026-08-10 D-011 Admin Liquid Glass direction re-audit
+
+Product is revalidated at `a0a0ce1`; Discovery and the first eight T14 source implementations remain
+current at their recorded baselines. The new owner direction changes presentation architecture only:
+one Admin shell/token/material authority must cover navigation, Login, shared modals/controls, and
+the existing semantic page primitives. Domain pages retain request, DTO, role, canonical-state,
+cache, persistence, and error-state ownership.
+
+The architecture-safe foundation is primarily shared Admin layout, Sidebar, Login classes, and
+semantic CSS. Glass belongs to the functional navigation/control/modal layer; dense tables, ledgers,
+forms, and map content use more opaque materials. Tokenized light/dark context plus reduced-
+transparency, forced/increased-contrast, reduced-motion, and unsupported-filter fallbacks prevent a
+CSS effect from becoming a second behavior or accessibility authority.
+
+This shared foundation must precede master-data mutation feedback so new notices and confirmation
+components consume one stable system. It requires no backend, API/auth/schema, dependency, data,
+cache, Mobile, Research, or external-runtime change and no Level 2 decision. Public/Login auth
+behavior remains intact; only the Admin Login presentation joins the foundation.
+
+## 2026-08-10 T14 Admin operations-support convergence re-audit — superseded for Admin visual direction
 
 Product is revalidated at `23b4d6f...`; Discovery remains current at `1eec866...`. The eighth T14
 slice extends the typed `AdminResourcePage` hierarchy, semantic state/notice/action vocabulary, and
@@ -191,19 +210,20 @@ safe-view boundaries. None is a reason to split the appropriate monolith into un
 T14 now also centralizes repeated Admin master-data presentation and dialog focus structure while
 leaving each request, DTO, authorization, and mutation contract at its incumbent boundary. Source
 Health and Feedback now consume the same presentation/focus vocabulary without moving their T12
-safe-field, role, lifecycle, or request authority.
+safe-field, role, lifecycle, or request authority. Owner refinement `a0a0ce1` now requires those
+shared presentation boundaries to consume one adaptive Admin Liquid Glass material/token foundation;
+it does not move domain or request ownership.
 
 ## 2. Scope and Freshness
 
 This profile covers boundaries, authority, data products, temporal semantics, cache/realtime behavior, and task placement. It does not certify deployment, physical devices, provider behavior, browser runtime, load, or an Android client.
 
-Discovery remains current at `1eec866...`; Product is revalidated at `23b4d6f...`, and the preceding
-affected Architecture baseline was `4e609e3...`. Exact changed architecture evidence is the eighth
-T14 handoff plus the extended Admin resource/dialog primitives, Source Health/Feedback consumers,
-focused tests, and completion coordination. Existing T9 topology, canonical selection, research
-capture, relational schema, route-stop mutation/cache ownership, Feedback lifecycle, and Mobile/
-ESP32/LoRaWAN acquisition semantics are unchanged. Source/browser/full-CI evidence proves local
-composition only, not TLS, recovery, capacity, deployment, devices, or Android behavior.
+Discovery remains current at `1eec866...`; Product is revalidated at `a0a0ce1`, and the preceding
+affected Architecture baseline was `23b4d6f...`. Exact changed evidence is the D-011 visual-direction
+refinement and `PRODUCT.md`; application source is unchanged. Existing T9 topology, canonical
+selection, research capture, relational schema, route-stop mutation/cache ownership, Feedback
+lifecycle, and Mobile/ESP32/LoRaWAN acquisition semantics are unchanged. The new direction supplies
+no TLS, recovery, capacity, deployment, device, Android, or runtime proof.
 
 ## 3. Prior-Finding Revalidation
 
@@ -252,10 +272,9 @@ composition only, not TLS, recovery, capacity, deployment, devices, or Android b
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
 T9 is Partially Complete for its repository-side handoff under D-008. T10/T12 are complete for their
-bounded handoffs. T14's first eight slices are complete and revalidated at `23b4d6f...`; the Public
-explanation P1 is closed and the Admin theme/error P2s are further narrowed for bounded source/
-browser evidence. The next eligible unit replaces only native master-data mutation feedback without
-changing page/API/auth ownership, payloads, or destructive intent. T11 still needs
+bounded handoffs. T14's first eight slices remain complete; D-011 refinement `a0a0ce1` selects one
+shared adaptive Admin Liquid Glass presentation foundation before later mutation feedback. It must
+not change page/API/auth ownership, payloads, destructive intent, or Public presentation. T11 still needs
 focused technical and external Android evidence; Research remains blocked on T13.
 Production operations, runtime retention, capacity and external-device facts remain open; no new
 owner decision is proposed.
@@ -272,8 +291,9 @@ not a policy choice to infer.
 
 Frontend and downstream profiles may consume this Architecture baseline. Backend and Database remain
 current at `1eec866...` because T14 changes no runtime API, schema, or persistence authority. The
-Roadmap may next create only a bounded T14 Admin master-data mutation-feedback handoff; none of this
-evidence promotes a browser fixture into assistive-technology, device, or runtime proof.
+Roadmap may next create only a bounded T14 shared Admin Liquid Glass foundation handoff; none of this
+evidence promotes a visual direction or browser fixture into assistive-technology, device, or
+runtime proof.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 

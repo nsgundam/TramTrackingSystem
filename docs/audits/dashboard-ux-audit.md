@@ -1,8 +1,8 @@
 # Dashboard & UX Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 23b4d6fe69de162eb42f9763ae928361c21c6e17
-- Evidence scope: docs/project-knowledge-base.md,
+- Evidence baseline: a0a0ce1608c31818235a785f24baa1d4ceeab214
+- Evidence scope: PRODUCT.md, docs/project-knowledge-base.md,
   Product/Architecture/Backend/Frontend/Infrastructure & Device audits,
   docs/decision-queue.md, docs/research/, docs/tasks/,
   docs/operations/university-server-network-handoff.md, shuttle-tracking-web/app/,
@@ -10,13 +10,39 @@ Audit metadata:
   shuttle-tracking-web/hooks/, shuttle-tracking-web/services/, shuttle-tracking-web/types/,
   shuttle-tracking-web/utils/, shuttle-tracking-web/tests/, full current frontend check evidence,
   and the current Impeccable technical audit/detector pass
-- Reviewed at: 2026-08-10T09:16:18+07:00
+- Reviewed at: 2026-08-10T09:39:16+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/audits/product-audit.md and docs/audits/frontend-audit.md @
-  23b4d6fe69de162eb42f9763ae928361c21c6e17; docs/audits/infrastructure-device-audit.md @
+  a0a0ce1608c31818235a785f24baa1d4ceeab214; docs/audits/infrastructure-device-audit.md @
   1eec86602c40c859d50dd9d369f636b103b6896f
 
-## 2026-08-10 T14 Admin operations-support convergence re-audit
+## 2026-08-10 D-011 Admin Liquid Glass direction re-audit
+
+Product and Frontend are revalidated at `a0a0ce1`; Infrastructure & Device and the first eight T14
+implementations remain current at their recorded baselines. The owner now selects a premium
+iOS-inspired Liquid Glass / glassmorphism world for authenticated Admin, including Login, while
+retaining the Public identity and every accepted product/behavior boundary.
+
+The required Impeccable baseline audit returns detector `[]` and retains **15/20 — below the release
+baseline**: all five dimensions remain 3/4, with one open P1, eight P2, one P3, eight resolved P1,
+and two resolved P2. The owner-selected world changes the target, not the measured source score.
+Current strengths are semantic hierarchy, truthful states, keyboard/focus behavior, 44 px targets,
+and responsive tables/ledgers. The concrete theme gap is forced-light opaque shell styling plus an
+independent Login glass implementation with no shared adaptive/fallback material system.
+
+The committed direction is **Signal Lens Workbench** (Operate mode): a restrained glass functional
+layer for navigation, contextual controls, and modals above more opaque operational content. A soft
+campus-sky/cobalt field provides depth; white/graphite standard materials keep maps, tables, ledgers,
+forms, and long text stable. Light/dark context, reduced transparency, increased/forced contrast,
+reduced motion, and unsupported-filter behavior are first-class variants. Glass never carries state
+or hierarchy by itself.
+
+The next exact unit is the shared Admin Liquid Glass foundation; it precedes master-data mutation
+feedback so later notices/confirmation consume stable tokens and materials. This is a bounded
+foundation, not permission for an unbounded page redesign. Public source/identity, APIs, roles,
+data, dependencies, T11/Research, backend/Mobile, and external targets remain excluded.
+
+## 2026-08-10 T14 Admin operations-support convergence re-audit — superseded for Admin visual direction
 
 Product and Frontend are revalidated at `23b4d6f...`; Infrastructure & Device remains current at
 `1eec866...`. T14's eighth D-011 slice is **Complete for its bounded source/browser contract**.
@@ -230,6 +256,8 @@ with no P0, one open P1, eight P2, one P3, eight resolved P1, and two resolved P
 specific truth/recovery/keyboard behavior, measured motion/request/viewport/contrast budgets, and
 the Admin shell/Dashboard/master-data/operations-support system are stronger, while native mutation
 recovery, exception-first operations, and the missing Research surface still constrain release.
+Owner refinement `a0a0ce1` now replaces the interim Admin appearance as the target visual world;
+the accepted hierarchy, content, state, focus, responsive, and request contracts remain binding.
 
 T9 changed how existing REST/Socket consumers select their backend, not what any surface displayed
 or allowed. At that T9-only baseline, the UI score and all twenty technical findings were unchanged;
@@ -239,11 +267,12 @@ the T14 result above supersedes the two resolved and one narrowed truth findings
 
 This profile reviews information architecture, truthfulness, separation of public/operations/research surfaces, loading/error/accessibility states, and task placement. It is not a browser usability study, accessibility certification, user research, device/pilot, or production service test.
 
-Product and Frontend are revalidated at `23b4d6f...`; Infrastructure & Device remains current at
-`1eec866...`. Exact T14 paths/checks are recorded in all eight T14 task specifications. Browser evidence
-uses isolated mobile/desktop fixtures, not a university proxy, real service, assistive technology,
-physical mobile device, user research, production traffic, or runtime retention; it is not
-accessibility certification.
+Product and Frontend are revalidated at `a0a0ce1`; Infrastructure & Device remains current at
+`1eec866...`. Changed evidence is D-011's visual-direction refinement, `PRODUCT.md`, current Admin
+shell/Login/CSS inspection, Apple material guidance, and baseline detector `[]`; application source
+is unchanged. Prior browser evidence uses isolated mobile/desktop fixtures, not a university proxy,
+real service, assistive technology, physical mobile device, user research, production traffic, or
+runtime retention; it is not accessibility certification.
 
 ## 3. Prior-Finding Revalidation
 
@@ -257,7 +286,7 @@ accessibility certification.
 | Feedback capture had staff triage/privacy journey | Partially Resolved | T12 implements notice/receipt, Super Admin/Dev triage, selected reason delete/restore, and safe health fields. T14 browser-verifies role denial, truthful queue recovery, case actions/requests, and the scoped form/dialog/sensitive-confirmation keyboard semantics; no human assistive-technology or runtime acceptance exists. |
 | Research data had an appropriate dashboard | Still Present | No research route/UI has session/source/time filters, metric definitions, sample counts, uncertainty labels, drill-down or bounded export. Existing absence preserves the no-raw-public invariant. |
 | Role-specific UX enforced the new hierarchy | Partially Resolved | T12 session hydration and Sidebar hide the feedback inbox from `ADMIN` while the server remains authoritative. General capability rendering, account lifecycle, research navigation, and role-denial acceptance remain absent. |
-| Dashboard public-theme direction had a bounded specification | Resolved for bounded foundation | D-011's Admin authority is implemented through scoped semantic tokens, an exact map-first shell/Dashboard contract, and shared master-data/operations-support resources/dialogs; Public identity remains separate. |
+| Dashboard public-theme direction had a bounded specification | Reopened for owner-selected world | The interim semantic Admin system is coherent, but D-011 now selects an adaptive Liquid Glass world. A shared shell/navigation/Login/modal/control foundation and accessibility fallbacks are not yet implemented; Public identity remains separate. |
 | Modal, focus, form, and document accessibility met a release baseline | Partially Resolved | Root/dialog/form/Mobile behavior plus master-data named actions, reduced-motion, audited 44 px targets, and scoped light-surface/route-badge contrast evidence now exist. Broader live/touch coverage, assistive technology, and human acceptance remain open. |
 | Feedback vehicle association failed safely | Resolved | Public Feedback exposes loading/error/empty/retry, creates no fallback vehicles or selection, and only submits an explicitly chosen ID returned by a successful list. Pure and mobile-browser evidence cover failure, recovery, selection, and posted ID. |
 
@@ -277,11 +306,10 @@ accessibility certification.
 - T12's Feedback inbox/status/assignment and read-only source-health views implement their bounded
   source/test contract. Preserve server-authorized actions and clear privacy/retention/delete/restore
   controls; runtime/human acceptance remains separate.
-- T14's first eight journeys are complete. The Public explanation P1 is closed and Admin operations-
-  support theme/error findings are further narrowed for bounded source/browser evidence. The next
-  exact slice is bounded Admin master-data mutation-feedback convergence. It must preserve endpoint/
-  payload/role behavior and exclude Public/Login, T11 exceptions, Research/T13, API/auth/schema,
-  Mobile, and external-runtime work.
+- T14's first eight journeys remain complete. D-011 refinement selects the shared Admin Liquid Glass
+  foundation next; master-data mutation feedback follows it. The foundation may include Admin Login
+  presentation but must preserve its auth behavior and exclude Public source/identity, page request
+  logic, T11 exceptions, Research/T13, API/auth/schema, Mobile, dependencies, and external runtime.
 
 ## 6. Impeccable Technical Audit
 
@@ -292,7 +320,7 @@ accessibility certification.
 | Accessibility | 3/4 | Root/dialog/form/sidebar plus master-data/operations-support named actions, scoped motion/touch/contrast, and Availability/ETA/preloader status evidence exist; broader live/touch, assistive-technology, and human evidence remain. |
 | Performance | 3/4 | Selected-route/deduplicated geometry and owned marker cancellation are tested; raw/external/global assets and deployed budgets remain. |
 | Responsive Design | 3/4 | The measured 320 px Public collision plus 390 px master-data/operations-support ledgers/dialogs and audited 44 px targets are corrected; broader device/content/human coverage remains. |
-| Theming | 3/4 | Public tokens plus a scoped Admin shell/Dashboard/master-data/operations-support semantic system exist; forced light/no-switch behavior remains. |
+| Theming | 3/4 | Semantic Public/Admin systems exist, but the selected Admin world is absent: forced-light opaque shell styling and a separate Login glass treatment lack shared adaptive/fallback materials. |
 | Implementation Integrity | 3/4 | Product-specific separation, fail-closed truth projections, bounded Public recovery, and shared Admin resource/state/dialog ownership are tested; duplicated Public/Admin socket lifecycle and native master-data mutation recovery remain. |
 | **Total** | **15/20 — Below release baseline** | **0 P0; 1 open P1; 8 P2; 1 P3; 8 P1 and 2 P2 resolved by T14; theme and legacy-recovery P2s are further narrowed.** |
 
@@ -342,9 +370,10 @@ release baseline.
   cancels on replacement/removal/cleanup, with 4/4 unit and 2/2 browser evidence.
 - Public stop images use raw `<img>` without dimensions/lazy/error handling; the Admin map icon is
   externally hosted; Material Symbols load globally for a deferred tour.
-- **Narrowed:** Public tokens and an Admin-only shell/Dashboard/master-data/operations-support
-  semantic system now coexist; no theme switch/dark mode exists. The Dashboard update label is
-  explicitly Bangkok time, while broader timestamp policy remains.
+- **Reframed by owner direction:** Public tokens and a coherent interim Admin semantic system exist,
+  but Admin has no shared Liquid Glass functional layer, adaptive light/dark context, reduced-
+  transparency/forced-contrast/no-filter fallback, or converged Login material. The Dashboard update
+  label is explicitly Bangkok time, while broader timestamp policy remains.
 - OSM attribution remains disabled/hidden. The measured controls/collision portion is resolved:
   Public targets are 44 px around retained 36 px visuals, route-order targets are 44 px, and the
   240 px dock does not collide at 320 px.
@@ -371,9 +400,9 @@ technical audit. These are T14 handoff inputs, not implementation authorization.
 
 T9 is Partially Complete for its repository-side handoff under D-008. T10/T12 are complete for exact
 scopes. T11 needs backend/role/lifecycle and external Android evidence. T12 human/runtime acceptance
-remains unverified. T14's first eight slices are complete at `23b4d6f...`; bounded Admin master-data
-mutation-feedback convergence is next. Research remains blocked on T13. No new owner decision is
-required.
+remains unverified. T14's first eight slices remain complete; the shared Admin Liquid Glass
+foundation selected at `a0a0ce1` is next, followed by master-data mutation feedback. Research remains
+blocked on T13. No new owner decision is required.
 
 Confidence is High for source-visible separation/ownership, Medium for synthetic request/motion/
 viewport/contrast evidence, and Low for assistive technology, user comprehension, real operations,
@@ -381,12 +410,12 @@ devices, dark-theme behavior, and deployed outcomes.
 
 ## 8. Proposed Owner Decisions and Handoff
 
-No new owner decision is proposed. D-011 permits a bounded Admin master-data mutation-feedback slice;
-the exact handoff must preserve Public/Login identity and CRUD endpoint/payload/authorization
-behavior while excluding T11 exceptions, Research/T13 data, API/auth/schema changes, Mobile, and
-external-runtime work.
+No new owner decision is proposed. D-011 now binds one shared Admin Liquid Glass foundation. Its
+exact handoff must preserve Public identity and all Login/page behavior while defining Admin shell,
+navigation, modal/control, token, responsive, and accessibility-fallback paths. CRUD mutation
+feedback follows this foundation.
 
-Dashboard & UX is validated at `23b4d6f...` with current predecessors and the technical audit.
+Dashboard & UX is validated at `a0a0ce1` with current predecessors and the technical audit.
 Production Readiness and Roadmap may consume these results; Security/DevOps/Observability remains
 independently current at `1eec866...`.
 

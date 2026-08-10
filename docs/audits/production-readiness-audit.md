@@ -1,23 +1,40 @@
 # Production Readiness Audit
 
 Audit metadata:
-- Evidence baseline: 23b4d6fe69de162eb42f9763ae928361c21c6e17
-- Evidence scope: docs/project-knowledge-base.md; every validated domain audit;
+- Evidence baseline: a0a0ce1608c31818235a785f24baa1d4ceeab214
+- Evidence scope: PRODUCT.md; docs/project-knowledge-base.md; every validated domain audit;
   docs/decision-queue.md; docs/tasks/; docs/operations/; scripts/ci-checks.sh;
   scripts/test-production-topology.mjs; Compose/environment configuration; the current Impeccable
   Dashboard & UX technical audit evidence; the current full repository CI; and source paths cited
   by validated findings; the D-012 matrix; and the T11 v3 external Mobile compatibility brief
-- Reviewed at: 2026-08-10T09:16:18+07:00
+- Reviewed at: 2026-08-10T09:39:16+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/audits/product-audit.md, docs/audits/architecture-audit.md,
   docs/audits/frontend-audit.md, and docs/audits/dashboard-ux-audit.md @
-  23b4d6fe69de162eb42f9763ae928361c21c6e17; docs/project-knowledge-base.md,
+  a0a0ce1608c31818235a785f24baa1d4ceeab214; docs/project-knowledge-base.md,
   docs/audits/backend-audit.md, docs/audits/database-audit.md,
   docs/audits/infrastructure-device-audit.md, and
   docs/audits/security-devops-observability-audit.md @
   1eec86602c40c859d50dd9d369f636b103b6896f
 
-## 2026-08-10 T14 Admin operations-support convergence readiness re-audit
+## 2026-08-10 D-011 Admin Liquid Glass direction readiness re-audit
+
+The first eight T14 source/browser slices remain accepted. Owner refinement `a0a0ce1` changes only
+the remaining Admin visual target and records its Public/product boundaries; no application source,
+runtime, API/auth/schema, dependency, data, Mobile, or external target changed. The Dashboard & UX
+score remains **15/20**, and the selected D-001=C release remains **No-Go**.
+
+The next repository-eligible unit is one bounded shared Admin Liquid Glass foundation covering the
+shell, navigation, Login presentation, modal/control material, adaptive tokens, and accessibility/
+unsupported-filter fallbacks. Dense operational content remains more opaque. This unit can improve
+the theme P2 but cannot provide operator/human, assistive-technology, physical-device, deployment,
+university proxy, production interruption, migration/retention, backup/recovery, operations, or
+release evidence. It cannot satisfy or bypass T9/T11/T13/T15 or T12 runtime gates.
+
+Master-data mutation feedback now follows that shared foundation. No external target was operated,
+and the unrelated dirty Feedback-role migration remains excluded.
+
+## 2026-08-10 T14 Admin operations-support convergence readiness re-audit — superseded for Admin visual direction
 
 T14's first eight slices are complete and the affected predecessor chain is validated at
 `23b4d6f...`. The eighth slice converges Source Health, Feedback Inbox, and the existing sensitive
@@ -191,21 +208,22 @@ T11 still lacks its coordinated lifecycle/Mobile patch and Android runtime evide
 migration/retention/human acceptance; physical senders/provider/field behavior is unavailable; and
 the Dashboard & UX technical audit is 15/20 with one open P1 finding: the missing Research
 Dashboard, which remains blocked on physical/provider evidence.
+The approved Admin Liquid Glass direction changes neither this score nor release status. It creates
+a bounded visual-foundation task with explicit contrast/transparency/motion fallbacks, not deployed
+or human evidence.
 
 ## 2. Freshness and Validated Predecessor Coverage
 
-The preceding affected baseline was `4e609e3...`. Product, Architecture, Frontend, and Dashboard &
-UX now consume `23b4d6f...`; unaffected reports remain current at `1eec866...`. Changed release
-evidence is the eighth exact T14 task/implementation and focused/full validation recorded there. The current full
-`bash scripts/ci-checks.sh` passes, including backend boundaries and Prisma, frontend tests/E2E/lint/
-build, Compose and production topology, dynamic-log scan, and workflow validation. No production or
-stateful acceptance target was operated.
+The preceding affected baseline was `23b4d6f...`. Product, Architecture, Frontend, and Dashboard &
+UX now consume `a0a0ce1`; unaffected reports remain current at `1eec866...`. Changed evidence is the
+D-011 visual-direction refinement and product record only; application source and the last full
+repository CI evidence are unchanged. No production or stateful acceptance target was operated.
 
 | Domain | Readiness implication |
 |---|---|
 | Discovery/Product | The implemented tracker remains partial; T10/T12 exact scopes and T14's first eight slices are complete, while sender/trip accountability and human/runtime acceptance remain. |
 | Architecture/Backend/Database | Canonical, Operations and research data boundaries are coherent; T10/T12 server/schema controls are implemented in source/test form, while T11 and runtime rollout remain open. |
-| Frontend/Dashboard UX | T8/T14 provide bounded truthful explanation/recovery, keyboard-operable, reduced-motion, request-budget, 320/390 px, touch/contrast, and semantic Admin Dashboard/master-data/operations-support journeys; the 15/20 audit confirms native mutation recovery, forced-light policy, T11-backed exceptions, human acceptance, and Research remain incomplete. |
+| Frontend/Dashboard UX | T8/T14 provide bounded truthful explanation/recovery, keyboard-operable, reduced-motion, request-budget, 320/390 px, touch/contrast, and semantic Admin journeys. The 15/20 audit confirms the owner-selected adaptive Liquid Glass foundation, native mutation recovery, T11-backed exceptions, human acceptance, and Research remain incomplete. |
 | Infrastructure/Device | T9's private/authenticated static topology and runbook pass; no deployed topology or physical sender/provider/field evidence exists. |
 | Security/DevOps | Core sender/TTN/T12 controls, T9 repository port/origin/auth/proxy/health boundaries, and CI exist; SEC-01 is repaired. TLS/firewall/forwarded-hop behavior, credential rotation, broad scanning, durable monitoring/alerts, incident controls, and runtime rollout remain unresolved. |
 
@@ -230,7 +248,7 @@ stateful acceptance target was operated.
 | PR-06 | SEC-01 raw Socket.IO invalid payload logging can leak sensitive coordinates/payloads. | Resolved | Source/test blocker removed by M-20260807-01; retain guards and obtain deployed-log evidence on an approved target. |
 | PR-07 | Durable metrics/logs/alerts, on-call, recovery drill and backup/restore/rollback evidence are absent. | Still Present | Internal, public |
 | PR-08 | Mobile, ESP32, TTN/gateway/provider and field/recovery evidence are unavailable; simulators are not physical evidence. | Unable to Verify | Research, internal, public |
-| PR-09 | T8 canonical projection and T14 truth/accessibility/navigation/map-quality/contrast/Admin-foundation/Public-recovery/master-data/operations-support slices are resolved at source/browser level. Native mutation recovery, forced-light/no-switch behavior, broader touch, T11-backed exceptions, and real assistive-technology/user/device/deployed evidence remain incomplete. | Partially Resolved | Internal, public |
+| PR-09 | T8 canonical projection and T14's first eight slices are resolved at source/browser level. D-011 now selects an unimplemented adaptive Admin Liquid Glass foundation; native mutation recovery, broader touch, T11-backed exceptions, and real assistive-technology/user/device/deployed evidence remain incomplete. | Partially Resolved | Internal, public |
 | PR-10 | The external Mobile revision stores reusable Sender material in ordinary preferences with backup/cleartext enabled and lacks installation revocation/recovery. | New Finding | Internal, public |
 
 ## 5. Stop Conditions
@@ -251,8 +269,10 @@ stale, dependency, or ingestion failure.
 3. Preserve T10 route-operation evidence and obtain approved-target cache/browser verification if a release claim needs it; then implement T11 sender/lifecycle/history/exception controls and obtain external Android acceptance evidence.
 4. Roll out and verify T12's approved RBAC/feedback migration, retention/purge, backup/restore, proxy-IP handling, and accountable staff/rider workflow on an approved target.
 5. Preserve T14's truthful-state/explanation/recovery, keyboard, request/motion, 320/390 px/touch,
-   contrast, and bounded Admin hierarchy/theme/master-data/operations-support regressions; keep Public/Admin/Research
-   boundaries distinct and do not invent dependency causes or unavailable T11 exception data.
+   contrast, and bounded Admin hierarchy/master-data/operations-support regressions. Implement the
+   selected Admin visual foundation only with reduced-transparency/contrast/motion and no-filter
+   fallbacks; keep Public/Admin/Research boundaries distinct and do not invent dependency causes or
+   unavailable T11 exception data.
 6. Demonstrate actual sender/device/provider behavior across representative routes, coverage, mounting, duration, reconnect/power cycles and failure recovery, with limits documented.
 7. Run release/readiness, security, accessibility and operations evidence on the selected non-production target before release approval.
 
@@ -268,10 +288,11 @@ No new owner decision is proposed. D-011 and D-012 are approved and cannot be ex
 recorded scope; T9/T11/T12 external/runtime acceptance is missing evidence rather than a decision to
 infer.
 
-Roadmap may now consume this release synthesis and create only a bounded T14 Admin master-data
-mutation-feedback convergence handoff next. T9 remains repository-partial, T11/T12 runtime proof
-remains open, and T13/T15 dependencies cannot be bypassed. Public/Login, API/auth/schema, Mobile,
-and external-runtime work stay excluded.
+Roadmap may now consume this release synthesis and create only a bounded shared Admin Liquid Glass
+foundation handoff next. Login presentation is inside that foundation, but its authentication
+behavior is unchanged. T9 remains repository-partial, T11/T12 runtime proof remains open, and
+T13/T15 dependencies cannot be bypassed. Public source/identity, API/auth/schema, Mobile,
+dependencies, and external-runtime work stay excluded.
 
 ## 8. T12 Implementation Re-audit — 2026-08-01
 
