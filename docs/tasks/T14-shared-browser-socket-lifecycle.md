@@ -214,10 +214,49 @@
 
 ## Completion Evidence
 
-- Status: `Pending`
-- Acceptance mapping: Pending measurement-first failure and final implementation evidence.
-- Changed files: exact Allowed Writes only; pending implementation.
-- Validation results: Pending.
-- Audit freshness changes: None at task creation. After source acceptance, mark Product,
-  Architecture, Frontend, Dashboard & UX, Production Readiness, and Roadmap `Needs Re-audit` against
-  the immutable implementation baseline; Level 3 does not mark them complete.
+- Status: `Complete` for the exact local source/test scope at immutable source commit
+  `70f42c15948bf09e71a3c91d594a4c21f52db23b`.
+- Acceptance mapping:
+  - The measurement-first direct-owner guard failed 1/1 against the incumbent source and identified
+    both `hooks/useSocketConnection.ts` and `components/admin/LiveMap.tsx` as direct Socket.IO
+    lifecycle owners. The final focused suite passes 4/4 with
+    `services/browserSocketLifecycle.ts` as the single scoped construction/listener owner.
+  - The shared boundary forwards payload identity as `unknown`, preserves exact Socket and Manager
+    event wiring/state signals, suppresses the first-connect rehydrate callback, invokes it on later
+    connects, removes every listener, suppresses callbacks after disposal, and disconnects
+    idempotently. Real adapter wiring and the consumer absence predicates are source-guarded.
+  - Public snapshot-failure continuation, strict full DTO narrowing, canonical accept-before-map,
+    map/zoom queue order, and later-connect rehydrate are guarded. Admin hydrate-before-connect,
+    hydrate-before-request, queued-newer-state reconciliation, failure replay, Retry restart, and
+    canonical-expiry ownership remain consumer-side and guarded.
+  - An adversarial review found coercive enum checks. A new strict-boundary measurement then failed
+    1/1 (focused aggregate 3 pass/1 fail) against `String(...)`; requiring string enum values and
+    Public `sourceId === undefined` repaired it, after which the focused suite returned to 4/4.
+  - Public/Admin DOM, copy, layout, theme, event names, request shapes, origins, backend/API/auth/
+    schema, dependencies, Login source behavior, Mobile, Research, migrations, and external targets
+    did not change.
+- Changed source/test files:
+  - `shuttle-tracking-web/services/browserSocketLifecycle.ts`
+  - `shuttle-tracking-web/hooks/useSocketConnection.ts`
+  - `shuttle-tracking-web/components/admin/LiveMap.tsx`
+  - `shuttle-tracking-web/tests/t14-socket-lifecycle.test.ts`
+  - `shuttle-tracking-web/package.json`
+- Validation results:
+  - `npm --prefix shuttle-tracking-web run test:t14:socket-lifecycle` passes 4/4.
+  - T8, T9, and T14 pure regression groups pass 2/2, 5/5, and 8/8 respectively.
+  - The bounded T8/T14 Public, accessibility, Admin Dashboard, and Admin Liquid Glass/Login browser
+    regression run passes 16/16. The Login evidence covers the unchanged rejected-request/pending/
+    inline-error and protected-redirect paths; it does not add a successful-session browser claim.
+  - Focused lint passes; full lint has zero errors and the same two pre-existing warnings. The
+    scoped changed-target Impeccable detector returns `[]`.
+  - `bash scripts/ci-checks.sh` passes in a clean verification copy, including backend checks,
+    frontend pure/browser suites, the 9-route production build, Compose/topology, unsafe-logging,
+    and workflow validation. `node scripts/validate-agent-workflow.js` and `git diff --check` pass.
+  - Independent implementation and adversarial test reviewers both returned `PASS` after the
+    strict-boundary repair.
+- Evidence limits: browser evidence covers unchanged surrounding local journeys but does not force a
+  reconnect or a zoom-time socket event. No human, assistive-technology, physical-device, deployed,
+  ambient database/cache, or external-runtime acceptance is claimed.
+- Audit freshness changes: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
+  and Roadmap are `Needs Re-audit` against `70f42c1`. Level 3 records the source result but does not
+  accept the eleventh T14 slice or mark those Level 1 reports complete.
