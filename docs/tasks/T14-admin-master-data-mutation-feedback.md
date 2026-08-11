@@ -205,8 +205,9 @@ or external target action is authorized.
 
 ## Completion Evidence
 
-- Status: `Source complete at 2ddb835; affected Level 1 re-audit required before acceptance`
-- Source commit: `2ddb8353c92b407e1102ccc6971a7f26e6cfa331`.
+- Status: `Source complete at e6a04ad; affected Level 1 re-audit required before acceptance`
+- Source baseline: `e6a04ad7fd73cafa1463fd83099c0ffb2d14c13d` (`2ddb835` implementation plus
+  the bounded target-identity repair).
 - Acceptance mapping:
   - `AdminMutationFeedback` now owns safe `unknown` error projection, persistent semantic receipts,
     and the shared focus-managed delete confirmation. Vehicles, Routes, and Stops contain no native
@@ -216,14 +217,18 @@ or external target action is authorized.
     pending guards prevent duplicate requests; successful mutations publish named page receipts.
   - Cancel and Escape send no delete request and restore invoking focus. Pending delete prevents
     confirmation, close, and repeat; failure remains retryable against the immutable selected ID.
+    Each confirmation visibly identifies the selected name plus immutable ID and includes both in
+    the dialog's accessible description for Vehicles, Routes, and Stops.
   - Receipts and form/delete alerts use opaque operational surfaces while the shared modal remains
     functional glass. Desktop and 390 x 844 Mobile evidence covers visible focus, no horizontal
     overflow, and 44 px scoped controls.
   - The route-stop request remains exactly `{ stopIds: ["ST02", "ST01"] }`; Public and Login source,
     Admin authorization, fields, API/schema/backend, dependencies, Mobile, migrations, and blocked
     Roadmap lanes are unchanged.
-- Changed source/test paths: the ten application/test paths in `2ddb835`; coordination-only updates
-  to this task, the Roadmap, and Audit Register follow separately. The unrelated dirty
+- Changed source/test paths: the ten application/test paths in `2ddb835`, followed by the five-path
+  `e6a04ad` repair across the shared confirmation, three resource pages, and focused test;
+  coordination-only updates to this task, the Roadmap, and Audit Register follow separately. The
+  unrelated dirty
   `20260801110000_feedback_triage_roles` migration was never staged or committed.
 - Measurement-first evidence: the four focused `T14 Admin master-data mutation` journeys failed
   4/4 before source for the intended independent gaps (native source paths, absent pending lock,
@@ -231,12 +236,17 @@ or external target action is authorized.
   run exposed an empty Route ID in the exact PUT body; the boundary was repaired. Finish review then
   exposed a modal-initialization paint race hidden by the defensive request ID, so each modal session
   was keyed and initialized synchronously and retained-ID assertions were added for `VH001`, `R01`,
-  and `ST01`.
+  and `ST01`. Dashboard re-audit then found that non-unique display names made the delete target
+  ambiguous; a new focused assertion failed 1/1 before the repair because `VH001` was absent, then
+  passed after visible and accessibly described immutable IDs were added for all three resources.
 - Final validation on 2026-08-11: master-data browser coverage passes 8/8; accessibility 4/4; Admin
   Liquid Glass/Login 5/5 (including exact safe Login request, protected rejection redirect, and the
   fixed light theme); Dashboard 2/2; operations support 5/5; the full frontend check and 11-route
   production build pass; scoped Impeccable detector output is `[]`; finish review is `PASS`; final
-  `bash scripts/ci-checks.sh`, `git diff --check`, and workflow validation pass. ESLint has zero
+  `bash scripts/ci-checks.sh`, `git diff --check`, and workflow validation pass. After `e6a04ad`,
+  the repaired focused journey passes 1/1, master-data 8/8, accessibility 4/4, Admin/Login 5/5,
+  the scoped detector returns `[]`, Dashboard finish review is `PASS`, and full CI passes again.
+  ESLint has zero
   errors and the same two pre-existing warnings.
 - Visual evidence: post-repair desktop receipt/error captures and a 390 x 844 Mobile delete journey
   were reviewed. The failed-update capture shows `VH001` and all edited values retained with the
@@ -245,5 +255,5 @@ or external target action is authorized.
   assistive-technology, device, deployed-runtime, migration, or external-target acceptance is
   claimed.
 - Audit freshness changes: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
-  and Roadmap are downgraded to `Needs Re-audit` at source baseline `2ddb835`. Level 3 does not mark
+  and Roadmap remain `Needs Re-audit` at source baseline `e6a04ad`. Level 3 does not mark
   those reports complete; unaffected audit profiles remain current at their recorded baselines.
