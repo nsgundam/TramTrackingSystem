@@ -1,7 +1,7 @@
 # Security, DevOps & Observability Audit
 
 Audit metadata:
-- Evidence baseline: 1eec86602c40c859d50dd9d369f636b103b6896f
+- Evidence baseline: 1eec866b986b4cb4e802f7a48fac93e54e780699
 - Evidence scope: every validated predecessor report; docs/decision-queue.md; docs/research/;
   docs/testing/; D-008 specialist briefs; docs/tasks/T9-production-topology-origin-handoff.md;
   docs/tasks/M-20260807-01-redact-socket-invalid-payload-logging.md;
@@ -19,7 +19,7 @@ Audit metadata:
   docs/audits/architecture-audit.md, docs/audits/backend-audit.md,
   docs/audits/frontend-audit.md, docs/audits/database-audit.md,
   docs/audits/infrastructure-device-audit.md, and docs/audits/dashboard-ux-audit.md @
-  1eec86602c40c859d50dd9d369f636b103b6896f
+  1eec866b986b4cb4e802f7a48fac93e54e780699
 
 ## 2026-08-08 D-012 and external Mobile security re-audit
 

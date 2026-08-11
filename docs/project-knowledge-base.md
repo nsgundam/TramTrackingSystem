@@ -1,7 +1,7 @@
 # Tram Tracking System Project Knowledge Base
 
 Audit metadata:
-- Evidence baseline: `1eec86602c40c859d50dd9d369f636b103b6896f`
+- Evidence baseline: `1eec866b986b4cb4e802f7a48fac93e54e780699`
 - Evidence scope: `README.md`, `AGENTS.md`, Compose/environment configuration and scripts,
   `shuttle-tracking-backend/`, `shuttle-tracking-web/`, `docs/testing/`, `docs/research/`,
   `docs/tasks/`, `docs/operations/`, `docs/decision-queue.md`, `docs/audits/specialized/`, and the
@@ -19,7 +19,7 @@ evidence is unavailable. Use `docs/audits/README.md` as the coordination authori
 
 The preceding validated Discovery baseline was
 `cdedcc2fd82ab264e2176716ac23a74c948e1a28`; the current immutable decision/evidence baseline is
-`1eec86602c40c859d50dd9d369f636b103b6896f`. Application source in this repository is unchanged.
+`1eec866b986b4cb4e802f7a48fac93e54e780699`. Application source in this repository is unchanged.
 The changed evidence is `docs/decision-queue.md`,
 `docs/audits/specialized/D-012-identity-administrative-lifecycle-matrix.md`, and
 `docs/audits/specialized/T11-mobile-repository-compatibility-v3.md`.

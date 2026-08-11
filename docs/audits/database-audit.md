@@ -1,7 +1,7 @@
 # Database Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 1eec86602c40c859d50dd9d369f636b103b6896f
+- Evidence baseline: 1eec866b986b4cb4e802f7a48fac93e54e780699
 - Evidence scope: docs/project-knowledge-base.md, Product/Architecture audits, Backend/Frontend
   audits as cross-boundary context, docs/decision-queue.md, docs/research/, docs/tasks/,
   docs/operations/university-server-network-handoff.md, docker-compose.prod.yml,
@@ -13,7 +13,7 @@ Audit metadata:
 - Reviewed at: 2026-08-08T00:07:30+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md, and
-  docs/audits/architecture-audit.md @ 1eec86602c40c859d50dd9d369f636b103b6896f
+  docs/audits/architecture-audit.md @ 1eec866b986b4cb4e802f7a48fac93e54e780699
 
 ## 2026-08-08 D-012 and Mobile-contract re-audit
 

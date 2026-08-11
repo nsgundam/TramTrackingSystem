@@ -1,7 +1,7 @@
 # Infrastructure & Device Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: 1eec86602c40c859d50dd9d369f636b103b6896f
+- Evidence baseline: 1eec866b986b4cb4e802f7a48fac93e54e780699
 - Evidence scope: docs/project-knowledge-base.md, Product/Architecture/Backend/Frontend/Database
   audits, docs/decision-queue.md, D-008 specialist briefs, docs/research/, docs/testing/,
   docs/tasks/T9-production-topology-origin-handoff.md,
@@ -17,7 +17,7 @@ Audit metadata:
 - Predecessor baselines: docs/project-knowledge-base.md, docs/audits/product-audit.md,
   docs/audits/architecture-audit.md, docs/audits/backend-audit.md,
   docs/audits/frontend-audit.md, and docs/audits/database-audit.md @
-  1eec86602c40c859d50dd9d369f636b103b6896f
+  1eec866b986b4cb4e802f7a48fac93e54e780699
 
 ## 2026-08-08 external Mobile repository re-audit
 

@@ -1,7 +1,7 @@
 # Architecture Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: c4fdc3abd4b66b00e784e2c0738266e6fa8413d3
+- Evidence baseline: e6a04ad7fd73cafa1463fd83099c0ffb2d14c13d
 - Evidence scope: PRODUCT.md, docs/project-knowledge-base.md, docs/audits/product-audit.md,
   DESIGN.md, .impeccable/design.json,
   docs/decision-queue.md, docs/research/, docs/tasks/, docs/operations/, README.md,
@@ -11,12 +11,65 @@ Audit metadata:
   shuttle-tracking-web/types/, shuttle-tracking-web/services/,
   shuttle-tracking-web/components/, shuttle-tracking-web/tests/, and the T11 v3 external Mobile
   compatibility brief
-- Reviewed at: 2026-08-10T13:39:08+07:00
+- Reviewed at: 2026-08-11T15:31:00+07:00
 - Validation state: Validated
-- Predecessor baselines: docs/project-knowledge-base.md @ 1eec86602c40c859d50dd9d369f636b103b6896f;
-  docs/audits/product-audit.md @ c4fdc3abd4b66b00e784e2c0738266e6fa8413d3
+- Predecessor baselines: docs/project-knowledge-base.md @ 1eec866b986b4cb4e802f7a48fac93e54e780699;
+  docs/audits/product-audit.md @ e6a04ad7fd73cafa1463fd83099c0ffb2d14c13d
 
-## 2026-08-10 T14 bright-neutral Admin Liquid Glass foundation re-audit
+## 2026-08-11 T14 Admin master-data mutation-feedback re-audit
+
+Discovery remains validated at `1eec866...`; Product is validated against `e6a04ad`. Architecture-
+relevant evidence changes only the bounded Admin mutation pages, CRUD/shared modal components,
+semantic CSS, and deterministic browser coverage recorded by completion records `8ebdf9a` and
+`e5f6422`. The tenth T14 slice is **Complete for its exact frontend architecture contract**.
+
+`AdminMutationFeedback.tsx` is one typed presentation boundary for the established non-empty server
+`error` string or resource fallback, semantic receipt, and shared delete-confirmation composition.
+Each resource page remains the owner of endpoint selection, immutable target identity, request
+snapshot, read refresh, and local save/delete/receipt state. Ref-backed in-flight guards are the
+local synchronous repeat-invocation guard within each mounted page; shared controls mirror that
+state through disabled and `aria-busy` presentation. Server authorization and mutation authority
+remain unchanged. Keyed modal sessions and synchronous form initialization keep the selected
+record/DTO coherent without moving data ownership into the modal shell.
+The bounded target-identity repair adds the immutable selected ID to the confirmation presentation
+and its accessible description; it does not change request identity or deletion authority.
+
+Vehicle, Route, and Stop POST/PUT/DELETE endpoints and bodies remain exact, including disabled edit
+IDs and the existing Stop `imageUrl`/numeric projection. T10 route-stop replacement remains exactly
+`{ stopIds: ["ST02", "ST01"] }`. No dependency, authorization, API/schema, persistence, cache,
+canonical state, backend, Public/Login source, Mobile, Research, or external-runtime authority
+changed. The helper excludes arbitrary caught objects and sibling debug payloads; it does not create
+a server error-classification or redaction contract.
+
+Measurement-first coverage failed 4/4 before source and the later target-identity assertion failed
+1/1 before repair. Final master-data coverage passes 8/8 after exact request-ID, modal-
+initialization, and confirmation-identity repairs. Accessibility 4/4, Admin Login/material 5/5,
+Dashboard 2/2, operations support 5/5, detector `[]`, visual finish review `PASS`, the production build, and
+full repository CI pass. These establish local composition only, not deployed transport, ambient
+database/cache publication, human/assistive-technology, device, or operations behavior.
+
+| Prior material finding | State | Current evidence and implication |
+|---|---|---|
+| Vehicle and source identity were conflated | Resolved | The frontend-only slice does not change TrackingSource/Vehicle authority or public omission. |
+| Trip lifecycle lacked one owner | Resolved | Operations remains authoritative; no lifecycle writer was added. |
+| Canonical current state was untyped/consumer-owned | Resolved | Existing V1 canonical authority and projections are untouched. |
+| Raw diagnostics and temporal semantics were absent | Partially Resolved | T7 remains bounded; producer clocks and physical replay remain unverified. |
+| Redis current state is durable truth | Still Present | No durable current-state recovery/replay was added. |
+| Route-stop cache ownership is incomplete | Resolved | T10 transaction/invalidation authority and ordered request remain unchanged. |
+| Realtime fan-out/scaling is proven | Unable to Verify | No rooms, replay, load, or deployed measurement was added. |
+| Public/admin service-state behavior is an operational contract | Partially Resolved | Existing truthful service-state projections are unchanged; history, actionable exceptions, causal diagnosis, and deployed recovery remain incomplete. |
+| Production topology and REST/Socket origin authority were unresolved | Partially Resolved | T9 repository authority remains; external TLS/proxy/recovery/capacity evidence remains unavailable. |
+| Shared Admin material/Login presentation authority was absent | Resolved | Mutation content reuses the established Signal Lens glass/opaque material tiers. |
+| Login rejection shared protected-route redirect behavior | Resolved | Login source is unchanged; rejected-request, inline-error, protected-route redirect, and material regressions pass. |
+| Native/page-local mutation feedback lacked one shared semantic presentation/focus boundary | Resolved | One shared feedback/confirmation composition now owns semantics/focus and visible/accessibly described immutable target identity while each page retains request, pending state, and DTO authority. |
+
+No Level 2 or owner decision is required. Frontend and the downstream affected profiles consume this
+Architecture baseline; further source selection remains owned by the revalidated Roadmap.
+Three deliberately page-owned mutation state machines remain a non-blocking drift risk; one table-
+driven all-resource suite currently enforces their shared request/feedback invariants. The unrelated
+dirty Feedback-role migration is excluded from the immutable `e6a04ad` evidence.
+
+## 2026-08-10 T14 bright-neutral Admin Liquid Glass foundation re-audit — superseded by mutation-feedback evidence
 
 Discovery remains current at `1eec866...`; Product is validated against `c4fdc3a`. The ninth T14
 slice is **Complete for its exact frontend architecture contract**. One Admin layout marker and one
@@ -251,18 +304,27 @@ Health and Feedback now consume the same presentation/focus vocabulary without m
 safe-field, role, lifecycle, or request authority. Owner refinement `a0a0ce1` now requires those
 shared presentation boundaries to consume one bright-neutral Admin Liquid Glass material/token
 foundation; `c4fdc3a` implements it without moving domain or request ownership.
+Source baseline `e6a04ad` now replaces the three page-local native mutation recovery paths with one typed
+feedback/confirmation composition while resource pages retain endpoint, target, DTO, refresh, and
+pending-state ownership. The shared confirmation identifies the immutable target visually and in
+its accessible description.
 
 ## 2. Scope and Freshness
 
-This profile covers boundaries, authority, data products, temporal semantics, cache/realtime behavior, and task placement. It does not certify deployment, physical devices, provider behavior, browser runtime, load, or an Android client.
+This profile covers boundaries, authority, data products, temporal semantics, cache/realtime
+behavior, and task placement. It does not certify deployment, physical devices, provider behavior,
+deployed browser runtime, human behavior, load, or an Android client.
 
-Discovery remains current at `1eec866...`; Product is revalidated at `c4fdc3a`, and the preceding
-affected Architecture baseline was `a0a0ce1...`. Exact changed evidence is the D-011 Admin layout/
-CSS/Login/Sidebar/client rejection boundary and deterministic test/design record at `c4fdc3a`.
+Discovery remains current at `1eec866...`; Product is revalidated at `e6a04ad`, and the preceding
+affected Architecture baseline was `c4fdc3a`. Exact changed evidence is the T14 task, scoped Admin
+CSS, Vehicles/Routes/Stops pages, CRUD/shared modal and mutation-feedback components, and master-
+data browser tests at `e6a04ad` with completion records `8ebdf9a` and `e5f6422`.
 Existing T9 topology, canonical selection, research capture, relational schema, route-stop mutation/
 cache ownership, Feedback lifecycle, and Mobile/ESP32/LoRaWAN acquisition semantics are unchanged.
-The implementation supplies no TLS, recovery, capacity, deployment, device, Android, or runtime
-proof.
+The implementation supplies isolated browser evidence but no TLS, recovery, capacity, deployment,
+device, Android, ambient data-target, human, or deployed-runtime proof.
+The valid Discovery commit `1eec866b986b4cb4e802f7a48fac93e54e780699` is an ancestor of
+`e6a04ad`; the bounded affected delta is `c4fdc3a..e6a04ad`.
 
 ## 3. Prior-Finding Revalidation
 
@@ -277,6 +339,9 @@ proof.
 | Realtime fan-out/scaling is proven | Unable to Verify | The Redis adapter exists, but publication is global and no rooms, replay, load threshold, or fan-out measurement is evidenced. |
 | Public/admin service-state behavior is an operational contract | Partially Resolved | Canonical state distinguishes live, stale, no_service, and unknown; T8 keeps Public projection coherent; T14 now projects truthful Public snapshot/connection/service guidance plus Admin snapshot/realtime/local-expiry and Source Health/Feedback failure/retry/verified-empty state. History, actionable exceptions, unavailable causal diagnosis, deployed recovery, and operational ownership remain incomplete. |
 | Production topology and REST/Socket origin authority were unresolved | Partially Resolved | T9 establishes one checked-in university topology, one fail-closed backend runtime parser, and one frontend REST/Socket origin resolver with deterministic tests. Actual reverse proxy, TLS, data-service exposure, restart, recovery, and capacity remain Unable to Verify externally. |
+| Shared Admin material/Login presentation authority was absent | Resolved | `c4fdc3a` remains the one fixed-light Signal Lens authority; mutation receipts/errors use opaque operational tiers and confirmation reuses shared glass modal chrome. |
+| Login rejection shared protected-route redirect behavior | Resolved | Login source is unchanged; the exact rejected-request exception and protected-route redirect remain independently covered. |
+| Native/page-local mutation feedback lacked one shared semantic presentation/focus boundary | Resolved | `AdminMutationFeedback` owns narrowed error/receipt/confirmation presentation, including visible/accessibly described immutable target identity, while resource pages retain request, pending state, and DTO authority. |
 
 ## 4. Data Products and Authority
 
@@ -311,10 +376,9 @@ proof.
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
 T9 is Partially Complete for its repository-side handoff under D-008. T10/T12 are complete for their
-bounded handoffs. T14's first eight slices remain accepted and the ninth bright-neutral Admin Liquid
-Glass foundation is complete for its exact source/browser contract at `c4fdc3a`. Mutation feedback
-may follow only through a new handoff that preserves page/API/auth ownership, payloads, destructive
-intent, and Public presentation. T11 still needs focused technical and external Android evidence;
+bounded handoffs. T14's first nine slices remain accepted, and the tenth mutation-feedback slice is
+complete for this Architecture source/browser contract at `e6a04ad`; the downstream affected chain
+has consumed it. T11 still needs focused technical and external Android evidence;
 Research remains blocked on T13.
 Production operations, runtime retention, capacity and external-device facts remain open; no new
 owner decision is proposed.
@@ -329,11 +393,11 @@ No new owner decision is proposed. D-011 and D-012 are approved and constrain on
 UX-order and general account/source lifecycle work; external T9/Mobile acceptance remains evidence,
 not a policy choice to infer.
 
-Frontend and downstream profiles may consume this Architecture baseline. Backend and Database remain
+Frontend and downstream profiles consume this Architecture baseline. Backend and Database remain
 current at `1eec866...` because T14 changes no runtime API, schema, or persistence authority. The
-Roadmap may next create only a bounded T14 master-data mutation-feedback handoff; none of this
-evidence promotes a visual direction or browser fixture into assistive-technology, device, or runtime
-proof.
+Roadmap owns the next exact continuation gate; none of
+this evidence promotes a visual direction or browser fixture into assistive-technology, device, or
+runtime proof.
 
 ## 9. T12 Implementation Re-audit — 2026-08-01
 
