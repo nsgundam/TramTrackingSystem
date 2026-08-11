@@ -6,7 +6,7 @@ import { useModalFocus } from "@/hooks/useModalFocus";
 
 interface AdminFormModalProps {
   active: boolean;
-  kind: "form" | "route-stops" | "feedback-confirmation";
+  kind: "form" | "route-stops" | "feedback-confirmation" | "mutation-confirmation";
   titleId: string;
   title: string;
   description?: string;

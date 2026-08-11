@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import AdminFormModal from "@/components/admin/AdminFormModal";
+import { AdminMutationFeedback } from "@/components/admin/AdminMutationFeedback";
 import { Route } from "@/types/route";
 
 interface RouteModalProps {
@@ -9,6 +11,8 @@ interface RouteModalProps {
   onClose: () => void;
   onSubmit: (data: Partial<Route>) => void;
   initialData?: Route | null;
+  submitting: boolean;
+  submitError: string | null;
 }
 
 interface RouteFormData {
@@ -18,32 +22,24 @@ interface RouteFormData {
   status: Route["status"];
 }
 
+const routeFormData = (initialData?: Route | null): RouteFormData => initialData
+  ? {
+    id: initialData.id,
+    name: initialData.name,
+    color: initialData.color,
+    status: initialData.status,
+  }
+  : { id: "", name: "", color: "#3B82F6", status: "active" };
+
 export default function RouteModal({
   isOpen,
   onClose,
   onSubmit,
   initialData,
+  submitting,
+  submitError,
 }: RouteModalProps) {
-  const [formData, setFormData] = useState<RouteFormData>({
-    id: "",
-    name: "",
-    color: "#3B82F6",
-    status: "active",
-  });
-
-  useEffect(() => {
-    if (initialData) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFormData({
-        id: initialData.id,
-        name: initialData.name,
-        color: initialData.color,
-        status: initialData.status,
-      });
-    } else {
-      setFormData({ id: "", name: "", color: "#3B82F6", status: "active" });
-    }
-  }, [initialData, isOpen]);
+  const [formData, setFormData] = useState<RouteFormData>(() => routeFormData(initialData));
 
   return (
     <AdminFormModal
@@ -54,10 +50,12 @@ export default function RouteModal({
       description="Route identity, display color, and service availability."
       closeLabel="Close route dialog"
       onClose={onClose}
+      closeDisabled={submitting}
     >
       <form
         onSubmit={(event) => {
           event.preventDefault();
+          if (submitting) return;
           onSubmit(formData);
         }}
         className="admin-form"
@@ -67,7 +65,7 @@ export default function RouteModal({
           <input
             id="route-id"
             required
-            disabled={Boolean(initialData)}
+            disabled={Boolean(initialData) || submitting}
             type="text"
             value={formData.id}
             onChange={(event) => setFormData({ ...formData, id: event.target.value })}
@@ -82,6 +80,7 @@ export default function RouteModal({
           <input
             id="route-name"
             required
+            disabled={submitting}
             type="text"
             value={formData.name}
             onChange={(event) => setFormData({ ...formData, name: event.target.value })}
@@ -97,6 +96,7 @@ export default function RouteModal({
             <input
               id="route-color"
               required
+              disabled={submitting}
               type="color"
               value={formData.color}
               onChange={(event) => setFormData({ ...formData, color: event.target.value })}
@@ -111,6 +111,7 @@ export default function RouteModal({
           <label htmlFor="route-status">Status</label>
           <select
             id="route-status"
+            disabled={submitting}
             value={formData.status}
             onChange={(event) => {
               const status = event.target.value;
@@ -126,10 +127,19 @@ export default function RouteModal({
           </select>
         </div>
 
+        {submitError && (
+          <AdminMutationFeedback
+            tone="error"
+            title="Unable to save route"
+            message={submitError}
+          />
+        )}
+
         <footer className="admin-modal__footer">
           <button
             type="button"
             onClick={onClose}
+            disabled={submitting}
             className="admin-button"
             data-tone="secondary"
             data-admin-control
@@ -138,11 +148,18 @@ export default function RouteModal({
           </button>
           <button
             type="submit"
+            disabled={submitting}
+            aria-busy={submitting}
             className="admin-button"
             data-tone="primary"
             data-admin-control
           >
-            {initialData ? "Save Changes" : "Create Route"}
+            {submitting ? (
+              <>
+                <Loader2 className="admin-resource-state__spinner" size={17} aria-hidden="true" />
+                Saving…
+              </>
+            ) : initialData ? "Save Changes" : "Create Route"}
           </button>
         </footer>
       </form>

@@ -1563,6 +1563,112 @@
   font-size: 0.8125rem;
 }
 
+.admin-mutation-feedback {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 0.75rem;
+  background: var(--admin-surface);
+  color: var(--admin-ink);
+  padding: 0.875rem 1rem;
+}
+
+.admin-mutation-feedback[data-tone="success"] {
+  border-color: var(--admin-positive-border);
+}
+
+.admin-mutation-feedback[data-tone="error"] {
+  border-color: var(--admin-danger-border);
+}
+
+.admin-mutation-feedback__icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  place-items: center;
+  border-radius: 0.625rem;
+  background: var(--admin-surface-subtle);
+}
+
+.admin-mutation-feedback[data-tone="success"] .admin-mutation-feedback__icon {
+  color: var(--admin-positive);
+}
+
+.admin-mutation-feedback[data-tone="error"] .admin-mutation-feedback__icon {
+  color: var(--admin-danger);
+}
+
+.admin-mutation-feedback__body {
+  min-width: 0;
+  flex: 1;
+  padding-top: 0.125rem;
+}
+
+.admin-mutation-feedback__title {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.admin-mutation-feedback__message {
+  margin-top: 0.2rem;
+  color: var(--admin-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.admin-mutation-feedback__dismiss {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--admin-border);
+  border-radius: 0.75rem;
+  background: var(--admin-surface);
+  color: var(--admin-muted);
+}
+
+.admin-mutation-feedback__dismiss:hover {
+  background: var(--admin-surface-subtle);
+  color: var(--admin-ink);
+}
+
+.admin-delete-confirmation {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-delete-confirmation__target {
+  min-width: 0;
+  border: 1px solid var(--admin-content-border);
+  border-radius: 0.75rem;
+  background: var(--admin-surface);
+  padding: 0.875rem 1rem;
+}
+
+.admin-delete-confirmation__label {
+  color: var(--admin-muted);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.admin-delete-confirmation__name {
+  margin-top: 0.3rem;
+  color: var(--admin-ink);
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
 .admin-route-stops__list {
   display: grid;
   gap: 0.5rem;
@@ -2020,6 +2126,8 @@
   .admin-feedback-recovery__item,
   .admin-route-stops__item,
   .admin-route-stops__add,
+  .admin-mutation-feedback,
+  .admin-delete-confirmation__target,
   .admin-metric,
   .admin-live-map,
   .admin-resource-table,
@@ -2090,13 +2198,16 @@
   .admin-feedback-recovery__item,
   .admin-route-stops__item,
   .admin-route-stops__add,
+  .admin-mutation-feedback,
+  .admin-delete-confirmation__target,
   .admin-metric,
   .admin-form-control,
   .admin-icon-action,
   .admin-primary-action,
   .admin-secondary-action,
   .admin-button,
-  .admin-modal__close
+  .admin-modal__close,
+  .admin-mutation-feedback__dismiss
 ) {
   border-radius: 0.75rem;
 }
@@ -2469,6 +2580,9 @@
     .admin-secondary-action,
     .admin-button,
     .admin-icon-action,
+    .admin-mutation-feedback,
+    .admin-mutation-feedback__dismiss,
+    .admin-delete-confirmation__target,
     .admin-modal,
     .admin-modal-backdrop,
     .admin-sidebar-backdrop

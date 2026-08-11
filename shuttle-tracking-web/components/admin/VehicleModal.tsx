@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import AdminFormModal from "@/components/admin/AdminFormModal";
+import { AdminMutationFeedback } from "@/components/admin/AdminMutationFeedback";
 import { Vehicle } from "@/types/vehicle";
 
 interface VehicleModalProps {
@@ -10,7 +12,25 @@ interface VehicleModalProps {
   onSubmit: (data: Partial<Vehicle>) => void;
   initialData?: Vehicle | null;
   routes: { id: string; name: string }[];
+  submitting: boolean;
+  submitError: string | null;
 }
+
+const vehicleFormData = (initialData?: Vehicle | null) => initialData
+  ? {
+    id: initialData.id,
+    name: initialData.name,
+    type: initialData.type,
+    status: initialData.status,
+    assignedRouteId: initialData.assignedRouteId || "",
+  }
+  : {
+    id: "",
+    name: "",
+    type: "Bus",
+    status: "active",
+    assignedRouteId: "",
+  };
 
 export default function VehicleModal({
   isOpen,
@@ -18,35 +38,10 @@ export default function VehicleModal({
   onSubmit,
   initialData,
   routes,
+  submitting,
+  submitError,
 }: VehicleModalProps) {
-  const [formData, setFormData] = useState({
-    id: "",
-    name: "",
-    type: "Bus",
-    status: "active",
-    assignedRouteId: "",
-  });
-
-  useEffect(() => {
-    if (initialData) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFormData({
-        id: initialData.id,
-        name: initialData.name,
-        type: initialData.type,
-        status: initialData.status,
-        assignedRouteId: initialData.assignedRouteId || "",
-      });
-    } else {
-      setFormData({
-        id: "",
-        name: "",
-        type: "Bus",
-        status: "active",
-        assignedRouteId: "",
-      });
-    }
-  }, [initialData, isOpen]);
+  const [formData, setFormData] = useState(() => vehicleFormData(initialData));
 
   return (
     <AdminFormModal
@@ -57,10 +52,12 @@ export default function VehicleModal({
       description="Vehicle identity, service status, and route assignment."
       closeLabel="Close vehicle dialog"
       onClose={onClose}
+      closeDisabled={submitting}
     >
       <form
         onSubmit={(event) => {
           event.preventDefault();
+          if (submitting) return;
           onSubmit(formData);
         }}
         className="admin-form"
@@ -70,7 +67,7 @@ export default function VehicleModal({
           <input
             id="vehicle-id"
             required
-            disabled={Boolean(initialData)}
+            disabled={Boolean(initialData) || submitting}
             type="text"
             value={formData.id}
             onChange={(event) => setFormData({ ...formData, id: event.target.value })}
@@ -85,6 +82,7 @@ export default function VehicleModal({
           <input
             id="vehicle-name"
             required
+            disabled={submitting}
             type="text"
             value={formData.name}
             onChange={(event) => setFormData({ ...formData, name: event.target.value })}
@@ -99,6 +97,7 @@ export default function VehicleModal({
           <input
             id="vehicle-type"
             required
+            disabled={submitting}
             type="text"
             value={formData.type}
             onChange={(event) => setFormData({ ...formData, type: event.target.value })}
@@ -112,6 +111,7 @@ export default function VehicleModal({
           <label htmlFor="vehicle-status">Status</label>
           <select
             id="vehicle-status"
+            disabled={submitting}
             value={formData.status}
             onChange={(event) => setFormData({ ...formData, status: event.target.value })}
             className="admin-form-control"
@@ -127,6 +127,7 @@ export default function VehicleModal({
           <label htmlFor="vehicle-route">Assign Route</label>
           <select
             id="vehicle-route"
+            disabled={submitting}
             value={formData.assignedRouteId}
             onChange={(event) => setFormData({ ...formData, assignedRouteId: event.target.value })}
             className="admin-form-control"
@@ -139,10 +140,19 @@ export default function VehicleModal({
           </select>
         </div>
 
+        {submitError && (
+          <AdminMutationFeedback
+            tone="error"
+            title="Unable to save vehicle"
+            message={submitError}
+          />
+        )}
+
         <footer className="admin-modal__footer">
           <button
             type="button"
             onClick={onClose}
+            disabled={submitting}
             className="admin-button"
             data-tone="secondary"
             data-admin-control
@@ -151,11 +161,18 @@ export default function VehicleModal({
           </button>
           <button
             type="submit"
+            disabled={submitting}
+            aria-busy={submitting}
             className="admin-button"
             data-tone="primary"
             data-admin-control
           >
-            {initialData ? "Save Changes" : "Create Vehicle"}
+            {submitting ? (
+              <>
+                <Loader2 className="admin-resource-state__spinner" size={17} aria-hidden="true" />
+                Saving…
+              </>
+            ) : initialData ? "Save Changes" : "Create Vehicle"}
           </button>
         </footer>
       </form>

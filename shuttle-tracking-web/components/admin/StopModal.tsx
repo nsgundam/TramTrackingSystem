@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import AdminFormModal from "@/components/admin/AdminFormModal";
+import { AdminMutationFeedback } from "@/components/admin/AdminMutationFeedback";
 import { Stop } from "@/types/stop";
 
 interface StopModalProps {
@@ -9,41 +11,34 @@ interface StopModalProps {
   onClose: () => void;
   onSubmit: (data: Partial<Stop>) => void;
   initialData?: Stop | null;
+  submitting: boolean;
+  submitError: string | null;
 }
+
+const stopFormData = (initialData?: Stop | null) => initialData
+  ? {
+    id: initialData.id,
+    nameTh: initialData.nameTh,
+    nameEn: initialData.nameEn || "",
+    lat: initialData.lat.toString(),
+    lng: initialData.lng.toString(),
+    imageUrl: initialData.imageUrl || "",
+  }
+  : { id: "", nameTh: "", nameEn: "", lat: "", lng: "", imageUrl: "" };
 
 export default function StopModal({
   isOpen,
   onClose,
   onSubmit,
   initialData,
+  submitting,
+  submitError,
 }: StopModalProps) {
-  const [formData, setFormData] = useState({
-    id: "",
-    nameTh: "",
-    nameEn: "",
-    lat: "",
-    lng: "",
-    imageUrl: "",
-  });
-
-  useEffect(() => {
-    if (initialData) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFormData({
-        id: initialData.id,
-        nameTh: initialData.nameTh,
-        nameEn: initialData.nameEn || "",
-        lat: initialData.lat.toString(),
-        lng: initialData.lng.toString(),
-        imageUrl: initialData.imageUrl || "",
-      });
-    } else {
-      setFormData({ id: "", nameTh: "", nameEn: "", lat: "", lng: "", imageUrl: "" });
-    }
-  }, [initialData, isOpen]);
+  const [formData, setFormData] = useState(() => stopFormData(initialData));
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    if (submitting) return;
     onSubmit({
       ...formData,
       lat: Number.parseFloat(formData.lat),
@@ -60,6 +55,7 @@ export default function StopModal({
       description="Bilingual stop identity and map coordinates."
       closeLabel="Close stop dialog"
       onClose={onClose}
+      closeDisabled={submitting}
     >
       <form onSubmit={handleSubmit} className="admin-form">
         <div className="admin-form__grid admin-form__grid--two-column">
@@ -68,7 +64,7 @@ export default function StopModal({
             <input
               id="stop-id"
               required
-              disabled={Boolean(initialData)}
+              disabled={Boolean(initialData) || submitting}
               type="text"
               value={formData.id}
               onChange={(event) => setFormData({ ...formData, id: event.target.value })}
@@ -83,6 +79,7 @@ export default function StopModal({
             <input
               id="stop-name-th"
               required
+              disabled={submitting}
               type="text"
               value={formData.nameTh}
               onChange={(event) => setFormData({ ...formData, nameTh: event.target.value })}
@@ -96,6 +93,7 @@ export default function StopModal({
             <label htmlFor="stop-name-en">Name (EN)</label>
             <input
               id="stop-name-en"
+              disabled={submitting}
               type="text"
               value={formData.nameEn}
               onChange={(event) => setFormData({ ...formData, nameEn: event.target.value })}
@@ -110,6 +108,7 @@ export default function StopModal({
             <input
               id="stop-latitude"
               required
+              disabled={submitting}
               type="number"
               step="any"
               value={formData.lat}
@@ -125,6 +124,7 @@ export default function StopModal({
             <input
               id="stop-longitude"
               required
+              disabled={submitting}
               type="number"
               step="any"
               value={formData.lng}
@@ -136,10 +136,19 @@ export default function StopModal({
           </div>
         </div>
 
+        {submitError && (
+          <AdminMutationFeedback
+            tone="error"
+            title="Unable to save stop"
+            message={submitError}
+          />
+        )}
+
         <footer className="admin-modal__footer">
           <button
             type="button"
             onClick={onClose}
+            disabled={submitting}
             className="admin-button"
             data-tone="secondary"
             data-admin-control
@@ -148,11 +157,18 @@ export default function StopModal({
           </button>
           <button
             type="submit"
+            disabled={submitting}
+            aria-busy={submitting}
             className="admin-button"
             data-tone="primary"
             data-admin-control
           >
-            {initialData ? "Save Changes" : "Create Stop"}
+            {submitting ? (
+              <>
+                <Loader2 className="admin-resource-state__spinner" size={17} aria-hidden="true" />
+                Saving…
+              </>
+            ) : initialData ? "Save Changes" : "Create Stop"}
           </button>
         </footer>
       </form>

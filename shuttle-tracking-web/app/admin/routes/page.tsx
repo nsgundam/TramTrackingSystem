@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ListOrdered, Pencil, Plus, Trash2 } from "lucide-react";
 import api from "@/services/api";
 import { Route } from "@/types/route";
@@ -14,6 +14,17 @@ import {
   AdminResourceState,
   AdminStatusBadge,
 } from "@/components/admin/AdminResourcePage";
+import {
+  AdminDeleteConfirmation,
+  AdminMutationReceipt,
+  adminMutationErrorMessage,
+  type AdminMutationAction,
+} from "@/components/admin/AdminMutationFeedback";
+
+interface MutationReceipt {
+  action: AdminMutationAction;
+  target: string;
+}
 
 export default function RoutesPage() {
   const [routes, setRoutes] = useState<Route[]>([]);
@@ -22,6 +33,14 @@ export default function RoutesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [managingStopsFor, setManagingStopsFor] = useState<Route | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Route | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<MutationReceipt | null>(null);
+  const saveInFlight = useRef(false);
+  const deleteInFlight = useRef(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -29,8 +48,7 @@ export default function RoutesPage() {
     try {
       const response = await api.get<Route[]>("admin/routes");
       setRoutes(response.data);
-    } catch (error) {
-      console.error("Failed to fetch routes:", error);
+    } catch {
       setLoadError("Unable to load routes. Check the connection and try again.");
     } finally {
       setLoading(false);
@@ -43,40 +61,93 @@ export default function RoutesPage() {
   }, []);
 
   const handleSave = async (data: Partial<Route>) => {
+    if (saveInFlight.current) return;
+    saveInFlight.current = true;
+    setSaving(true);
+    setSaveError(null);
+    setReceipt(null);
+    const isUpdate = Boolean(editingRoute);
+    const target = data.name?.trim() || editingRoute?.name || data.id?.trim() || "Route";
+
     try {
       if (editingRoute) {
-        await api.put(`admin/routes/${editingRoute.id}`, data);
+        await api.put(`admin/routes/${editingRoute.id}`, {
+          ...data,
+          id: editingRoute.id,
+        });
       } else {
         await api.post("admin/routes", data);
       }
       setIsModalOpen(false);
       setEditingRoute(null);
+      setReceipt({ action: isUpdate ? "updated" : "created", target });
       await fetchData();
     } catch (error) {
-      console.error("Save error:", error);
-      alert("Failed to save route");
+      setSaveError(adminMutationErrorMessage(
+        error,
+        "Route could not be saved. Try again.",
+      ));
+    } finally {
+      saveInFlight.current = false;
+      setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this route?")) return;
+  const handleDelete = async () => {
+    if (!deleteTarget || deleteInFlight.current) return;
+    const target = deleteTarget;
+    deleteInFlight.current = true;
+    setDeleting(true);
+    setDeleteError(null);
+    setReceipt(null);
+
     try {
-      await api.delete(`admin/routes/${id}`);
+      await api.delete(`admin/routes/${target.id}`);
+      setDeleteTarget(null);
+      setReceipt({ action: "deleted", target: target.name });
       await fetchData();
     } catch (error) {
-      console.error("Delete error:", error);
-      alert("Failed to delete route");
+      setDeleteError(adminMutationErrorMessage(
+        error,
+        "Route could not be deleted. Try again.",
+      ));
+    } finally {
+      deleteInFlight.current = false;
+      setDeleting(false);
     }
   };
 
   const openAddModal = () => {
     setEditingRoute(null);
+    setSaveError(null);
+    setReceipt(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (route: Route) => {
     setEditingRoute(route);
+    setSaveError(null);
+    setReceipt(null);
     setIsModalOpen(true);
+  };
+
+  const closeEditor = () => {
+    if (saveInFlight.current) return;
+    setIsModalOpen(false);
+    setEditingRoute(null);
+    setSaveError(null);
+  };
+
+  const openDeleteConfirmation = (route: Route) => {
+    setDeleteTarget(route);
+    setDeleteError(null);
+    setReceipt(null);
+  };
+
+  const closeDeleteConfirmation = () => {
+    if (deleteInFlight.current) return;
+    setDeleteTarget(null);
+    setDeleteError(null);
   };
 
   const actionsFor = (route: Route) => (
@@ -97,7 +168,7 @@ export default function RoutesPage() {
       <AdminIconButton
         label={`Delete ${route.name}`}
         tone="danger"
-        onClick={() => void handleDelete(route.id)}
+        onClick={() => openDeleteConfirmation(route)}
       >
         <Trash2 size={17} aria-hidden="true" />
       </AdminIconButton>
@@ -124,7 +195,17 @@ export default function RoutesPage() {
       actionLabel="Add Route"
       actionIcon={<Plus size={18} aria-hidden="true" />}
       onAction={openAddModal}
+      actionBusy={saving || deleting}
     >
+      {receipt && (
+        <AdminMutationReceipt
+          resource="Route"
+          target={receipt.target}
+          action={receipt.action}
+          onDismiss={() => setReceipt(null)}
+        />
+      )}
+
       <AdminResourcePanel>
         {loading ? (
           <AdminResourceState state="loading" message="Loading routes…" />
@@ -197,18 +278,28 @@ export default function RoutesPage() {
       </AdminResourcePanel>
 
       <RouteModal
+        key={isModalOpen ? editingRoute?.id ?? "new-route" : "closed-route"}
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingRoute(null);
-        }}
+        onClose={closeEditor}
         onSubmit={handleSave}
         initialData={editingRoute}
+        submitting={saving}
+        submitError={saveError}
       />
       <RouteStopsModal
         route={managingStopsFor}
         onClose={() => setManagingStopsFor(null)}
         onSaved={() => void fetchData()}
+      />
+      <AdminDeleteConfirmation
+        active={Boolean(deleteTarget)}
+        titleId="route-delete-dialog-title"
+        resource="Route"
+        target={deleteTarget?.name ?? ""}
+        busy={deleting}
+        error={deleteError}
+        onCancel={closeDeleteConfirmation}
+        onConfirm={() => void handleDelete()}
       />
     </AdminResourcePage>
   );

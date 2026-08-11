@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { expect, test, type BrowserContext, type Locator, type Page, type Route } from "@playwright/test";
 
 const ADMIN_ORIGIN = "http://127.0.0.1:13000";
@@ -36,6 +38,198 @@ const stops = [
   },
 ];
 
+type MasterDataResource = "vehicles" | "routes" | "stops";
+
+interface MutationRequest {
+  resource: MasterDataResource;
+  method: "POST" | "PUT" | "DELETE";
+  pathname: string;
+  id: string | null;
+  body: unknown | null;
+}
+
+interface MutationResponse {
+  status?: number;
+  body?: unknown;
+}
+
+type MutationHandler = (
+  request: MutationRequest,
+) => MutationResponse | Promise<MutationResponse>;
+
+interface MasterDataScenario {
+  resource: MasterDataResource;
+  singular: "vehicle" | "route" | "stop";
+  path: string;
+  itemId: string;
+  itemName: string;
+  addLabel: string;
+  editLabel: string;
+  deleteLabel: string;
+  closeLabel: string;
+  createSubmitLabel: string;
+  createName: string;
+  createBody: Record<string, unknown>;
+  updatedName: string;
+  updateBody: Record<string, unknown>;
+  failureText: string;
+  fillCreate: (dialog: Locator) => Promise<void>;
+  fillUpdate: (dialog: Locator) => Promise<void>;
+  expectRetainedUpdate: (dialog: Locator) => Promise<void>;
+}
+
+const isMasterDataResource = (value: string): value is MasterDataResource => (
+  value === "vehicles" || value === "routes" || value === "stops"
+);
+
+const responseData: Record<MasterDataResource, unknown> = {
+  vehicles,
+  routes,
+  stops,
+};
+
+const scenarios: readonly MasterDataScenario[] = [
+  {
+    resource: "vehicles",
+    singular: "vehicle",
+    path: "/admin/vehicles",
+    itemId: "VH001",
+    itemName: "Tram 01",
+    addLabel: "Add Vehicle",
+    editLabel: "Edit Tram 01",
+    deleteLabel: "Delete Tram 01",
+    closeLabel: "Close vehicle dialog",
+    createSubmitLabel: "Create Vehicle",
+    createName: "Shuttle 02",
+    createBody: {
+      id: "VH002",
+      name: "Shuttle 02",
+      type: "Bus",
+      status: "inactive",
+      assignedRouteId: "R01",
+    },
+    updatedName: "Tram 01 Updated",
+    updateBody: {
+      id: "VH001",
+      name: "Tram 01 Updated",
+      type: "Electric Tram",
+      status: "maintenance",
+      assignedRouteId: "",
+    },
+    failureText: "Vehicle could not be saved. Try again.",
+    fillCreate: async (dialog) => {
+      await dialog.getByLabel("Vehicle ID").fill("VH002");
+      await dialog.getByLabel("Vehicle Name").fill("Shuttle 02");
+      await dialog.getByLabel("Type").fill("Bus");
+      await dialog.getByLabel("Status").selectOption("inactive");
+      await dialog.getByLabel("Assign Route").selectOption("R01");
+    },
+    fillUpdate: async (dialog) => {
+      await dialog.getByLabel("Vehicle Name").fill("Tram 01 Updated");
+      await dialog.getByLabel("Type").fill("Electric Tram");
+      await dialog.getByLabel("Status").selectOption("maintenance");
+      await dialog.getByLabel("Assign Route").selectOption("");
+    },
+    expectRetainedUpdate: async (dialog) => {
+      await expect(dialog.getByLabel("Vehicle ID")).toHaveValue("VH001");
+      await expect(dialog.getByLabel("Vehicle Name")).toHaveValue("Tram 01 Updated");
+      await expect(dialog.getByLabel("Type")).toHaveValue("Electric Tram");
+    },
+  },
+  {
+    resource: "routes",
+    singular: "route",
+    path: "/admin/routes",
+    itemId: "R01",
+    itemName: "Campus Loop",
+    addLabel: "Add Route",
+    editLabel: "Edit Campus Loop",
+    deleteLabel: "Delete Campus Loop",
+    closeLabel: "Close route dialog",
+    createSubmitLabel: "Create Route",
+    createName: "Library Loop",
+    createBody: {
+      id: "R02",
+      name: "Library Loop",
+      color: "#aabbcc",
+      status: "inactive",
+    },
+    updatedName: "Campus Loop Updated",
+    updateBody: {
+      id: "R01",
+      name: "Campus Loop Updated",
+      color: "#123456",
+      status: "inactive",
+    },
+    failureText: "Route could not be saved. Try again.",
+    fillCreate: async (dialog) => {
+      await dialog.getByLabel("Route ID").fill("R02");
+      await dialog.getByLabel("Route Name").fill("Library Loop");
+      await dialog.getByLabel("Route Color").fill("#aabbcc");
+      await dialog.getByLabel("Status").selectOption("inactive");
+    },
+    fillUpdate: async (dialog) => {
+      await dialog.getByLabel("Route Name").fill("Campus Loop Updated");
+      await dialog.getByLabel("Route Color").fill("#123456");
+      await dialog.getByLabel("Status").selectOption("inactive");
+    },
+    expectRetainedUpdate: async (dialog) => {
+      await expect(dialog.getByLabel("Route ID")).toHaveValue("R01");
+      await expect(dialog.getByLabel("Route Name")).toHaveValue("Campus Loop Updated");
+      await expect(dialog.getByLabel("Route Color")).toHaveValue("#123456");
+    },
+  },
+  {
+    resource: "stops",
+    singular: "stop",
+    path: "/admin/stops",
+    itemId: "ST01",
+    itemName: "Main Gate",
+    addLabel: "Add Stop",
+    editLabel: "Edit Main Gate",
+    deleteLabel: "Delete Main Gate",
+    closeLabel: "Close stop dialog",
+    createSubmitLabel: "Create Stop",
+    createName: "Library",
+    createBody: {
+      id: "ST03",
+      nameTh: "หอสมุด",
+      nameEn: "Library",
+      lat: 13.9661,
+      lng: 100.5882,
+      imageUrl: "",
+    },
+    updatedName: "Main Gate Updated",
+    updateBody: {
+      id: "ST01",
+      nameTh: "ประตูหลักปรับปรุง",
+      nameEn: "Main Gate Updated",
+      lat: 13.9642,
+      lng: 100.5868,
+      imageUrl: "",
+    },
+    failureText: "Stop could not be saved. Try again.",
+    fillCreate: async (dialog) => {
+      await dialog.getByLabel("Stop ID").fill("ST03");
+      await dialog.getByLabel("Name (TH)").fill("หอสมุด");
+      await dialog.getByLabel("Name (EN)").fill("Library");
+      await dialog.getByLabel("Latitude").fill("13.9661");
+      await dialog.getByLabel("Longitude").fill("100.5882");
+    },
+    fillUpdate: async (dialog) => {
+      await dialog.getByLabel("Name (TH)").fill("ประตูหลักปรับปรุง");
+      await dialog.getByLabel("Name (EN)").fill("Main Gate Updated");
+      await dialog.getByLabel("Latitude").fill("13.9642");
+      await dialog.getByLabel("Longitude").fill("100.5868");
+    },
+    expectRetainedUpdate: async (dialog) => {
+      await expect(dialog.getByLabel("Stop ID")).toHaveValue("ST01");
+      await expect(dialog.getByLabel("Name (TH)")).toHaveValue("ประตูหลักปรับปรุง");
+      await expect(dialog.getByLabel("Name (EN)")).toHaveValue("Main Gate Updated");
+    },
+  },
+] as const;
+
 const authenticateAdmin = async (context: BrowserContext) => {
   const payload = Buffer.from(JSON.stringify({
     exp: Math.floor(Date.now() / 1000) + 3600,
@@ -62,22 +256,66 @@ const useMasterData = async (
   options: {
     vehiclesResponse?: () => { status: number; body: unknown };
     onRouteStopsPut?: (body: unknown) => void;
+    onMutation?: MutationHandler;
   } = {},
 ) => {
-  await page.route("**/api/admin/vehicles", async (route) => {
-    const response = options.vehiclesResponse?.() ?? { status: 200, body: vehicles };
-    await fulfillJson(route, response.body, response.status);
-  });
-  await page.route("**/api/admin/routes", (route) => fulfillJson(route, routes));
-  await page.route("**/api/admin/stops", (route) => fulfillJson(route, stops));
-  await page.route("**/api/admin/route-stops/R01", async (route) => {
-    if (route.request().method() === "PUT") {
-      options.onRouteStopsPut?.(route.request().postDataJSON());
+  await page.route("**/api/admin/**", async (route) => {
+    const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+    if (pathname === "/api/admin/route-stops/R01") {
+      if (request.method() === "PUT") {
+        options.onRouteStopsPut?.(request.postDataJSON());
+        await fulfillJson(route, { success: true });
+        return;
+      }
+      await fulfillJson(route, stops.map((stop, index) => ({ ...stop, stopOrder: index + 1 })));
+      return;
+    }
+
+    const match = pathname.match(/^\/api\/admin\/(vehicles|routes|stops)(?:\/([^/]+))?$/);
+    if (!match || !isMasterDataResource(match[1])) {
       await fulfillJson(route, { success: true });
       return;
     }
-    await fulfillJson(route, stops.map((stop, index) => ({ ...stop, stopOrder: index + 1 })));
+
+    const resource = match[1];
+    if (request.method() === "GET") {
+      const response = resource === "vehicles"
+        ? options.vehiclesResponse?.() ?? { status: 200, body: responseData[resource] }
+        : { status: 200, body: responseData[resource] };
+      await fulfillJson(route, response.body, response.status);
+      return;
+    }
+
+    const method = request.method();
+    if (method !== "POST" && method !== "PUT" && method !== "DELETE") {
+      await fulfillJson(route, { error: "Unsupported test request" }, 405);
+      return;
+    }
+    const postData = request.postData();
+    const response = await options.onMutation?.({
+      resource,
+      method,
+      pathname,
+      id: match[2] ? decodeURIComponent(match[2]) : null,
+      body: postData === null ? null : request.postDataJSON(),
+    }) ?? { status: 200, body: { success: true } };
+    await fulfillJson(route, response.body ?? { success: true }, response.status ?? 200);
   });
+};
+
+const deferredMutation = () => {
+  let settle: ((response: MutationResponse) => void) | undefined;
+  const response = new Promise<MutationResponse>((resolve) => {
+    settle = resolve;
+  });
+  return {
+    response,
+    resolve(value: MutationResponse = { status: 200, body: { success: true } }) {
+      if (!settle) throw new Error("Mutation response was not initialized");
+      settle(value);
+    },
+  };
 };
 
 const expectMinimumTarget = async (locator: Locator) => {
@@ -91,6 +329,334 @@ const expectMinimumTarget = async (locator: Locator) => {
     expect(box.height).toBeGreaterThanOrEqual(44);
   }
 };
+
+const expectSolidPresentation = async (locator: Locator) => {
+  const presentation = await locator.evaluate((element) => {
+    const styles = getComputedStyle(element);
+    return {
+      backgroundImage: styles.backgroundImage,
+      backdropFilter: styles.backdropFilter,
+      transform: styles.transform,
+    };
+  });
+  expect(presentation).toEqual({
+    backgroundImage: "none",
+    backdropFilter: "none",
+    transform: "none",
+  });
+};
+
+const expectGlassPresentation = async (locator: Locator) => {
+  const presentation = await locator.evaluate((element) => {
+    const styles = getComputedStyle(element);
+    return {
+      backgroundImage: styles.backgroundImage,
+      backdropFilter: styles.backdropFilter,
+      transform: styles.transform,
+    };
+  });
+  expect(presentation).toMatchObject({
+    backgroundImage: "none",
+    transform: "none",
+  });
+  expect(presentation.backdropFilter).toContain("blur(");
+};
+
+const mutationReceipt = (
+  page: Page,
+  action: "created" | "updated" | "deleted",
+  target: string,
+) => page.getByRole("status").filter({ hasText: target }).filter({
+  hasText: action === "created"
+    ? /created|added/i
+    : action === "updated"
+      ? /updated|saved/i
+      : /deleted|removed/i,
+});
+
+test("T14 Admin master-data mutation source guard rejects native dialogs and caught-error logging", () => {
+  const workingDirectory = process.cwd();
+  const webRoot = workingDirectory.endsWith("shuttle-tracking-web")
+    ? workingDirectory
+    : join(workingDirectory, "shuttle-tracking-web");
+  const pageSources = [
+    "app/admin/vehicles/page.tsx",
+    "app/admin/routes/page.tsx",
+    "app/admin/stops/page.tsx",
+  ] as const;
+
+  for (const relativePath of pageSources) {
+    const source = readFileSync(join(webRoot, relativePath), "utf8");
+    expect(source, `${relativePath} must not call a native alert or confirmation`).not.toMatch(
+      /\b(?:window\s*\.\s*)?(?:alert|confirm)\s*\(/,
+    );
+    expect(source, `${relativePath} must not log caught error objects`).not.toMatch(
+      /\bconsole\s*\.\s*(?:error|warn|log)\s*\(/,
+    );
+  }
+});
+
+test("T14 Admin master-data mutation create and update retain exact bodies, inline recovery, pending lock, and receipts", async ({ page, context }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await authenticateAdmin(context);
+  const nativeDialogs: string[] = [];
+  page.on("dialog", (dialog) => {
+    nativeDialogs.push(dialog.type());
+    void dialog.dismiss();
+  });
+
+  let handleMutation: MutationHandler = () => ({ status: 200, body: { success: true } });
+  await useMasterData(page, {
+    onMutation: (request) => handleMutation(request),
+  });
+
+  for (const scenario of scenarios) {
+    const createGate = deferredMutation();
+    const updateGate = deferredMutation();
+    const createRequests: MutationRequest[] = [];
+    const updateRequests: MutationRequest[] = [];
+    handleMutation = (request) => {
+      if (request.resource !== scenario.resource) {
+        throw new Error(`Unexpected ${request.resource} mutation while testing ${scenario.resource}`);
+      }
+      if (request.method === "POST") {
+        createRequests.push(request);
+        return createGate.response;
+      }
+      if (request.method === "PUT") {
+        updateRequests.push(request);
+        if (updateRequests.length === 1) {
+          return {
+            status: 422,
+            body: {
+              error: scenario.failureText,
+              debug: { credential: "secret-debug-token" },
+            },
+          };
+        }
+        return updateGate.response;
+      }
+      throw new Error(`Unexpected ${request.method} mutation while testing save behavior`);
+    };
+
+    await page.goto(scenario.path);
+    await page.getByRole("button", { name: scenario.addLabel }).click();
+    let dialog = page.locator('[data-admin-dialog="form"]');
+    await expect(dialog).toBeVisible();
+    await scenario.fillCreate(dialog);
+    let submitButton = dialog.locator('button[type="submit"]');
+    await expect(submitButton).toHaveAccessibleName(scenario.createSubmitLabel);
+    await submitButton.click();
+
+    await expect.poll(() => createRequests.length).toBe(1);
+    expect(createRequests).toEqual([{
+      resource: scenario.resource,
+      method: "POST",
+      pathname: `/api/admin/${scenario.resource}`,
+      id: null,
+      body: scenario.createBody,
+    }]);
+    await expect(submitButton).toBeDisabled();
+    await expect(dialog.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    await expect(dialog.getByRole("button", { name: scenario.closeLabel })).toBeDisabled();
+    await expect(mutationReceipt(page, "created", scenario.createName)).toHaveCount(0);
+    await submitButton.click({ force: true });
+    expect(createRequests).toHaveLength(1);
+
+    createGate.resolve();
+    await expect(dialog).toBeHidden();
+    const createReceipt = mutationReceipt(page, "created", scenario.createName);
+    await expect(createReceipt).toBeVisible();
+    await expectSolidPresentation(createReceipt);
+
+    await page.getByRole("button", { name: scenario.editLabel }).click();
+    dialog = page.locator('[data-admin-dialog="form"]');
+    await expect(dialog).toBeVisible();
+    await scenario.fillUpdate(dialog);
+    submitButton = dialog.locator('button[type="submit"]');
+    await expect(submitButton).toHaveAccessibleName("Save Changes");
+    await submitButton.click();
+
+    const failure = dialog.getByRole("alert").filter({ hasText: scenario.failureText });
+    await expect(failure).toBeVisible();
+    await expect(failure).not.toContainText("secret-debug-token");
+    await expectSolidPresentation(failure);
+    await scenario.expectRetainedUpdate(dialog);
+    expect(updateRequests).toEqual([{
+      resource: scenario.resource,
+      method: "PUT",
+      pathname: `/api/admin/${scenario.resource}/${scenario.itemId}`,
+      id: scenario.itemId,
+      body: scenario.updateBody,
+    }]);
+
+    await submitButton.click();
+    await expect.poll(() => updateRequests.length).toBe(2);
+    expect(updateRequests[1]).toEqual(updateRequests[0]);
+    await expect(submitButton).toBeDisabled();
+    await expect(dialog.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    await expect(dialog.getByRole("button", { name: scenario.closeLabel })).toBeDisabled();
+    await expect(mutationReceipt(page, "updated", scenario.updatedName)).toHaveCount(0);
+    await submitButton.click({ force: true });
+    expect(updateRequests).toHaveLength(2);
+
+    updateGate.resolve();
+    await expect(dialog).toBeHidden();
+    const updateReceipt = mutationReceipt(page, "updated", scenario.updatedName);
+    await expect(updateReceipt).toBeVisible();
+    await expectSolidPresentation(updateReceipt);
+  }
+
+  expect(nativeDialogs).toEqual([]);
+});
+
+test("T14 Admin master-data mutation shared delete dialog cancels, restores focus, retries safely, and sends exact DELETE", async ({ page, context }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await authenticateAdmin(context);
+  const nativeDialogs: string[] = [];
+  page.on("dialog", (dialog) => {
+    nativeDialogs.push(dialog.type());
+    void dialog.dismiss();
+  });
+
+  let handleMutation: MutationHandler = () => ({ status: 200, body: { success: true } });
+  await useMasterData(page, {
+    onMutation: (request) => handleMutation(request),
+  });
+
+  for (const scenario of scenarios) {
+    const retryGate = deferredMutation();
+    const deleteRequests: MutationRequest[] = [];
+    const failureText = `${scenario.itemName} cannot be deleted while it is in use.`;
+    handleMutation = (request) => {
+      if (request.resource !== scenario.resource || request.method !== "DELETE") {
+        throw new Error(`Unexpected mutation while testing ${scenario.resource} deletion`);
+      }
+      deleteRequests.push(request);
+      if (deleteRequests.length === 1) {
+        return {
+          status: 409,
+          body: {
+            error: failureText,
+            debug: { credential: "secret-delete-token" },
+          },
+        };
+      }
+      return retryGate.response;
+    };
+
+    await page.goto(scenario.path);
+    const deleteInvoker = page.getByRole("button", { name: scenario.deleteLabel });
+    const dialog = page.locator('[data-admin-dialog="mutation-confirmation"]');
+
+    await deleteInvoker.click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: /delete/i })).toBeVisible();
+    await expect(dialog).toContainText(scenario.itemName);
+    const cancelButton = dialog.getByRole("button", { name: "Cancel" });
+    await expect(cancelButton).toBeFocused();
+    await cancelButton.click();
+    await expect(dialog).toBeHidden();
+    await expect(deleteInvoker).toBeFocused();
+    expect(deleteRequests).toEqual([]);
+
+    await deleteInvoker.click();
+    await expect(cancelButton).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(deleteInvoker).toBeFocused();
+    expect(deleteRequests).toEqual([]);
+
+    await deleteInvoker.click();
+    await expect(cancelButton).toBeFocused();
+    const deleteButton = dialog.locator('button[data-tone="danger"]');
+    await expect(deleteButton).toHaveAccessibleName("Delete");
+    await deleteButton.click();
+
+    const failure = dialog.getByRole("alert").filter({ hasText: failureText });
+    await expect(failure).toBeVisible();
+    await expect(failure).not.toContainText("secret-delete-token");
+    await expectSolidPresentation(failure);
+    expect(deleteRequests).toEqual([{
+      resource: scenario.resource,
+      method: "DELETE",
+      pathname: `/api/admin/${scenario.resource}/${scenario.itemId}`,
+      id: scenario.itemId,
+      body: null,
+    }]);
+
+    await deleteButton.click();
+    await expect.poll(() => deleteRequests.length).toBe(2);
+    expect(deleteRequests[1]).toEqual(deleteRequests[0]);
+    await expect(deleteButton).toBeDisabled();
+    await expect(cancelButton).toBeDisabled();
+    await expect(mutationReceipt(page, "deleted", scenario.itemName)).toHaveCount(0);
+    await deleteButton.click({ force: true });
+    expect(deleteRequests).toHaveLength(2);
+
+    retryGate.resolve();
+    await expect(dialog).toBeHidden();
+    const deleteReceipt = mutationReceipt(page, "deleted", scenario.itemName);
+    await expect(deleteReceipt).toBeVisible();
+    await expectSolidPresentation(deleteReceipt);
+  }
+
+  expect(nativeDialogs).toEqual([]);
+});
+
+test("T14 Admin master-data mutation Mobile forms and shared confirmations keep 44 px controls without overflow", async ({ page, context }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await authenticateAdmin(context);
+  await useMasterData(page);
+  const nativeDialogs: string[] = [];
+  page.on("dialog", (dialog) => {
+    nativeDialogs.push(dialog.type());
+    void dialog.dismiss();
+  });
+
+  for (const scenario of scenarios) {
+    await page.goto(scenario.path);
+    const resourcePage = page.locator(`[data-admin-resource="${scenario.resource}"]`);
+    await expectMinimumTarget(resourcePage.locator("[data-admin-resource-action]:visible"));
+
+    const editInvoker = page.getByRole("button", { name: scenario.editLabel });
+    await editInvoker.click();
+    const formDialog = page.locator('[data-admin-dialog="form"]');
+    await expect(formDialog).toBeVisible();
+    await expectMinimumTarget(formDialog.locator("[data-admin-control]:visible"));
+    let overflow = await page.evaluate(() => ({
+      viewport: window.innerWidth,
+      document: document.documentElement.scrollWidth,
+    }));
+    expect(overflow.document).toBeLessThanOrEqual(overflow.viewport);
+    await page.keyboard.press("Escape");
+    await expect(formDialog).toBeHidden();
+    await expect(editInvoker).toBeFocused();
+
+    const deleteInvoker = page.getByRole("button", { name: scenario.deleteLabel });
+    await deleteInvoker.click();
+    const deleteDialog = page.locator('[data-admin-dialog="mutation-confirmation"]');
+    await expect(deleteDialog).toBeVisible();
+    await expect(deleteDialog).toContainText(scenario.itemName);
+    await expectGlassPresentation(deleteDialog);
+    await expectMinimumTarget(deleteDialog.locator("[data-admin-control]:visible"));
+    overflow = await page.evaluate(() => ({
+      viewport: window.innerWidth,
+      document: document.documentElement.scrollWidth,
+    }));
+    expect(overflow.document).toBeLessThanOrEqual(overflow.viewport);
+    const dialogOverflow = await deleteDialog.evaluate((element) => ({
+      visible: element.clientWidth,
+      content: element.scrollWidth,
+    }));
+    expect(dialogOverflow.content).toBeLessThanOrEqual(dialogOverflow.visible);
+    await page.keyboard.press("Escape");
+    await expect(deleteDialog).toBeHidden();
+    await expect(deleteInvoker).toBeFocused();
+  }
+
+  expect(nativeDialogs).toEqual([]);
+});
 
 test("T14 Admin master-data pages share the semantic desktop hierarchy and named actions", async ({ page, context }) => {
   await page.setViewportSize({ width: 1280, height: 900 });

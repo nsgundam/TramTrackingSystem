@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import api from "@/services/api";
 import { Vehicle } from "@/types/vehicle";
@@ -13,10 +13,21 @@ import {
   AdminResourceState,
   AdminStatusBadge,
 } from "@/components/admin/AdminResourcePage";
+import {
+  AdminDeleteConfirmation,
+  AdminMutationReceipt,
+  adminMutationErrorMessage,
+  type AdminMutationAction,
+} from "@/components/admin/AdminMutationFeedback";
 
 interface RouteOption {
   id: string;
   name: string;
+}
+
+interface MutationReceipt {
+  action: AdminMutationAction;
+  target: string;
 }
 
 const vehicleStatusTone = (status: string): "positive" | "warning" | "neutral" => {
@@ -32,6 +43,14 @@ export default function VehiclesPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Vehicle | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<MutationReceipt | null>(null);
+  const saveInFlight = useRef(false);
+  const deleteInFlight = useRef(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -43,8 +62,7 @@ export default function VehiclesPage() {
       ]);
       setVehicles(vehiclesRes.data);
       setRoutes(routesRes.data);
-    } catch (error) {
-      console.error("Failed to fetch vehicles:", error);
+    } catch {
       setLoadError("Unable to load vehicles. Check the connection and try again.");
     } finally {
       setLoading(false);
@@ -57,39 +75,93 @@ export default function VehiclesPage() {
   }, []);
 
   const handleSave = async (data: Partial<Vehicle>) => {
+    if (saveInFlight.current) return;
+    saveInFlight.current = true;
+    setSaving(true);
+    setSaveError(null);
+    setReceipt(null);
+    const isUpdate = Boolean(editingVehicle);
+    const target = data.name?.trim() || editingVehicle?.name || data.id?.trim() || "Vehicle";
+
     try {
       if (editingVehicle) {
-        await api.put(`admin/vehicles/${editingVehicle.id}`, data);
+        await api.put(`admin/vehicles/${editingVehicle.id}`, {
+          ...data,
+          id: editingVehicle.id,
+        });
       } else {
         await api.post("admin/vehicles", data);
       }
       setIsModalOpen(false);
       setEditingVehicle(null);
+      setReceipt({ action: isUpdate ? "updated" : "created", target });
       await fetchData();
     } catch (error) {
-      console.error("Save error:", error);
-      alert("Failed to save vehicle");
+      setSaveError(adminMutationErrorMessage(
+        error,
+        "Vehicle could not be saved. Try again.",
+      ));
+    } finally {
+      saveInFlight.current = false;
+      setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this vehicle?")) return;
+  const handleDelete = async () => {
+    if (!deleteTarget || deleteInFlight.current) return;
+    const target = deleteTarget;
+    deleteInFlight.current = true;
+    setDeleting(true);
+    setDeleteError(null);
+    setReceipt(null);
+
     try {
-      await api.delete(`admin/vehicles/${id}`);
+      await api.delete(`admin/vehicles/${target.id}`);
+      setDeleteTarget(null);
+      setReceipt({ action: "deleted", target: target.name });
       await fetchData();
     } catch (error) {
-      alert(`Error deleting vehicle: ${String(error)}`);
+      setDeleteError(adminMutationErrorMessage(
+        error,
+        "Vehicle could not be deleted. Try again.",
+      ));
+    } finally {
+      deleteInFlight.current = false;
+      setDeleting(false);
     }
   };
 
   const openAddModal = () => {
     setEditingVehicle(null);
+    setSaveError(null);
+    setReceipt(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (vehicle: Vehicle) => {
     setEditingVehicle(vehicle);
+    setSaveError(null);
+    setReceipt(null);
     setIsModalOpen(true);
+  };
+
+  const closeEditor = () => {
+    if (saveInFlight.current) return;
+    setIsModalOpen(false);
+    setEditingVehicle(null);
+    setSaveError(null);
+  };
+
+  const openDeleteConfirmation = (vehicle: Vehicle) => {
+    setDeleteTarget(vehicle);
+    setDeleteError(null);
+    setReceipt(null);
+  };
+
+  const closeDeleteConfirmation = () => {
+    if (deleteInFlight.current) return;
+    setDeleteTarget(null);
+    setDeleteError(null);
   };
 
   const actionsFor = (vehicle: Vehicle) => (
@@ -104,7 +176,7 @@ export default function VehiclesPage() {
       <AdminIconButton
         label={`Delete ${vehicle.name}`}
         tone="danger"
-        onClick={() => void handleDelete(vehicle.id)}
+        onClick={() => openDeleteConfirmation(vehicle)}
       >
         <Trash2 size={17} aria-hidden="true" />
       </AdminIconButton>
@@ -120,7 +192,17 @@ export default function VehiclesPage() {
       actionLabel="Add Vehicle"
       actionIcon={<Plus size={18} aria-hidden="true" />}
       onAction={openAddModal}
+      actionBusy={saving || deleting}
     >
+      {receipt && (
+        <AdminMutationReceipt
+          resource="Vehicle"
+          target={receipt.target}
+          action={receipt.action}
+          onDismiss={() => setReceipt(null)}
+        />
+      )}
+
       <AdminResourcePanel>
         {loading ? (
           <AdminResourceState state="loading" message="Loading vehicles…" />
@@ -221,14 +303,24 @@ export default function VehiclesPage() {
       </AdminResourcePanel>
 
       <VehicleModal
+        key={isModalOpen ? editingVehicle?.id ?? "new-vehicle" : "closed-vehicle"}
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingVehicle(null);
-        }}
+        onClose={closeEditor}
         onSubmit={handleSave}
         initialData={editingVehicle}
         routes={routes}
+        submitting={saving}
+        submitError={saveError}
+      />
+      <AdminDeleteConfirmation
+        active={Boolean(deleteTarget)}
+        titleId="vehicle-delete-dialog-title"
+        resource="Vehicle"
+        target={deleteTarget?.name ?? ""}
+        busy={deleting}
+        error={deleteError}
+        onCancel={closeDeleteConfirmation}
+        onConfirm={() => void handleDelete()}
       />
     </AdminResourcePage>
   );

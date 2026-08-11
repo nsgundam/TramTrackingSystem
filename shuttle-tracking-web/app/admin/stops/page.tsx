@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import api from "@/services/api";
 import { Stop } from "@/types/stop";
@@ -11,6 +11,17 @@ import {
   AdminResourcePanel,
   AdminResourceState,
 } from "@/components/admin/AdminResourcePage";
+import {
+  AdminDeleteConfirmation,
+  AdminMutationReceipt,
+  adminMutationErrorMessage,
+  type AdminMutationAction,
+} from "@/components/admin/AdminMutationFeedback";
+
+interface MutationReceipt {
+  action: AdminMutationAction;
+  target: string;
+}
 
 export default function StopsPage() {
   const [stops, setStops] = useState<Stop[]>([]);
@@ -18,6 +29,14 @@ export default function StopsPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStop, setEditingStop] = useState<Stop | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Stop | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<MutationReceipt | null>(null);
+  const saveInFlight = useRef(false);
+  const deleteInFlight = useRef(false);
 
   const fetchStops = async () => {
     setLoading(true);
@@ -25,8 +44,7 @@ export default function StopsPage() {
     try {
       const response = await api.get<Stop[]>("admin/stops");
       setStops(response.data);
-    } catch (error) {
-      console.error("Failed to fetch stops:", error);
+    } catch {
       setLoadError("Unable to load stops. Check the connection and try again.");
     } finally {
       setLoading(false);
@@ -39,40 +57,98 @@ export default function StopsPage() {
   }, []);
 
   const handleSave = async (data: Partial<Stop>) => {
+    if (saveInFlight.current) return;
+    saveInFlight.current = true;
+    setSaving(true);
+    setSaveError(null);
+    setReceipt(null);
+    const isUpdate = Boolean(editingStop);
+    const target = data.nameEn?.trim()
+      || data.nameTh?.trim()
+      || editingStop?.nameEn
+      || editingStop?.nameTh
+      || data.id?.trim()
+      || "Stop";
+
     try {
       if (editingStop) {
-        await api.put(`admin/stops/${editingStop.id}`, data);
+        await api.put(`admin/stops/${editingStop.id}`, {
+          ...data,
+          id: editingStop.id,
+        });
       } else {
         await api.post("admin/stops", data);
       }
       setIsModalOpen(false);
       setEditingStop(null);
+      setReceipt({ action: isUpdate ? "updated" : "created", target });
       await fetchStops();
     } catch (error) {
-      console.error("Save error:", error);
-      alert("Failed to save stop");
+      setSaveError(adminMutationErrorMessage(
+        error,
+        "Stop could not be saved. Try again.",
+      ));
+    } finally {
+      saveInFlight.current = false;
+      setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this stop?")) return;
+  const handleDelete = async () => {
+    if (!deleteTarget || deleteInFlight.current) return;
+    const target = deleteTarget;
+    deleteInFlight.current = true;
+    setDeleting(true);
+    setDeleteError(null);
+    setReceipt(null);
+
     try {
-      await api.delete(`admin/stops/${id}`);
+      await api.delete(`admin/stops/${target.id}`);
+      setDeleteTarget(null);
+      setReceipt({ action: "deleted", target: target.nameEn || target.nameTh });
       await fetchStops();
     } catch (error) {
-      console.error("Delete error:", error);
-      alert("Error deleting stop");
+      setDeleteError(adminMutationErrorMessage(
+        error,
+        "Stop could not be deleted. Try again.",
+      ));
+    } finally {
+      deleteInFlight.current = false;
+      setDeleting(false);
     }
   };
 
   const openAddModal = () => {
     setEditingStop(null);
+    setSaveError(null);
+    setReceipt(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (stop: Stop) => {
     setEditingStop(stop);
+    setSaveError(null);
+    setReceipt(null);
     setIsModalOpen(true);
+  };
+
+  const closeEditor = () => {
+    if (saveInFlight.current) return;
+    setIsModalOpen(false);
+    setEditingStop(null);
+    setSaveError(null);
+  };
+
+  const openDeleteConfirmation = (stop: Stop) => {
+    setDeleteTarget(stop);
+    setDeleteError(null);
+    setReceipt(null);
+  };
+
+  const closeDeleteConfirmation = () => {
+    if (deleteInFlight.current) return;
+    setDeleteTarget(null);
+    setDeleteError(null);
   };
 
   const labelFor = (stop: Stop) => stop.nameEn || stop.nameTh;
@@ -89,7 +165,7 @@ export default function StopsPage() {
       <AdminIconButton
         label={`Delete ${labelFor(stop)}`}
         tone="danger"
-        onClick={() => void handleDelete(stop.id)}
+        onClick={() => openDeleteConfirmation(stop)}
       >
         <Trash2 size={17} aria-hidden="true" />
       </AdminIconButton>
@@ -112,7 +188,17 @@ export default function StopsPage() {
       actionLabel="Add Stop"
       actionIcon={<Plus size={18} aria-hidden="true" />}
       onAction={openAddModal}
+      actionBusy={saving || deleting}
     >
+      {receipt && (
+        <AdminMutationReceipt
+          resource="Stop"
+          target={receipt.target}
+          action={receipt.action}
+          onDismiss={() => setReceipt(null)}
+        />
+      )}
+
       <AdminResourcePanel>
         {loading ? (
           <AdminResourceState state="loading" message="Loading stops…" />
@@ -181,13 +267,23 @@ export default function StopsPage() {
       </AdminResourcePanel>
 
       <StopModal
+        key={isModalOpen ? editingStop?.id ?? "new-stop" : "closed-stop"}
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingStop(null);
-        }}
+        onClose={closeEditor}
         onSubmit={handleSave}
         initialData={editingStop}
+        submitting={saving}
+        submitError={saveError}
+      />
+      <AdminDeleteConfirmation
+        active={Boolean(deleteTarget)}
+        titleId="stop-delete-dialog-title"
+        resource="Stop"
+        target={deleteTarget ? labelFor(deleteTarget) : ""}
+        busy={deleting}
+        error={deleteError}
+        onCancel={closeDeleteConfirmation}
+        onConfirm={() => void handleDelete()}
       />
     </AdminResourcePage>
   );
