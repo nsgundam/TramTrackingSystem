@@ -12,6 +12,7 @@
     "test:t8": "node --test --experimental-strip-types tests/t8-public-state.test.ts",
     "test:t9": "node --test --experimental-strip-types tests/t9-backend-origin.test.ts",
     "test:t14": "tsc tests/t14-truthful-state.test.ts utils/truthful-ui-state.ts types/canonical-state.ts --outDir .next/t14-tests --module commonjs --moduleResolution node --target ES2022 --esModuleInterop --skipLibCheck --noEmit false --isolatedModules false && node --test .next/t14-tests/tests/t14-truthful-state.test.js",
+    "test:t14:socket-lifecycle": "node --test --experimental-strip-types tests/t14-socket-lifecycle.test.ts",
     "test:t14:map-quality": "tsc tests/t14-map-quality.test.ts utils/motion.ts --outDir .next/t14-map-quality-tests --module commonjs --moduleResolution node --target ES2022 --esModuleInterop --skipLibCheck --noEmit false --isolatedModules false && node --test .next/t14-map-quality-tests/tests/t14-map-quality.test.js",
     "test:t14:contrast": "tsc tests/t14-contrast.test.ts utils/colorContrast.ts --outDir .next/t14-contrast-tests --module commonjs --moduleResolution node --target ES2022 --esModuleInterop --skipLibCheck --noEmit false --isolatedModules false && node --test .next/t14-contrast-tests/tests/t14-contrast.test.js",
     "test:e2e:t8": "playwright test -c playwright.config.ts tests/t8-route-switch.spec.ts",
@@ -24,7 +25,7 @@
     "test:e2e:t14:admin-master-data": "playwright test -c playwright.config.ts tests/t14-admin-master-data.spec.ts",
     "test:e2e:t14:admin-operations-support": "playwright test -c playwright.config.ts tests/t14-admin-operations-support.spec.ts",
     "test:e2e:t14:admin-liquid-glass": "playwright test -c playwright.config.ts tests/t14-admin-liquid-glass.spec.ts",
-    "check": "npm run test:simulator-tooling && npm run test:t8 && npm run test:t9 && npm run test:t14 && npm run test:t14:map-quality && npm run test:t14:contrast && npm run test:e2e:t8 && npm run test:e2e:t14 && npm run test:e2e:t14:a11y && npm run test:e2e:t14:map-quality && npm run test:e2e:t14:contrast && npm run test:e2e:t14:admin-dashboard && npm run test:e2e:t14:public-service && npm run test:e2e:t14:admin-master-data && npm run test:e2e:t14:admin-operations-support && npm run test:e2e:t14:admin-liquid-glass && npm run lint && npm run build:check"
+    "check": "npm run test:simulator-tooling && npm run test:t8 && npm run test:t9 && npm run test:t14 && npm run test:t14:socket-lifecycle && npm run test:t14:map-quality && npm run test:t14:contrast && npm run test:e2e:t8 && npm run test:e2e:t14 && npm run test:e2e:t14:a11y && npm run test:e2e:t14:map-quality && npm run test:e2e:t14:contrast && npm run test:e2e:t14:admin-dashboard && npm run test:e2e:t14:public-service && npm run test:e2e:t14:admin-master-data && npm run test:e2e:t14:admin-operations-support && npm run test:e2e:t14:admin-liquid-glass && npm run lint && npm run build:check"
   },
   "dependencies": {
     "@turf/turf": "^7.3.4",

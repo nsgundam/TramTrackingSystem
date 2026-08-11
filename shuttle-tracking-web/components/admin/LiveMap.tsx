@@ -5,8 +5,8 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { RefreshCw } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { io, Socket } from "socket.io-client";
 import { backendConnection } from "@/config/backend";
+import { startBrowserSocketLifecycle } from "@/services/browserSocketLifecycle";
 import { getActiveVehicles } from "@/services/publicApi";
 import {
   CanonicalVehicleStateV1,
@@ -59,8 +59,11 @@ const isCanonicalVehicleState = (value: unknown): value is CanonicalVehicleState
     && typeof value.vehicleId === "string"
     && (value.tripId === null || typeof value.tripId === "string")
     && (value.routeId === null || typeof value.routeId === "string")
-    && ["active_trip", "vehicle_assignment", "unknown"].includes(String(value.routeAuthority))
-    && ["live", "stale", "no_service", "unknown"].includes(String(value.serviceState))
+    && typeof value.routeAuthority === "string"
+    && ["active_trip", "vehicle_assignment", "unknown"].includes(value.routeAuthority)
+    && typeof value.serviceState === "string"
+    && ["live", "stale", "no_service", "unknown"].includes(value.serviceState)
+    && typeof value.reasonCode === "string"
     && [
       "CANONICAL_SELECTED",
       "FALLBACK_SOURCE_SELECTED",
@@ -69,7 +72,7 @@ const isCanonicalVehicleState = (value: unknown): value is CanonicalVehicleState
       "NO_ACTIVE_SOURCE",
       "DEPENDENCY_UNAVAILABLE",
       "RECOVERED",
-    ].includes(String(value.reasonCode))
+    ].includes(value.reasonCode)
     && isCanonicalLocation(value.liveLocation)
     && isCanonicalLocation(value.lastKnownLocation)
     && (value.timing.observedAt === null || typeof value.timing.observedAt === "string")
@@ -79,10 +82,14 @@ const isCanonicalVehicleState = (value: unknown): value is CanonicalVehicleState
     && isNullableFiniteNumber(value.freshness.ageMs)
     && typeof value.freshness.thresholdMs === "number"
     && Number.isFinite(value.freshness.thresholdMs)
-    && ["fresh", "stale", "none"].includes(String(value.freshness.bucket))
+    && typeof value.freshness.bucket === "string"
+    && ["fresh", "stale", "none"].includes(value.freshness.bucket)
     && (
       value.sourceType === null
-      || ["mobile", "esp32", "lorawan", "simulator"].includes(String(value.sourceType))
+      || (
+        typeof value.sourceType === "string"
+        && ["mobile", "esp32", "lorawan", "simulator"].includes(value.sourceType)
+      )
     )
     && (
       value.sourceId === undefined
@@ -105,8 +112,7 @@ export default function LiveMap() {
 
   useEffect(() => {
     let disposed = false;
-    let socket: Socket | null = null;
-    let hasConnected = false;
+    let disposeSocket: (() => void) | null = null;
     let isHydrating = false;
     let queuedStates: CanonicalVehicleStateV1[] = [];
 
@@ -236,24 +242,15 @@ export default function LiveMap() {
       await hydrate(false);
       if (disposed) return;
 
-      socket = io(backendConnection.socketOrigin, { autoConnect: false });
-      socket.on("connect", () => {
-        if (disposed) return;
-        setConnectionState("connected");
-        if (hasConnected) void hydrate(true);
-        hasConnected = true;
+      const lifecycle = startBrowserSocketLifecycle({
+        origin: backendConnection.socketOrigin,
+        onConnectionStateChange: setConnectionState,
+        onReconnect: () => {
+          void hydrate(true);
+        },
+        onLocationUpdate: queueOrAcceptState,
       });
-      socket.on("disconnect", () => {
-        if (!disposed) setConnectionState("disconnected");
-      });
-      socket.on("connect_error", () => {
-        if (!disposed) setConnectionState("reconnecting");
-      });
-      socket.io.on("reconnect_attempt", () => {
-        if (!disposed) setConnectionState("reconnecting");
-      });
-      socket.on("location-update", queueOrAcceptState);
-      socket.connect();
+      disposeSocket = lifecycle.dispose;
     };
 
     void connectAfterSnapshot().catch(() => {
@@ -265,7 +262,7 @@ export default function LiveMap() {
       queuedStates = [];
       Object.values(expiryTimersRef.current).forEach(clearTimeout);
       expiryTimersRef.current = {};
-      socket?.disconnect();
+      disposeSocket?.();
     };
   }, [snapshotAttempt]);
 
