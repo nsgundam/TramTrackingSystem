@@ -13,7 +13,7 @@ acceptance authority, and a device report. D-012 is approved but unimplemented. 
 behind T13 and physical/provider facts. Repository/static Mobile evidence is not deployment, provider,
 credential-rotation, UX-acceptance, or physical-device proof.
 
-## Current coordination update — 2026-08-11 OSM/Public-UI authority deferral
+## Current coordination update — 2026-08-11 OSM deferral and next Admin selection
 
 This update supersedes the OSM-next coordination statements in the accepted Socket.IO update below;
 it does not change that implementation evidence. The immutable accepted source baseline remains
@@ -32,9 +32,10 @@ focused provider/licence evidence.
   only.
 - T9/T13 remain owner-deferred without satisfying their gates; T11/T15 remain blocked; D-012 remains
   approved but unimplemented. The unrelated Feedback-role migration remains preserved and excluded.
-- Run Approved Batch may continue only after Level 1 selects another bounded non-Public-visual T14
-  unit and an exact Level 3 handoff passes its dependency, owner, freshness, and measurement-first
-  gates.
+- Level 1 selects the bounded Admin Feedback session-hydration truth-state unit next under
+  `docs/tasks/T14-admin-feedback-session-hydration-truth-state.md`. Its exact handoff changes no
+  Public UI and becomes source-eligible only after the controlled pending-`auth/me` journey fails
+  against the incumbent false denial.
 
 ## Accepted evidence update — 2026-08-11 shared browser Socket.IO lifecycle
 
@@ -261,8 +262,8 @@ and T13 without satisfying those gates. T14's first eleven slices are complete a
 preserving Public identity; the eleventh consolidates internal transport/listener implementation
 without changing valid Public/Admin observable behavior or external contracts. The later D-011
 authority refinement defers the exact OSM handoff because the Public UI team has not authorized its
-visible-credit change. Level 1 may select a separate bounded non-Public-visual T14 unit; source work
-still requires its own exact task and measurement-first failure.
+visible-credit change. Level 1 selects the separate Admin Feedback session-hydration truth-state
+unit; source work still requires its exact task commit and measurement-first failure.
 T11 remains blocked on coordinated Mobile/Backend implementation and Android acceptance,
 and T15 awaits physical facts and T13. A later
 approved target may supply T12 runtime evidence but does not bypass these gates or grant deployment
