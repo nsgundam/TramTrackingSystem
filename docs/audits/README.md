@@ -1,6 +1,6 @@
 # Audit Register
 
-Last updated: 2026-08-10
+Last updated: 2026-08-11
 
 | Phase | Status | Report / evidence | Evidence baseline | Last reviewed | Notes |
 |---|---|---|---|---|---|
@@ -11,10 +11,10 @@ Last updated: 2026-08-10
 | Frontend | Complete | `docs/audits/frontend-audit.md` | `c4fdc3a` | 2026-08-10 | Signal Lens, Login convergence, fallbacks, detector, browser regressions, build, and CI pass; score remains 15/20. |
 | Database | Complete | `docs/audits/database-audit.md` | `1eec866` | 2026-08-08 | D-012 lifecycle/recovery invariants are approved but absent from schema/runtime; no target action occurred. |
 | Infrastructure & Device | Complete | `docs/audits/infrastructure-device-audit.md` | `1eec866` | 2026-08-08 | Native foreground source is visible; build/device/OS evidence is unavailable and ESP32/LoRaWAN facts remain external. |
-| Dashboard & UX | Complete | `docs/audits/dashboard-ux-audit.md` | `c4fdc3a` | 2026-08-10 | Built desktop/Mobile Dashboard and Login evidence passes finish review; mutation feedback is next and human/AT evidence remains absent. |
+| Dashboard & UX | Complete | `docs/audits/dashboard-ux-audit.md` | `c4fdc3a` | 2026-08-10 | Built desktop/Mobile Dashboard and Login evidence passes finish review; mutation feedback is ready under its exact handoff and human/AT evidence remains absent. |
 | Security, DevOps & Observability | Complete | `docs/audits/security-devops-observability-audit.md` | `1eec866` | 2026-08-08 | D-012 is approved but unimplemented; SEC-08 records external Mobile credential/backup/cleartext/lifecycle risk. |
 | Production Readiness | Complete / No-Go | `docs/audits/production-readiness-audit.md` | `c4fdc3a` | 2026-08-10 | Source/browser foundation and full local CI pass; no human, assistive-technology, deployed, Mobile, device, or release gate is satisfied. |
-| Roadmap | Complete / Validated | `docs/roadmap/master-refactoring-roadmap.md` | `c4fdc3a` | 2026-08-10 | First nine T14 slices are accepted; bounded master-data mutation-feedback exact handoff is next. |
+| Roadmap | Complete / Validated | `docs/roadmap/master-refactoring-roadmap.md` | `c4fdc3a` | 2026-08-10 | First nine T14 slices are accepted; bounded master-data mutation-feedback exact handoff is ready. |
 
 `Evidence baseline` records the immutable source/decision commit consumed by each report. Each
 report's metadata remains authoritative for its full scope and predecessor chain.
