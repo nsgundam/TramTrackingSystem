@@ -3,7 +3,7 @@
 Audit metadata:
 - Evidence baseline: `70f42c15948bf09e71a3c91d594a4c21f52db23b`
 - Evidence scope: `PRODUCT.md`, `docs/project-knowledge-base.md`, every validated domain and production-readiness audit, `docs/decision-queue.md`, `docs/tasks/`, and the repository evidence cited by the revalidated reports.
-- Reviewed at: `2026-08-11T19:37:00+07:00`
+- Reviewed at: `2026-08-11T22:06:00+07:00`
 - Validation state: **Validated**
 - Predecessor baselines: `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`,
   `docs/audits/frontend-audit.md`, `docs/audits/dashboard-ux-audit.md`, and
@@ -81,9 +81,10 @@ Measurement-first and final focused evidence, bounded browser regressions, full 
 independent reviews pass. Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
 and this Roadmap accept it as the eleventh T14 slice for exact local source/unit/browser-regression
 evidence. The duplicated lifecycle P2 is resolved, leaving one P1, five P2, and one P3 open while
-the score remains 15/20. The next bounded T14 unit is visible OSM attribution and official Standard
-raster endpoint alignment: restore compact visible attribution and use the current required endpoint
-without otherwise changing Public/Admin map behavior or identity. D-012
+the score remains 15/20. The exact OSM attribution/Standard raster endpoint handoff exists at
+`45ecc0a` but is owner-deferred because the Public UI team has not authorized its visible-credit
+change; its P2 remains open and no interrupted source/test delta is accepted. Level 1 may select a
+different bounded non-Public-visual T14 unit under a new exact handoff. D-012
 fixes later lifecycle policy without implementing it. T15 remains deferred behind T13 and physical/
 provider facts.
 
@@ -173,7 +174,7 @@ devices, and TTN console state remain external unknowns.
 | T11 | Supported sender operations, trip history, and exception view | Critical/High for daily operations | Production 3.1, 3.3; Product 7–9; Dashboard 7, 10 | Phase 3; native source pinned, but coordinated Backend/Mobile handoff, compatible patch, Android target, and acceptance artifact pending |
 | T12 | Feedback triage and device/source operations views | High for broad public support | Product 7, 11; Frontend 12; Dashboard 10; Database 12 | Phase 3; complete for the D-009/D-010:A exact handoff; runtime rollout remains unverified |
 | T13 | Production deployment/recovery drill and monitoring | High before production | Production 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16 | Phase 4; blocked on T9 external acceptance and target authority |
-| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; first eleven slices accepted at `70f42c1`; visible OSM attribution/official Standard raster endpoint alignment selected next |
+| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; first eleven slices accepted at `70f42c1`; OSM handoff owner-deferred; select another bounded non-Public-visual unit |
 | T15 | Physical senders, research dashboard, playback/reports, scale extensions | Deferred | Product 11; Architecture 9–10, 12; Infrastructure 7–9; D-002 | Phase 5; blocked on T13 and physical/provider facts |
 
 Every Critical/High finding remains represented. D-001=C opens T10–T12's release-scope gate, but
@@ -196,7 +197,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T11 | Blocked — cross-repository/external evidence | The v3 brief pins a partially compatible native app. Static-secret storage, backup/cleartext, task-removal and missing enrollment/claim/recovery gaps require a coordinated exact handoff plus writable Mobile/Android target and device acceptance. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
 | T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
-| T14 | Partially Complete — first eleven slices accepted; exact next handoff ready | `70f42c1` is accepted for the exact shared browser lifecycle contract. `docs/tasks/T14-osm-attribution-and-raster-endpoint-alignment.md` binds the next bounded P2; source becomes eligible only after its measurement-first guard fails. |
+| T14 | Partially Complete — first eleven slices accepted; OSM handoff deferred | `70f42c1` is accepted for the exact shared browser lifecycle contract. The OSM handoff at `45ecc0a` is owner-deferred and remains open; Level 1 must select and bind another non-Public-visual unit before source work. |
 | T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
 
 ### Approved-batch continuation gate
@@ -206,13 +207,13 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Exact Level 3 handoff ready; measurement-first source gate next | `docs/tasks/T14-osm-attribution-and-raster-endpoint-alignment.md` binds only Public/Admin OSM attribution/official raster endpoint source, deterministic browser interception, 320/390 px non-collision, and preserved map/UI behavior. |
+| T14 | Eligible only for a new Level 1 non-Public-visual selection | The exact OSM handoff is owner-deferred; another bounded unit needs its own exact Level 3 contract and measurement-first gate before source work. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
 Batch result: T14's first eleven slices are accepted at `70f42c1` under the refined D-011 bright-
-neutral Admin/Public-preservation direction. Visible OSM attribution and official Standard raster endpoint alignment
-is the next bounded handoff lane. T9/T13 remain deferred without dependency bypass; T11/T15 remain
-blocked.
+neutral Admin/Public-preservation direction. The OSM handoff at `45ecc0a` is owner-deferred and its
+finding remains open; Level 1 may select another bounded non-Public-visual T14 unit. T9/T13 remain
+deferred without dependency bypass; T11/T15 remain blocked.
 
 ## 4. Dependency Map
 
@@ -1311,11 +1312,11 @@ and external-runtime facts remain exclusions. The affected audit chain accepts t
 `c4fdc3a`. Commit `2ddb835` completes the mutation-feedback implementation and `e6a04ad` repairs
 destructive target identity; the affected audit chain accepts the exact local result at `e6a04ad`.
 Commit `70f42c1` completes shared browser Socket.IO lifecycle ownership, and the affected audit chain
-accepts it as the eleventh slice. No owner or dependency gate blocks the next bounded OSM attribution/endpoint-alignment
-unit. The OSM Foundation tile policy currently requires the exact Standard raster endpoint
-`https://tile.openstreetmap.org/{z}/{x}/{y}.png` and clearly visible attribution on the map; this is
-an external provider/licence constraint, not a new visual-world decision
-(`https://operations.osmfoundation.org/policies/tiles/`, reviewed 2026-08-11).
+accepts it as the eleventh slice. Coordination commit `45ecc0a` defines the exact OSM attribution/
+endpoint unit, but the later D-011 Public-UI authority refinement defers it because its visible-credit
+change is not authorized. The focused Level 2 brief records that research use is not a waiver and
+does not choose a zero-credit/provider alternative. Level 1 may select another bounded
+non-Public-visual unit without resolving or bypassing that open finding.
 
 ### Blocks
 
@@ -1331,16 +1332,16 @@ Medium.
 
 ### Suggested Agent
 
-Direct Level 3 Refactoring Agent under the exact task contract. Use Level 2 only if source
-inspection exposes one focused cross-domain uncertainty that the current consumer contracts cannot
-resolve.
+Level 1 Audit/Roadmap coordinator to select one bounded non-Public-visual unit and create its exact
+handoff. Route the resulting implementation to Level 3; use Level 2 only if selection exposes one
+focused cross-domain uncertainty.
 
 ### Execution Mode
 
-Direct Level 3 implementation. Follow `tram-refactoring-workflow` and use `frontend-design` for the
-identity-preserving frontend refactor inside the established visual world; use Level 2 only for a
-new focused uncertainty. Verification is governed by the exact acceptance contract, not tool
-availability.
+Level 1 selection/planning only until a new exact handoff passes. Then follow
+`tram-refactoring-workflow` and use `frontend-design` for any identity-preserving frontend refactor
+inside the established visual world. Verification is governed by that exact acceptance contract,
+not tool availability.
 
 ### Task Brief
 
@@ -1374,27 +1375,22 @@ initial `await hydrate(false)` before socket construction/connect, reconnect `hy
 queued-version reconciliation/failure replay, manual Retry-driven effect/socket restart, strict
 unknown-payload validation, current event names/handling order, and cleanup. Copy, DOM/layout/theme,
 backend events, origins, and T9/T11/T13 boundaries remain unchanged. The affected Level 1 chain
-accepts that lifecycle unit. The next bounded unit may only restore
-compact visible OSM attribution on Public, align Public/Admin Standard raster URLs with the official
-endpoint, keep the credit clear and unoccluded at 320/390 px, and update deterministic tile-request
-interception. It must preserve map controls, route/marker/viewport behavior, Admin/Public identity,
-and every non-attribution DOM/copy/layout contract. It must not change provider, add a dependency,
-add offline/prefetch behavior, or bundle stop-image, Flaticon, global-font, backend, Mobile, or
-external-runtime work.
+accepts that lifecycle unit. The OSM unit described by the dormant exact task is not execution-
+eligible. The next active unit must be selected separately by Level 1, stay bounded to non-Public-
+visual work, preserve Public/Login/API/auth/schema behavior, and receive its own exact-path Level 3
+handoff before any measurement or source change.
 
 ### Related Files
 
-Candidate inspection paths only—not an implementation allowlist: Public `useLeafletMap.ts`, Admin
-`LiveMap.tsx`, `app/shuttle-tracker.css`, the seven existing browser specs with eight OSM-tile
-interception call sites, the previously unisolated T8 route-switch journey, and one focused endpoint/
-attribution alignment test. The Level 3 task must enumerate every writable source, test, and task
-path before implementation; this generic Roadmap section cannot authorize writes.
+No active source path is authorized by this generic Roadmap section. The dormant OSM task retains its
+historical exact scope, while a different T14 unit must enumerate every writable source, test, and
+task path in a new Level 3 handoff before implementation.
 
 ### Acceptance Criteria and Verification
 
-These Roadmap criteria are synthesis guardrails; the next exact Level 3 task must bind the official
-tile URL, visible linked attribution, deterministic no-network test interception, 320/390 px non-
-collision, and all map/UI preservation constraints before source work. The selected
+These Roadmap criteria are synthesis guardrails; the next exact Level 3 task must bind its own
+measurable defect, exact paths, non-Public-visual boundary, deterministic regression evidence, and
+all preservation constraints before source work. The selected
 Admin Dashboard exposes a documented priority order for verified data, canonical
 service state, available actions, and supporting metrics without inventing unavailable exceptions;
 every element uses shared Public tokens or a documented semantic extension; scoped loading/error/
@@ -1412,10 +1408,10 @@ Glass foundation and Login convergence are implemented at `c4fdc3a`; the affecte
 validated. The tenth mutation-feedback source baseline is accepted at `e6a04ad` with its local
 acceptance checks passing. Shared browser Socket.IO lifecycle ownership is implemented at `70f42c1`
 under `docs/tasks/T14-shared-browser-socket-lifecycle.md`; its measurement-first/final evidence and
-completion record pass, and the affected Level 1 chain accepts it as the eleventh slice. OSM
-attribution plus official Standard raster endpoint alignment is selected next; its exact Level 3 handoff is
-recorded in `docs/tasks/T14-osm-attribution-and-raster-endpoint-alignment.md`, while measurement-first
-evidence remains pending.
+completion record pass, and the affected Level 1 chain accepts it as the eleventh slice. The OSM
+attribution/Standard raster endpoint handoff at `45ecc0a` is deferred by the Public-UI authority
+refinement; it has no accepted source/test delta and its finding remains open. A separate non-Public-
+visual T14 unit may be selected next by Level 1.
 The eighth slice's exact completion evidence is in
 `docs/tasks/T14-admin-operations-support-convergence.md`. The master-data completion evidence is in
 `docs/tasks/T14-admin-master-data-theme-convergence.md`. The map-quality handoff is
@@ -1673,7 +1669,7 @@ external-evidence gates but no additional focused owner-policy blocker:
 | D-012 implementation paths and external `DEV` allowlist/recovery/backup target facts | T15 and later role-management work | Policy is approved but intentionally outside T11/T12/T14; target facts and exact implementation evidence remain absent. |
 | TTN application/device IDs; physical device/module models; firmware/provisioning; clock/reference and field protocol | T15 | D-004 fixes transport roles and dashboard scope, but repository evidence cannot establish physical behavior or absolute accuracy. |
 | None for feedback policy | — | D-009 approves owner, anonymous/no-reply scope, business-day lifecycle, retention, deletion/restore, and safe read-only source fields. |
-| None for the first eleven accepted T14 slices or selected OSM attribution/endpoint unit | — | D-011 fixes the bright-neutral Admin Liquid Glass direction and Public boundary; the next unit changes only required compact map attribution and official Standard raster endpoint alignment. |
+| None for the first eleven accepted T14 slices | — | D-011 fixes the bright-neutral Admin Liquid Glass direction and Public boundary. Its later refinement owner-defers the OSM unit; another non-Public-visual T14 unit may be selected without a new owner decision if its exact gates pass. |
 
 ## 13. Recommended Level 2/3 Agent Usage
 
@@ -1681,7 +1677,7 @@ Route every focused technical question through `agents/level-2-specialist/AGENT.
 `tram-specialist-consultation`. Route every implementation through
 `agents/level-3-refactor/AGENT.md` with `tram-refactoring-workflow`.
 
-- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and T14's first eleven accepted slices through shared browser lifecycle ownership. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. Execute the exact OSM attribution/raster-endpoint handoff measurement-first; use Level 2 only if inspection exposes a focused provider/licence or layout uncertainty not settled by current evidence.
+- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and T14's first eleven accepted slices through shared browser lifecycle ownership. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. The OSM handoff is dormant; Level 1 may select another bounded non-Public-visual T14 unit, then route its exact implementation directly to Level 3 unless one focused uncertainty appears.
 - Specialist-led: T2 security/abuse; T4, T9, T13 observability/deployment; T5 database transactions; T6/T7 realtime and time-series; T11 operations/mobile; T15 device/LoRaWAN.
 - T12's D-010:A account-transition choice and all exact source/test acceptance evidence are complete; runtime rollout remains separately gated.
 
@@ -1710,8 +1706,9 @@ repair the tenth mutation-feedback slice with passing local evidence; Level 1 ac
 Commit `70f42c1` completes the exact `docs/tasks/T14-shared-browser-socket-lifecycle.md` source/test
 contract while preserving Public/Admin visual/product identity, DOM/copy/layout, requests, events,
 and consumer-owned canonical behavior. The affected Level 1 chain accepts it as the eleventh slice.
-The next eligible work is measurement-first execution of the exact OSM attribution/official raster
-endpoint Level 3 handoff; source remains ineligible until its incumbent guard fails. T11 and
+The exact OSM handoff at `45ecc0a` is owner-deferred with no accepted source/test delta. The next
+eligible action is Level 1 selection and exact handoff of another bounded non-Public-visual T14 unit;
+source remains ineligible until that new contract and its measurement-first gate pass. T11 and
 Research/T13 remain separate; successful Admin Login/session source
 behavior is unchanged, while browser Login regression evidence covers rejected requests and protected
 redirects rather than a successful-session journey. T15 remains
@@ -1739,8 +1736,8 @@ eleventh slice.
 M-20260807-01/02/03
 correct logging, simulator, and generated-artifact boundaries without changing roadmap order. The
 affected audits and this Roadmap are current at `70f42c1...`; unaffected audits remain current at
-`1eec866...`. `docs/tasks/T14-osm-attribution-and-raster-endpoint-alignment.md` binds every authorized
-source/test path; no source change may start before its measurement-first guard fails.
+`1eec866...`. `docs/tasks/T14-osm-attribution-and-raster-endpoint-alignment.md` retains a dormant
+exact contract but authorizes no source while its Public-UI authority gate is closed.
 
 **Assumptions and unknowns:** the target is C but no daily/public readiness claim is made before the
 required work passes. Diagnostics remain bounded/protected; no external host/provider/device fact or
@@ -1750,7 +1747,7 @@ unapproved role permission is assumed.
 for provisional task/gate mapping and low for deployment, human UX outcomes, credential rotation,
 and device/field claims until external evidence exists.
 
-**Deferred work/evidence:** D-012 implementation outside T11/T12/T14, post-OSM T14 selection plus
-human/runtime evidence,
+**Deferred work/evidence:** D-012 implementation outside T11/T12/T14, the OSM attribution/endpoint
+finding, later T14 selection after the next bounded unit, plus human/runtime evidence,
 physical sender/provider facts, playback/report scope, and scale-triggered
 features. D-006 retention/access/export parameters and T7 disposable evidence remain documented.

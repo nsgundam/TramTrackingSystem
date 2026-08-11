@@ -3,7 +3,8 @@
 Last updated: 2026-08-11
 
 Coordination status: **T14's first eleven slices, including shared browser Socket.IO lifecycle
-ownership, are revalidated; production remains No-Go.** Product, Architecture, Frontend, Dashboard &
+ownership, are revalidated; the OSM/Public-visual slice is owner-deferred; production remains
+No-Go.** Product, Architecture, Frontend, Dashboard &
 UX, Production Readiness, and Roadmap are current at `70f42c1...`; unaffected Level 1
 records remain current at `1eec866...`.
 The owner defers T9 continuation and T13 without satisfying their external gates. T11 now has pinned
@@ -12,7 +13,30 @@ acceptance authority, and a device report. D-012 is approved but unimplemented. 
 behind T13 and physical/provider facts. Repository/static Mobile evidence is not deployment, provider,
 credential-rotation, UX-acceptance, or physical-device proof.
 
-## Current coordination update — 2026-08-11 shared browser Socket.IO lifecycle
+## Current coordination update — 2026-08-11 OSM/Public-UI authority deferral
+
+This update supersedes the OSM-next coordination statements in the accepted Socket.IO update below;
+it does not change that implementation evidence. The immutable accepted source baseline remains
+`70f42c15948bf09e71a3c91d594a4c21f52db23b`. Coordination commit `45ecc0a` created the exact OSM
+handoff, and `docs/audits/specialized/T14-dashboard-osm-attribution-research-use.md` records the
+focused provider/licence evidence.
+
+- The Public UI team has not authorized the visible-credit delta, so the OSM attribution/Standard
+  raster endpoint task is deferred and its finding remains open. Research/non-commercial use is not
+  recorded as a waiver, and no zero-credit/provider alternative is selected.
+- No web application source, test, package, or visual delta from the interrupted attempt is
+  accepted. All affected audits remain Complete/Validated at `70f42c1`; no freshness downgrade is
+  created by this coordination-only refinement.
+- The score remains 15/20 with zero P0, one P1, five P2, and one P3 open; eight P1 and five P2 remain
+  resolved. Production Readiness remains No-Go and the controlled local demo remains Conditional
+  only.
+- T9/T13 remain owner-deferred without satisfying their gates; T11/T15 remain blocked; D-012 remains
+  approved but unimplemented. The unrelated Feedback-role migration remains preserved and excluded.
+- Run Approved Batch may continue only after Level 1 selects another bounded non-Public-visual T14
+  unit and an exact Level 3 handoff passes its dependency, owner, freshness, and measurement-first
+  gates.
+
+## Accepted evidence update — 2026-08-11 shared browser Socket.IO lifecycle
 
 This update supersedes prior active coordination statements while retaining their historical
 snapshots below. The immutable source baseline is
@@ -40,12 +64,12 @@ acceptance mapping. The unrelated dirty Feedback-role migration is preserved and
   zoom-time events. No human/AT/device/proxy/load/deployed/runtime acceptance is inferred.
 - Production Readiness remains No-Go. T9/T13 stay owner-deferred without satisfying their gates;
   T11/T15 remain blocked, and D-012 remains approved but unimplemented.
-- Roadmap selects visible OSM attribution plus official Standard raster endpoint alignment as the next exact-path
-  T14 handoff. It may add only compact visible map credit and endpoint/test alignment while
-  preserving map behavior and Public/Admin identity.
+- The then-current Roadmap selected visible OSM attribution plus Standard raster endpoint alignment;
+  the authority-deferral update above supersedes that next-work selection without changing this
+  accepted Socket.IO evidence.
 
 The controlled local demo remains Conditional only; research field trials, daily operations, and
-public service remain No-Go. Source work waits for the exact OSM handoff and measurement-first guard.
+public service remain No-Go.
 
 ## Historical coordination update — 2026-08-11 repaired master-data mutation feedback — superseded
 
@@ -235,9 +259,10 @@ checklist remains unverified. The repository-side T9 handoff is implemented and 
 audit profile, but T9 cannot be completed from static tests alone. The owner defers T9 continuation
 and T13 without satisfying those gates. T14's first eleven slices are complete and revalidated while
 preserving Public identity; the eleventh consolidates internal transport/listener implementation
-without changing valid Public/Admin observable behavior or external contracts. Roadmap selects
-bounded visible OSM attribution/official Standard raster endpoint alignment next; source work requires an exact
-task and measurement-first failure.
+without changing valid Public/Admin observable behavior or external contracts. The later D-011
+authority refinement defers the exact OSM handoff because the Public UI team has not authorized its
+visible-credit change. Level 1 may select a separate bounded non-Public-visual T14 unit; source work
+still requires its own exact task and measurement-first failure.
 T11 remains blocked on coordinated Mobile/Backend implementation and Android acceptance,
 and T15 awaits physical facts and T13. A later
 approved target may supply T12 runtime evidence but does not bypass these gates or grant deployment

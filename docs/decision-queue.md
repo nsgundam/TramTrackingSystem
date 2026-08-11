@@ -50,13 +50,21 @@ and visually improved substantially, using a theme complementary to the Public U
 documented accessible Dashboard theme. Each slice still requires exact screens/actions and browser
 journeys; this decision is not permission for one unbounded redesign.
 
+Owner Public-UI authority refinement: **Approved on 2026-08-11.** The exact OSM attribution/Standard
+raster endpoint slice at coordination commit `45ecc0a` is deferred because the Public UI team has
+not authorized its visible-credit change. The deferral neither resolves the OSM finding nor creates
+a research/non-commercial exemption, and it authorizes no zero-credit/provider alternative. No
+application source from the interrupted attempt is accepted; `70f42c1` remains the source baseline.
+Other T14 work may continue only through a separately selected exact handoff that does not alter
+rendered Public UI.
+
 Roadmap effect: closes the owner-order gate and fixes the remaining Admin visual direction. The
 recorded sequencing requirement is now satisfied: Level 1 re-audited the target, the shared bright-
 neutral Admin Liquid Glass foundation was accepted at `c4fdc3a`, and the repaired mutation-feedback
-slice was accepted at `e6a04ad`; T14's first ten slices are current. The next bounded shared browser
-Socket.IO lifecycle-ownership refactor requires its own exact Level 3 contract but no new owner
-decision. Public limits, dependency gates, browser evidence, and exact-path stop conditions remain
-unchanged.
+slice was accepted at `e6a04ad`; shared browser Socket.IO lifecycle ownership was accepted as the
+eleventh slice at `70f42c1`. The OSM exact handoff remains dormant and open at `45ecc0a`. Level 1 may
+select another bounded non-Public-visual T14 unit, but implementation still requires its own exact
+Level 3 contract, passed gates, measurement-first evidence, and unchanged dependency boundaries.
 
 ## D-012 — Remaining administrative and credential lifecycle matrix
 
