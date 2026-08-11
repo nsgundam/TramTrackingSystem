@@ -317,6 +317,7 @@ export default function VehiclesPage() {
         titleId="vehicle-delete-dialog-title"
         resource="Vehicle"
         target={deleteTarget?.name ?? ""}
+        targetId={deleteTarget?.id ?? ""}
         busy={deleting}
         error={deleteError}
         onCancel={closeDeleteConfirmation}

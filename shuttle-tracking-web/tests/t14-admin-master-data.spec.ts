@@ -553,6 +553,10 @@ test("T14 Admin master-data mutation shared delete dialog cancels, restores focu
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole("heading", { name: /delete/i })).toBeVisible();
     await expect(dialog).toContainText(scenario.itemName);
+    await expect(dialog).toContainText(scenario.itemId);
+    await expect(dialog).toHaveAccessibleDescription(
+      `Confirm deletion of ${scenario.singular} ${scenario.itemName} (ID ${scenario.itemId}) before this request is sent.`,
+    );
     const cancelButton = dialog.getByRole("button", { name: "Cancel" });
     await expect(cancelButton).toBeFocused();
     await cancelButton.click();

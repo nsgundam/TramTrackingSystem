@@ -100,6 +100,7 @@ interface AdminDeleteConfirmationProps {
   titleId: string;
   resource: string;
   target: string;
+  targetId: string;
   busy: boolean;
   error: string | null;
   onCancel: () => void;
@@ -111,6 +112,7 @@ export function AdminDeleteConfirmation({
   titleId,
   resource,
   target,
+  targetId,
   busy,
   error,
   onCancel,
@@ -122,7 +124,7 @@ export function AdminDeleteConfirmation({
       kind="mutation-confirmation"
       titleId={titleId}
       title={`Delete ${resource.toLowerCase()}?`}
-      description="Confirm the selected record before this request is sent."
+      description={`Confirm deletion of ${resource.toLowerCase()} ${target} (ID ${targetId}) before this request is sent.`}
       closeLabel={`Close ${resource.toLowerCase()} deletion confirmation`}
       onClose={onCancel}
       closeDisabled={busy}
@@ -133,6 +135,7 @@ export function AdminDeleteConfirmation({
         <div className="admin-delete-confirmation__target">
           <p className="admin-delete-confirmation__label">Selected {resource.toLowerCase()}</p>
           <p className="admin-delete-confirmation__name">{target}</p>
+          <p className="admin-resource-id">ID {targetId}</p>
         </div>
 
         {error && (

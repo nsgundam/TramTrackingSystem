@@ -296,6 +296,7 @@ export default function RoutesPage() {
         titleId="route-delete-dialog-title"
         resource="Route"
         target={deleteTarget?.name ?? ""}
+        targetId={deleteTarget?.id ?? ""}
         busy={deleting}
         error={deleteError}
         onCancel={closeDeleteConfirmation}

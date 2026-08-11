@@ -280,6 +280,7 @@ export default function StopsPage() {
         titleId="stop-delete-dialog-title"
         resource="Stop"
         target={deleteTarget ? labelFor(deleteTarget) : ""}
+        targetId={deleteTarget?.id ?? ""}
         busy={deleting}
         error={deleteError}
         onCancel={closeDeleteConfirmation}
