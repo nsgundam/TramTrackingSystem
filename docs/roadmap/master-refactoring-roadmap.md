@@ -196,7 +196,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T11 | Blocked — cross-repository/external evidence | The v3 brief pins a partially compatible native app. Static-secret storage, backup/cleartext, task-removal and missing enrollment/claim/recovery gaps require a coordinated exact handoff plus writable Mobile/Android target and device acceptance. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
 | T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
-| T14 | Partially Complete — first eleven slices accepted; next handoff required | `70f42c1` is accepted for the exact shared browser lifecycle contract. The next bounded P2 is visible OSM attribution plus official Standard raster endpoint alignment; create an exact Level 3 task before source work. |
+| T14 | Partially Complete — first eleven slices accepted; exact next handoff ready | `70f42c1` is accepted for the exact shared browser lifecycle contract. `docs/tasks/T14-osm-attribution-and-raster-endpoint-alignment.md` binds the next bounded P2; source becomes eligible only after its measurement-first guard fails. |
 | T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
 
 ### Approved-batch continuation gate
@@ -206,7 +206,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Exact Level 3 handoff eligible; source not yet eligible | Bind only Public/Admin OSM attribution/official raster endpoint source, deterministic browser interception, 320/390 px non-collision, and preserved map/UI behavior before measurement-first work. |
+| T14 | Exact Level 3 handoff ready; measurement-first source gate next | `docs/tasks/T14-osm-attribution-and-raster-endpoint-alignment.md` binds only Public/Admin OSM attribution/official raster endpoint source, deterministic browser interception, 320/390 px non-collision, and preserved map/UI behavior. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
 Batch result: T14's first eleven slices are accepted at `70f42c1` under the refined D-011 bright-
@@ -1385,9 +1385,10 @@ external-runtime work.
 ### Related Files
 
 Candidate inspection paths only—not an implementation allowlist: Public `useLeafletMap.ts`, Admin
-`LiveMap.tsx`, `app/shuttle-tracker.css`, the seven existing browser specs that intercept OSM tiles,
-and one focused compliance test. The Level 3 task must enumerate every writable source, test, and
-task path before implementation; this generic Roadmap section cannot authorize writes.
+`LiveMap.tsx`, `app/shuttle-tracker.css`, the seven existing browser specs with eight OSM-tile
+interception call sites, the previously unisolated T8 route-switch journey, and one focused endpoint/
+attribution alignment test. The Level 3 task must enumerate every writable source, test, and task
+path before implementation; this generic Roadmap section cannot authorize writes.
 
 ### Acceptance Criteria and Verification
 
@@ -1412,8 +1413,9 @@ validated. The tenth mutation-feedback source baseline is accepted at `e6a04ad` 
 acceptance checks passing. Shared browser Socket.IO lifecycle ownership is implemented at `70f42c1`
 under `docs/tasks/T14-shared-browser-socket-lifecycle.md`; its measurement-first/final evidence and
 completion record pass, and the affected Level 1 chain accepts it as the eleventh slice. OSM
-attribution plus official Standard raster endpoint alignment is selected next; its exact Level 3 handoff and
-measurement-first evidence remain pending.
+attribution plus official Standard raster endpoint alignment is selected next; its exact Level 3 handoff is
+recorded in `docs/tasks/T14-osm-attribution-and-raster-endpoint-alignment.md`, while measurement-first
+evidence remains pending.
 The eighth slice's exact completion evidence is in
 `docs/tasks/T14-admin-operations-support-convergence.md`. The master-data completion evidence is in
 `docs/tasks/T14-admin-master-data-theme-convergence.md`. The map-quality handoff is
@@ -1679,7 +1681,7 @@ Route every focused technical question through `agents/level-2-specialist/AGENT.
 `tram-specialist-consultation`. Route every implementation through
 `agents/level-3-refactor/AGENT.md` with `tram-refactoring-workflow`.
 
-- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and T14's first eleven accepted slices through shared browser lifecycle ownership. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. Create the exact OSM attribution/raster-endpoint handoff measurement-first; use Level 2 only if inspection exposes a focused provider/licence or layout uncertainty not settled by current evidence.
+- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and T14's first eleven accepted slices through shared browser lifecycle ownership. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. Execute the exact OSM attribution/raster-endpoint handoff measurement-first; use Level 2 only if inspection exposes a focused provider/licence or layout uncertainty not settled by current evidence.
 - Specialist-led: T2 security/abuse; T4, T9, T13 observability/deployment; T5 database transactions; T6/T7 realtime and time-series; T11 operations/mobile; T15 device/LoRaWAN.
 - T12's D-010:A account-transition choice and all exact source/test acceptance evidence are complete; runtime rollout remains separately gated.
 
@@ -1708,8 +1710,8 @@ repair the tenth mutation-feedback slice with passing local evidence; Level 1 ac
 Commit `70f42c1` completes the exact `docs/tasks/T14-shared-browser-socket-lifecycle.md` source/test
 contract while preserving Public/Admin visual/product identity, DOM/copy/layout, requests, events,
 and consumer-owned canonical behavior. The affected Level 1 chain accepts it as the eleventh slice.
-The next eligible work is one exact-path OSM attribution/official raster endpoint Level 3 handoff;
-source remains ineligible until that contract and measurement-first failure exist. T11 and
+The next eligible work is measurement-first execution of the exact OSM attribution/official raster
+endpoint Level 3 handoff; source remains ineligible until its incumbent guard fails. T11 and
 Research/T13 remain separate; successful Admin Login/session source
 behavior is unchanged, while browser Login regression evidence covers rejected requests and protected
 redirects rather than a successful-session journey. T15 remains
@@ -1737,8 +1739,8 @@ eleventh slice.
 M-20260807-01/02/03
 correct logging, simulator, and generated-artifact boundaries without changing roadmap order. The
 affected audits and this Roadmap are current at `70f42c1...`; unaffected audits remain current at
-`1eec866...`. No next T14 source unit may start before an exact OSM attribution/endpoint task binds every
-source/test path and its measurement-first guard fails.
+`1eec866...`. `docs/tasks/T14-osm-attribution-and-raster-endpoint-alignment.md` binds every authorized
+source/test path; no source change may start before its measurement-first guard fails.
 
 **Assumptions and unknowns:** the target is C but no daily/public readiness claim is made before the
 required work passes. Diagnostics remain bounded/protected; no external host/provider/device fact or
