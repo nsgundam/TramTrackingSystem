@@ -1,19 +1,15 @@
-"use client";
-
-import dynamic from "next/dynamic";
 import "./shuttle-tracker.css";
-import { LanguageProvider } from "@/contexts/LanguageContext";
-
-const ShuttleTracker = dynamic(() => import("@/components/public/ShuttleTracker"), {
-  ssr: false,
-});
+import PublicTrackerClient from "@/components/public/PublicTrackerClient";
 
 export default function PublicTrackingPage() {
   return (
-    <LanguageProvider>
-      <main className="public-tracker-page">
-        <ShuttleTracker />
-      </main>
-    </LanguageProvider>
+    <main className="public-tracker-page">
+      <PublicTrackerClient />
+      <noscript>
+        <p className="public-tracker-noscript">
+          กรุณาเปิดใช้งาน JavaScript เพื่อดูตำแหน่งรถแบบเรียลไทม์บนแผนที่
+        </p>
+      </noscript>
+    </main>
   );
 }
