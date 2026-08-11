@@ -3,12 +3,12 @@
 Audit metadata:
 - Evidence baseline: `70f42c15948bf09e71a3c91d594a4c21f52db23b`
 - Evidence scope: `PRODUCT.md`, `docs/project-knowledge-base.md`, every validated domain and production-readiness audit, `docs/decision-queue.md`, `docs/tasks/`, and the repository evidence cited by the revalidated reports.
-- Reviewed at: `2026-08-11T19:10:00+07:00`
-- Validation state: **Needs Re-audit**
+- Reviewed at: `2026-08-11T19:37:00+07:00`
+- Validation state: **Validated**
 - Predecessor baselines: `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`,
   `docs/audits/frontend-audit.md`, `docs/audits/dashboard-ux-audit.md`, and
   `docs/audits/production-readiness-audit.md` @
-  `e6a04ad7fd73cafa1463fd83099c0ffb2d14c13d`; `docs/decision-queue.md` has no pending decision;
+  `70f42c15948bf09e71a3c91d594a4c21f52db23b`; `docs/decision-queue.md` has no pending decision;
   `docs/project-knowledge-base.md`, `docs/audits/backend-audit.md`,
   `docs/audits/database-audit.md`, `docs/audits/infrastructure-device-audit.md`,
   and `docs/audits/security-devops-observability-audit.md` @
@@ -16,7 +16,7 @@ Audit metadata:
 
 Last reviewed: 2026-08-11
 
-Validation state: **Needs Re-audit** at T14 source baseline `70f42c1`. T9's repository handoff is
+Validation state: **Validated** at T14 source baseline `70f42c1`. T9's repository handoff is
 independently revalidated and remains
 partially complete because its University Server/Network acceptance checklist has not been executed.
 T10 and T12 are complete for their exact bounded source/test scopes. T12 applies D-009/D-010:A
@@ -79,8 +79,11 @@ owner now replaces duplicated Public/Admin transport construction and listener w
 validation, canonical version/snapshot/hydration/queue/expiry authority remains consumer-owned.
 Measurement-first and final focused evidence, bounded browser regressions, full CI, and two
 independent reviews pass. Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
-and this Roadmap now require Level 1 re-audit before the unit is accepted or more source work is
-selected. D-012
+and this Roadmap accept it as the eleventh T14 slice for exact local source/unit/browser-regression
+evidence. The duplicated lifecycle P2 is resolved, leaving one P1, five P2, and one P3 open while
+the score remains 15/20. The next bounded T14 unit is visible OSM attribution and official Standard
+raster endpoint alignment: restore compact visible attribution and use the current required endpoint
+without otherwise changing Public/Admin map behavior or identity. D-012
 fixes later lifecycle policy without implementing it. T15 remains deferred behind T13 and physical/
 provider facts.
 
@@ -132,12 +135,12 @@ playback, microservices, a second ingestion pipeline, or unbounded operations/re
 | Input | Date | Status | Use |
 |---|---:|---|---|
 | Knowledge Base | 2026-08-08 | Complete / Validated | Discovery is current at `1eec866...`; external Mobile source is pinned and its static/runtime limits are recorded. |
-| Product | 2026-08-11 | Needs Re-audit at `70f42c1...` | Internal Public/Admin browser lifecycle ownership changed; capability, request, UI, and external boundaries are intended to remain unchanged and await Level 1 acceptance. |
-| Architecture, Backend, and Database audits | 2026-08-11 | Architecture needs re-audit at `70f42c1...`; Backend/Database current at `1eec866...` | Shared transport ownership changed; backend/data authority and requests are unchanged. |
+| Product | 2026-08-11 | Complete / Validated at `70f42c1...` | Eleventh T14 slice preserves capability, request, UI, Login, and external boundaries while invalid required structure, coercive enums, and Public source identity fail before use. |
+| Architecture, Backend, and Database audits | 2026-08-11 | Architecture validated at `70f42c1...`; Backend/Database current at `1eec866...` | One shared transport/listener implementation replaces duplication; backend/data/canonical authority remains separate. |
 | Infrastructure & Device and Security/DevOps/Observability audits | 2026-08-08 | Complete / Validated | Native foreground code is visible, while Android runtime is unverified and SEC-08 credential/backup/cleartext gaps block T11. |
-| Frontend audit | 2026-08-11 | Needs Re-audit at `70f42c1...` | Focused 4/4, bounded browser 16/16, full CI, and scoped detector `[]` pass; duplicated-lifecycle finding disposition remains pending. |
-| Dashboard & UX audit | 2026-08-11 | Needs Re-audit at `70f42c1...` | No DOM/copy/layout/theme path changed, but lifecycle evidence changed; human/AT/device/runtime evidence remains absent. |
-| Production Readiness Audit | 2026-08-11 | Needs Re-audit / No-Go at `70f42c1...` | Local source/browser/CI evidence changed; no deployment, operations, Mobile/device/provider, or release gate changed. |
+| Frontend audit | 2026-08-11 | Complete / Validated at `70f42c1...` | Lifecycle duplication is resolved locally; score remains 15/20 with 1 P1, 5 P2, and 1 P3 open. |
+| Dashboard & UX audit | 2026-08-11 | Complete / Validated at `70f42c1...` | No rendered UI changed; lifecycle P2 is resolved locally while human/AT/device/runtime evidence remains absent. |
+| Production Readiness Audit | 2026-08-11 | Complete / Validated / No-Go at `70f42c1...` | Eleventh slice changes no deployment, operations, Mobile/device/provider, or release gate. |
 | Decision Queue and owner/task evidence | 2026-08-10 | D-001–D-012 approved | D-011 now selects bounded Admin Liquid Glass with accessible fallbacks; Public identity remains preserved. |
 
 Level 1 revalidated the owner-selected Admin direction at `a0a0ce1...`; the first eight T14 slices
@@ -145,8 +148,9 @@ through implementation `06e0291` remain accepted at `23b4d6f...`. Level 3 comple
 bright-neutral Admin foundation slice at `c4fdc3a`; Level 1 accepts that exact source/browser
 contract. Level 3 completed the mutation-feedback source slice at `2ddb835` and its bounded target-
 identity repair at `e6a04ad`; Level 1 accepts that exact baseline. Level 3 completes the separate
-shared browser Socket.IO lifecycle-ownership source unit at `70f42c1` without intended Public/Admin
-observable or server-contract change; the affected Level 1 chain is now stale and must revalidate it.
+shared browser Socket.IO lifecycle-ownership source unit at `70f42c1` without changing valid Public/
+Admin observable behavior or server contracts; the affected Level 1 chain accepts it as the eleventh
+slice.
 Unaffected profiles remain current at `1eec866...`.
 Actual
 hosting, TLS, production recovery, Android build/device behavior, browser/runtime behavior, physical
@@ -169,7 +173,7 @@ devices, and TTN console state remain external unknowns.
 | T11 | Supported sender operations, trip history, and exception view | Critical/High for daily operations | Production 3.1, 3.3; Product 7–9; Dashboard 7, 10 | Phase 3; native source pinned, but coordinated Backend/Mobile handoff, compatible patch, Android target, and acceptance artifact pending |
 | T12 | Feedback triage and device/source operations views | High for broad public support | Product 7, 11; Frontend 12; Dashboard 10; Database 12 | Phase 3; complete for the D-009/D-010:A exact handoff; runtime rollout remains unverified |
 | T13 | Production deployment/recovery drill and monitoring | High before production | Production 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16 | Phase 4; blocked on T9 external acceptance and target authority |
-| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; first ten slices accepted at `e6a04ad`; shared browser Socket.IO lifecycle source complete at `70f42c1` and pending affected-chain re-audit |
+| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; first eleven slices accepted at `70f42c1`; visible OSM attribution/official Standard raster endpoint alignment selected next |
 | T15 | Physical senders, research dashboard, playback/reports, scale extensions | Deferred | Product 11; Architecture 9–10, 12; Infrastructure 7–9; D-002 | Phase 5; blocked on T13 and physical/provider facts |
 
 Every Critical/High finding remains represented. D-001=C opens T10–T12's release-scope gate, but
@@ -192,7 +196,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T11 | Blocked — cross-repository/external evidence | The v3 brief pins a partially compatible native app. Static-secret storage, backup/cleartext, task-removal and missing enrollment/claim/recovery gaps require a coordinated exact handoff plus writable Mobile/Android target and device acceptance. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
 | T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
-| T14 | Partially Complete — first ten slices accepted; lifecycle source pending re-audit | `e6a04ad` remains accepted for exact local mutation-feedback evidence. `70f42c1` completes the exact shared browser Socket.IO lifecycle source/test contract, but Level 1 acceptance is pending. |
+| T14 | Partially Complete — first eleven slices accepted; next handoff required | `70f42c1` is accepted for the exact shared browser lifecycle contract. The next bounded P2 is visible OSM attribution plus official Standard raster endpoint alignment; create an exact Level 3 task before source work. |
 | T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
 
 ### Approved-batch continuation gate
@@ -202,14 +206,13 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Level 1 re-audit eligible; further source selection not yet eligible | Validate `70f42c1` against `docs/tasks/T14-shared-browser-socket-lifecycle.md`, affected findings, Public/Admin preservation, and production limits before selecting another source unit. |
+| T14 | Exact Level 3 handoff eligible; source not yet eligible | Bind only Public/Admin OSM attribution/official raster endpoint source, deterministic browser interception, 320/390 px non-collision, and preserved map/UI behavior before measurement-first work. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
-Batch result: T14's first ten slices are accepted at `e6a04ad` under the refined D-011 bright-
-neutral Admin/Public-preservation direction. Shared browser Socket.IO lifecycle source is complete
-at `70f42c1`, but Product, Architecture, Frontend, Dashboard & UX, Production Readiness, and this
-Roadmap require Level 1 re-audit before further source selection. T9/T13 remain deferred without
-dependency bypass; T11/T15 remain blocked.
+Batch result: T14's first eleven slices are accepted at `70f42c1` under the refined D-011 bright-
+neutral Admin/Public-preservation direction. Visible OSM attribution and official Standard raster endpoint alignment
+is the next bounded handoff lane. T9/T13 remain deferred without dependency bypass; T11/T15 remain
+blocked.
 
 ## 4. Dependency Map
 
@@ -1307,8 +1310,12 @@ Research, backend/API/schema ownership, dependencies,
 and external-runtime facts remain exclusions. The affected audit chain accepts this evidence at
 `c4fdc3a`. Commit `2ddb835` completes the mutation-feedback implementation and `e6a04ad` repairs
 destructive target identity; the affected audit chain accepts the exact local result at `e6a04ad`.
-No owner or dependency gate blocks a separately bounded shared browser Socket.IO lifecycle ownership
-refactor that preserves Public/Admin observable behavior and backend authority.
+Commit `70f42c1` completes shared browser Socket.IO lifecycle ownership, and the affected audit chain
+accepts it as the eleventh slice. No owner or dependency gate blocks the next bounded OSM attribution/endpoint-alignment
+unit. The OSM Foundation tile policy currently requires the exact Standard raster endpoint
+`https://tile.openstreetmap.org/{z}/{x}/{y}.png` and clearly visible attribution on the map; this is
+an external provider/licence constraint, not a new visual-world decision
+(`https://operations.osmfoundation.org/policies/tiles/`, reviewed 2026-08-11).
 
 ### Blocks
 
@@ -1366,18 +1373,27 @@ failed-snapshot continuation, second-and-later-connect rehydration, map/zoom que
 initial `await hydrate(false)` before socket construction/connect, reconnect `hydrate(true)` plus
 queued-version reconciliation/failure replay, manual Retry-driven effect/socket restart, strict
 unknown-payload validation, current event names/handling order, and cleanup. Copy, DOM/layout/theme,
-backend events, origins, and T9/T11/T13 boundaries remain unchanged. Level 1 acceptance is pending.
+backend events, origins, and T9/T11/T13 boundaries remain unchanged. The affected Level 1 chain
+accepts that lifecycle unit. The next bounded unit may only restore
+compact visible OSM attribution on Public, align Public/Admin Standard raster URLs with the official
+endpoint, keep the credit clear and unoccluded at 320/390 px, and update deterministic tile-request
+interception. It must preserve map controls, route/marker/viewport behavior, Admin/Public identity,
+and every non-attribution DOM/copy/layout contract. It must not change provider, add a dependency,
+add offline/prefetch behavior, or bundle stop-image, Flaticon, global-font, backend, Mobile, or
+external-runtime work.
 
 ### Related Files
 
-Candidate inspection paths only—not an implementation allowlist: the Public tracker Socket hook,
-Admin LiveMap, and their exact focused tests. The Level 3 task must enumerate every writable source,
-test, and task path before implementation; this generic Roadmap section cannot authorize writes.
+Candidate inspection paths only—not an implementation allowlist: Public `useLeafletMap.ts`, Admin
+`LiveMap.tsx`, `app/shuttle-tracker.css`, the seven existing browser specs that intercept OSM tiles,
+and one focused compliance test. The Level 3 task must enumerate every writable source, test, and
+task path before implementation; this generic Roadmap section cannot authorize writes.
 
 ### Acceptance Criteria and Verification
 
-These Roadmap criteria are synthesis guardrails; the exact Level 3 task binds the incumbent Public/
-Admin asymmetries listed above. The selected
+These Roadmap criteria are synthesis guardrails; the next exact Level 3 task must bind the official
+tile URL, visible linked attribution, deterministic no-network test interception, 320/390 px non-
+collision, and all map/UI preservation constraints before source work. The selected
 Admin Dashboard exposes a documented priority order for verified data, canonical
 service state, available actions, and supporting metrics without inventing unavailable exceptions;
 every element uses shared Public tokens or a documented semantic extension; scoped loading/error/
@@ -1395,7 +1411,9 @@ Glass foundation and Login convergence are implemented at `c4fdc3a`; the affecte
 validated. The tenth mutation-feedback source baseline is accepted at `e6a04ad` with its local
 acceptance checks passing. Shared browser Socket.IO lifecycle ownership is implemented at `70f42c1`
 under `docs/tasks/T14-shared-browser-socket-lifecycle.md`; its measurement-first/final evidence and
-completion record pass, while affected Level 1 acceptance remains pending.
+completion record pass, and the affected Level 1 chain accepts it as the eleventh slice. OSM
+attribution plus official Standard raster endpoint alignment is selected next; its exact Level 3 handoff and
+measurement-first evidence remain pending.
 The eighth slice's exact completion evidence is in
 `docs/tasks/T14-admin-operations-support-convergence.md`. The master-data completion evidence is in
 `docs/tasks/T14-admin-master-data-theme-convergence.md`. The map-quality handoff is
@@ -1540,7 +1558,8 @@ repository CI pass. Two independent finish reviews return `PASS`. Public/Admin D
 theme, requests, event names, origin, backend/API/auth/schema, dependencies, Login source behavior,
 Mobile, Research, migrations, and external targets remain unchanged. Browser evidence does not force
 a reconnect or zoom-time socket event, and no human/AT/device/deployed acceptance is claimed. The
-affected Level 1 chain is `Needs Re-audit` at this immutable source baseline.
+affected Level 1 chain accepts this immutable source baseline, resolves the duplicated lifecycle P2
+for exact local evidence, and retains the 15/20 score with one P1, five P2, and one P3 open.
 
 ## 9. Phase 5 — Future Enhancements
 
@@ -1634,7 +1653,7 @@ Repository simulators exist; physical/provider evidence is unavailable.
 |---|---|---|
 | Driver, trip-history, and exception workflows are absent | D-001=C now requires them, so this is no longer an accepted release omission. T10 route-stop operations are complete for their bounded scope. | Complete T11 with external Android evidence before release. |
 | Feedback runtime rollout is unverified | T12 source/test scope is complete, but no migration, retention run, staff/rider acceptance, backup, or deployed scheduling evidence exists. | Execute an approved disposable/staging rollout and retention/role acceptance before release. |
-| Dashboard/public UX is not release-ready | The last validated score remains 15/20 at `e6a04ad`. The first ten slices are accepted; shared Socket lifecycle source is complete at `70f42c1` but pending Level 1 acceptance, while human assistive-technology/usability, broader device/runtime evidence, T11-backed exceptions, assets/attribution, and Research remain open. | Re-audit the bounded lifecycle unit, then complete only eligible T14 work and obtain missing human/runtime/dependency evidence without bypassing external gates. |
+| Dashboard/public UX is not release-ready | The validated score remains 15/20 at `70f42c1`. The first eleven slices are accepted; human assistive-technology/usability, broader device/runtime evidence, T11-backed exceptions, visible OSM attribution/endpoint alignment, other assets, and Research remain open. | Complete only bounded eligible T14 units and obtain missing human/runtime/dependency evidence without bypassing external gates. |
 | Deployment/TLS/backup/recovery evidence is absent | D-008 policy and the T9 repository handoff exist, but University Server/Network acceptance checks are incomplete. | Obtain T9 external acceptance, then complete T13. |
 | Physical device/TTN evidence is absent | Provider/hardware/provisioning facts are unknown. | Record facts and execute T15. |
 | Playback/reports are absent | D-002=B authorizes bounded diagnostics, not unbounded fidelity claims. | Approve query/fidelity scope after T7 evidence. |
@@ -1652,7 +1671,7 @@ external-evidence gates but no additional focused owner-policy blocker:
 | D-012 implementation paths and external `DEV` allowlist/recovery/backup target facts | T15 and later role-management work | Policy is approved but intentionally outside T11/T12/T14; target facts and exact implementation evidence remain absent. |
 | TTN application/device IDs; physical device/module models; firmware/provisioning; clock/reference and field protocol | T15 | D-004 fixes transport roles and dashboard scope, but repository evidence cannot establish physical behavior or absolute accuracy. |
 | None for feedback policy | — | D-009 approves owner, anonymous/no-reply scope, business-day lifecycle, retention, deletion/restore, and safe read-only source fields. |
-| None for the first ten accepted T14 slices or completed Socket.IO-lifecycle source unit | — | D-011 fixes the bright-neutral Admin Liquid Glass direction and Public boundary; `70f42c1` preserves the accepted UI/product/API/auth boundary and awaits Level 1 acceptance. |
+| None for the first eleven accepted T14 slices or selected OSM attribution/endpoint unit | — | D-011 fixes the bright-neutral Admin Liquid Glass direction and Public boundary; the next unit changes only required compact map attribution and official Standard raster endpoint alignment. |
 
 ## 13. Recommended Level 2/3 Agent Usage
 
@@ -1660,7 +1679,7 @@ Route every focused technical question through `agents/level-2-specialist/AGENT.
 `tram-specialist-consultation`. Route every implementation through
 `agents/level-3-refactor/AGENT.md` with `tram-refactoring-workflow`.
 
-- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, T14's first ten accepted slices through repaired master-data mutation feedback, and the lifecycle source unit at `70f42c1`. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. Run the affected Level 1 re-audit before another source selection; use Level 2 only if that review exposes a focused cross-domain uncertainty.
+- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and T14's first eleven accepted slices through shared browser lifecycle ownership. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. Create the exact OSM attribution/raster-endpoint handoff measurement-first; use Level 2 only if inspection exposes a focused provider/licence or layout uncertainty not settled by current evidence.
 - Specialist-led: T2 security/abuse; T4, T9, T13 observability/deployment; T5 database transactions; T6/T7 realtime and time-series; T11 operations/mobile; T15 device/LoRaWAN.
 - T12's D-010:A account-transition choice and all exact source/test acceptance evidence are complete; runtime rollout remains separately gated.
 
@@ -1688,9 +1707,10 @@ foundation and Login convergence under its exact task. Commits `2ddb835` and `e6
 repair the tenth mutation-feedback slice with passing local evidence; Level 1 accepts that baseline.
 Commit `70f42c1` completes the exact `docs/tasks/T14-shared-browser-socket-lifecycle.md` source/test
 contract while preserving Public/Admin visual/product identity, DOM/copy/layout, requests, events,
-and consumer-owned canonical behavior. The next eligible work is the affected Product, Architecture,
-Frontend, Dashboard & UX, Production Readiness, and Roadmap Level 1 re-audit; no further source unit
-is eligible before it. T11 and Research/T13 remain separate; successful Admin Login/session source
+and consumer-owned canonical behavior. The affected Level 1 chain accepts it as the eleventh slice.
+The next eligible work is one exact-path OSM attribution/official raster endpoint Level 3 handoff;
+source remains ineligible until that contract and measurement-first failure exist. T11 and
+Research/T13 remain separate; successful Admin Login/session source
 behavior is unchanged, while browser Login regression evidence covers rejected requests and protected
 redirects rather than a successful-session journey. T15 remains
 deferred behind T13 and external physical facts. T12/
@@ -1712,13 +1732,13 @@ unknown roles to fail closed; D-011 orders T14, preserves Public identity, and n
 iOS-inspired Liquid Glass world for bounded Admin redesign; and D-012 fixes later least-privilege
 lifecycle controls. T14's first ten slices are accepted at `e6a04ad`, including the earlier eight
 through `06e0291`, the shared explicitly light Admin foundation at `c4fdc3a`, and repaired mutation
-feedback. The shared browser Socket.IO lifecycle source unit is complete at `70f42c1`, with Level 1
-acceptance pending.
+feedback. The shared browser Socket.IO lifecycle source unit at `70f42c1` is accepted as the
+eleventh slice.
 M-20260807-01/02/03
 correct logging, simulator, and generated-artifact boundaries without changing roadmap order. The
-affected audits and this Roadmap require re-audit at `70f42c1...`; unaffected audits remain current
-at `1eec866...`. No next T14 source unit may start before the affected Level 1 chain accepts the
-immutable lifecycle baseline and selects an eligible bounded finding.
+affected audits and this Roadmap are current at `70f42c1...`; unaffected audits remain current at
+`1eec866...`. No next T14 source unit may start before an exact OSM attribution/endpoint task binds every
+source/test path and its measurement-first guard fails.
 
 **Assumptions and unknowns:** the target is C but no daily/public readiness claim is made before the
 required work passes. Diagnostics remain bounded/protected; no external host/provider/device fact or
@@ -1728,7 +1748,7 @@ unapproved role permission is assumed.
 for provisional task/gate mapping and low for deployment, human UX outcomes, credential rotation,
 and device/field claims until external evidence exists.
 
-**Deferred work/evidence:** D-012 implementation outside T11/T12/T14, post-lifecycle T14 selection
-plus human/runtime evidence,
+**Deferred work/evidence:** D-012 implementation outside T11/T12/T14, post-OSM T14 selection plus
+human/runtime evidence,
 physical sender/provider facts, playback/report scope, and scale-triggered
 features. D-006 retention/access/export parameters and T7 disposable evidence remain documented.

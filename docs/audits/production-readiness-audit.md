@@ -1,23 +1,71 @@
 # Production Readiness Audit
 
 Audit metadata:
-- Evidence baseline: e6a04ad7fd73cafa1463fd83099c0ffb2d14c13d
+- Evidence baseline: 70f42c15948bf09e71a3c91d594a4c21f52db23b
 - Evidence scope: PRODUCT.md; docs/project-knowledge-base.md; every validated domain audit;
   docs/decision-queue.md; docs/tasks/; docs/operations/; scripts/ci-checks.sh;
   scripts/test-production-topology.mjs; Compose/environment configuration; the current Impeccable
   Dashboard & UX technical audit evidence; the current full repository CI; and source paths cited
   by validated findings; the D-012 matrix; and the T11 v3 external Mobile compatibility brief
-- Reviewed at: 2026-08-11T15:45:00+07:00
+- Reviewed at: 2026-08-11T19:36:00+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/audits/product-audit.md, docs/audits/architecture-audit.md,
   docs/audits/frontend-audit.md, and docs/audits/dashboard-ux-audit.md @
-  e6a04ad7fd73cafa1463fd83099c0ffb2d14c13d; docs/project-knowledge-base.md,
+  70f42c15948bf09e71a3c91d594a4c21f52db23b; docs/project-knowledge-base.md,
   docs/audits/backend-audit.md, docs/audits/database-audit.md,
   docs/audits/infrastructure-device-audit.md, and
   docs/audits/security-devops-observability-audit.md @
   1eec866b986b4cb4e802f7a48fac93e54e780699
 
-## 2026-08-11 T14 Admin master-data mutation-feedback readiness re-audit
+## 2026-08-11 T14 shared browser Socket.IO lifecycle readiness re-audit
+
+Every required predecessor is validated: Product, Architecture, Frontend, and Dashboard & UX consume
+source baseline `70f42c1`; unchanged Discovery, Backend, Database, Infrastructure & Device, and
+Security evidence remains current at `1eec866b986b...`. Completion record `535ec73` maps the exact
+task, source/test paths, measurement-first repairs, final checks, and limits. The eleventh T14 slice
+is **Complete for its exact local source/unit/browser-regression contract**.
+
+One shared implementation now owns Socket.IO construction, Socket/Manager listener wiring,
+connection-state/first-versus-later-connect signaling, unknown payload forwarding, and idempotent
+cleanup for the scoped Public/Admin browser consumers. Each consumer retains its own lifecycle
+instance, required-field structural narrowing, canonical version/snapshot/hydration/queue/expiry/
+map/Retry authority, and valid event order. Payloads with invalid required structure, coercive enum
+values, or Public source identity are rejected before use. No UI, request, origin, event name,
+backend/API/auth/schema, dependency,
+Login source, Mobile, migration, Research, deployment, or external target changed.
+
+The incumbent direct-owner measurement failed 1/1 and the strict-enum/Public-source guard later
+failed 1/1 before repair; final lifecycle coverage passes 4/4. T8 2/2, T9 5/5, T14 pure 8/8,
+bounded surrounding browser regressions 16/16, scoped detector `[]`, build, full repository CI, and
+two finish reviews pass. Login browser evidence remains limited to rejected request, pending/inline
+error, protected redirect, and material regressions; no successful-session journey is claimed.
+
+The duplicated Socket lifecycle P2 is resolved for this exact local evidence, but no release gate
+changes. The Dashboard & UX score remains **15/20**, with zero P0, one P1, five P2, and one P3 open;
+eight P1 and five P2 findings are resolved across T14. D-001=C remains **No-Go**. No real reconnect/
+zoom-time browser event, operator/human/AT, physical device, ambient data/cache, university proxy,
+deployment, migration/retention, backup/recovery, Android, provider/field, monitoring/alert, load,
+or incident evidence was created. Controlled local demonstration remains Conditional only;
+research field trial, internal daily operations, and public rider service remain No-Go.
+
+| Material finding | State | Readiness result |
+|---|---|---|
+| PR-01 route-stop composition/invalidation | Resolved | Exact T10 evidence remains; ambient stateful proof is absent. |
+| PR-02 supported Mobile/T11 lifecycle/history/exceptions | Partially Resolved | Pinned source remains incompatible with the approved lifecycle and lacks Android acceptance. |
+| PR-03 feedback/source-health policy rollout | Partially Resolved | Exact source/test/browser behavior exists; migration, retention, and human rollout are absent. |
+| PR-04 production topology/operations | Partially Resolved | T9 repository contract exists; every external acceptance result remains absent. |
+| PR-05 hierarchy/general lifecycle controls | Partially Resolved | Bounded role enforcement remains; D-012 implementation is absent. |
+| PR-06 sensitive invalid-payload logging | Resolved | Existing regression guards remain. |
+| PR-07 durable operations/recovery evidence | Still Present | Metrics/alerts/on-call/drill/backup/rollback evidence remains absent. |
+| PR-08 physical/provider/field evidence | Unable to Verify | No Mobile/ESP32/TTN/gateway field evidence was added. |
+| PR-09 truthful T8/T14 UX and release evidence | Partially Resolved | First eleven T14 slices are accepted for exact local evidence, including shared browser transport ownership; T11 exceptions and human/AT/device/deployed evidence remain. |
+| PR-10 external Mobile credential/lifecycle risk | Still Present | Ordinary preference/backup/cleartext and revocation/recovery gaps remain unchanged. |
+
+No new owner decision is required. Roadmap synthesis is the next eligible profile. This result does
+not satisfy or bypass T9/T11/T13/T15, T12 runtime, human/AT, device/provider, deployment,
+operations, or release gates. The unrelated dirty Feedback-role migration remains excluded.
+
+## 2026-08-11 T14 Admin master-data mutation-feedback readiness re-audit — superseded by shared lifecycle evidence
 
 Every required predecessor is validated: Product, Architecture, Frontend, and Dashboard & UX
 consume repaired source baseline `e6a04ad`; unchanged Discovery, Backend, Database, Infrastructure &
@@ -284,25 +332,25 @@ deterministic checks. The University Server/Network Team has not supplied host, 
 forwarded-hop, deployed secret, backup/restore, logs/alerts, incident or capacity acceptance evidence.
 T11 still lacks its coordinated lifecycle/Mobile patch and Android runtime evidence; T12 lacks target
 migration/retention/human acceptance; physical senders/provider/field behavior is unavailable; and
-the Dashboard & UX technical audit is 15/20 with one open P1 and six open P2 findings. The sole P1
+the Dashboard & UX technical audit is 15/20 with one open P1 and five open P2 findings. The sole P1
 is the missing Research Dashboard, which remains blocked on physical/provider evidence. The approved bright-neutral Admin
-Liquid Glass foundation and repaired master-data mutation recovery are implemented for exact
-source/browser scope at `e6a04ad`; they change
+Liquid Glass foundation, repaired master-data mutation recovery, and shared browser Socket.IO
+transport ownership are implemented for exact local scope at `70f42c1`; they change
 neither this score nor release status and supply no deployed or human evidence.
 
 ## 2. Freshness and Validated Predecessor Coverage
 
-The preceding affected baseline was `c4fdc3a...`. Product, Architecture, Frontend, and Dashboard &
-UX now consume `e6a04ad`; unaffected reports remain current at `1eec866...`. Changed evidence is the
-exact Admin mutation implementation and repair, completion records `8ebdf9a`/`e5f6422`, focused/prior
-browser suites, production build, scoped detector/finish review, and full repository CI. No production or stateful
-acceptance target was operated.
+The preceding affected baseline was `e6a04ad...`. Product, Architecture, Frontend, and Dashboard &
+UX now consume `70f42c1`; unaffected reports remain current at `1eec866...`. Changed evidence is the
+exact shared lifecycle task/service/consumers/focused test, completion record `535ec73`, retained
+browser suites, production build, scoped detector/finish review, and full repository CI. No
+production or stateful acceptance target was operated.
 
 | Domain | Readiness implication |
 |---|---|
-| Discovery/Product | The implemented tracker remains partial; T10/T12 exact scopes and T14's first ten slices are complete for their recorded contracts, while sender/trip accountability and human/runtime acceptance remain. |
+| Discovery/Product | The implemented tracker remains partial; T10/T12 exact scopes and T14's first eleven slices are complete for their recorded contracts, while sender/trip accountability and human/runtime acceptance remain. |
 | Architecture/Backend/Database | Canonical, Operations and research data boundaries are coherent; T10/T12 server/schema controls are implemented in source/test form, while T11 and runtime rollout remain open. |
-| Frontend/Dashboard UX | T8/T14 provide bounded truthful explanation/recovery, keyboard-operable, reduced-motion, request-budget, 320/390 px, touch/contrast, and bright-neutral Admin/Login journeys. Native mutation recovery is resolved locally; the 15/20 audit confirms T11-backed exceptions, human acceptance, and Research remain incomplete. |
+| Frontend/Dashboard UX | T8/T14 provide bounded truthful explanation/recovery, keyboard-operable, reduced-motion, request-budget, 320/390 px, touch/contrast, bright-neutral Admin/Login, and shared browser transport evidence. The 15/20 audit confirms T11-backed exceptions, human acceptance, and Research remain incomplete. |
 | Infrastructure/Device | T9's private/authenticated static topology and runbook pass; no deployed topology or physical sender/provider/field evidence exists. |
 | Security/DevOps | Core sender/TTN/T12 controls, T9 repository port/origin/auth/proxy/health boundaries, and CI exist; SEC-01 is repaired. TLS/firewall/forwarded-hop behavior, credential rotation, broad scanning, durable monitoring/alerts, incident controls, and runtime rollout remain unresolved. |
 
@@ -327,7 +375,7 @@ acceptance target was operated.
 | PR-06 | SEC-01 raw Socket.IO invalid payload logging can leak sensitive coordinates/payloads. | Resolved | Source/test blocker removed by M-20260807-01; retain guards and obtain deployed-log evidence on an approved target. |
 | PR-07 | Durable metrics/logs/alerts, on-call, recovery drill and backup/restore/rollback evidence are absent. | Still Present | Internal, public |
 | PR-08 | Mobile, ESP32, TTN/gateway/provider and field/recovery evidence are unavailable; simulators are not physical evidence. | Unable to Verify | Research, internal, public |
-| PR-09 | T8 canonical projection and T14's first ten slices, including the fixed-light Admin Liquid Glass foundation, Login repair, and native master-data mutation recovery, are resolved at source/browser level; broader touch, T11-backed exceptions, and real assistive-technology/user/device/deployed evidence remain incomplete. | Partially Resolved | Internal, public |
+| PR-09 | T8 canonical projection and T14's first eleven slices, including fixed-light Admin Liquid Glass, Login repair, native mutation recovery, and shared browser Socket.IO mechanics, are resolved for their exact local evidence; broader touch, T11-backed exceptions, and real assistive-technology/user/device/deployed evidence remain incomplete. | Partially Resolved | Internal, public |
 | PR-10 | The external Mobile revision stores reusable Sender material in ordinary preferences with backup/cleartext enabled and lacks installation revocation/recovery. | Still Present | Internal, public |
 
 ## 5. Stop Conditions
@@ -350,8 +398,9 @@ stale, dependency, or ingestion failure.
 5. Preserve T14's truthful-state/explanation/recovery, keyboard, request/motion, 320/390 px/touch,
    contrast, bounded Admin hierarchy/master-data/operations-support, bright-neutral material, Login,
    native master-data mutation recovery, explicit destructive-target identity, and accessibility-
-   fallback regressions. Keep Public/Admin/Research boundaries distinct and do not invent dependency
-   causes or unavailable T11 exception data.
+   fallback regressions. Preserve the one browser transport/listener implementation while keeping
+   consumer canonical/UI policy separate. Keep Public/Admin/Research boundaries distinct and do not
+   invent dependency causes or unavailable T11 exception data.
 6. Demonstrate actual sender/device/provider behavior across representative routes, coverage, mounting, duration, reconnect/power cycles and failure recovery, with limits documented.
 7. Run release/readiness, security, accessibility and operations evidence on the selected non-production target before release approval.
 
@@ -368,7 +417,7 @@ recorded scope; T9/T11/T12 external/runtime acceptance is missing evidence rathe
 infer.
 
 Roadmap may now consume this release synthesis and select only the next dependency-eligible bounded
-unit. The first ten T14 slices are accepted for their exact local evidence. T9 remains repository-
+unit. The first eleven T14 slices are accepted for their exact local evidence. T9 remains repository-
 partial, T11/T12 runtime proof remains open, and T13/T15
 dependencies cannot be bypassed. Public visual/product identity, DOM/copy/layout and observable
 behavior, API/auth/schema, Mobile, dependencies, and external-runtime work stay excluded.

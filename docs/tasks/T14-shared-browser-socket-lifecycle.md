@@ -142,7 +142,8 @@
    Use a small strict transport port/factory so deterministic tests can drive connect, disconnect,
    connect-error, reconnect-attempt, location payload, and disposal without a network target.
 2. Refactor `useSocketConnection.ts` to start that lifecycle only after the incumbent Public initial
-   snapshot attempt. Add a pure full `unknown` decoder before incumbent canonical acceptance, then
+   snapshot attempt. Add a pure required-field structural `unknown` decoder before incumbent
+   canonical acceptance, then
    retain ref freshness, accept-before-map order, map availability, zoom queue ordering, second-and-
    later rehydration, direct REST-hydration processing, and effect cleanup.
 3. Refactor `LiveMap.tsx` to start the same lifecycle only after `await hydrate(false)`. Retain strict
@@ -225,7 +226,8 @@
     event wiring/state signals, suppresses the first-connect rehydrate callback, invokes it on later
     connects, removes every listener, suppresses callbacks after disposal, and disconnects
     idempotently. Real adapter wiring and the consumer absence predicates are source-guarded.
-  - Public snapshot-failure continuation, strict full DTO narrowing, canonical accept-before-map,
+  - Public snapshot-failure continuation, required-field structural narrowing with strict string-
+    enum checks and Public source-identity rejection, canonical accept-before-map,
     map/zoom queue order, and later-connect rehydrate are guarded. Admin hydrate-before-connect,
     hydrate-before-request, queued-newer-state reconciliation, failure replay, Retry restart, and
     canonical-expiry ownership remain consumer-side and guarded.
@@ -257,6 +259,8 @@
 - Evidence limits: browser evidence covers unchanged surrounding local journeys but does not force a
   reconnect or a zoom-time socket event. No human, assistive-technology, physical-device, deployed,
   ambient database/cache, or external-runtime acceptance is claimed.
-- Audit freshness changes: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
-  and Roadmap are `Needs Re-audit` against `70f42c1`. Level 3 records the source result but does not
-  accept the eleventh T14 slice or mark those Level 1 reports complete.
+- Audit freshness changes: the Level 3 completion sync marked Product, Architecture, Frontend,
+  Dashboard & UX, Production Readiness, and Roadmap `Needs Re-audit` against `70f42c1`; Level 3 did
+  not accept the slice. The subsequent ordered Level 1 chain validates the same immutable source,
+  accepts it as T14 slice eleven, resolves the duplicated-lifecycle P2 for exact local evidence, and
+  retains the 15/20 score with one P1, five P2, and one P3 open. Production remains `No-Go`.

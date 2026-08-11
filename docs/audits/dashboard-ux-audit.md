@@ -1,7 +1,7 @@
 # Dashboard & UX Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: e6a04ad7fd73cafa1463fd83099c0ffb2d14c13d
+- Evidence baseline: 70f42c15948bf09e71a3c91d594a4c21f52db23b
 - Evidence scope: PRODUCT.md, docs/project-knowledge-base.md,
   Product/Architecture/Backend/Frontend/Infrastructure & Device audits,
   DESIGN.md, .impeccable/design.json, docs/decision-queue.md, docs/research/, docs/tasks/,
@@ -10,13 +10,60 @@ Audit metadata:
   shuttle-tracking-web/hooks/, shuttle-tracking-web/services/, shuttle-tracking-web/types/,
   shuttle-tracking-web/utils/, shuttle-tracking-web/tests/, full current frontend check evidence,
   and the current Impeccable technical audit/detector pass
-- Reviewed at: 2026-08-11T15:39:00+07:00
+- Reviewed at: 2026-08-11T19:35:00+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/audits/product-audit.md and docs/audits/frontend-audit.md @
-  e6a04ad7fd73cafa1463fd83099c0ffb2d14c13d; docs/audits/infrastructure-device-audit.md @
+  70f42c15948bf09e71a3c91d594a4c21f52db23b; docs/audits/infrastructure-device-audit.md @
   1eec866b986b4cb4e802f7a48fac93e54e780699
 
-## 2026-08-11 T14 Admin master-data mutation-feedback re-audit
+## 2026-08-11 T14 shared browser Socket.IO lifecycle Dashboard & UX re-audit
+
+Product and Frontend are validated against `70f42c1`; Infrastructure & Device remains current at
+`1eec866...`. The eleventh T14 slice is **Complete for its exact Dashboard & UX source/unit/browser-
+regression contract**. Public and Admin still render the same states, content, controls, hierarchy,
+and bright-neutral/Public visual systems; only internal Socket.IO transport/listener ownership
+changes. One shared implementation now replaces duplicated wiring while each surface retains its
+own lifecycle instance, structural validation, canonical state, hydration/queue, map, Retry, and
+expiry behavior.
+
+The post-change Impeccable technical audit finds no rendered JSX/DOM, CSS, copy, layout, theme,
+focus, or Login source delta. A fresh scoped detector on the changed LiveMap/hook/service returns
+`[]`. Valid canonical event order is preserved; required-field structural narrowing rejects
+coercive enum values and Public source identity before use. The direct-owner measurement failed 1/1
+against both incumbent consumers, the later boundary guard failed 1/1 before repair, and final
+lifecycle coverage passes 4/4. T8 2/2, T9 5/5, T14 pure 8/8, bounded browser 16/16, build/full CI,
+and two finish reviews pass.
+
+The score remains **15/20 — below the release baseline**: every dimension stays 3/4. The duplicated
+Socket lifecycle P2 is **Resolved for bounded local source/unit/browser-regression evidence**,
+leaving zero P0, one P1, five P2, and one P3 open; eight P1 and five P2 findings are resolved across
+T14. Implementation Integrity stays 3/4 because remaining asset/external/runtime/system ceilings
+persist.
+
+| Prior material finding | State | Current evidence and implication |
+|---|---|---|
+| Public/Admin Socket.IO lifecycle implementation was duplicated | Resolved | One shared implementation owns transport/listener mechanics; each surface retains its own instance and product-specific validation/canonical/UI authority. |
+| Public expired/non-live Marker could overstate service | Resolved | T8 projection and expiry regressions remain unchanged. |
+| Public rider state was fully explanatory | Resolved | Bounded existing-state behavior remains; human/deployed evidence is absent. |
+| Admin live map had no state visibility | Partially Resolved | Snapshot/realtime/canonical/Retry behavior remains; T11-backed exception/actions are absent. |
+| Admin dashboard was an accountable operations surface | Partially Resolved | Internal ownership improves, but no T11 exception summary/recovery is added. |
+| Route-stop management journey existed | Resolved | Existing ordered payload/focus evidence remains. |
+| Feedback capture had staff triage/privacy journey | Partially Resolved | T12/T14 behavior remains; human/runtime acceptance is absent. |
+| Research data had an appropriate dashboard | Still Present | No research route/filter/metric/uncertainty/drill-down/export UI exists. |
+| Role-specific UX enforced the hierarchy | Partially Resolved | Session/Sidebar behavior remains; general lifecycle/research navigation stay separate. |
+| Dashboard public-theme direction had a bounded specification | Resolved | Signal Lens remains fixed-light and Admin-only; Public identity is unchanged. |
+| Modal, focus, form, and document accessibility met release baseline | Partially Resolved | Existing bounded browser evidence remains; human/assistive-technology coverage is open. |
+| Feedback vehicle association failed safely | Resolved | Existing fail-closed behavior is unchanged. |
+| Rejected Admin Login errors recover inline | Resolved | Login source is unchanged; rejected request/inline error, protected redirect, and material regressions remain covered. |
+| Native master-data mutation recovery was unsafe and non-semantic | Resolved | The accepted contextual mutation contract remains unchanged. |
+
+Reconnect/disposal evidence is fake-transport/source based; the browser suite does not force a
+reconnect or zoom-time socket event. No human, AT, real device, deployed/proxy, load/runtime, or
+release acceptance is claimed. No new finding, owner decision, or UX redesign is required.
+Production Readiness and Roadmap may consume this validated baseline. The pre-existing
+`.impeccable/design.json` drift behind `DESIGN.md` remains outside this acceptance.
+
+## 2026-08-11 T14 Admin master-data mutation-feedback re-audit — superseded by shared lifecycle evidence
 
 Product and Frontend are validated against `e6a04ad`; Infrastructure & Device remains current at
 its recorded `1eec866...` predecessor. The tenth T14 slice is **Complete for its exact Dashboard &
@@ -355,10 +402,11 @@ slices. T10 and T12 provide their exact bounded operations/data-policy surfaces;
 independently blocked. This audit does not authorize an unbounded redesign.
 
 The required Impeccable re-audit scores the current frontend **15/20 — below the release baseline**
-with no P0, one open P1, six P2, one P3, eight resolved P1, and four resolved P2 findings. Product-
+with no P0, one open P1, five P2, one P3, eight resolved P1, and five resolved P2 findings. Product-
 specific truth/recovery/keyboard behavior, measured motion/request/viewport/contrast budgets, and
 the bright-neutral Admin shell/Dashboard/Login/master-data/operations-support system are stronger,
-and `e6a04ad` resolves native master-data mutation recovery for local source/browser evidence.
+`e6a04ad` resolves native master-data mutation recovery, and `70f42c1` resolves duplicated browser
+transport/listener ownership for their bounded local evidence.
 Exception-first operations and the missing Research surface still constrain release. Owner
 refinement `a0a0ce1` remains implemented at `c4fdc3a`; the accepted hierarchy, content, state, focus,
 responsive, and request contracts remain binding.
@@ -371,10 +419,10 @@ the T14 result above supersedes the two resolved and one narrowed truth findings
 
 This profile reviews information architecture, truthfulness, separation of public/operations/research surfaces, loading/error/accessibility states, and task placement. It is not a browser usability study, accessibility certification, user research, device/pilot, or production service test.
 
-Product and Frontend are revalidated at `e6a04ad`; Infrastructure & Device remains current at
-`1eec866...`. Changed evidence is the exact mutation-feedback task, scoped Admin CSS/pages/modals/
-feedback component/tests, post-repair desktop/Mobile captures, detector `[]`, finish verdict, and
-local build/CI record at `e6a04ad` with completion records `8ebdf9a`/`e5f6422`. Browser evidence uses isolated fixtures, not a
+Product and Frontend are revalidated at `70f42c1`; Infrastructure & Device remains current at
+`1eec866...`. Changed evidence is the exact shared lifecycle task/service/consumers/focused test,
+completion record `535ec73`, fresh detector `[]`, and retained build/CI evidence at `70f42c1`.
+Browser evidence uses isolated fixtures, not a
 university proxy, real service, assistive
 technology, physical mobile device, user research, production traffic, or runtime retention; it is
 not accessibility certification.
@@ -383,6 +431,7 @@ not accessibility certification.
 
 | Prior material finding | State | Current evidence and implication |
 |---|---|---|
+| Public/Admin Socket.IO lifecycle implementation was duplicated | Resolved | One shared implementation owns scoped transport/listener mechanics; each surface retains a separate instance and product-specific validation/canonical/UI authority. |
 | Public expired/non-live Marker could overstate service | Resolved | T8 canonical projection and synthetic tests remove Marker/count/ETA at expiry and prevent route-switch recurrence until newer live state. |
 | Public rider state was fully explanatory | Resolved | Availability, StopInfo, ETA, Retry, canonical age, and slow-load messaging distinguish the bounded snapshot/connection/canonical states the client can know without inventing causes. Human/assistive-technology comprehension and deployed recovery remain release evidence. |
 | Admin live map had no state visibility | Partially Resolved | LiveMap exposes one responsive snapshot/realtime/canonical summary, retry, queued-version reconciliation, snapshot absence, and locally expired last-known state. T11-backed exception/action paths remain absent. |
@@ -413,9 +462,10 @@ not accessibility certification.
 - T12's Feedback inbox/status/assignment and read-only source-health views implement their bounded
   source/test contract. Preserve server-authorized actions and clear privacy/retention/delete/restore
   controls; runtime/human acceptance remains separate.
-- T14's first nine journeys remain accepted. The tenth mutation-feedback slice is complete for this
-  Dashboard & UX source/browser contract at `e6a04ad`; Production Readiness and Roadmap have
-  consumed it. Admin Login, Public visual/product identity, DOM/copy/layout and observable behavior,
+- T14's first ten journeys remain accepted. The eleventh shared browser lifecycle slice is complete
+  for this Dashboard & UX source/unit/browser-regression contract at `70f42c1`; Production
+  Readiness and Roadmap may consume it. Admin Login, Public visual/product identity, DOM/copy/layout
+  and valid observable behavior,
   page data/fields, T11 exceptions, Research/T13, API/auth/schema, Mobile, dependencies, and external
   runtime remain separate.
 
@@ -429,8 +479,8 @@ not accessibility certification.
 | Performance | 3/4 | Selected-route/deduplicated geometry, owned marker cancellation, and bounded functional-layer blur are tested; raw/external/global assets and deployed budgets remain. |
 | Responsive Design | 3/4 | The measured 320 px Public collision plus 390 px master-data forms/confirmations and operations-support ledgers/dialogs with audited 44 px targets are corrected; broader device/content/human coverage remains. |
 | Theming | 3/4 | One documented fixed-light Signal Lens Admin/Login system and its accessibility fallbacks are implemented; broader cross-surface/platform evidence remains below a full release baseline. |
-| Implementation Integrity | 3/4 | Product-specific separation, fail-closed truth projections, exact Login rejection handling, and shared Admin mutation ownership are tested; duplicated Public/Admin socket lifecycle and remaining system ceilings persist. |
-| **Total** | **15/20 — Below release baseline** | **0 P0; 1 open P1; 6 P2; 1 P3; 8 P1 and 4 P2 resolved by T14.** |
+| Implementation Integrity | 3/4 | Product-specific separation, fail-closed truth projections, shared browser transport mechanics, exact Login rejection handling, and shared Admin mutation ownership are tested; remaining system ceilings persist. |
+| **Total** | **15/20 — Below release baseline** | **0 P0; 1 open P1; 5 P2; 1 P3; 8 P1 and 5 P2 resolved by T14.** |
 
 Implementation integrity verdict: **Improved but not release-ready.** The rider map, source health,
 feedback, and route operations are product-specific, and T14 removes the known false live/zero/
@@ -476,6 +526,9 @@ release baseline.
   station-list motion now honor `prefers-reduced-motion`; no human vestibular acceptance occurred.
 - **Resolved:** initial geometry is selected-route-only/deduplicated and one owned marker animation
   cancels on replacement/removal/cleanup, with 4/4 unit and 2/2 browser evidence.
+- **Resolved for bounded source/unit/browser-regression evidence:** Public/Admin Socket.IO
+  construction, listener, connection-signal, and cleanup mechanics now have one implementation;
+  each consumer retains its separate canonical/UI policy.
 - Public stop images use raw `<img>` without dimensions/lazy/error handling; the Admin map icon is
   externally hosted; Material Symbols load globally for a deferred tour.
 - **Resolved for bounded source/browser evidence:** Signal Lens supplies the shared fixed-light Admin/
@@ -509,8 +562,9 @@ gates rather than an unscoped polish pass.
 
 T9 is Partially Complete for its repository-side handoff under D-008. T10/T12 are complete for exact
 scopes. T11 needs backend/role/lifecycle and external Android evidence. T12 human/runtime acceptance
-remains unverified. T14's first nine slices remain accepted and the tenth mutation-feedback slice is
-complete for this Dashboard & UX source/browser scope at `e6a04ad`; downstream re-audit is complete.
+remains unverified. T14's first ten slices remain accepted and the eleventh shared lifecycle slice
+is complete for this Dashboard & UX source/unit/browser-regression scope at `70f42c1`; Production
+Readiness and Roadmap may consume it.
 Research stays blocked on T13. No new owner decision is required.
 
 Confidence is High for source-visible separation/ownership, Medium for synthetic request/motion/
@@ -519,11 +573,11 @@ operations, devices, and deployed outcomes.
 
 ## 8. Proposed Owner Decisions and Handoff
 
-No new owner decision is proposed. D-011's shared bright-neutral Admin Liquid Glass foundation is
-implemented and accepted for this scope; bounded CRUD mutation feedback is also accepted for this
-profile while preserving Public identity and all Login/page contracts.
+No new owner decision is proposed. D-011's shared bright-neutral Admin Liquid Glass foundation,
+bounded CRUD mutation feedback, and internal browser transport refactor are accepted for their exact
+scopes while preserving Public identity and all Login/page contracts.
 
-Dashboard & UX is validated at `e6a04ad` with current predecessors and the technical audit.
+Dashboard & UX is validated at `70f42c1` with current predecessors and the technical audit.
 Production Readiness and Roadmap may consume these results; Security/DevOps/Observability remains
 independently current at `1eec866...`.
 

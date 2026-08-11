@@ -1,7 +1,7 @@
 # Architecture Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: e6a04ad7fd73cafa1463fd83099c0ffb2d14c13d
+- Evidence baseline: 70f42c15948bf09e71a3c91d594a4c21f52db23b
 - Evidence scope: PRODUCT.md, docs/project-knowledge-base.md, docs/audits/product-audit.md,
   DESIGN.md, .impeccable/design.json,
   docs/decision-queue.md, docs/research/, docs/tasks/, docs/operations/, README.md,
@@ -11,12 +11,60 @@ Audit metadata:
   shuttle-tracking-web/types/, shuttle-tracking-web/services/,
   shuttle-tracking-web/components/, shuttle-tracking-web/tests/, and the T11 v3 external Mobile
   compatibility brief
-- Reviewed at: 2026-08-11T15:31:00+07:00
+- Reviewed at: 2026-08-11T19:28:00+07:00
 - Validation state: Validated
 - Predecessor baselines: docs/project-knowledge-base.md @ 1eec866b986b4cb4e802f7a48fac93e54e780699;
-  docs/audits/product-audit.md @ e6a04ad7fd73cafa1463fd83099c0ffb2d14c13d
+  docs/audits/product-audit.md @ 70f42c15948bf09e71a3c91d594a4c21f52db23b
 
-## 2026-08-11 T14 Admin master-data mutation-feedback re-audit
+## 2026-08-11 T14 shared browser Socket.IO lifecycle architecture re-audit
+
+Discovery remains validated at `1eec866...`; Product is validated at `70f42c1`. Architecture-
+relevant application evidence changes from `e6a04ad` only in the exact lifecycle task, one new
+browser transport implementation boundary, its Public/Admin consumers, focused tests, and package
+script. Completion record `535ec73` maps the exact implementation and local evidence limits. The
+eleventh T14 slice is **Complete for its exact frontend architecture contract**.
+
+`browserSocketLifecycle.ts` is now the sole scoped production implementation owner for Socket.IO
+construction, Socket and Manager listener registration/removal, explicit connect/disconnect, first-
+versus-later connection signaling, unknown payload forwarding, and idempotent disposal. Each Public
+or Admin consumer starts its own lifecycle instance; this is not a global socket singleton, shared
+connection-state store, or new domain authority. The boundary does not import canonical DTOs,
+React, maps, hydration, snapshots, Retry, queues, or expiry timers.
+
+Public/Admin retain required-field structural narrowing with strict string-enum checks, canonical
+acceptance/version authority, snapshot/hydration order, queue/reconciliation/failure replay, map/
+zoom processing, Retry, and canonical expiry. Valid canonical payload behavior and handling order
+remain exact; payloads with invalid required structure, coercive enum values, or Public source
+identity fail before consumer use.
+`backendConnection.socketOrigin`, `autoConnect: false`, event names, and consumer-specific initial/
+reconnect sequencing remain unchanged.
+
+| Prior material finding | State | Current evidence and implication |
+|---|---|---|
+| Public/Admin browser Socket.IO lifecycle implementation was duplicated and could drift | Resolved | One shared implementation boundary owns scoped browser transport/listener mechanics; consumers retain structural validation and every canonical/UI authority. |
+| Vehicle and source identity were conflated | Resolved | Public rejects source identity; Admin retains its internal optional source projection. |
+| Trip lifecycle lacked one owner | Resolved | Operations remains authoritative; no lifecycle writer was added. |
+| Canonical current state was untyped/consumer-owned | Resolved | Backend V1 authority remains; consumers still validate and version-order the projection. |
+| Raw diagnostics and temporal semantics were absent | Partially Resolved | T7 remains bounded; producer clocks and physical replay remain unverified. |
+| Redis current state is durable truth | Still Present | No durable current-state recovery/replay was added. |
+| Route-stop cache ownership is incomplete | Resolved | T10 authority remains unchanged. |
+| Realtime fan-out/scaling is proven | Unable to Verify | No rooms, replay, load, distributed recovery, or deployed measurement was added. |
+| Public/admin service-state behavior is an operational contract | Partially Resolved | Truthful consumer projections and ordering remain; history, actionable exceptions, causal diagnosis, and deployed recovery are incomplete. |
+| Production topology and REST/Socket origin authority were unresolved | Partially Resolved | T9 repository authority remains; external TLS/proxy/recovery/capacity evidence is unavailable. |
+| Shared Admin material/Login presentation authority was absent | Resolved | No presentation path changed; Signal Lens remains authoritative. |
+| Login rejection shared protected-route redirect behavior | Resolved | Login source is unchanged; bounded rejection/redirect regressions pass. |
+| Native/page-local mutation feedback lacked one shared semantic presentation/focus boundary | Resolved | The accepted shared mutation composition remains unchanged. |
+
+The direct-owner measurement failed 1/1 against both incumbent consumers. A later strict-enum/
+source-identity measurement failed 1/1 before repair; final focused lifecycle 4/4, T8 2/2, T9 5/5,
+T14 pure 8/8, bounded browser 16/16, scoped detector `[]`, production build, full CI, and two finish
+reviews pass. Reconnect/disposal proof is fake-transport/source evidence; no browser suite forces a
+reconnect or zoom-time event. No deployed transport, load, ambient state, human/AT, device, or
+operations claim is added. No Level 2 or owner decision is required. Frontend and downstream
+profiles may consume this validated baseline; the unrelated dirty Feedback-role migration is
+excluded.
+
+## 2026-08-11 T14 Admin master-data mutation-feedback re-audit — superseded by shared lifecycle evidence
 
 Discovery remains validated at `1eec866...`; Product is validated against `e6a04ad`. Architecture-
 relevant evidence changes only the bounded Admin mutation pages, CRUD/shared modal components,
@@ -308,6 +356,10 @@ Source baseline `e6a04ad` now replaces the three page-local native mutation reco
 feedback/confirmation composition while resource pages retain endpoint, target, DTO, refresh, and
 pending-state ownership. The shared confirmation identifies the immutable target visually and in
 its accessible description.
+Source baseline `70f42c1` now supplies one browser Socket.IO transport/listener implementation
+boundary for the Public tracker hook and Admin LiveMap. Each consumer retains its own lifecycle
+instance plus structural validation, canonical state/version, snapshot/hydration, queue, map, Retry,
+and expiry authority.
 
 ## 2. Scope and Freshness
 
@@ -315,21 +367,22 @@ This profile covers boundaries, authority, data products, temporal semantics, ca
 behavior, and task placement. It does not certify deployment, physical devices, provider behavior,
 deployed browser runtime, human behavior, load, or an Android client.
 
-Discovery remains current at `1eec866...`; Product is revalidated at `e6a04ad`, and the preceding
-affected Architecture baseline was `c4fdc3a`. Exact changed evidence is the T14 task, scoped Admin
-CSS, Vehicles/Routes/Stops pages, CRUD/shared modal and mutation-feedback components, and master-
-data browser tests at `e6a04ad` with completion records `8ebdf9a` and `e5f6422`.
+Discovery remains current at `1eec866...`; Product is revalidated at `70f42c1`, and the preceding
+affected Architecture baseline was `e6a04ad`. Exact changed evidence is the shared browser Socket.IO
+lifecycle task, service boundary, Public/Admin consumers, focused test/package script, and completion
+record `535ec73` at `70f42c1`.
 Existing T9 topology, canonical selection, research capture, relational schema, route-stop mutation/
 cache ownership, Feedback lifecycle, and Mobile/ESP32/LoRaWAN acquisition semantics are unchanged.
 The implementation supplies isolated browser evidence but no TLS, recovery, capacity, deployment,
 device, Android, ambient data-target, human, or deployed-runtime proof.
 The valid Discovery commit `1eec866b986b4cb4e802f7a48fac93e54e780699` is an ancestor of
-`e6a04ad`; the bounded affected delta is `c4fdc3a..e6a04ad`.
+`70f42c1`; the bounded application delta is the five-file source/test commit `70f42c1`.
 
 ## 3. Prior-Finding Revalidation
 
 | Prior material finding | State | Current evidence and implication |
 |---|---|---|
+| Public/Admin browser Socket.IO lifecycle implementation was duplicated and could drift | Resolved | `browserSocketLifecycle.ts` is the sole scoped production transport/listener implementation owner; Public/Admin retain separate instances and all structural-validation/canonical/UI authority. |
 | Vehicle and source identity were conflated | Resolved | TrackingSource remains independent of Vehicle, with source type, binding, priority, credential version, and source reference on sampled history. Public canonical projection omits internal source identity. |
 | Trip lifecycle lacked one owner | Resolved | operations.service.ts owns start/virtual-start, active-trip validation, end, vehicle repair, and sampled-history transaction behavior. Future timeout/force-close must extend this authority, not create controller-side writers. |
 | Canonical current state was untyped/consumer-owned | Resolved | canonical-state.service.ts owns the V1 envelope, route authority, freshness, epoch/version, REST projection, and Socket.IO publication; T8 consumes that contract and rejects older state. |
@@ -372,13 +425,15 @@ The valid Discovery commit `1eec866b986b4cb4e802f7a48fac93e54e780699` is an ance
    boundary; apply approved D-012 only through an exact general lifecycle handoff.
 4. Preserve T10's explicit cache invalidation and add its stateful public-read proof only on an approved disposable target; do not fall back to TTL semantics.
 5. Preserve the no-raw-public invariant; research data requires distinct authentication and provenance/retention semantics.
+6. Preserve the shared browser transport boundary without turning it into a global connection or
+   canonical-state store; consumer-specific validation and reconciliation remain intentional.
 
 ## 7. Roadmap Impact, Unknowns, and Confidence
 
 T9 is Partially Complete for its repository-side handoff under D-008. T10/T12 are complete for their
-bounded handoffs. T14's first nine slices remain accepted, and the tenth mutation-feedback slice is
-complete for this Architecture source/browser contract at `e6a04ad`; the downstream affected chain
-has consumed it. T11 still needs focused technical and external Android evidence;
+bounded handoffs. T14's first ten slices remain accepted, and the eleventh shared browser lifecycle
+slice is complete for this Architecture source/unit/browser-regression contract at `70f42c1`.
+T11 still needs focused technical and external Android evidence;
 Research remains blocked on T13.
 Production operations, runtime retention, capacity and external-device facts remain open; no new
 owner decision is proposed.
@@ -395,7 +450,7 @@ not a policy choice to infer.
 
 Frontend and downstream profiles consume this Architecture baseline. Backend and Database remain
 current at `1eec866...` because T14 changes no runtime API, schema, or persistence authority. The
-Roadmap owns the next exact continuation gate; none of
+Roadmap owns the next exact continuation gate after the affected profile chain revalidates; none of
 this evidence promotes a visual direction or browser fixture into assistive-technology, device, or
 runtime proof.
 

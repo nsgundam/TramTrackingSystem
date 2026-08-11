@@ -2,10 +2,9 @@
 
 Last updated: 2026-08-11
 
-Coordination status: **T14's first ten slices, including repaired master-data mutation feedback,
-are revalidated; bounded shared browser Socket.IO lifecycle ownership is the next
-eligible planning lane; production remains No-Go.** Product, Architecture, Frontend, Dashboard & UX,
-Production Readiness, and Roadmap are current at `e6a04ad...`; unaffected Level 1
+Coordination status: **T14's first eleven slices, including shared browser Socket.IO lifecycle
+ownership, are revalidated; production remains No-Go.** Product, Architecture, Frontend, Dashboard &
+UX, Production Readiness, and Roadmap are current at `70f42c1...`; unaffected Level 1
 records remain current at `1eec866...`.
 The owner defers T9 continuation and T13 without satisfying their external gates. T11 now has pinned
 native Mobile source but remains blocked on coordinated implementation, writable Mobile/Android
@@ -13,7 +12,42 @@ acceptance authority, and a device report. D-012 is approved but unimplemented. 
 behind T13 and physical/provider facts. Repository/static Mobile evidence is not deployment, provider,
 credential-rotation, UX-acceptance, or physical-device proof.
 
-## Current coordination update — 2026-08-11 repaired master-data mutation feedback
+## Current coordination update — 2026-08-11 shared browser Socket.IO lifecycle
+
+This update supersedes prior active coordination statements while retaining their historical
+snapshots below. The immutable source baseline is
+`70f42c15948bf09e71a3c91d594a4c21f52db23b`; completion record `535ec73` supplies the exact Level 3
+acceptance mapping. The unrelated dirty Feedback-role migration is preserved and excluded.
+
+- One shared implementation now owns Socket.IO construction, Socket/Manager listener registration/
+  removal, connection signaling, first-versus-later connect behavior, unknown payload forwarding,
+  and idempotent cleanup for the scoped Public/Admin browser consumers.
+- Each consumer retains a separate lifecycle instance plus required-field structural narrowing,
+  canonical version/snapshot/hydration/queue/expiry/map/Retry authority. Valid canonical behavior
+  and order are preserved; invalid required structure, coercive enums, and Public source identity
+  fail before use.
+- The direct-owner measurement failed 1/1 against both incumbent consumers; the later strict-enum/
+  source-identity guard failed 1/1 before repair. Final focused 4/4, T8 2/2, T9 5/5, T14 pure 8/8,
+  bounded browser 16/16, scoped detector `[]`, build, full repository CI, and two finish reviews pass.
+- The Impeccable score remains 15/20 with zero P0, one P1, five P2, and one P3 open; eight P1 and
+  five P2 findings are resolved across T14. The duplicated browser lifecycle P2 is resolved for
+  exact local source/unit/browser-regression evidence.
+- No rendered DOM, copy, layout, theme, Public visual identity, Login source, request, event name,
+  backend/API/auth/schema, dependency, Mobile, Research, migration, deployment, or external target
+  changed. Login browser evidence remains limited to rejected requests, inline recovery, protected
+  redirect, and material behavior; no successful-session journey is claimed.
+- Reconnect/disposal evidence is fake-transport/source based; no browser suite forces reconnect or
+  zoom-time events. No human/AT/device/proxy/load/deployed/runtime acceptance is inferred.
+- Production Readiness remains No-Go. T9/T13 stay owner-deferred without satisfying their gates;
+  T11/T15 remain blocked, and D-012 remains approved but unimplemented.
+- Roadmap selects visible OSM attribution plus official Standard raster endpoint alignment as the next exact-path
+  T14 handoff. It may add only compact visible map credit and endpoint/test alignment while
+  preserving map behavior and Public/Admin identity.
+
+The controlled local demo remains Conditional only; research field trials, daily operations, and
+public service remain No-Go. Source work waits for the exact OSM handoff and measurement-first guard.
+
+## Historical coordination update — 2026-08-11 repaired master-data mutation feedback — superseded
 
 This update supersedes prior active coordination statements while retaining their historical
 snapshots below. The immutable source baseline is
@@ -133,21 +167,23 @@ now supersedes that release assumption without changing the already-tested T6 co
 ## 2. Current profile status
 
 - Discovery: **Complete / Validated** at `1eec866...`; owner decisions and pinned external Mobile facts are current.
-- Product: **Complete / Validated** at `e6a04ad...`; ten T14 slices are revalidated and Mobile remains partial.
-- Architecture: **Complete / Validated** at `e6a04ad...`; canonical/data authority plus shared semantic mutation/target presentation boundaries are current.
+- Product: **Complete / Validated** at `70f42c1...`; eleven T14 slices are revalidated and Mobile remains partial.
+- Architecture: **Complete / Validated** at `70f42c1...`; canonical/data authority plus shared browser transport and semantic mutation boundaries are current.
 - Backend: **Complete / Validated** at `1eec866...`; current sender contract and missing T11 lifecycle are revalidated.
-- Frontend: **Complete / Validated** at `e6a04ad...`; ten T14 slices are verified, Public identity is preserved, and the source score remains 15/20 with 1 P1/6 P2/1 P3 open.
+- Frontend: **Complete / Validated** at `70f42c1...`; eleven T14 slices are verified, Public identity is preserved, and the source score remains 15/20 with 1 P1/5 P2/1 P3 open.
 - Database: **Complete / Validated** at `1eec866...`; D-012 target invariants are approved but absent from schema/runtime.
 - Infrastructure & Device: **Complete / Validated** at `1eec866...`; native source is partial and Android runtime remains unverified.
-- Dashboard & UX: **Complete / Validated** at `e6a04ad...`; eight P1/four P2 are resolved, including native mutation recovery, and human/AT/runtime evidence remains open.
+- Dashboard & UX: **Complete / Validated** at `70f42c1...`; eight P1/five P2 are resolved, including native mutation recovery and shared browser lifecycle ownership, and human/AT/runtime evidence remains open.
 - Security, DevOps & Observability: **Complete / Validated** at `1eec866...`; SEC-08 is open and D-012 controls are unimplemented.
-- Production Readiness: **Complete / Validated / No-Go** at `e6a04ad...`; external/release gates remain open.
-- Roadmap: **Complete / Validated** at `e6a04ad...`; bounded shared browser Socket.IO lifecycle ownership is next.
+- Production Readiness: **Complete / Validated / No-Go** at `70f42c1...`; external/release gates remain open.
+- Roadmap: **Complete / Validated** at `70f42c1...`; first eleven T14 slices are accepted and the next bounded gate is recorded below.
 
 ## 3. Evidence and validation
 
-Current validation adds mutation measurement-first failure 4/4 plus target-identity failure 1/1,
-then master-data 8/8, Admin Liquid Glass/Login 5/5, Admin Dashboard 2/2, operations support 5/5,
+Current validation adds lifecycle direct-owner failure 1/1 plus strict-enum/source-identity failure
+1/1, then focused lifecycle 4/4, T8 2/2, T9 5/5, T14 pure 8/8, and bounded browser 16/16 to the
+retained mutation measurement-first failure 4/4 plus target-identity failure 1/1, master-data 8/8,
+Admin Liquid Glass/Login 5/5, Admin Dashboard 2/2, operations support 5/5,
 accessibility 4/4, retained contrast groups, scoped detector `[]`, and finish review `PASS` to the retained Public
 recovery 8/8 + 2/2, contrast 4/4 + 2/2, motion 4/4, map-quality 2/2, truth 2/2,
 accessibility 4/4, and T8 browser 1/1 evidence. Full `bash scripts/ci-checks.sh` passes:
@@ -158,7 +194,8 @@ failed. These are synthetic/local checks, not human, assistive-technology, physi
 network-budget, or deployed acceptance.
 
 No database migration, retention purge, human role/feedback or accessibility acceptance,
-authenticated invalid-payload runtime journey, simulator target, deployed Socket.IO interruption,
+authenticated invalid-payload runtime journey, real browser reconnect/zoom-time event, simulator
+target, deployed Socket.IO interruption,
 deployment, provider, credential rotation, hardware, field, or ambient stateful check was run.
 
 ## 4. Decisions and next action
@@ -196,11 +233,11 @@ one TLS origin, private data services, application-team artifact/migration/runbo
 University Server/Network infrastructure/recovery/operations ownership. Its external acceptance
 checklist remains unverified. The repository-side T9 handoff is implemented and revalidated by every
 audit profile, but T9 cannot be completed from static tests alone. The owner defers T9 continuation
-and T13 without satisfying those gates. T14's first ten slices are complete and revalidated while
-preserving Public identity. A bounded shared browser Socket.IO lifecycle ownership refactor is the
-next eligible exact handoff. It may change internal transport/listener ownership without changing
-Public/Admin visual/product identity, DOM/copy/layout, observable state, event names/payload/
-handling/order, requests, hydration timing/outcome, backend authority, or external contracts.
+and T13 without satisfying those gates. T14's first eleven slices are complete and revalidated while
+preserving Public identity; the eleventh consolidates internal transport/listener implementation
+without changing valid Public/Admin observable behavior or external contracts. Roadmap selects
+bounded visible OSM attribution/official Standard raster endpoint alignment next; source work requires an exact
+task and measurement-first failure.
 T11 remains blocked on coordinated Mobile/Backend implementation and Android acceptance,
 and T15 awaits physical facts and T13. A later
 approved target may supply T12 runtime evidence but does not bypass these gates or grant deployment
