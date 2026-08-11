@@ -1,10 +1,10 @@
 # Master Refactoring Roadmap
 
 Audit metadata:
-- Evidence baseline: `c4fdc3abd4b66b00e784e2c0738266e6fa8413d3`
+- Evidence baseline: `2ddb8353c92b407e1102ccc6971a7f26e6cfa331`
 - Evidence scope: `PRODUCT.md`, `docs/project-knowledge-base.md`, every validated domain and production-readiness audit, `docs/decision-queue.md`, `docs/tasks/`, and the repository evidence cited by the revalidated reports.
-- Reviewed at: `2026-08-10T13:39:08+07:00`
-- Validation state: **Validated**
+- Reviewed at: `2026-08-11T13:14:47+07:00`
+- Validation state: **Needs Re-audit**
 - Predecessor baselines: `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`,
   `docs/audits/frontend-audit.md`, `docs/audits/dashboard-ux-audit.md`, and
   `docs/audits/production-readiness-audit.md`, and `docs/decision-queue.md` @
@@ -14,9 +14,10 @@ Audit metadata:
   and `docs/audits/security-devops-observability-audit.md` @
   `1eec86602c40c859d50dd9d369f636b103b6896f`; D-001 through D-012 are approved.
 
-Last reviewed: 2026-08-10
+Last reviewed: 2026-08-11
 
-Validation state: **Validated**. T9's repository handoff is independently revalidated and remains
+Validation state: **Needs Re-audit** after T14 source commit `2ddb835`. T9's repository handoff is
+independently revalidated and remains
 partially complete because its University Server/Network acceptance checklist has not been executed.
 T10 and T12 are complete for their exact bounded source/test scopes. T12 applies D-009/D-010:A
 through a reviewed migration, persisted server RBAC/fresh-auth, feedback lifecycle/retention/audit
@@ -65,10 +66,13 @@ changing the 15/20 score or first-eight-slice acceptance. The ninth T14 slice at
 implements the owner-refined explicitly light white/gray Admin shell/navigation/Login/modal/control/
 token foundation with transparency/contrast/motion/filter fallbacks; it does not add an automatic
 dark theme or change Public source/identity. Level 1 validates the affected chain at `c4fdc3a`;
-the score remains 15/20 with one P1, seven P2, and one P3. The exact master-data mutation-feedback
-handoff is now ready at `docs/tasks/T14-admin-master-data-mutation-feedback.md`; its source work must
-start measurement-first and preserve current CRUD endpoints, payloads, authorization, fields, and
-T10 route-stop behavior. The Research P1 stays blocked on T13. D-012
+the score remains 15/20 with one P1, seven P2, and one P3. The tenth T14 slice is implemented at
+`2ddb835`: Vehicles, Routes, and Stops now share safe inline mutation recovery, pending locks,
+persistent receipts, and a focus-managed delete confirmation while preserving exact CRUD and T10
+route-stop requests. Focused/browser/visual/full-CI evidence passes, including the unchanged Admin
+Login request and redirect regressions. Product, Architecture, Frontend, Dashboard & UX, Production
+Readiness, and this Roadmap now require affected-chain re-audit before that source result is accepted
+or another T14 source slice is selected. The Research P1 stays blocked on T13. D-012
 fixes later lifecycle policy without implementing it. T15 remains deferred behind T13 and physical/
 provider facts.
 
@@ -120,18 +124,19 @@ playback, microservices, a second ingestion pipeline, or unbounded operations/re
 | Input | Date | Status | Use |
 |---|---:|---|---|
 | Knowledge Base | 2026-08-08 | Complete / Validated | Discovery is current at `1eec866...`; external Mobile source is pinned and its static/runtime limits are recorded. |
-| Product | 2026-08-10 | Complete / Validated at `c4fdc3a...` | Ninth T14 slice implements the owner-refined bright-neutral Admin foundation and Login presentation; Public remains unchanged. |
-| Architecture, Backend, and Database audits | 2026-08-10 | Architecture validated at `c4fdc3a...`; Backend/Database current at `1eec866...` | Shared Admin material authority and exact rejected-Login exception preserve backend/data authority. |
+| Product | 2026-08-11 | Needs Re-audit at `2ddb835...` | Tenth T14 slice changes bounded authenticated Admin mutation recovery; Public remains unchanged and prior acceptance stays the predecessor. |
+| Architecture, Backend, and Database audits | 2026-08-11 | Architecture needs re-audit at `2ddb835...`; Backend/Database current at `1eec866...` | Shared typed client mutation/error ownership changed; backend/data authority and requests are unchanged. |
 | Infrastructure & Device and Security/DevOps/Observability audits | 2026-08-08 | Complete / Validated | Native foreground code is visible, while Android runtime is unverified and SEC-08 credential/backup/cleartext gaps block T11. |
-| Frontend audit | 2026-08-10 | Complete / Validated at `c4fdc3a...` | Bright-neutral Signal Lens, Login convergence, accessibility fallbacks, detector `[]`, browser regressions, build, and CI pass; score remains 15/20. |
-| Dashboard & UX audit | 2026-08-10 | Complete / Validated at `c4fdc3a...` | Built desktop/Mobile Dashboard and Login evidence passes finish review; mutation feedback is next. |
-| Production Readiness Audit | 2026-08-10 | Complete / Validated / No-Go at `c4fdc3a...` | Local source/browser/CI evidence changes no human, deployment, operations, Mobile, provider/device, or field gate. |
+| Frontend audit | 2026-08-11 | Needs Re-audit at `2ddb835...` | Mutation source/browser/visual/full-CI evidence passes; finding disposition and score await Level 1. |
+| Dashboard & UX audit | 2026-08-11 | Needs Re-audit at `2ddb835...` | Shared pending, retained failure/retry, confirmation, and receipt states are implemented; human/AT evidence remains absent. |
+| Production Readiness Audit | 2026-08-11 | Needs Re-audit / No-Go at `2ddb835...` | Local source/browser/CI evidence changed; no human, deployment, operations, Mobile, provider/device, or field gate changed. |
 | Decision Queue and owner/task evidence | 2026-08-10 | D-001–D-012 approved | D-011 now selects bounded Admin Liquid Glass with accessible fallbacks; Public identity remains preserved. |
 
 Level 1 revalidated the owner-selected Admin direction at `a0a0ce1...`; the first eight T14 slices
 through implementation `06e0291` remain accepted at `23b4d6f...`. Level 3 completed the ninth,
-bright-neutral Admin foundation slice at `c4fdc3a`; Level 1 now accepts that exact source/browser
-contract. The exact mutation-feedback handoff is ready for measurement-first Level 3 source work.
+bright-neutral Admin foundation slice at `c4fdc3a`; Level 1 accepts that exact source/browser
+contract. Level 3 completed the mutation-feedback source slice at `2ddb835`; the affected Level 1
+chain must now re-audit it before acceptance or subsequent T14 source selection.
 Unaffected profiles remain current at `1eec866...`.
 Actual
 hosting, TLS, production recovery, Android build/device behavior, browser/runtime behavior, physical
@@ -154,7 +159,7 @@ devices, and TTN console state remain external unknowns.
 | T11 | Supported sender operations, trip history, and exception view | Critical/High for daily operations | Production 3.1, 3.3; Product 7–9; Dashboard 7, 10 | Phase 3; native source pinned, but coordinated Backend/Mobile handoff, compatible patch, Android target, and acceptance artifact pending |
 | T12 | Feedback triage and device/source operations views | High for broad public support | Product 7, 11; Frontend 12; Dashboard 10; Database 12 | Phase 3; complete for the D-009/D-010:A exact handoff; runtime rollout remains unverified |
 | T13 | Production deployment/recovery drill and monitoring | High before production | Production 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16 | Phase 4; blocked on T9 external acceptance and target authority |
-| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; first nine slices accepted at `c4fdc3a`; exact master-data mutation-feedback handoff is ready |
+| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; first nine slices accepted at `c4fdc3a`; mutation-feedback source complete at `2ddb835`, affected re-audit required |
 | T15 | Physical senders, research dashboard, playback/reports, scale extensions | Deferred | Product 11; Architecture 9–10, 12; Infrastructure 7–9; D-002 | Phase 5; blocked on T13 and physical/provider facts |
 
 Every Critical/High finding remains represented. D-001=C opens T10–T12's release-scope gate, but
@@ -177,7 +182,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T11 | Blocked — cross-repository/external evidence | The v3 brief pins a partially compatible native app. Static-secret storage, backup/cleartext, task-removal and missing enrollment/claim/recovery gaps require a coordinated exact handoff plus writable Mobile/Android target and device acceptance. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
 | T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
-| T14 | Partially Complete — first nine slices accepted; next handoff ready | `c4fdc3a` implements and Level 1 validates the bright-neutral Admin Liquid Glass foundation and Login convergence. `docs/tasks/T14-admin-master-data-mutation-feedback.md` binds the next measurement-first source scope. |
+| T14 | Partially Complete — first nine slices accepted; tenth source slice pending re-audit | `2ddb835` implements the exact mutation-feedback handoff with passing local evidence. Product, Architecture, Frontend, Dashboard & UX, Production Readiness, and Roadmap must re-audit that change before acceptance or another source slice. |
 | T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
 
 ### Approved-batch continuation gate
@@ -187,12 +192,13 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Eligible under exact handoff | Execute `docs/tasks/T14-admin-master-data-mutation-feedback.md` measurement-first while preserving Public/Login, fields, endpoints, payloads, authorization, T10 route-stop behavior, APIs, dependencies, and blocked lanes. |
+| T14 | Level 1 re-audit eligible; further source selection not yet eligible | Validate `2ddb835` against `docs/tasks/T14-admin-master-data-mutation-feedback.md`, preserve the local/synthetic evidence limits, then synthesize the next eligible unit only if the affected chain passes. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
-Batch result: T14's first nine slices are accepted at `c4fdc3a` under the refined D-011 bright-neutral
-direction. T9/T13 remain deferred without dependency bypass; T11/T15 remain blocked. The bounded
-mutation-feedback contract is now ready for measurement-first Level 3 implementation.
+Batch result: T14's first nine slices remain accepted at `c4fdc3a` under the refined D-011 bright-
+neutral direction. Mutation-feedback source is complete at `2ddb835` with passing local evidence,
+but its affected Level 1 chain is now stale and must re-audit before continuation. T9/T13 remain
+deferred without dependency bypass; T11/T15 remain blocked.
 
 ## 4. Dependency Map
 
@@ -1287,7 +1293,8 @@ transparency/contrast/motion/filter fallbacks; no automatic dark palette is admi
 behavior, successful Login/session handling, CRUD endpoints, payloads, authorization, fields,
 T10/T12 behavior, Public source/identity, T11, Research, backend/API/schema ownership, dependencies,
 and external-runtime facts remain exclusions. The affected audit chain accepts this evidence at
-`c4fdc3a`; the exact mutation-feedback handoff is now ready for measurement-first implementation.
+`c4fdc3a`. Commit `2ddb835` completes the exact mutation-feedback source handoff; its affected audit
+chain now requires Level 1 re-audit before acceptance or further T14 source selection.
 
 ### Blocks
 
@@ -1326,9 +1333,10 @@ The seventh extends the established Admin semantic system to Vehicles, Routes, S
 existing dialogs while preserving payload and authorization behavior. The eighth extends that
 system to Source Health, Feedback Inbox, and the existing sensitive confirmation dialog; it corrects
 failure-versus-empty projection and measured action sizing while preserving T12 policy and request
-boundaries. The next bounded unit replaces the master-data pages' native mutation alerts and
-confirmations under `docs/tasks/T14-admin-master-data-mutation-feedback.md`; Level 1 already accepts
-the owner-selected visual foundation on which that handoff depends.
+boundaries. The tenth bounded unit at `2ddb835` replaces the master-data pages' native mutation
+alerts and confirmations with typed pending, retained failure/retry, success receipt, and shared
+focus-managed delete states under `docs/tasks/T14-admin-master-data-mutation-feedback.md`; exact
+requests, fields, authorization, route-stop ordering, Public, and Login behavior remain intact.
 Commit `c4fdc3a` delivers the shared **Signal Lens Workbench** foundation: restrained bright-neutral
 glass navigation/context/control/modal layers over more opaque operational maps, tables, ledgers,
 forms, and long text, with accessibility fallbacks and no automatic dark theme. T11, Research/T13,
@@ -1355,7 +1363,9 @@ component/accessibility checks, and desktop/mobile browser smoke tests.
 Partially Complete — the first eight D-011 slices, including bounded Admin operations-support
 convergence at `06e0291`, remain accepted at `23b4d6f...`. The ninth bright-neutral Admin Liquid
 Glass foundation and Login convergence are implemented at `c4fdc3a`; the affected audit chain is
-validated, so this source completion is accepted for planning the next slice.
+validated. The tenth mutation-feedback source slice is implemented at `2ddb835` with its acceptance
+checks passing, but Product, Architecture, Frontend, Dashboard & UX, Production Readiness, and this
+Roadmap are `Needs Re-audit`; no later source slice is selected yet.
 The eighth slice's exact completion evidence is in
 `docs/tasks/T14-admin-operations-support-convergence.md`. The master-data completion evidence is in
 `docs/tasks/T14-admin-master-data-theme-convergence.md`. The map-quality handoff is
@@ -1374,8 +1384,8 @@ paths, T12 invariants, measurement-first/final browser evidence, stop conditions
 `docs/tasks/T14-admin-liquid-glass-foundation.md` records the ninth slice's exact Admin/Login paths,
 measurement-first/final browser evidence, visual verdict, design-system record, stop conditions, and
 accepted source/browser completion. `docs/tasks/T14-admin-master-data-mutation-feedback.md` now
-records the next slice's exact paths, invariants, stop conditions, and measurement-first contract;
-source implementation has not started.
+records the tenth slice's exact paths, invariants, stop conditions, measurement-first/final evidence,
+source commit, and local/synthetic limits.
 
 ### Evidence
 
@@ -1468,10 +1478,22 @@ before source and final coverage passes 5/5; Dashboard 2/2, master-data plus ope
 accessibility/contrast groups, production design-seed search, detector `[]`, finish review `PASS`,
 frontend check, and full repository CI pass. Level 1 revalidation at `c4fdc3a...` accepts the exact
 source/browser contract, retains the 15/20 score with one P1, seven P2, and one P3, and selects
-master-data mutation feedback for its own bounded follow-up. Its exact handoff is now ready for
-measurement-first implementation. Public, backend/API/schema, dependency, Mobile, migration,
+master-data mutation feedback for its own bounded follow-up. Public, backend/API/schema, dependency,
+Mobile, migration,
 Research, deployment, and external targets remain unchanged; human/assistive-
 technology/device/deployed evidence remains absent.
+
+Commit `2ddb835` implements that tenth slice across Vehicles, Routes, and Stops. One typed safe-error
+and semantic-feedback boundary, persistent page receipts, ref-backed pending guards, retained
+failure/retry forms, and one focus-managed delete confirmation replace native alerts/confirmations.
+Measurement-first coverage failed 4/4 on the absent paths; final master-data coverage passes 8/8
+after exact-ID/body and synchronous modal-initialization repairs. Accessibility 4/4, Admin Liquid
+Glass/Login 5/5, Dashboard 2/2, operations support 5/5, the 11-route build, detector `[]`, visual
+finish review `PASS`, and final full repository CI pass. Exact POST/PUT/DELETE and T10 route-stop
+bodies remain regression-covered; Public/Login source, authorization, backend/API/schema,
+dependencies, Mobile, migrations, blocked lanes, and external targets remain unchanged. Evidence is
+local/synthetic; human/assistive-technology/device/deployed acceptance remains absent. The affected
+Level 1 chain must now re-audit this result.
 
 ## 9. Phase 5 — Future Enhancements
 
@@ -1565,7 +1587,7 @@ Repository simulators exist; physical/provider evidence is unavailable.
 |---|---|---|
 | Driver, trip-history, and exception workflows are absent | D-001=C now requires them, so this is no longer an accepted release omission. T10 route-stop operations are complete for their bounded scope. | Complete T11 with external Android evidence before release. |
 | Feedback runtime rollout is unverified | T12 source/test scope is complete, but no migration, retention run, staff/rider acceptance, backup, or deployed scheduling evidence exists. | Execute an approved disposable/staging rollout and retention/role acceptance before release. |
-| Dashboard/public UX is not release-ready | The validated score remains 15/20 at `c4fdc3a...`. The first nine slices, including the bright-neutral Admin Liquid Glass foundation, are accepted for their exact contracts, but native mutation recovery, human assistive-technology/usability, broader device/runtime evidence, T11-backed exceptions, and Research remain open. | Execute and verify the ready mutation-feedback handoff without bypassing external gates. |
+| Dashboard/public UX is not release-ready | The last validated score remains 15/20 at `c4fdc3a...`. The first nine slices are accepted; mutation recovery is implemented locally at `2ddb835` but awaits affected-chain re-audit. Human assistive-technology/usability, broader device/runtime evidence, T11-backed exceptions, and Research remain open. | Re-audit `2ddb835`, then obtain the still-missing human/runtime and dependency evidence without bypassing external gates. |
 | Deployment/TLS/backup/recovery evidence is absent | D-008 policy and the T9 repository handoff exist, but University Server/Network acceptance checks are incomplete. | Obtain T9 external acceptance, then complete T13. |
 | Physical device/TTN evidence is absent | Provider/hardware/provisioning facts are unknown. | Record facts and execute T15. |
 | Playback/reports are absent | D-002=B authorizes bounded diagnostics, not unbounded fidelity claims. | Approve query/fidelity scope after T7 evidence. |
@@ -1591,7 +1613,7 @@ Route every focused technical question through `agents/level-2-specialist/AGENT.
 `tram-specialist-consultation`. Route every implementation through
 `agents/level-3-refactor/AGENT.md` with `tram-refactoring-workflow`.
 
-- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and T14's truth, accessibility/navigation, measured map-quality, contrast/color-governance, Admin Dashboard foundation, Public service-explanation/recovery, Admin master-data, Admin operations-support, and bright-neutral Admin Liquid Glass foundation slices. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. Execute the ready mutation-feedback handoff measurement-first. Use Level 2 only if a new focused cross-domain question appears.
+- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and T14's truth, accessibility/navigation, measured map-quality, contrast/color-governance, Admin Dashboard foundation, Public service-explanation/recovery, Admin master-data, Admin operations-support, bright-neutral Admin Liquid Glass foundation, and master-data mutation-feedback slices. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. Run the affected Level 1 re-audit before selecting more T14 source work. Use Level 2 only if a new focused cross-domain question appears.
 - Specialist-led: T2 security/abuse; T4, T9, T13 observability/deployment; T5 database transactions; T6/T7 realtime and time-series; T11 operations/mobile; T15 device/LoRaWAN.
 - T12's D-010:A account-transition choice and all exact source/test acceptance evidence are complete; runtime rollout remains separately gated.
 
@@ -1615,8 +1637,9 @@ blocked on coordinated Backend/Mobile implementation and Android acceptance. T14
 D-011 slices, including bounded Source Health/Feedback Admin operations-support convergence at
 `06e0291`, remain accepted at `23b4d6f...`. D-011 refinement and affected audits were revalidated at
 `a0a0ce1...`; `c4fdc3a` implements and Level 1 accepts the ninth bright-neutral Admin Liquid Glass
-foundation and Login convergence under its exact task. The mutation-feedback exact handoff is ready
-for measurement-first implementation. Public source/identity, T11, and Research/T13 remain
+foundation and Login convergence under its exact task. Commit `2ddb835` implements the tenth
+mutation-feedback slice with passing local evidence; the affected Level 1 chain is `Needs Re-audit`
+and is the next eligible work. Public source/identity, T11, and Research/T13 remain
 separate; successful Admin Login/session behavior is unchanged, and rejected Login errors now reach
 the inline form instead of the protected-route redirect. T15 remains
 deferred behind T13 and external physical facts. T12/
@@ -1638,12 +1661,13 @@ unknown roles to fail closed; D-011 orders T14, preserves Public identity, and n
 iOS-inspired Liquid Glass world for bounded Admin redesign; and D-012 fixes later least-privilege
 lifecycle controls. T14's first eight slices through implementation `06e0291` remain accepted at
 `23b4d6f...`; the shared explicitly light Admin visual foundation selected at `a0a0ce1` is implemented
-and revalidated at `c4fdc3a`, and the exact mutation-feedback handoff is now ready.
+and revalidated at `c4fdc3a`; mutation-feedback source is complete at `2ddb835` and awaits affected-
+chain re-audit.
 M-20260807-01/02/03
 correct logging, simulator, and generated-artifact boundaries without changing roadmap order. The
-affected audits and this Roadmap are current at `c4fdc3a...`; unaffected audits remain current at
-`1eec866...`. Measurement-first mutation-feedback source work may now start only within its exact
-task contract.
+affected audits and this Roadmap are stale at `2ddb835...`; unaffected audits remain current at
+`1eec866...`. No further T14 source work may start before Level 1 validates this exact result and
+resynthesizes the continuation gate.
 
 **Assumptions and unknowns:** the target is C but no daily/public readiness claim is made before the
 required work passes. Diagnostics remain bounded/protected; no external host/provider/device fact or
@@ -1653,6 +1677,7 @@ unapproved role permission is assumed.
 for provisional task/gate mapping and low for deployment, human UX outcomes, credential rotation,
 and device/field claims until external evidence exists.
 
-**Deferred work/evidence:** D-012 implementation outside T11/T12/T14, remaining D-011 Admin mutation recovery and human/runtime evidence,
+**Deferred work/evidence:** D-012 implementation outside T11/T12/T14, post-mutation T14 audit
+acceptance and human/runtime evidence,
 physical sender/provider facts, playback/report scope, and scale-triggered
 features. D-006 retention/access/export parameters and T7 disposable evidence remain documented.
