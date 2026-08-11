@@ -14,7 +14,7 @@ Last updated: 2026-08-11
 | Dashboard & UX | Complete | `docs/audits/dashboard-ux-audit.md` | `e6a04ad` | 2026-08-11 | Contextual recovery/receipts and name-plus-ID confirmation pass local browser review; score stays 15/20 and human/AT/runtime limits remain. |
 | Security, DevOps & Observability | Complete | `docs/audits/security-devops-observability-audit.md` | `1eec866` | 2026-08-08 | D-012 is approved but unimplemented; SEC-08 records external Mobile credential/backup/cleartext/lifecycle risk. |
 | Production Readiness | Complete / No-Go | `docs/audits/production-readiness-audit.md` | `e6a04ad` | 2026-08-11 | First ten T14 slices pass exact local source/browser evidence; no human, AT, deployed, Mobile/device, operations, or release gate is satisfied. |
-| Roadmap | Complete / Validated | `docs/roadmap/master-refactoring-roadmap.md` | `e6a04ad` | 2026-08-11 | First ten T14 slices are accepted; bounded shared browser Socket.IO lifecycle ownership is selected next. |
+| Roadmap | Complete / Validated | `docs/roadmap/master-refactoring-roadmap.md` | `e6a04ad` | 2026-08-11 | First ten T14 slices are accepted; the exact shared browser Socket.IO lifecycle-ownership handoff is ready for measurement-first Level 3 work. |
 
 `Evidence baseline` records the immutable source/decision commit consumed by each report. Each
 report's metadata remains authoritative for its full scope and predecessor chain.

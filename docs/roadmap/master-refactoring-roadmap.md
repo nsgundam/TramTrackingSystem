@@ -190,7 +190,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T11 | Blocked — cross-repository/external evidence | The v3 brief pins a partially compatible native app. Static-secret storage, backup/cleartext, task-removal and missing enrollment/claim/recovery gaps require a coordinated exact handoff plus writable Mobile/Android target and device acceptance. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
 | T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
-| T14 | Partially Complete — first ten slices accepted | `e6a04ad` is accepted for exact local mutation-feedback evidence. The next eligible unit is a bounded shared browser Socket.IO lifecycle ownership handoff; no source work starts before its exact contract and measurement-first guard. |
+| T14 | Partially Complete — first ten slices accepted; next handoff ready | `e6a04ad` is accepted for exact local mutation-feedback evidence. `docs/tasks/T14-shared-browser-socket-lifecycle.md` now binds the next shared browser Socket.IO lifecycle-ownership unit; source work starts only after its measurement-first guard fails. |
 | T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
 
 ### Approved-batch continuation gate
@@ -200,7 +200,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Level 3 exact-handoff planning eligible | Bind only shared browser Socket.IO transport/listener/reconnect-state/cleanup ownership across Public and Admin consumers. Payloads enter the shared boundary as `unknown`; validation, canonical version/snapshot reconciliation, UI state, hydration policy, and canonical-expiry timers remain consumer-owned. |
+| T14 | Level 3 measurement-first implementation eligible | Execute only `docs/tasks/T14-shared-browser-socket-lifecycle.md`. Payloads enter the shared boundary as `unknown`; validation, canonical version/snapshot reconciliation, UI state, hydration policy, and canonical-expiry timers remain consumer-owned. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
 Batch result: T14's first ten slices are accepted at `e6a04ad` under the refined D-011 bright-
@@ -1392,7 +1392,8 @@ convergence at `06e0291`, remain accepted at `23b4d6f...`. The ninth bright-neut
 Glass foundation and Login convergence are implemented at `c4fdc3a`; the affected audit chain is
 validated. The tenth mutation-feedback source baseline is accepted at `e6a04ad` with its local
 acceptance checks passing. The next selected unit is bounded shared browser Socket.IO lifecycle
-ownership; its exact Level 3 handoff and measurement-first regression are not yet implemented.
+ownership; its exact Level 3 handoff is `docs/tasks/T14-shared-browser-socket-lifecycle.md`, while
+the required measurement-first failure and source implementation remain pending.
 The eighth slice's exact completion evidence is in
 `docs/tasks/T14-admin-operations-support-convergence.md`. The master-data completion evidence is in
 `docs/tasks/T14-admin-master-data-theme-convergence.md`. The map-quality handoff is
@@ -1641,7 +1642,7 @@ Route every focused technical question through `agents/level-2-specialist/AGENT.
 `tram-specialist-consultation`. Route every implementation through
 `agents/level-3-refactor/AGENT.md` with `tram-refactoring-workflow`.
 
-- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and T14's first ten slices through repaired master-data mutation feedback. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. Create the exact shared browser Socket.IO lifecycle-ownership handoff next; use Level 2 only if implementation inspection exposes a focused cross-domain uncertainty.
+- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and T14's first ten slices through repaired master-data mutation feedback. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. Execute `docs/tasks/T14-shared-browser-socket-lifecycle.md` measurement-first; use Level 2 only if implementation inspection exposes a focused cross-domain uncertainty.
 - Specialist-led: T2 security/abuse; T4, T9, T13 observability/deployment; T5 database transactions; T6/T7 realtime and time-series; T11 operations/mobile; T15 device/LoRaWAN.
 - T12's D-010:A account-transition choice and all exact source/test acceptance evidence are complete; runtime rollout remains separately gated.
 
@@ -1667,8 +1668,8 @@ D-011 slices, including bounded Source Health/Feedback Admin operations-support 
 `a0a0ce1...`; `c4fdc3a` implements and Level 1 accepts the ninth bright-neutral Admin Liquid Glass
 foundation and Login convergence under its exact task. Commits `2ddb835` and `e6a04ad` implement and
 repair the tenth mutation-feedback slice with passing local evidence; Level 1 accepts that baseline.
-The next eligible work is an exact shared browser Socket.IO lifecycle-ownership refactor preserving
-Public/Admin visual/product identity, DOM/copy/layout, and observable behavior. T11 and Research/T13 remain
+The next eligible work is the exact `docs/tasks/T14-shared-browser-socket-lifecycle.md` refactor,
+preserving Public/Admin visual/product identity, DOM/copy/layout, and observable behavior. T11 and Research/T13 remain
 separate; successful Admin Login/session behavior is unchanged, and rejected Login errors now reach
 the inline form instead of the protected-route redirect. T15 remains
 deferred behind T13 and external physical facts. T12/
