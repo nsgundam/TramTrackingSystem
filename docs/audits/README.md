@@ -27,7 +27,7 @@ synchronization. They are owner authority, not source behavior at `531ec9e`.
 | R8 Production Readiness | Validated @ `531ec9e` / No-Go | Local demo Conditional; field trial, internal operations, and public service No-Go. |
 | R9 Finding normalization | Complete | C01–C16, S12/S14, prior scores, task residuals, new findings, and external unknowns mapped exactly once. |
 | R10 Plan synthesis | Complete / owner approved | S12 is Removed, S14 Moved, and S15–S17 are approved in dependency order with separate safety/Roadmap/evidence lanes. |
-| Roadmap | Plan v1 approved / exact handoff next | One unit may run at a time after its committed Level 3 task; owner approval alone is not source authority. |
+| Roadmap | S15 Active under exact handoff | S15 is the one Active unit; S16/S17 remain ordered and cannot begin before acceptance/predecessor plus their own committed Level 3 tasks. |
 
 Approved Plan v1 package:
 [`T14-research-and-execution-plan.md`](../roadmap/T14-research-and-execution-plan.md).

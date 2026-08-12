@@ -157,7 +157,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | S15 exact handoff next | Plan v1 is approved. S15 is the first T14 unit; S16 waits for S15 acceptance and S17 waits for S16. RF-18 waits in a parallel Maintenance lane and blocks database rollout, not local T14 source. |
+| T14 | S15 Active under exact handoff | Plan v1 is approved. S15 is the first T14 unit; S16 waits for S15 acceptance and S17 waits for S16. RF-18 waits in a parallel Maintenance lane and blocks database rollout, not local T14 source. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
 Batch result: 12 T14 source outcomes are accepted: `T14-S01` through `T14-S11` plus `T14-S13`.
@@ -1247,8 +1247,9 @@ T4 and T5 are complete; remaining dependencies and deployment facts are unresolv
 > narrative below is retained as historical implementation context and grants no write authority.
 
 **Current snapshot:** 12 accepted source outcomes (`T14-S01` through `T14-S11` plus `T14-S13`),
-application baseline `c72feb9`, S13 Level 1 acceptance `a528054`, S12 Removed, S14 Moved, no Active
-slice, R0–R10 complete, and S15–S17 owner-approved pending one exact handoff at a time.
+application baseline `c72feb9`, S13 Level 1 acceptance `a528054`, S12 Removed, S14 Moved, S15 Active
+under `docs/tasks/T14-admin-operational-mutation-integrity.md`, R0–R10 complete, and S16–S17 waiting
+for their ordered exact handoffs.
 
 ### Source Audit(s)
 
@@ -1267,7 +1268,8 @@ T8 completion evidence.
 D-011 fixes truthful/fail-closed behavior, Public ownership, and the bright-neutral fixed-light
 Admin direction. Twelve source outcomes are accepted; S12/OSM is owner-cancelled/Removed and S14 is
 Moved outside T14. The canonical ledger holds the complete decision/provenance map. R0–R10 and Plan
-v1 are complete and approved; one committed exact handoff per selected unit is the next gate. No dormant task,
+v1 are complete and approved; S15 is selected under its exact handoff and later units still require
+one committed exact handoff each. No dormant task,
 candidate, or generic Related Files list authorizes source work.
 
 ### Blocks
@@ -1304,8 +1306,8 @@ deployment, and external runtime remain separate.
 
 ### Related Files
 
-The latest completed source handoff is
-`docs/tasks/T14-admin-feedback-session-hydration-truth-state.md`. The full slice/task map is in the
+The active source handoff is `docs/tasks/T14-admin-operational-mutation-integrity.md`; the latest
+completed source handoff is `docs/tasks/T14-admin-feedback-session-hydration-truth-state.md`. The full slice/task map is in the
 canonical ledger. This generic section authorizes no writes; the closed/Removed S12 task and Moved S14
 grant no source authority.
 
@@ -1321,8 +1323,9 @@ technical closure is not Production Readiness, 20/20 UX, or human/AT/deployed ac
 Partially Complete — 12 source slices are accepted: `T14-S01` through `T14-S11` plus `T14-S13`.
 The latest application baseline is `c72feb9` and S13 is accepted at `a528054`. S12/OSM is Removed by
 owner and has no accepted source delta. S14 is Moved and has no task or source authority. Plan v1
-registers S15 Admin mutation integrity, S16 timestamp contract, and S17 Public stop-image resilience;
-each is owner-approved but gains source authority only through its own committed task handoff.
+registers S15 Admin mutation integrity, S16 timestamp contract, and S17 Public stop-image resilience.
+S15 is Active under its exact handoff; S16/S17 remain approved but gain source authority only through
+their own later committed task handoffs.
 
 ### Evidence
 

@@ -16,11 +16,11 @@ the immutable implementation evidence.
 | Removed registered slice | `T14-S12` — OSM work owner-cancelled on 2026-08-12; underlying provider risk remains outside T14 |
 | Moved registered slice | `T14-S14` — optional Public Feedback vehicle association moved outside T14 on 2026-08-12 |
 | Approved registered slices | `T14-S15` Admin mutation integrity; `T14-S16` Admin timestamp contract; `T14-S17` Public stop-image resilience — each awaiting its own exact handoff |
-| Active source slice | None |
+| Active source slice | `T14-S15` — exact handoff being committed; source not started |
 | Technical score | 15/20 health signal; its P1 belongs to T15 and does not imply seven T14 tasks |
 | Release state | Production `No-Go`; controlled local demonstration is Conditional only |
 | Research state | R0–R10 complete; Plan v1 approved; S12 Removed, S14 Moved, S15–S17 ordered; separate safety/Roadmap/evidence lanes retained |
-| Next action | Commit and execute S15's exact handoff. In parallel, await the RF-18 applied-history answer; that safety lane blocks database rollout but not local T14 source. |
+| Next action | Execute S15 measurement-first under its committed exact-path handoff. In parallel, await the RF-18 applied-history answer; that safety lane blocks database rollout but not local T14 source. |
 
 The stable ID is an identity, not an acceptance counter. `T14-S12` remains S12 even though S13 was
 accepted first. Never describe the accepted set as “the first twelve.”
@@ -93,7 +93,7 @@ S14's pending proposal/decision gate was recorded at `9ff7e85` without creating 
 | T14-S12 | Visible OSM attribution and Standard raster endpoint alignment | Owner-cancelled | Removed | `T14-osm-attribution-and-raster-endpoint-alignment.md` | `45ecc0a / — / — / —` | Owner cancelled OSM work on 2026-08-12. Dormant handoff is closed and grants no future authority. Current provider/licence risk is unresolved outside T14. |
 | T14-S13 | Truthful Admin Feedback session hydration and zero premature privileged reads | Required | Accepted | `T14-admin-feedback-session-hydration-truth-state.md` | `4c33cf0 / c72feb9 / 9a9cf5c / a528054` | Owns only unresolved `auth/me` projection/read timing; Login/AuthContext/API/role policy remain unchanged. |
 | T14-S14 | Optional Public Feedback vehicle association / general-system Feedback | New Product/Data/Privacy capability | Moved outside T14 | No task | `— / — / — / —` | Owner accepted the move on 2026-08-12. Any later capability requires new roadmap synthesis and must preserve S01 verification. |
-| T14-S15 | Admin Feedback note/status and route-order publish mutation integrity | Plan v1 approved | Proposed — approved, handoff pending | No task yet | `— / — / — / —` | Execute first; exact request/status/T10/auth contracts remain fixed. |
+| T14-S15 | Admin Feedback note/status and route-order publish mutation integrity | Plan v1 approved | Active — source not started | `T14-admin-operational-mutation-integrity.md` | `handoff commit pending / — / — / —` | Execute measurement-first; exact request/status/T10/auth contracts remain fixed. |
 | T14-S16 | Deterministic Admin timestamp presentation contract | Plan v1 approved | Proposed — approved, handoff pending | No task yet | `— / — / — / —` | Execute after S15 due Feedback overlap; approved policy is en-GB, 24-hour Asia/Bangkok with visible ICT and safe fallbacks. |
 | T14-S17 | Public stop-image loading/error resilience | Plan v1 approved | Proposed — approved, handoff pending | No task yet | `— / — / — / —` | Execute after S16; Public fallback authority is approved while successful composition and focus behavior remain fixed. |
 
@@ -167,7 +167,7 @@ deployed acceptance, or completion of T9, T11, T13, or T15. Those remain separat
 ## 9. No-Surprise and Source-Freeze Rules
 
 - Slice IDs are immutable, never renumbered, and never reused.
-- At most one slice may be `Active` after plan approval; currently there is none.
+- At most one slice may be `Active` after plan approval; currently S15 is the only Active slice.
 - Re-audit may discover a finding but cannot assign a stable slice ID, create a handoff, or select
   the next task.
 - After Plan v1 approval, source remains frozen per unit until that unit has a committed exact-path
@@ -181,7 +181,7 @@ deployed acceptance, or completion of T9, T11, T13, or T15. Those remain separat
 ## 10. Validation Checklist for This Ledger
 
 - IDs are unique; S12 is excluded from the accepted count.
-- At most one row is Active; currently there is none.
+- At most one row is Active; currently it is S15 only.
 - Every Accepted row has H/S/C/R provenance; non-acceptance coordination commits are kept outside
   those four fields.
 - Every Deferred or Removed row has a reason and no live source allowlist.
