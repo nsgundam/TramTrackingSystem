@@ -2,7 +2,7 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests",
-  testMatch: ["t8-route-switch.spec.ts", "t14-truthful-state.spec.ts", "t14-accessibility.spec.ts", "t14-map-quality.spec.ts", "t14-contrast.spec.ts", "t14-admin-dashboard.spec.ts", "t14-public-service-explanation.spec.ts", "t14-admin-master-data.spec.ts", "t14-admin-operations-support.spec.ts", "t14-admin-liquid-glass.spec.ts"],
+  testMatch: ["t8-route-switch.spec.ts", "t14-truthful-state.spec.ts", "t14-accessibility.spec.ts", "t14-map-quality.spec.ts", "t14-contrast.spec.ts", "t14-admin-dashboard.spec.ts", "t14-public-service-explanation.spec.ts", "t14-admin-master-data.spec.ts", "t14-admin-operations-support.spec.ts", "t14-admin-liquid-glass.spec.ts", "admin-entry-route.spec.ts"],
   timeout: 30_000,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,
@@ -19,7 +19,7 @@ export default defineConfig({
       reuseExistingServer: false,
     },
     {
-      command: "NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1:13001 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:13001/api npm run dev -- --hostname 127.0.0.1 --port 13000",
+      command: "NEXT_DIST_DIR=.next/e2e NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1:13001 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:13001/api npm run dev -- --hostname 127.0.0.1 --port 13000",
       url: "http://127.0.0.1:13000",
       timeout: 30_000,
       reuseExistingServer: false,

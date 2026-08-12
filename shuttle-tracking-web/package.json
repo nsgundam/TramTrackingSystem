@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:check": "NEXT_PUBLIC_BACKEND_ORIGIN= NEXT_PUBLIC_BACKEND_URL= NEXT_PUBLIC_API_BASE_URL= next build",
+    "build:check": "NEXT_DIST_DIR=.next/e2e NEXT_PUBLIC_BACKEND_ORIGIN= NEXT_PUBLIC_BACKEND_URL= NEXT_PUBLIC_API_BASE_URL= next build",
     "start": "next start",
     "lint": "eslint",
     "test:simulator-tooling": "node --test tests/simulator-tooling.test.mjs",
@@ -25,7 +25,8 @@
     "test:e2e:t14:admin-master-data": "playwright test -c playwright.config.ts tests/t14-admin-master-data.spec.ts",
     "test:e2e:t14:admin-operations-support": "playwright test -c playwright.config.ts tests/t14-admin-operations-support.spec.ts",
     "test:e2e:t14:admin-liquid-glass": "playwright test -c playwright.config.ts tests/t14-admin-liquid-glass.spec.ts",
-    "check": "npm run test:simulator-tooling && npm run test:t8 && npm run test:t9 && npm run test:t14 && npm run test:t14:socket-lifecycle && npm run test:t14:map-quality && npm run test:t14:contrast && npm run test:e2e:t8 && npm run test:e2e:t14 && npm run test:e2e:t14:a11y && npm run test:e2e:t14:map-quality && npm run test:e2e:t14:contrast && npm run test:e2e:t14:admin-dashboard && npm run test:e2e:t14:public-service && npm run test:e2e:t14:admin-master-data && npm run test:e2e:t14:admin-operations-support && npm run test:e2e:t14:admin-liquid-glass && npm run lint && npm run build:check"
+    "test:e2e:admin-entry": "playwright test -c playwright.config.ts tests/admin-entry-route.spec.ts",
+    "check": "npm run test:simulator-tooling && npm run test:t8 && npm run test:t9 && npm run test:t14 && npm run test:t14:socket-lifecycle && npm run test:t14:map-quality && npm run test:t14:contrast && npm run test:e2e:t8 && npm run test:e2e:t14 && npm run test:e2e:t14:a11y && npm run test:e2e:t14:map-quality && npm run test:e2e:t14:contrast && npm run test:e2e:t14:admin-dashboard && npm run test:e2e:t14:public-service && npm run test:e2e:t14:admin-master-data && npm run test:e2e:t14:admin-operations-support && npm run test:e2e:t14:admin-liquid-glass && npm run test:e2e:admin-entry && npm run lint && npm run build:check"
   },
   "dependencies": {
     "@turf/turf": "^7.3.4",
