@@ -9,9 +9,10 @@
   navigation land on `/admin/dashboard`
 - Approved decisions: None; this preserves the incumbent authenticated Admin destination
 - Specialist briefs: None
-- Source audits: `docs/project-knowledge-base.md` Validated at `1eec866...`;
-  `docs/audits/frontend-audit.md` and `docs/audits/dashboard-ux-audit.md` Validated at evidence
-  `9ff7e85...` / application `c72feb9...` before this maintenance delta
+- Source audits: `docs/project-knowledge-base.md`, `docs/audits/frontend-audit.md`, and
+  `docs/audits/dashboard-ux-audit.md` validated during T14 Research at immutable evidence
+  `0d985d8...` / accepted T14 application `c72feb9...`; each explicitly excludes this Maintenance
+  overlay from its immutable source baseline
 
 ## Outcome and Non-goals
 
@@ -38,6 +39,8 @@
 - `docs/audits/README.md`
 - `shuttle-tracking-web/app/admin/page.tsx`
 - `shuttle-tracking-web/tests/admin-entry-route.spec.ts`
+- `shuttle-tracking-web/next.config.ts`
+- `shuttle-tracking-web/tsconfig.json`
 - `shuttle-tracking-web/playwright.config.ts`
 - `shuttle-tracking-web/package.json`
 
@@ -66,10 +69,12 @@
 ## Required Changes
 
 1. Add browser coverage for unauthenticated `/admin`, authenticated `/admin`, and successful Login.
-2. Prove the authenticated `/admin` case fails against the incumbent missing route.
-3. Add the minimal App Router entry page that redirects `/admin` to `/admin/dashboard`.
-4. Register the focused browser command in frontend configuration and the full frontend check.
-5. Run focused, regression, build/lint, full repository, workflow, and diff verification.
+2. Isolate Playwright's Next build cache from an existing developer server without changing normal
+   development or production build output.
+3. Prove the authenticated `/admin` case fails against the incumbent missing route.
+4. Add the minimal App Router entry page that redirects `/admin` to `/admin/dashboard`.
+5. Register the focused browser command in frontend configuration and the full frontend check.
+6. Run focused, regression, build/lint, full repository, workflow, and diff verification.
 
 ## Acceptance Criteria
 
@@ -102,9 +107,45 @@
 
 ## Completion Evidence
 
-- Status: `In Progress`
-- Acceptance mapping: Pending implementation and verification.
-- Changed files: Pending.
-- Validation results: Pending.
-- Audit freshness changes: Pending; Frontend and Dashboard & UX are expected to require re-audit
-  because the Admin entry behavior and browser evidence change.
+- Status: `In Progress — exact-path revision frozen; provisional worktree implementation under
+  independent re-verification before source acceptance`
+- Acceptance mapping:
+  - Authenticated `/admin` → `/admin/dashboard`: the measurement-first suite failed exactly this
+    case before source (1 failed, 2 passed); the final focused suite passes 3/3 and asserts the
+    `Live operations` Dashboard heading.
+  - Successful Login → `/admin/dashboard`: the final focused suite submits the incumbent Login
+    fields against a deterministic successful response and passes.
+  - Unauthenticated `/admin` → `/admin/login`: the final focused suite passes and asserts the
+    existing `Admin Portal` heading.
+  - Protected Dashboard and existing Login behavior: Admin Dashboard passes 2/2, Signal Lens/Login
+    passes 5/5, and the complete repository CI passes.
+  - Scope integrity: inspected diff contains no backend, schema, migration, dependency, Public UI,
+    auth policy, or unrelated source change.
+- Changed files:
+  - `docs/tasks/M-20260812-01-admin-entry-redirect.md`
+  - `docs/audits/README.md`
+  - `shuttle-tracking-web/app/admin/page.tsx`
+  - `shuttle-tracking-web/tests/admin-entry-route.spec.ts`
+  - `shuttle-tracking-web/next.config.ts`
+  - `shuttle-tracking-web/tsconfig.json`
+  - `shuttle-tracking-web/playwright.config.ts`
+  - `shuttle-tracking-web/package.json`
+- Validation results on 2026-08-12:
+  - Measurement-first `npm run test:e2e:admin-entry`: expected failure 1/3, only authenticated
+    direct `/admin` failed while the two preserved journeys passed.
+  - Final `npm run test:e2e:admin-entry`: 3/3 passed.
+  - `npm run test:e2e:t14:admin-dashboard`: 2/2 passed.
+  - `npm run test:e2e:t14:admin-liquid-glass`: 5/5 passed.
+  - `npm run lint`: passed with zero errors and the two pre-existing warnings in `app/layout.tsx`
+    and `utils/IconHelpers.ts`.
+  - `npm run build:check`: passed; the 12-route output includes `/admin` and `/admin/dashboard`.
+  - `bash scripts/ci-checks.sh`: all backend, Prisma, frontend, browser, build, Compose, topology,
+    logging, and agent-workflow checks passed.
+  - `node scripts/validate-agent-workflow.js`: passed with three agents, three skills, and 15
+    roadmap tasks.
+  - `git diff --check`: passed before final evidence synchronization and must pass again afterward.
+- Audit synchronization: T14 Research R4/R6/R8 inspected and recorded this working overlay while
+  excluding it from immutable T14 baseline `0d985d8`. After the Maintenance source is committed, a
+  bounded Level 1 acceptance must consume that immutable delta; no broad T14 re-audit or new slice is
+  implied. Other domain findings and Roadmap ordering are unchanged. Remaining T14 Plan v1 owner
+  review is the T14 next action.
