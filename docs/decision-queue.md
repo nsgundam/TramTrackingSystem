@@ -2,7 +2,24 @@
 
 ## Pending
 
-None.
+### D-011 refinement — optional Public Feedback vehicle association
+
+Owner request captured on 2026-08-12: assess a Public Feedback journey in which a rider may either
+select a vehicle or submit general system Feedback without one. This is **Proposed / pending exact
+contract and Public-UI authority confirmation**, not implementation approval.
+
+Recommended bounded contract for confirmation: vehicle association is optional, but whenever a
+vehicle ID is supplied it remains server-verified and fail closed; an intended vehicle-specific
+submission never silently degrades to general Feedback; and a failed/empty vehicle list does not
+block a clearly general/system submission or fabricate a selection. Preserve D-009 privacy,
+retention, one-way receipt, and staff-triage policy. The existing nullable `vehicleId` model can
+represent the simple variant, but `null` cannot distinguish explicit system Feedback from an
+association cleared after vehicle deletion. If that analytics distinction is required, an explicit
+scope field and separately reviewed data/migration contract are needed.
+
+Owner input required: confirm the recommended simple nullable-association contract (and its small
+Public form-copy/control change), or request the explicit-scope data model. Until then, no exact
+handoff or source write is authorized.
 
 ## Approved
 
@@ -58,27 +75,15 @@ application source from the interrupted attempt is accepted; `70f42c1` remains t
 Other T14 work may continue only through a separately selected exact handoff that does not alter
 rendered Public UI.
 
-Owner Feedback-association refinement: **Approved on 2026-08-12.** Public riders may submit general
-system Feedback without selecting a vehicle. Vehicle association is optional, but whenever a
-vehicle ID is supplied it must remain server-verified and fail closed; an intended vehicle-specific
-submission must never be silently downgraded to general Feedback. Failure or emptiness of the
-vehicle list must not block a clearly general/system submission and must not fabricate or auto-
-select a vehicle. Preserve D-009 privacy, retention, one-way receipt, and staff-triage policy.
-
-This direction authorizes Level 1 to register and assess a future bounded T14 slice; it does not
-authorize source work, a Public redesign, or an endpoint/schema change without an exact-path Level 3
-handoff. The existing nullable `vehicleId` model is compatible, but any future need to distinguish
-explicit system Feedback from a deleted vehicle association requires a separately reviewed data/
-analytics decision rather than an inferred meaning.
-
 Roadmap effect: closes the owner-order gate and fixes the remaining Admin visual direction. The
 recorded sequencing requirement is now satisfied: Level 1 re-audited the target, the shared bright-
 neutral Admin Liquid Glass foundation was accepted at `c4fdc3a`, and the repaired mutation-feedback
 slice was accepted at `e6a04ad`; shared browser Socket.IO lifecycle ownership was accepted as the
 eleventh slice at `70f42c1`. The OSM exact handoff remains dormant and open at `45ecc0a`. Level 1 may
-accept the completed Admin Feedback hydration slice and register the owner-directed optional-
-vehicle Feedback proposal. Any implementation still requires its own exact Level 3 contract,
-passed gates, measurement-first evidence, and unchanged dependency boundaries.
+accept the completed Admin Feedback hydration slice and register the optional-vehicle Feedback
+proposal as blocked on the pending refinement above. Any implementation still requires owner/Public-
+UI confirmation, its own exact Level 3 contract, passed gates, measurement-first evidence, and
+unchanged dependency boundaries.
 
 ## D-012 — Remaining administrative and credential lifecycle matrix
 
