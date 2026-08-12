@@ -3,6 +3,7 @@
 ## Source Work
 
 - Work ID: `T14`
+- Slice ID: `T14-S13`
 - Lane: `Roadmap`
 - Roadmap task: `T14`, bounded Admin role-specific loading/status correction
 - User authorization: Run Approved Batch with no dependency or owner-decision bypass. Public UI is
@@ -173,14 +174,36 @@ operation, credential action, deployment, external request, or runtime target is
 
 ## Completion Evidence
 
-- Status: `Pending`
-- Execution note: exact handoff awaits commit, then its controlled measurement-first failure.
-- Source baseline: pending.
-- Measurement-first evidence: pending.
-- Final validation: pending.
-- Audit freshness changes: none at handoff creation. After source changes, Level 3 must mark Product,
-  Architecture, Frontend, Dashboard & UX, Production Readiness, and Roadmap `Needs Re-audit`; Level 3
-  never marks those reports complete.
+- Status: `Complete — local source/synthetic-browser scope; Level 1 re-audit required`
+- Handoff baseline: `4c33cf071051b9244a9b4f925f5d37610c81546a`.
+- Source baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`.
+- Changed source/test files:
+  - `shuttle-tracking-web/app/admin/feedback/page.tsx`
+  - `shuttle-tracking-web/tests/t14-admin-operations-support.spec.ts`
+- Measurement-first evidence: the controlled session-hydration journey failed 1/1 against the
+  incumbent page because no polite `Verifying feedback access…` status existed while `GET auth/me`
+  remained unresolved; the page instead projected the unresolved session as final role denial.
+- Acceptance mapping:
+  - The page now consumes the existing `isLoading` signal and guards privileged Feedback reads
+    while `isLoading || !user`. It renders the shared neutral loading/status state before the
+    unchanged resolved-role predicate.
+  - The repaired focused journey passes 1/1. While auth is held it observes the polite status, no
+    restriction alert/inbox/ledger, and zero active/deleted Feedback reads; after releasing the
+    existing `SUPER_ADMIN` response it observes the ready inbox and exactly one read for each list.
+  - The resolved `ADMIN` journey retains the exact restriction alert and issues zero Feedback reads.
+- Final validation:
+  - Admin operations support passes 6/6; Admin Liquid Glass/Login passes 5/5; accessibility passes
+    4/4; and Admin Dashboard passes 2/2.
+  - Full lint passes with zero errors and the same two pre-existing warnings. The production build
+    passes with 11 static routes, and the scoped Impeccable detector returns `[]`.
+  - `bash scripts/ci-checks.sh` passes in an isolated verification copy, including backend checks,
+    every frontend pure/browser suite, production build, Compose/topology, unsafe-logging, and
+    workflow validation. `node scripts/validate-agent-workflow.js` and `git diff --check` pass.
+  - Two independent read-only finish reviews returned `PASS` for the source and deterministic test
+    contract.
+- Audit freshness changes: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
+  and Roadmap are `Needs Re-audit` against `c72feb9`. Level 3 records the bounded result but does not
+  accept `T14-S13` or mark those Level 1 reports complete.
 - Evidence limits: local source/synthetic browser evidence only; no successful credential Login,
   human usability, assistive technology, deployed session/runtime, security penetration, Mobile,
   device, provider, field, or production-release acceptance is authorized or claimed.
