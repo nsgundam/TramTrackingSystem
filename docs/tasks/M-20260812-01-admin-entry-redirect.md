@@ -107,8 +107,7 @@
 
 ## Completion Evidence
 
-- Status: `In Progress — exact-path revision frozen; provisional worktree implementation under
-  independent re-verification before source acceptance`
+- Status: `Complete — source accepted at cdd69f8af768a0c67020de4ed53405a967c39294`
 - Acceptance mapping:
   - Authenticated `/admin` → `/admin/dashboard`: the measurement-first suite failed exactly this
     case before source (1 failed, 2 passed); the final focused suite passes 3/3 and asserts the
@@ -145,7 +144,7 @@
     roadmap tasks.
   - `git diff --check`: passed before final evidence synchronization and must pass again afterward.
 - Audit synchronization: T14 Research R4/R6/R8 inspected and recorded this working overlay while
-  excluding it from immutable T14 baseline `0d985d8`. After the Maintenance source is committed, a
-  bounded Level 1 acceptance must consume that immutable delta; no broad T14 re-audit or new slice is
-  implied. Other domain findings and Roadmap ordering are unchanged. Remaining T14 Plan v1 owner
-  review is the T14 next action.
+  excluding it from immutable T14 baseline `0d985d8`. Bounded Level 1 acceptance inspected source
+  commit `cdd69f8`, focused results 3/3 + 2/2 + 5/5, and the exact delta. Frontend and Dashboard &
+  UX are current at `cdd69f8`; no broad T14 finding or new slice was created. Other domain findings
+  and Roadmap ordering are unchanged.

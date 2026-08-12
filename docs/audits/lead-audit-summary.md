@@ -2,84 +2,68 @@
 
 Last updated: 2026-08-12
 
-## Current Coordination State
+## Current outcome
 
-- Production Readiness: **Complete / Validated / No-Go**.
-- T14 application-source baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`.
-- T14 evidence/decision baseline: `9ff7e85b19bcbe17b6d810451904c0f981cb0571`.
-- Latest T14 Level 1 acceptance: `a5280542be9628e08174892f9546ecf7bb64858e`.
-- Accepted T14 source slices: 12 — `T14-S01` through `T14-S11` plus `T14-S13`.
-- `T14-S12`: Deferred; Public UI has not authorized visible OSM attribution and no source delta is
-  accepted.
-- `T14-S14`: Proposed/blocked; optional Public Feedback vehicle association awaits the pending
-  D-011/Public-UI owner choice and has no task or source authority.
-- Active T14 source slice: none.
-- T14 next action: execute Research R0 through R10 in the canonical research plan, then present one
-  complete deduplicated implementation plan for owner review; source is frozen during research.
+T14 Research R0–R10 is complete at immutable evidence baseline `0d985d8`. Accepted application
+source remains `c72feb9`: 12 outcomes (`S01–S11 + S13`) have valid H/S/C/R ancestry and no accepted-
+outcome regression was found. Historical task records prove the outcomes, but most slice IDs were
+assigned retrospectively; do not claim an upfront finite slice plan existed.
 
-The current planning contract is `docs/roadmap/T14-research-and-execution-plan.md`; the canonical
-slice and research-input inventory remains in `docs/roadmap/T14-scope-and-closure-ledger.md`.
-Exact historical implementation detail remains in
-the individual `docs/tasks/T14-*.md` records, specialist briefs, and Git history; the five affected
-domain/readiness audits retain current findings and evidence limits rather than full slice journals.
+The owner cancelled OSM work on 2026-08-12. `T14-S12` is `Removed`, its dormant handoff is closed,
+and no replacement T14 work is inferred. Current application source still consumes OSM Standard
+tiles while Public credit is hidden, so the provider/licence risk remains a separate Production stop
+condition rather than a resolved finding.
 
-## T14-S13 Accepted Result
+No T14 source slice is Active. Plan v1 has three remaining recommendations:
 
-The S13 chain is:
+1. Admin operational mutation integrity for Feedback note/status and route-order publish;
+2. one deterministic Admin timestamp presentation contract after the owner accepts its policy; and
+3. Public stop-image resilience after Public-visible fallback authority.
 
-`4c33cf0` handoff → `c72feb9` source → `9a9cf5c` Level 3 completion → `a528054` Level 1 acceptance.
+S14 optional/general Feedback is recommended for move/defer outside T14. Source remains frozen until
+the owner reviews the remaining plan and a selected unit receives a committed exact-path handoff.
 
-While `GET auth/me` is unresolved, Admin Feedback now renders one neutral polite verification state,
-exposes neither inbox nor final denial, and performs no privileged Feedback reads. After the
-server-returned role resolves, `SUPER_ADMIN`/`DEV` retain the exact inbox and `ADMIN` retains the
-exact denial with zero reads. AuthContext, API/proxy, Login source, server authorization, roles,
-requests, payloads, backend, schema, CSS/theme, and Public UI are unchanged.
+## Important non-T14 result
 
-Measurement-first failed 1/1 before source. Final hydration 1/1, Admin operations 6/6,
-Login/material 5/5, accessibility 4/4, Dashboard 2/2, lint/build, scoped detector `[]`, full
-repository CI, workflow validation, diff check, and two independent finish reviews pass. Login
-evidence covers rejected request/pending/inline recovery and protected redirect only; it is not a
-successful credential/session acceptance journey.
+The committed Feedback-role migration adds a check constraint allowing only `ADMIN`, `DEV`, and
+`SUPER_ADMIN` before converting legacy `OPERATOR` rows. It can therefore fail on supported legacy
+data. Existing tests check for the later SQL text but do not execute or verify ordering. This is a
+High-severity Database Maintenance item and a release stop condition; research preserved the file
+and made no repair.
 
-## Current Profile Status
+Other separate work:
 
-| Profile | Status / baseline | Current implication |
-|---|---|---|
-| Discovery | Complete / Validated @ `1eec866...` | Approved decisions and pinned external Mobile source remain current. |
-| Product | Complete / Validated @ evidence `9ff7e85...`, app `c72feb9...` | S13 false-denial subcase is Resolved; broad product/runtime gaps remain. |
-| Architecture | Complete / Validated @ evidence `9ff7e85...`, app `c72feb9...` | Existing session/server authority and no-read-before-role boundary are preserved. |
-| Backend | Complete / Validated @ `1eec866...` | T11 lifecycle and external Android contract remain incomplete. |
-| Frontend | Complete / Validated @ evidence `9ff7e85...`, app `c72feb9...` | Score remains 15/20; accepted IDs are explicit and Public identity is preserved. |
-| Database | Complete / Validated @ `1eec866...` | D-012 is approved but not implemented or operated. |
-| Infrastructure & Device | Complete / Validated @ `1eec866...` | Native source is partial; Android/physical/provider evidence is unavailable. |
-| Dashboard & UX | Complete / Validated @ evidence `9ff7e85...`, app `c72feb9...` | 0 P0, 1 P1, 5 P2, and 1 P3 remain; broad human/AT/runtime evidence is open. |
-| Security, DevOps & Observability | Complete / Validated @ `1eec866...` | SEC-08 and external operations evidence remain open. |
-| Production Readiness | Complete / Validated / No-Go @ evidence `9ff7e85...`, app `c72feb9...` | No deployment, operations, Mobile/device, provider, human, AT, or release gate changes. |
-| Roadmap | Plan / Research @ app `c72feb9...` | The research plan owns the predecessor-ordered investigation, complete-plan gate, source freeze, and sole next action. |
+- `M-20260812-01` fixes authenticated `/admin` → `/admin/dashboard` and is accepted at source
+  `cdd69f8` with protected/successful Login regression evidence;
+- remote Admin marker, global Public icon font, design sidecar, README credentials, and legacy Admin
+  write hardening are Maintenance;
+- sender claim/timeout/history/recovery and Mobile credential hardening belong to T11;
+- account/source/deletion/backup lifecycle belongs to D-012/later Roadmap work;
+- deployment/recovery/observability belongs to T9/T13;
+- Research Dashboard and physical comparison belong to T15; and
+- human/AT/device/provider/deployed/runtime proof remains external evidence.
 
-## Decisions, Dependencies, and Limits
+## Release state
 
-- D-001=C raises the release bar; it does not make the system production-ready.
-- D-011 fixes the bright-neutral, white/gray Signal Lens Admin direction and preserves Public visual
-  ownership. Automatic dark theme remains excluded.
-- D-012 is approved but unimplemented and remains outside T14.
-- T9 and T13 are owner-deferred without satisfying external gates.
-- T11 remains blocked on coordinated Backend/Admin/Mobile work, writable Mobile/Android authority,
-  and a versioned device acceptance artifact.
-- T15 remains blocked behind T13 and physical/provider facts.
-- Research Dashboard, sender claim/timeout/history/recovery, D-012 lifecycle controls, deployment,
-  and human/AT/device evidence are research inputs whose final ownership must be proved before the
-  complete plan is presented; none is a hidden future T14 source slice.
-- The unrelated dirty Feedback-role migration remains preserved and excluded.
+| Stage | State |
+|---|---|
+| Controlled local development demo | Conditional only |
+| Research field trial | No-Go |
+| Internal daily operations | No-Go |
+| D-001=C public rider service | No-Go |
 
-The technical score remains **15/20** with zero P0, one P1, five P2, and one P3 open. Controlled
-local demonstration remains Conditional only. Research field trial, internal daily operations, and
-public rider service remain No-Go.
+The 15/20 UX score is a health signal, not seven hidden T14 tasks. Its open P1 is the T15 Research
+Dashboard; the bounded T14 residuals, Maintenance, and external evidence are now explicitly mapped.
 
-## No-Surprise Next-Work Rule
+## Owner review still needed
 
-Re-audit may discover a finding but may not assign a stable slice ID, create a handoff, or start
-source work silently. Research first maps every finding exactly once and produces the complete
-proposed set, dependencies, exclusions, and acceptance evidence. Only after owner review may a
-selected item receive an exact-path handoff. A regression reuses its accepted outcome identity;
-materially new work is never appended to T14 automatically.
+- Include the Admin mutation recommendation.
+- Accept or replace the proposed Admin timestamp policy: `en-GB`, 24-hour `Asia/Bangkok`, visible
+  Bangkok/ICT context, `Unavailable` for malformed values, and `Never` only for true never-seen.
+- Authorize or defer the bounded Public stop-image failure fallback.
+- Accept or revise the recommendation to move/defer S14 outside T14.
+- Separately authorize the role-migration repair before any target rollout.
+
+The full evidence, finding register, work-unit contracts, dependency graph, and approval record are
+in `docs/roadmap/T14-research-and-execution-plan.md`. Re-audit cannot create another work item
+automatically; a new outcome must pass visible change control and owner review.
