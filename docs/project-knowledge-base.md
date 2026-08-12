@@ -1,30 +1,58 @@
 # Tram Tracking System Project Knowledge Base
 
 Audit metadata:
-- Evidence baseline: `1eec866b986b4cb4e802f7a48fac93e54e780699`
+- Evidence baseline: `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
+- Accepted T14 application baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
 - Evidence scope: `README.md`, `AGENTS.md`, Compose/environment configuration and scripts,
   `shuttle-tracking-backend/`, `shuttle-tracking-web/`, `docs/testing/`, `docs/research/`,
   `docs/tasks/`, `docs/operations/`, `docs/decision-queue.md`, `docs/audits/specialized/`, and the
   immutable external Mobile revision recorded in the T11 v3 specialist brief
-- Reviewed at: `2026-08-08T00:07:30+07:00`
+- Reviewed at: `2026-08-12T23:15:48+07:00`
 - Validation state: `Validated`
 - Predecessor baselines: `None` (Discovery has no required predecessor)
+- Owner-decision overlay: the user's 2026-08-12 Plan v1 approval, S14 move, migration authorization,
+  and Frontend-team OSM assignment are recorded in the current `docs/decision-queue.md`
+  synchronization; Discovery consumes them as owner authority, not source evidence at `531ec9e`.
 
-Evidence status: **Validated**. This Discovery re-audit consumes the approved D-011/D-012 records
-and the owner-supplied immutable Android source revision in addition to the existing T9 baseline.
-T9 remains only partially complete because the external University Server/Network acceptance
-evidence is unavailable. Use `docs/audits/README.md` as the coordination authority.
+Evidence status: **Validated for T14 Research R1**. Research baseline `0d985d8` remains the R0
+historical anchor; current evidence baseline `531ec9e` additionally accepts Maintenance
+`M-20260812-01` without changing accepted T14 source. Current coordination-document edits are
+research/owner outputs, not proof of application behavior. Use `docs/audits/README.md` as the
+coordination authority.
 
-## D-011/D-012 and T11 Mobile Repository Re-audit — 2026-08-08
+## T14 Research Discovery Snapshot — 2026-08-12
 
-The preceding validated Discovery baseline was
-`cdedcc2fd82ab264e2176716ac23a74c948e1a28`; the current immutable decision/evidence baseline is
-`1eec866b986b4cb4e802f7a48fac93e54e780699`. Application source in this repository is unchanged.
-The changed evidence is `docs/decision-queue.md`,
-`docs/audits/specialized/D-012-identity-administrative-lifecycle-matrix.md`, and
-`docs/audits/specialized/T11-mobile-repository-compatibility-v3.md`.
+Research R0 fixed immutable HEAD `0d985d8` and accepted T14 application baseline `c72feb9`. Compared
+with the last T14 evidence baseline `9ff7e85`, application behavior is unchanged except for a
+committed edit to the existing Feedback-role migration. Documentation and workflow changes do not
+establish new runtime behavior. The later Admin-entry Maintenance is accepted separately at source
+`cdd69f8` and Level 1 record `531ec9e`; it is not accepted T14 source.
 
-The owner supplied the external native Android repository
+The current repository inventory still contains the Public tracker, authenticated Admin surfaces,
+REST and Socket.IO ingestion, PostgreSQL/PostGIS, Redis live state, bounded research records, and
+the existing simulator/test boundaries described below. No new T14 route, API, schema, external
+provider, physical-device, deployed, human, or assistive-technology evidence was found after
+`c72feb9`.
+
+One new cross-profile blocker is present outside T14. Migration
+`20260801110000_feedback_triage_roles` now installs a role constraint allowing only `ADMIN`, `DEV`,
+and `SUPER_ADMIN` before it updates legacy `OPERATOR` rows. A database containing any legacy
+`OPERATOR` can therefore reject the constraint before the conversion runs. The migration also no
+longer implements its comment that unexpected historical values remain available for application-
+level fail-closed handling. Existing static tests assert only that the later `UPDATE` text exists;
+Prisma validation and frontend/backend builds do not execute this upgrade ordering. Treat this as a
+high-severity Database/Maintenance migration-safety finding and a Production Readiness stop
+condition; research records it but does not edit or revert the user-owned migration.
+
+The root README also still advertises `admin123`, while the seed path requires an explicit
+`SEED_ADMIN_PASSWORD` and production provisioning controls. This is an existing bounded
+documentation/credential-setup Maintenance gap, not T14 work.
+
+The approved D-011/D-012 decisions and pinned external Android revision
+`949c80369d1d133b6c03282fedaa2f475a73114b` remain valid evidence. The Android source remains
+partial for T11 and supplies no new device/runtime acceptance in this research pass.
+
+The owner previously supplied the external native Android repository
 [`0-Mini-Peak-1/RSUBusTrackerApp`](https://github.com/0-Mini-Peak-1/RSUBusTrackerApp) at immutable
 revision `949c80369d1d133b6c03282fedaa2f475a73114b`. Static inspection confirms a Kotlin/Compose
 application with a location foreground service, short-lived sender-token login, Trip start/end, and
@@ -97,16 +125,17 @@ contract.
 
 ## Freshness and Validation Summary
 
-The preceding baseline was `82f4d97...`; the current baseline is `cdedcc2...`. The exact changed
-Discovery evidence is recorded in the T9 table above. Source/configuration changes affect the
-runtime topology, startup, REST/Socket origin resolution, public Feedback submission, public and
-admin live connections, and documented operations handoff, so the inventory required revalidation.
-Coordination-document changes alone were not treated as proof of application behavior.
+The R0 research evidence baseline was `0d985d8`; R1 is currently validated at `531ec9e`. The complete
+change map since the preceding Discovery snapshot includes accepted T14 frontend work, audit/task records, design
+sidecars, workflow documentation, one backend realtime test adjustment, and the role-migration edit
+called out above. Accepted T14 source remains `c72feb9`; the accepted Admin-entry Maintenance stays
+outside it.
 
-Current focused validation passed: backend check including Prisma validation and the full boundary
-suite, frontend T9 connection tests (5/5), and the static production-topology test. No external or
-stateful target was touched; previously recorded T5/T7/T8 stateful or browser evidence was not
-silently promoted to current production evidence.
+R1 used static repository inspection and immutable prior test/evidence records. No migration,
+deployment, provider, physical device, external Mobile build, stateful target, or human/AT session
+was executed. The most recent full repository CI passed for the accepted Admin-entry Maintenance,
+but that result neither executes a legacy-role migration nor proves T14 production
+acceptance.
 
 ### Prior-finding revalidation
 
@@ -882,8 +911,8 @@ fully compare intended behavior with implementation:
   implementation beyond the current persisted hierarchy.
 - GPS event-time semantics, expected update interval, clock synchronization, canonical-history
   retention, raw-source retention, and archival/deletion ownership.
-- Runtime/human acceptance for the implemented public expiry behavior and safe admin source-health
-  view, plus the still-missing complete public service-state and operator recovery journeys.
+- Runtime/human acceptance for the implemented Public expiry, service explanation/Retry, and safe
+  Admin source-health view. T11-backed operator exception and recovery journeys remain absent.
 - Runtime/human acceptance for the approved and implemented bounded feedback triage, retention,
   privacy, deletion, restore, and audit behavior.
 - Intended trip history, playback, reports, notifications, alerts, and announcements scope.
@@ -894,8 +923,14 @@ fully compare intended behavior with implementation:
 
 ## Actionable Recommendations
 
-- Use `docs/audits/README.md` for current coordination. Every successor profile has consumed this
-  `1eec866...` Discovery baseline; historical “run Product next” instructions no longer select work.
+- Use `docs/audits/README.md` for current coordination. R2–R10 have consumed the compatible
+  `531ec9e` current-evidence and `0d985d8` immutable-research baselines; historical handoffs no
+  longer select work.
+- Execute the authorized role-upgrade repair as `M-20260812-02` after confirming whether the
+  existing migration has been applied anywhere; no target migration is authorized, and disposable
+  evidence remains required before rollout against data that may contain `OPERATOR`.
+- Align the root credential instructions with the explicit seed/provisioning contract through a
+  separate documentation Maintenance task; do not publish a placeholder password as a valid login.
 - Treat lifecycle integrity according to the current domain/readiness reports; this Discovery
   inventory does not replace their findings or live integration evidence.
 - Keep the three research boundaries separate in all later work: Mobile/Socket.IO, ESP32+GPS/Wi-Fi/
@@ -907,8 +942,8 @@ fully compare intended behavior with implementation:
 
 ## Roadmap Impact
 
-- Discovery is validated and every successor profile has consumed this baseline; no later profile
-  may consume the prior legacy Discovery snapshot.
+- Discovery is validated for Research R1 at `531ec9e`; every later research profile has consumed
+  this predecessor in order.
 - T5 lifecycle facts are now part of the current baseline. Downstream audits must revalidate the
   transaction, partial active-trip index, status/time constraints, idempotent start/end behavior,
   and virtual-trip policy before confirming or closing related findings.
@@ -940,19 +975,21 @@ No unsupported business or deployment assumptions are used as facts.
 
 ## Confidence
 
-- **High** for repository-visible source, schema, route/page inventory, checked-in T9 topology and
-  configuration contracts, and the focused checks run at `cdedcc2...`.
-- **High** for downstream audit/roadmap mapping because every successor profile consumed this
-  predecessor baseline in the same Level 1 sequence.
+- **High** for repository-visible source, schema, route/page inventory, accepted T14 provenance, and
+  checked-in T9 topology/configuration contracts at the recorded immutable baselines.
+- **High** for the migration ordering diagnosis from SQL semantics; **low** for affected-row count
+  because no approved database target was queried.
+- **High** for downstream audit/roadmap mapping now that R2–R10 consumed this predecessor in order.
 - **Low** for actual deployment, proxy behavior, DNS/TLS, production secrets, backup/restore,
   alerts, capacity, physical devices/providers, Android behavior, field research, and human workflow
   outcomes because no approved external target was operated.
 
 ## Audit Readiness
 
-Validated at `1eec866...`; every successor audit has consumed this decision/external-source
-baseline. Current coordination and the sole next action live in `docs/audits/README.md` and the
-Master Roadmap rather than in this baseline-specific Discovery handoff.
+Validated for T14 Research R1 at `531ec9e`; R2–R10 and Plan v1 owner approval are complete. S15 is
+the first approved T14 outcome, but Discovery grants no source authority without its committed
+exact-path handoff. Current authority lives in `docs/audits/README.md` and the Master Roadmap rather
+than in older baseline-specific handoffs.
 
 The current repository behavior, multi-source tracking boundary, data model, APIs, frontend
 features, deployment files, simulators, tests, and open information gaps are documented from

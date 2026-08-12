@@ -11,7 +11,7 @@ lives; it does not replace the evidence in audits, task specifications, decision
 3. [`roadmap/master-refactoring-roadmap.md`](roadmap/master-refactoring-roadmap.md) — repository-wide
    task order, dependency gates, and task status.
 4. [`roadmap/T14-research-and-execution-plan.md`](roadmap/T14-research-and-execution-plan.md) — the
-   research-first sequence and gate before any further T14 implementation.
+   completed research, normalized findings, approved fixes, dependency order, and exact-handoff gate.
 5. [`roadmap/T14-scope-and-closure-ledger.md`](roadmap/T14-scope-and-closure-ledger.md) — the detailed
    T14 slice inventory and research-input register.
 6. [`decision-queue.md`](decision-queue.md) — owner-controlled policy decisions; Pending items do
@@ -29,7 +29,7 @@ checking the first four records above.
 | T9 | Repository-complete; externally incomplete | University Server/Network acceptance is still required. |
 | T11 | Blocked | Coordinated Backend/Admin/Mobile lifecycle work and an Android acceptance artifact are missing. |
 | T13 | Owner-deferred | Depends on T9 external acceptance and approved target authority. |
-| T14 | Research planning; no active source work | Accepted IDs are S01–S11 and S13. S12 is Deferred; S14 and all residual findings are inputs to the complete research-first plan. |
+| T14 | Plan v1 approved; exact-handoff execution | Accepted IDs are S01–S11 and S13. S12/OSM is Removed, S14 is Moved, and approved S15–S17 run one at a time. |
 | T15 | Blocked/deferred | Depends on T13 and physical/provider evidence. |
 
 ## T14 in One Page
@@ -38,12 +38,13 @@ checking the first four records above.
   quality, contrast, Admin hierarchy and operations convergence, Public recovery, the fixed-light
   Signal Lens Admin/Login system, mutation recovery, shared browser Socket.IO mechanics, and
   truthful Admin Feedback session hydration.
-- No T14 source slice is active. Application source remains frozen at `c72feb9` while Level 1
-  executes the ordered research plan and produces one complete implementation proposal.
-- S12, S14, C01–C16, open audit findings, dependencies, and external evidence gaps are research
-  inputs. None is pre-approved, removed, or selected as the next slice.
-- The owner reviews the complete proposed work set and dependency order before any new T14 task ID,
-  exact-path handoff, or source implementation is authorized.
+- No T14 source slice is active until the first exact-path handoff is committed. The accepted T14
+  application baseline remains `c72feb9`.
+- S12/OSM is owner-cancelled/Removed and licence/attribution work is left to the Frontend team.
+  S14 is Moved outside T14. S15 Admin mutation integrity, S16 Admin timestamp contract, and S17
+  Public stop-image resilience are approved in that order.
+- Each approved unit still requires a committed exact-path handoff, measurement-first evidence,
+  full gates, and Level 1 acceptance before the next unit starts.
 - A future regression against an accepted slice keeps that slice ID. A materially new outcome is a
   separate Maintenance or Roadmap decision; it does not extend T14 automatically.
 

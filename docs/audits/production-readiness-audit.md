@@ -1,23 +1,22 @@
 # Production Readiness Audit
 
 Audit metadata:
-- Evidence baseline: `0d985d8948624cb2134a937ce57f071b53bb1852`
+- Evidence baseline: `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
 - Accepted T14 application baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
 - Evidence scope: `PRODUCT.md`, `docs/project-knowledge-base.md`, every R2–R7 path named below,
   `docs/roadmap/master-refactoring-roadmap.md`, `docs/decision-queue.md`, `docs/tasks/`,
   `.github/workflows/`, `scripts/`, `docker-compose.prod.yml`, `docs/operations/`, and every
   external-evidence limit cited by predecessors
-- Reviewed at: `2026-08-12T22:31:06+07:00`
+- Reviewed at: `2026-08-12T23:15:48+07:00`
 - Validation state: **Validated for T14 Research R8 / No-Go**
 - Predecessor baselines: `docs/project-knowledge-base.md`, `docs/audits/product-audit.md`,
   `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`,
   `docs/audits/frontend-audit.md`, `docs/audits/database-audit.md`,
   `docs/audits/infrastructure-device-audit.md`, `docs/audits/dashboard-ux-audit.md`, and
   `docs/audits/security-devops-observability-audit.md`, validated in required R1–R7 order over
-  `0d985d8948624cb2134a937ce57f071b53bb1852`
-- Owner-decision overlay: the user's 2026-08-12 cancellation of S12 is recorded in the current
-  worktree `docs/decision-queue.md`; it is owner authority consumed by the release assessment, not
-  a claim that immutable HEAD contains the decision.
+  `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
+- Owner-decision overlay: current Plan v1/S14/OSM directions are owner authority consumed by the
+  release assessment, not source evidence at `531ec9e`.
 - Bounded Maintenance evidence: `M-20260812-01` is accepted at source commit `cdd69f8`; it resolves
   Admin entry but is not accepted T14 source and changes no release gate.
 
@@ -51,20 +50,20 @@ T15, not by an endless sequence of T14 slices.
 
 ## 3. T14 residual impact
 
-The research profiles support only these three remaining bounded T14 proposals:
+The owner approved only these three remaining bounded T14 outcomes:
 
 1. Admin operational mutation integrity for Feedback note/status and route-order publish;
-2. Public stop-image resilience, after Public-visible fallback authority;
-3. one Admin timestamp presentation contract, after the owner chooses locale/time-zone/invalid
-   semantics.
+2. one Admin timestamp presentation contract under the recorded en-GB/Asia-Bangkok/ICT policy;
+3. Public stop-image resilience within the granted bounded fallback authority.
 
 The owner cancelled S12/OSM work on 2026-08-12. That removes it from T14 but does not resolve the
 current provider/licence exposure because source still uses the provider. Before production, a
-separate decision must stop using that basemap/provider or authorize a compliant outcome.
+separate Frontend-team/owner decision must stop using that basemap/provider or authorize a compliant
+outcome.
 
 Completing any or all would improve local UX/compliance but would not close PR-02 through PR-10,
 change the No-Go, certify accessibility, or prove production. Remote Admin/Public assets and design
-sidecar drift are Maintenance; S14 optional/general Feedback is a Product/Data/Security choice;
+sidecar drift are Maintenance; S14 optional/general Feedback is Moved outside T14;
 T11, T15, D-012, and external evidence remain outside T14.
 
 ## 4. Stop conditions

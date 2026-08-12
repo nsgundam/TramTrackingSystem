@@ -29,8 +29,8 @@ outcome must enter Maintenance or a later Roadmap synthesis. Enforce the contrac
 in the repository workflow validator.
 
 Expected benefit:
-Audit files remain readable and evidence-complete, T14 has one finite closure decision, and future
-re-audits cannot silently turn residual findings into an endless sequence of slices.
+Audit files remain readable and evidence-complete, T14 has one research-first whole-plan gate, and
+future re-audits cannot silently turn residual findings into an endless sequence of slices.
 
 Priority: High
 Audit-blocking status: Cleared — required before the T14 documentation compaction

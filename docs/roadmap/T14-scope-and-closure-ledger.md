@@ -1,6 +1,6 @@
-# T14 Scope and Closure Ledger
+# T14 Scope, Research, and Closure Ledger
 
-This is the canonical T14 slice, candidate, and closure-detail record. The
+This is the canonical T14 slice, research-input, and eventual closure-detail record. The
 `master-refactoring-roadmap.md` remains the repository-wide ordering authority; this ledger owns
 T14's detailed inventory and its single `Next action`. Individual task files and Git commits remain
 the immutable implementation evidence.
@@ -9,15 +9,18 @@ the immutable implementation evidence.
 
 | Item | Current value |
 |---|---|
+| Research evidence baseline | `0d985d8948624cb2134a937ce57f071b53bb1852` |
 | Application-source baseline | `c72feb90e7a35da45d82bac61eb927ab7c55a37c` |
 | Latest T14 Level 1 acceptance | `a5280542be9628e08174892f9546ecf7bb64858e` |
 | Accepted source slices | 12: `T14-S01` through `T14-S11` plus `T14-S13` |
-| Deferred registered slice | `T14-S12` — OSM visible attribution/endpoint alignment; Public-UI authority gate |
-| Proposed registered slice | `T14-S14` — optional Public Feedback vehicle association; owner disposition pending |
+| Removed registered slice | `T14-S12` — OSM work owner-cancelled on 2026-08-12; underlying provider risk remains outside T14 |
+| Moved registered slice | `T14-S14` — optional Public Feedback vehicle association moved outside T14 on 2026-08-12 |
+| Approved registered slices | `T14-S15` Admin mutation integrity; `T14-S16` Admin timestamp contract; `T14-S17` Public stop-image resilience — each awaiting its own exact handoff |
 | Active source slice | None |
-| Technical score | 15/20; 0 P0, 1 P1, 5 P2, and 1 P3 open |
+| Technical score | 15/20 health signal; its P1 belongs to T15 and does not imply seven T14 tasks |
 | Release state | Production `No-Go`; controlled local demonstration is Conditional only |
-| Next action | Owner approves or revises the finite closure package in Sections 6–7; T14 source work is frozen until that one review |
+| Research state | R0–R10 complete; Plan v1 approved; S12 Removed, S14 Moved, S15–S17 ordered; separate safety/Roadmap/evidence lanes retained |
+| Next action | Commit and execute S15's exact handoff. In parallel, await the RF-18 applied-history answer; that safety lane blocks database rollout but not local T14 source. |
 
 The stable ID is an identity, not an acceptance counter. `T14-S12` remains S12 even though S13 was
 accepted first. Never describe the accepted set as “the first twelve.”
@@ -87,97 +90,93 @@ S14's pending proposal/decision gate was recorded at `9ff7e85` without creating 
 | T14-S09 | Bright-neutral Admin/Login Liquid Glass foundation | Owner-required | Accepted | `T14-admin-liquid-glass-foundation.md` | `c7f696e / c4fdc3a / 2b49fd8 / f526939` | Fixed light white/gray Signal Lens; no automatic dark theme; no Public redesign. |
 | T14-S10 | Admin master-data mutation pending/failure/retry/receipt/delete identity | Required | Accepted | `T14-admin-master-data-mutation-feedback.md` | `1c341f7 / 2ddb835→e6a04ad / 8ebdf9a→e5f6422 / 95a8de1` | Repairs remain under S10; exact requests, retained fields, focus, and immutable target IDs stay covered. |
 | T14-S11 | Shared browser Socket.IO transport/listener lifecycle ownership | Required | Accepted | `T14-shared-browser-socket-lifecycle.md` | `389437c / 70f42c1 / 535ec73 / fd527ac` | Consumer validation, canonical, hydration, queue, map, Retry, and expiry policy remain separate. |
-| T14-S12 | Visible OSM attribution and Standard raster endpoint alignment | Owner-deferred | Deferred — blocked | `T14-osm-attribution-and-raster-endpoint-alignment.md` | `45ecc0a / — / — / —` | Deferral coordination: `5eb266f`. Public team has not authorized the visible credit; no source allowlist is live and no zero-credit/provider alternative is selected. |
+| T14-S12 | Visible OSM attribution and Standard raster endpoint alignment | Owner-cancelled | Removed | `T14-osm-attribution-and-raster-endpoint-alignment.md` | `45ecc0a / — / — / —` | Owner cancelled OSM work on 2026-08-12. Dormant handoff is closed and grants no future authority. Current provider/licence risk is unresolved outside T14. |
 | T14-S13 | Truthful Admin Feedback session hydration and zero premature privileged reads | Required | Accepted | `T14-admin-feedback-session-hydration-truth-state.md` | `4c33cf0 / c72feb9 / 9a9cf5c / a528054` | Owns only unresolved `auth/me` projection/read timing; Login/AuthContext/API/role policy remain unchanged. |
-| T14-S14 | Optional Public Feedback vehicle association / general-system Feedback | Owner classification pending | Proposed — blocked | No task | `— / — / — / —` | Proposal gate: `9ff7e85`. No write authority. Must preserve S01 verification for every supplied ID and must not silently downgrade vehicle intent. |
+| T14-S14 | Optional Public Feedback vehicle association / general-system Feedback | New Product/Data/Privacy capability | Moved outside T14 | No task | `— / — / — / —` | Owner accepted the move on 2026-08-12. Any later capability requires new roadmap synthesis and must preserve S01 verification. |
+| T14-S15 | Admin Feedback note/status and route-order publish mutation integrity | Plan v1 approved | Proposed — approved, handoff pending | No task yet | `— / — / — / —` | Execute first; exact request/status/T10/auth contracts remain fixed. |
+| T14-S16 | Deterministic Admin timestamp presentation contract | Plan v1 approved | Proposed — approved, handoff pending | No task yet | `— / — / — / —` | Execute after S15 due Feedback overlap; approved policy is en-GB, 24-hour Asia/Bangkok with visible ICT and safe fallbacks. |
+| T14-S17 | Public stop-image loading/error resilience | Plan v1 approved | Proposed — approved, handoff pending | No task yet | `— / — / — / —` | Execute after S16; Public fallback authority is approved while successful composition and focus behavior remain fixed. |
 
 Accepted slices are closed to opportunistic edits. A repair that preserves the same outcome records a
 repair chain under that ID. A materially new outcome requires owner-visible registration first.
 
-## 6. Finite Closure Decision
+## 6. Research-First Planning Gate
 
-The recommended owner decision is one package, not sixteen independent task selections:
+The owner clarified on 2026-08-12 that the next objective is not to approve closure. The required
+sequence is to research the entire remaining problem space, normalize the findings, and present one
+complete implementation plan before any further T14 execution.
 
-1. Close T14 with **no additional source slice** after the already accepted set.
-2. Keep S12 `Deferred`. It may reopen under the same ID only if the Public UI team authorizes the
-   required visible OSM credit or an approved provider/licence decision replaces the current gate.
-3. Mark S14 `Moved` to a separately reviewed future Public Feedback task. Do not choose its data/UI
-   model inside T14.
-4. Approve the terminal candidate dispositions in Section 7.
+The binding planning contract is
+[`T14-research-and-execution-plan.md`](T14-research-and-execution-plan.md). It defines the ordered
+R0–R10 profile sequence, input set, finding classifications, work-unit contract, completion gate,
+and post-approval change control.
 
-This package preserves every open finding and release gate; it only stops those items from extending
-T14. Approval authorizes Level 1 documentation synchronization, not application source work.
+Research consequences:
 
-If the owner wants to override the recommendation, only these two product choices need separate
-answers:
+- the previous finite-closure recommendation remains withdrawn;
+- R0–R10 are complete in the linked Plan v1; OSM is owner-removed and Plan v1's three remaining work
+  outcomes are approved as S15–S17;
+- no source may begin before its stable identity and exact-path T14 handoff are committed; and
+- later re-audit findings enter change control rather than becoming automatic new slices.
 
-| Item | A | B | C |
-|---|---|---|---|
-| S12 map attribution | Keep Deferred (recommended) | Authorize minimal linked `OpenStreetMap` credit and no Leaflet prefix | Require a new provider/licence decision; current Standard tiles cannot be used without credit |
-| S14 Feedback association | Move/defer (recommended) | Authorize simple nullable vehicle association | Authorize explicit `subjectScope: system \| vehicle` with schema/API work |
+## 7. Research Input Disposition
 
-For either S14 implementation option, vehicle-specific intent must still fail closed: a missing or
-unknown vehicle ID may never become general Feedback automatically. Public form changes require
-Public-UI authority and a new exact handoff.
+These IDs remain traceable references only. Full evidence, severity, dependencies, and acceptance
+contracts live in Plan v1 Sections 13–16; this table records each C input exactly once.
 
-## 7. Candidate Closure Package
+| Ref | Final primary disposition | Result |
+|---|---|---|
+| C01 | Approved T14-S15 | Narrowed to Feedback note/status pending/receipt and route-order publish busy/completion; broad live-region work removed. |
+| C02 | Approved T14-S17 | Stop-image geometry/load/error resilience under bounded Public fallback authority; no redesign/provider change. |
+| C03 | Maintenance | Used external Admin marker; licence/provenance and approved local/code-native asset required. |
+| C04 | Maintenance, Public gated | Global Google font used by two Public App Tour glyphs; remove/localize separately. |
+| C05 | Approved T14-S16 | en-GB, 24-hour Asia/Bangkok, visible ICT, safe invalid/missing copy, and domain-only Never. |
+| C06 | Removed | Shared semantic mutation boundary already exists; page request/DTO ownership is intentional. |
+| C07 | External evidence | Human, AT, usability, and device acceptance is not source implementation. |
+| C08 | External evidence | Split proxy/load/provider/physical proof among T9/T11/T13/T15 owners. |
+| C09 | Other Roadmap — T11 | Sender claim, receipt-time timeout, protected history/exceptions, and recovery. |
+| C10 | Other Roadmap — T15 | Research comparison Dashboard and physical/provider evidence. |
+| C11 | Other Roadmap — D-012/later | General account/source/deletion/backup/recovery lifecycle. |
+| C12 | Maintenance | Optional generated sidecar refresh; no product defect inferred. |
+| C13 | Removed | Contradicts approved fixed-light Signal Lens. |
+| C14 | Removed with S12 | Duplicate eliminated; owner cancelled OSM work. Current provider/licence risk remains outside T14 and blocks production until separately resolved. |
+| C15 | Removed | Unbounded Public redesign/Admin polish has no acceptance contract. |
+| C16 | Removed from T14 | Consumer policy separation is intentional; focused Maintenance only if a future contract proves drift. |
 
-Candidate IDs are review references only. The dispositions become terminal for T14 only when the
-owner approves the package; they create no task or source authority.
+S12 (Removed) and S14 (Moved) remain the registered terminal rows in Section 5.
+`M-20260812-01` remains Maintenance. The High
+role-migration blocker, README credential mismatch, legacy Admin boundary hardening, T10/T12 runtime
+proof, T13 observability/recovery, and external Mobile/provider/field facts are normalized in the
+Plan rather than being assigned new C or slice IDs.
 
-| Ref | Residual item | Proposed terminal disposition | Where it belongs if later authorized |
-|---|---|---|---|
-| C01 | Remaining Admin async/live-region consistency | `Moved` | Fresh Maintenance intake after a measured defect or explicit accessibility request |
-| C02 | Public stop-image sizing/lazy/error behavior | `Moved` | Public UI team |
-| C03 | Admin remote icon/asset localization and licence hardening | `Moved` | Separate Admin maintenance after asset/licence selection |
-| C04 | Public/global Material Symbols and asset-origin policy | `Moved` | Public UI team |
-| C05 | Admin timestamp locale/time-zone/invalid-date policy | `Moved` | Decision-led Maintenance |
-| C06 | Page-local mutation state-machine refactor | `Removed` | Reopen only from a deterministic defect or measured material duplication |
-| C07 | Human, assistive-technology, usability, and device acceptance | `Moved` | Release-evidence plan; not a repository source slice |
-| C08 | Proxy, reconnect/load/provider, and physical-device evidence | `Moved` | T9/T11/T13/T15 external acceptance |
-| C09 | Sender claim, timeout, history, and recovery UI | `Moved` | T11 |
-| C10 | Research/Dev comparison Dashboard | `Moved` | T13/T15 after research/runtime/physical gates |
-| C11 | Account/Sender/deletion/backup lifecycle controls | `Moved` | Later D-012 implementation task |
-| C12 | Design sidecar refresh | `Moved` | Optional documentation Maintenance |
-| C13 | Automatic dark Admin theme | `Removed` | Conflicts with the approved fixed-light direction |
-| C14 | OSM attribution/endpoint work | `Removed as duplicate` | Existing S12 only |
-| C15 | General Public redesign or unbounded Admin polish | `Removed` | Requires a new owner-approved outcome, not T14 |
-| C16 | Shared Public/Admin canonical decoder refactor | `Removed` | New Maintenance only if a measured policy-preserving defect exists |
+## 8. Research Completion and Future Closure Gate
 
-No candidate in this package is `Required` for T14 technical closure. Moved items retain their
-finding/evidence status and must pass the destination lane's normal gates if selected later.
+Research R0–R10 is complete and Plan v1 was approved on 2026-08-12. OSM is owner-removed and assigned
+outside this batch; S14 is Moved; S15–S17 are registered in dependency order. No closure claim is
+made.
 
-## 8. T14 Technical Closure Contract
+Each selected T14 work unit may begin only after its own committed exact-path task specification.
+T14 may later be marked technically `Complete` only when the approved
+plan's required units are accepted or explicitly removed/moved/deferred, no slice is Active or
+Source Complete, affected audits/Roadmap are validated, and no dependency or authority gate was
+bypassed.
 
-T14 may be marked technically `Complete` only when all conditions below are true:
-
-- every registered slice is `Accepted`, `Deferred`, `Removed`, or `Moved`;
-- the owner has approved or revised the finite closure package, every candidate has a terminal
-  classification, and every item classified `Required` is accepted;
-- no slice is `Active` or `Source Complete`, no unclassified candidate remains, and no affected
-  audit/Roadmap row is `Needs Re-audit`;
-- S14 has an explicit owner disposition: approve, defer, remove, or move;
-- the latest application-source baseline is accepted by the complete ordered Level 1 chain;
-- the Audit Register and Master Roadmap are `Complete / Validated` at that baseline;
-- the latest application delta retains current focused, regression, full-CI, workflow, and diff
-  evidence required by its contract; and
-- no dependency, owner decision, Public-UI authority, or external-target gate was bypassed.
-
-Technical T14 closure does **not** mean 20/20 UX, Production Readiness, human/AT certification,
-deployed acceptance, or completion of T9, T11, T13, or T15. Those are separate release gates.
+Technical T14 closure will still not mean 20/20 UX, Production Readiness, human/AT certification,
+deployed acceptance, or completion of T9, T11, T13, or T15. Those remain separate gates.
 
 ## 9. No-Surprise and Source-Freeze Rules
 
 - Slice IDs are immutable, never renumbered, and never reused.
-- At most one slice may be `Active`.
-- Before closure, a candidate cannot become a slice until this ledger and the Master Roadmap expose
-  the intended classification and a committed exact-path task passes all gates.
-- Re-audit may discover a candidate but cannot silently create or start the next slice.
-- The ledger alone owns T14's `Next action`; task files own only their bounded implementation.
-- No repair expands paths or outcome without a revised reviewed contract.
-- Further T14 application source is frozen until the owner approves or revises the finite closure
-  package. After closure, no new candidate may be appended to T14: regressions reuse the affected
-  accepted slice ID, while materially new outcomes enter Maintenance or a later Roadmap synthesis.
+- At most one slice may be `Active` after plan approval; currently there is none.
+- Re-audit may discover a finding but cannot assign a stable slice ID, create a handoff, or select
+  the next task.
+- After Plan v1 approval, source remains frozen per unit until that unit has a committed exact-path
+  handoff; at most one slice may be Active.
+- A separately user-authorized Maintenance correction follows its own work ID and does not change
+  T14 ordering or scope.
+- After plan approval, any scope addition requires visible change-control analysis and owner review.
+- A regression against an accepted outcome keeps that identity; a materially new outcome is not
+  appended to T14 automatically.
 
 ## 10. Validation Checklist for This Ledger
 
@@ -185,9 +184,11 @@ deployed acceptance, or completion of T9, T11, T13, or T15. Those are separate r
 - At most one row is Active; currently there is none.
 - Every Accepted row has H/S/C/R provenance; non-acceptance coordination commits are kept outside
   those four fields.
-- Every Deferred row has a reason and no live source allowlist.
-- Every Proposed row has no source commit or source authority.
-- C01 through C16 appear exactly once in the closure package; none is silently `Required`.
+- Every Deferred or Removed row has a reason and no live source allowlist.
+- Every Proposed row has no source commit; owner approval alone is not source authority without its
+  committed exact-path handoff.
+- C01 through C16 appear exactly once with evidence-based dispositions; none is a pre-approved task.
 - S13 provenance is exactly `4c33cf0 / c72feb9 / 9a9cf5c / a528054`.
 - `node scripts/validate-agent-workflow.js` and `git diff --check` pass after synchronization.
-- The unrelated Feedback-role migration remains preserved and excluded.
+- The committed Feedback-role migration remains preserved, is assessed as a High non-T14 blocker,
+  and is not silently edited through this ledger.

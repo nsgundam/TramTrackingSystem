@@ -6,50 +6,54 @@
 - Lane: `Roadmap`
 - Roadmap task: `T14`, remaining visible map-attribution and official Standard raster endpoint
   finding
-- User authorization: Run Approved Batch plus the 2026-08-11 direction to continue Roadmap work
-  without bypassing dependencies or owner decisions. The later owner refinement defers this unit
-  because the Public UI team has not authorized its visible-credit change. Other work may continue
-  only through a separately selected exact handoff that does not alter rendered Public UI.
+- User authorization: the owner explicitly cancelled this OSM unit on 2026-08-12. The earlier
+  2026-08-11 Public-UI deferral and this former contract remain historical evidence only. The owner
+  further assigned any later licence/attribution handling to the Frontend team outside this Agent
+  batch.
 - Approved decisions: D-011 fixes the Public preservation boundary and bright-neutral Admin world;
-  its 2026-08-11 Public-UI authority refinement defers this exact unit. D-012 is approved but
-  intentionally unimplemented here.
+  its 2026-08-11 Public-UI authority refinement historically deferred this exact unit, and the
+  2026-08-12 cancellation supersedes that deferral. D-012 is approved but intentionally
+  unimplemented here.
 - Specialist brief: `docs/audits/specialized/T14-dashboard-osm-attribution-research-use.md`
   establishes that research/non-commercial use does not waive the current OSMF Standard-tile
   attribution condition, that the optional Leaflet prefix is separable, and that a zero-credit
   provider/data strategy would require another focused owner decision. It authorizes no source.
-- Source audits: the affected Level 1 chain is validated against immutable source baseline
-  `70f42c15948bf09e71a3c91d594a4c21f52db23b`; unaffected Discovery/domain evidence is current at
+- Historical source audits at the interrupted attempt: the affected Level 1 chain used source
+  baseline `70f42c15948bf09e71a3c91d594a4c21f52db23b`; unaffected Discovery/domain evidence then used
   `1eec866b986b4cb4e802f7a48fac93e54e780699`.
+- Current research/audit baselines: R0 retains immutable research HEAD
+  `0d985d8948624cb2134a937ce57f071b53bb1852`; current coordinated reports use `531ec9e`; accepted
+  T14 application source remains `c72feb90e7a35da45d82bac61eb927ab7c55a37c`. The owner's
+  cancellation/Frontend-team assignment is coordination authority, not source evidence.
 - External policy evidence: the OSM Foundation Tile Usage Policy at
   `https://operations.osmfoundation.org/policies/tiles/`, reviewed 2026-08-11, identifies the exact
   Standard raster URL `https://tile.openstreetmap.org/{z}/{x}/{y}.png` and requires clearly visible
   attribution on the map. This task aligns only those named constraints; it does not claim full
   provider-policy compliance or authorize a provider, caching, identification, or rollout change.
-- Product/design workflow if reactivated: identity-preserving frontend work under `frontend-design`.
-  The dormant contract permits only the compact required map credit as a visible Public delta.
+- Product/design workflow: not applicable; reactivation is not authorized.
 
 ## Gate and Execution Status
 
-- Dependency gate: Passed. T8 and the first eleven accepted T14 slices are complete for their exact
-  scopes. T9/T13 remain owner-deferred, T11/T15 remain blocked, and none is bypassed.
-- Decision/authority gate: **Deferred / closed.** The Public UI team has not authorized the visible
-  credit change. The Level 2 brief neither waives the current provider condition nor authorizes a
-  zero-credit/provider alternative. D-012 implementation remains excluded.
-- Task gate: **Closed.** The exact-path handoff exists at coordination commit `45ecc0a`, but no
-  application source or test change is eligible until the owner explicitly reauthorizes this unit
-  and authorizes its compatible visible-credit outcome. Any zero-credit/provider replacement stays
-  outside this dormant contract and requires a separate Level 1/2 decision plus a new exact handoff.
-- Evidence-freshness gate: Passed. The affected Level 1 chain is current at `70f42c1`; creating this
-  contract changes coordination only, not application evidence.
+- Dependency gate: Passed historically. T8 and the outcomes later registered as `T14-S01` through
+  `T14-S11` were accepted for their exact scopes. T9/T13 remain owner-deferred, T11/T15 remain
+  blocked, and none is bypassed.
+- Decision/authority gate: **Removed / closed.** The owner cancelled this unit. The Level 2 brief
+  neither waives the current provider condition nor authorizes a zero-credit/provider alternative.
+- Task gate: **Terminally closed.** The exact-path handoff at `45ecc0a` grants no present or future
+  source authority. Any later basemap/provider removal or compliant provider/licence outcome is a
+  new Frontend-team/separately authorized decision and handoff, not reactivation of this task.
+- Evidence-freshness gate: Passed at the interrupted attempt against `70f42c1`. R0 retains
+  `0d985d8`; current coordinated reports assess `531ec9e`, with accepted T14 application behavior at
+  `c72feb9`. Preserving this archived contract changes coordination only, not application evidence.
 - Specialist gate: Completed for the narrow research-use question through the immutable Level 2
   brief above; its recommendation is advisory and does not reopen execution authority.
-- Execution mode: **Deferred; no Level 3 source execution authorized.** Preserve the dormant
-  measurement-first contract for possible reactivation.
+- Execution mode: **Removed; no Level 3 source execution authorized.** Preserve the former contract
+  only as historical evidence.
 
-## Dormant Reactivation Contract — Outcome and Non-goals
+## Archived Former Contract — Outcome and Non-goals
 
-The sections through Validation Commands are retained only as a future reactivation contract. They
-are not a current write authorization and must not be executed while the authority gate is closed.
+The sections through Validation Commands are retained only to explain what was previously scoped.
+They are not a future reactivation contract, current write authorization, or command list to run.
 
 - Outcome: use the exact current OSM Standard raster endpoint in the Public and Admin maps, restore
   a compact visible linked OSM attribution on Public, retain the existing visible Admin credit, and
@@ -73,10 +77,10 @@ are not a current write authorization and must not be executed while the authori
 | Operations / rollout | Bounded | Browser source/test rollback only; deterministic interception must prevent ambient tile fetches during local CI. No deployment or provider-console action. |
 | Research validity | None | No observation, metric, simulator, device, export, provenance, or Research surface changes. |
 
-## Dormant Allowed Writes
+## Archived Former Allowed Writes
 
-These paths describe the previously approved exact scope only. None is writable under this deferred
-task unless the authority and task gates are explicitly reopened.
+These paths describe the previously approved exact scope only. None is writable under this Removed
+task. A future owner decision must create a new contract rather than reopening this list.
 
 - `docs/tasks/T14-osm-attribution-and-raster-endpoint-alignment.md`
 - `docs/roadmap/master-refactoring-roadmap.md`
@@ -218,17 +222,25 @@ repository, or external request outside ordinary existing map behavior is author
 
 ## Completion Evidence
 
-- Status: `Deferred — Public UI-team authorization unavailable`
+- Status: `Removed — owner cancelled OSM work on 2026-08-12`
 - Coordination handoff: `45ecc0a` records the dormant exact-path contract.
-- Source baseline: `70f42c15948bf09e71a3c91d594a4c21f52db23b`; no application source or
-  test delta from the interrupted attempt is accepted.
+- Historical interrupted-attempt source baseline:
+  `70f42c15948bf09e71a3c91d594a4c21f52db23b`; no application source or test delta from that attempt
+  is accepted. R0 evidence remains recorded at `0d985d8`; current coordinated audits use `531ec9e`,
+  with accepted T14 application behavior at `c72feb9`.
 - Measurement-first evidence: an uncommitted provisional guard/implementation run occurred before
   the authority refinement, then every web source/test/package change was removed. It is discarded
   evidence and does not make this task eligible or complete.
 - Final validation: not run for an accepted source delta; the finding remains **Still Present**.
 - Visual evidence: none accepted.
+- Owner-cancellation effect: no source changed and the current provider/licence risk is not
+  resolved. Before production, separately stop using the current basemap/provider or authorize a
+  compliant outcome.
 - Evidence limits: source/local/synthetic browser evidence only; no human usability, assistive-
   technology, deployed/proxy/cache, provider-log, load, physical-device, Mobile, or production-
   runtime acceptance is authorized or claimed.
-- Audit freshness changes: none. No accepted source/finding state changed, so Product, Architecture,
-  Frontend, Dashboard & UX, Production Readiness, and Roadmap remain current at `70f42c1`.
+- Audit freshness at the interrupted attempt: no accepted source/finding state changed, so the
+  affected reports then remained current at `70f42c1`. Current Product, Architecture, Frontend,
+  Dashboard & UX, Production Readiness, and Roadmap records were subsequently revalidated through
+  R0–R10 against immutable research baseline `0d985d8`, current coordinated evidence `531ec9e`, and
+  accepted application baseline `c72feb9`.

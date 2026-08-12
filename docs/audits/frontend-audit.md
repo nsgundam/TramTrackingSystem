@@ -1,18 +1,18 @@
 # Frontend Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: `cdd69f8af768a0c67020de4ed53405a967c39294`
+- Evidence baseline: `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
 - Accepted T14 application baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
 - Evidence scope: `shuttle-tracking-web/app/`, `shuttle-tracking-web/components/`,
   `shuttle-tracking-web/config/`, `shuttle-tracking-web/contexts/`, `shuttle-tracking-web/hooks/`,
   `shuttle-tracking-web/services/`, `shuttle-tracking-web/tests/`, and the R1–R3 predecessor reports
-- Reviewed at: `2026-08-12T23:04:45+07:00`
+- Reviewed at: `2026-08-12T23:15:48+07:00`
 - Validation state: **Validated for T14 Research R4**
 - Predecessor baselines: `docs/project-knowledge-base.md` (R1),
   `docs/audits/product-audit.md` (R2), and `docs/audits/architecture-audit.md` (R3), each validated
-  over `0d985d8948624cb2134a937ce57f071b53bb1852`
-- Owner-decision overlay: the user's 2026-08-12 cancellation of S12 is recorded in the current
-  worktree `docs/decision-queue.md`; it is owner authority, not immutable frontend evidence.
+  over `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
+- Owner-decision overlay: current Plan v1/S14/OSM directions are owner authority, not frontend
+  behavior at `531ec9e`.
 - Bounded delta: `M-20260812-01` source commit `cdd69f8` adds only the canonical `/admin` redirect,
   its deterministic journey, and isolated Playwright build-cache configuration. It is accepted as
   Maintenance evidence and does not change the accepted T14 application baseline.
@@ -34,11 +34,11 @@ unchanged.
 
 | Ref | Current source evidence | Disposition |
 |---|---|---|
-| C01 — broad live-region inconsistency | Most shared loading/error/success states are semantic. Two exact residuals remain: non-sensitive Feedback note/status updates have no per-case pending lock or success receipt and can invoke repeated PATCH requests; route-order publish disables visually but does not expose a named busy/completion state. | **Narrow T14 candidate** for those operations only; remove the broader “all live regions” formulation. |
-| C02 — Public stop images | `StopInfoCard.tsx` renders thumbnail and modal raw `<img>` elements without intrinsic dimensions, `loading`, `decoding`, or an `onError` fallback. | **T14 candidate**, gated by Public-visible fallback authority. |
+| C01 — broad live-region inconsistency | Most shared loading/error/success states are semantic. Two exact residuals remain: non-sensitive Feedback note/status updates have no per-case pending lock or success receipt and can invoke repeated PATCH requests; route-order publish disables visually but does not expose a named busy/completion state. | **Approved T14-S15** for those operations only; remove the broader “all live regions” formulation. |
+| C02 — Public stop images | `StopInfoCard.tsx` renders thumbnail and modal raw `<img>` elements without intrinsic dimensions, `loading`, `decoding`, or an `onError` fallback. | **Approved T14-S17** within the granted Public fallback authority. |
 | C03 — Admin vehicle icon | `LiveMap.tsx` uses a live Flaticon CDN URL for every vehicle marker; no local licence/provenance artifact exists. | **Maintenance/asset decision**. Do not copy the file without licence evidence; prefer an approved local/code-native marker. |
 | C04 — global Material Symbols | Root `app/layout.tsx` loads a Google font globally; only `AppTour.tsx` uses two glyphs. The tour is mounted dynamically by `ShuttleTracker`. | **Maintenance**, Public-authority gated if icon presentation changes. Replace with the existing local icon system or remove the dependency after usage tests. |
-| C05 — timestamp policy | Dashboard uses Thai locale with `Asia/Bangkok`; Source Health and Feedback use viewer-default `toLocaleString()` and do not guard invalid values. | **Owner decision**, then a conditional bounded T14/Admin UX unit. |
+| C05 — timestamp policy | Dashboard uses Thai locale with `Asia/Bangkok`; Source Health and Feedback use viewer-default `toLocaleString()` and do not guard invalid values. | **Approved T14-S16** under the recorded en-GB/Asia-Bangkok/ICT policy. |
 | C06 — generic mutation state machine | Shared semantic feedback/confirmation exists; pages intentionally own requests, DTOs, targets, refresh, and pending state. | **Removed**; no harmful duplication/defect measured. |
 | C12 — design sidecar | Impeccable context reports `.impeccable/design.json` older than `DESIGN.md`. | **Documentation Maintenance** only; no UI implementation defect is inferred. |
 | C14/S12 — OSM | Public disables attribution and uses the wildcard Standard tile URL; owner cancelled S12 on 2026-08-12. | **Removed from T14**. No source change; provider/basemap risk remains a separate pre-production decision. |
@@ -54,13 +54,13 @@ Additional source facts:
 - Research UI, T11 operations, D-012 lifecycle controls, deployment, devices, and human/AT proof
   cannot be repaired inside frontend T14 residual work.
 
-## 3. Candidate measurements and paths
+## 3. Approved-outcome measurements and paths
 
-### Admin operational mutation integrity (bounded T14 candidate)
+### T14-S15 — Admin operational mutation integrity
 
-- Candidate source: `app/admin/feedback/page.tsx`, `components/admin/RouteStopsModal.tsx`, and an
+- Planned source: `app/admin/feedback/page.tsx`, `components/admin/RouteStopsModal.tsx`, and an
   existing shared Admin feedback primitive only if reuse requires it.
-- Candidate tests: `tests/t14-admin-operations-support.spec.ts` and
+- Planned tests: `tests/t14-admin-operations-support.spec.ts` and
   `tests/t14-admin-master-data.spec.ts`.
 - First failing evidence: hold the Feedback PATCH and route-order PUT; repeated activation must
   yield one request, the exact action must expose a named busy state, failure must retain the note/
@@ -68,11 +68,11 @@ Additional source facts:
 - Preserve: exact payloads/status graph, route ordering, note clearing only after success, sensitive
   delete/restore re-authentication, focus behavior, roles, API/schema, and all other surfaces.
 
-### Public stop-image resilience (conditional T14 candidate)
+### T14-S17 — Public stop-image resilience
 
-- Candidate source: `shuttle-tracking-web/components/public/StopInfoCard.tsx`; scoped styling only if
+- Planned source: `shuttle-tracking-web/components/public/StopInfoCard.tsx`; scoped styling only if
   measurement proves it necessary.
-- Candidate tests: a focused static contract plus the existing T14 map-quality/accessibility browser
+- Planned tests: a focused static contract plus the existing T14 map-quality/accessibility browser
   suites.
 - First failing evidence: assert both image states have deterministic intrinsic/aspect-ratio
   reservation, the thumbnail is lazy/async decoded, and a failed remote image yields a named stable
@@ -80,11 +80,11 @@ Additional source facts:
 - Preserve: stop selection, text/ETA, dialog focus/Escape/restoration, Public identity, map geometry,
   API data, and successful-image expansion.
 
-### Timestamp presentation (owner-policy gated)
+### T14-S16 — Timestamp presentation
 
-- Candidate source: one typed formatting utility plus Dashboard, Source Health, and Feedback
+- Planned source: one typed formatting utility plus Dashboard, Source Health, and Feedback
   consumers; no API/schema change.
-- Candidate tests: pure valid/invalid/offset fixtures plus existing Admin browser regressions.
+- Planned tests: pure valid/invalid/offset fixtures plus existing Admin browser regressions.
 - Required decision: locale, fixed `Asia/Bangkok` versus viewer zone, whether to show the zone, and
   the exact invalid/missing label.
 - Preserve: stored timestamps, server receipt-time semantics, status/retention deadlines, and
@@ -101,7 +101,7 @@ a compliant provider/licence outcome.
 
 The current documented technical score remains **15/20** for continuity; it must not be converted
 into seven T14 tasks. Its sole open P1 is the missing Research Dashboard owned by T15. Remaining
-P2/P3 observations decompose into the stop-image candidate, external assets/Maintenance, timestamp
+P2/P3 observations decompose into the approved stop-image outcome, external assets/Maintenance, timestamp
 decision, and external human/device/runtime proof. The fresh detector returned only the verified
 map-canvas false positive above. No browser suite or human/AT session was rerun in this research-only
 pass.

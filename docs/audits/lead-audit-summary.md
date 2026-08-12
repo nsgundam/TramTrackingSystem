@@ -14,14 +14,16 @@ and no replacement T14 work is inferred. Current application source still consum
 tiles while Public credit is hidden, so the provider/licence risk remains a separate Production stop
 condition rather than a resolved finding.
 
-No T14 source slice is Active. Plan v1 has three remaining recommendations:
+No T14 source slice is Active until its exact handoff is committed. The owner approved Plan v1 on
+2026-08-12 with three ordered units:
 
 1. Admin operational mutation integrity for Feedback note/status and route-order publish;
-2. one deterministic Admin timestamp presentation contract after the owner accepts its policy; and
-3. Public stop-image resilience after Public-visible fallback authority.
+2. one deterministic Admin timestamp presentation contract under the approved policy; and
+3. Public stop-image resilience under the approved bounded fallback authority.
 
-S14 optional/general Feedback is recommended for move/defer outside T14. Source remains frozen until
-the owner reviews the remaining plan and a selected unit receives a committed exact-path handoff.
+S14 optional/general Feedback is Moved outside T14. S12 remains Removed, with future
+licence/attribution handling assigned to the Frontend team outside this batch. Source remains frozen
+per unit until that unit receives a committed exact-path handoff.
 
 ## Important non-T14 result
 
@@ -55,14 +57,16 @@ Other separate work:
 The 15/20 UX score is a health signal, not seven hidden T14 tasks. Its open P1 is the T15 Research
 Dashboard; the bounded T14 residuals, Maintenance, and external evidence are now explicitly mapped.
 
-## Owner review still needed
+## Approved execution order
 
-- Include the Admin mutation recommendation.
-- Accept or replace the proposed Admin timestamp policy: `en-GB`, 24-hour `Asia/Bangkok`, visible
-  Bangkok/ICT context, `Unavailable` for malformed values, and `Never` only for true never-seen.
-- Authorize or defer the bounded Public stop-image failure fallback.
-- Accept or revise the recommendation to move/defer S14 outside T14.
-- Separately authorize the role-migration repair before any target rollout.
+1. S15 Admin mutation integrity;
+2. S16 timestamp contract using `en-GB`, 24-hour `Asia/Bangkok`, visible `ICT`, and safe fallbacks;
+3. S17 bounded Public stop-image failure resilience.
+
+The authorized RF-18 safety lane waits in parallel for the applied-history answer. It blocks
+database rollout, not local S15–S17 source work.
+
+No database target, migration execution, provider action, or release is authorized by this order.
 
 The full evidence, finding register, work-unit contracts, dependency graph, and approval record are
 in `docs/roadmap/T14-research-and-execution-plan.md`. Re-audit cannot create another work item

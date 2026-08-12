@@ -1,19 +1,19 @@
 # Dashboard & UX Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: `cdd69f8af768a0c67020de4ed53405a967c39294`
+- Evidence baseline: `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
 - Accepted T14 application baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
 - Evidence scope: Public/Admin routes and components under `shuttle-tracking-web/app/` and
   `shuttle-tracking-web/components/`, browser tests under `shuttle-tracking-web/tests/`,
   `DESIGN.md`, `.impeccable/design.json`, `docs/audits/product-audit.md`,
   `docs/audits/frontend-audit.md`, and `docs/audits/infrastructure-device-audit.md`
-- Reviewed at: `2026-08-12T23:04:45+07:00`
+- Reviewed at: `2026-08-12T23:15:48+07:00`
 - Validation state: **Validated for T14 Research R6**
 - Predecessor baselines: `docs/audits/product-audit.md` (R2),
   `docs/audits/frontend-audit.md` (R4), and `docs/audits/infrastructure-device-audit.md` (R5), each
-  validated over `0d985d8948624cb2134a937ce57f071b53bb1852`
-- Owner-decision overlay: the user's 2026-08-12 cancellation of S12 is recorded in the current
-  worktree `docs/decision-queue.md`; it is owner authority, not immutable UI evidence.
+  validated over `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
+- Owner-decision overlay: current Plan v1/S14/OSM directions are owner authority, not UI behavior at
+  `531ec9e`.
 - Bounded delta: `M-20260812-01` is accepted at source commit `cdd69f8`; authenticated `/admin` and
   successful Login land on the incumbent Dashboard while unauthenticated entry remains protected.
   This Maintenance result does not change the accepted T14 application baseline.
@@ -58,20 +58,20 @@ creates no work. The context loader separately reports `.impeccable/design.json`
 
 | Finding | Severity / state | Destination |
 |---|---|---|
-| Feedback note/status PATCH lacks per-case pending lock and success announcement; rapid repeat is not guarded | P2, reproducible | **T14 candidate A: narrow Admin operational mutation integrity** |
-| Route-order publish has disabled/spinner behavior but no named busy/completion status | P2, narrow | Include in candidate A; preserve exact T10 behavior |
-| Public stop thumbnail/modal image has no intrinsic/lazy/decode/error contract | P2, reproducible | **T14 candidate B**, Public-authority gated |
+| Feedback note/status PATCH lacks per-case pending lock and success announcement; rapid repeat is not guarded | P2, reproducible | **Approved T14-S15: narrow Admin operational mutation integrity** |
+| Route-order publish has disabled/spinner behavior but no named busy/completion status | P2, narrow | Include in S15; preserve exact T10 behavior |
+| Public stop thumbnail/modal image has no intrinsic/lazy/decode/error contract | P2, reproducible | **Approved T14-S17** within bounded Public authority |
 | Public map hides required OSM attribution while using Standard tiles | Compliance/policy finding; owner cancelled S12 | **Removed from T14**; keep as a separate pre-production provider/basemap stop condition |
-| Admin timestamp locale/time-zone/invalid handling differs by page | P2, reproducible | **T14 candidate C after owner policy** |
+| Admin timestamp locale/time-zone/invalid handling differs by page | P2, reproducible | **Approved T14-S16** under the recorded policy |
 | Admin marker uses remote Flaticon asset with no local provenance/licence | P2 dependency | Maintenance/asset decision |
 | Google Material Symbols loads globally for two Public App Tour glyphs | P2 dependency/performance | Public-authority-gated Maintenance |
 | Research Dashboard absent | P1, still present | T15 |
 | T11 history/timeout/sender recovery and exception-first operations absent | Release-critical, still present | T11 |
 | Human/AT/device/deployed UX proof | Unable to verify | External acceptance |
 
-## 4. Proposed T14 UX work contracts
+## 4. Approved T14 UX outcome contracts
 
-### Candidate A — Admin operational mutation integrity
+### T14-S15 — Admin operational mutation integrity
 
 Outcome: the two remaining non-sensitive mutation paths expose one-request pending, retained
 failure/retry, and polite success semantics consistent with the accepted Admin system.
@@ -81,10 +81,10 @@ authorization, schema, CSS identity, Public, Login, or backend change.
 
 First measurement: hold each PATCH/PUT in Playwright; repeated activation produces exactly one
 request, busy state is programmatically named, failure preserves input/order and retries, and
-success produces a stable polite receipt. Candidate paths are limited to the two components, their
+success produces a stable polite receipt. Planned paths are limited to the two components, their
 two existing browser specs, and a shared primitive only if strictly required.
 
-### Candidate B — Public stop-image resilience
+### T14-S17 — Public stop-image resilience
 
 Outcome: successful images keep the incumbent composition while reserved geometry, thumbnail load/
 decode policy, and a named 404 fallback avoid broken-image UI and unstable interaction.
@@ -95,13 +95,15 @@ or Public redesign. Public authority is required for the visible fallback.
 First measurement: intercept the image with success and 404 fixtures at 320/390 widths; assert
 stable card geometry, fallback semantics, no broken dialog, and preserved focus/Escape/restoration.
 
-### Candidate C — Admin timestamp contract
+### T14-S16 — Admin timestamp contract
 
 Outcome: Dashboard, Source Health, and Feedback use one typed presentation rule for valid, missing,
 offset, and invalid timestamps without changing stored/server time semantics.
 
-Non-goals: no schema/API/retention/deadline change. The owner must first choose locale, time zone,
-zone label, and invalid/missing copy. Pure formatter fixtures precede browser regression.
+Non-goals: no schema/API/retention/deadline change. The owner-approved policy is `en-GB`, 24-hour
+`Asia/Bangkok`, visible `ICT`, `Unavailable` for missing/malformed values, and `Never` only for a
+domain-confirmed never-seen source. A committed exact handoff and pure formatter fixtures precede
+browser regression.
 
 ### S12 — removed by owner
 
@@ -116,4 +118,5 @@ No human usability, assistive-technology, physical device, provider, deployed pr
 network, load, or production session was performed. Confidence is High for source-visible
 residuals and audience boundaries, Medium for isolated browser outcomes until measurement-first
 tests run, and Low for external acceptance. Security/DevOps/Observability R7 may consume this
-report; the candidates remain proposals, not slices or write authority.
+report; S15–S17 are registered/approved outcomes but gain write authority only from their individual
+committed task handoffs.

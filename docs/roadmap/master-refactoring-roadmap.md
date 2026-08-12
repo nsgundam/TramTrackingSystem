@@ -1,36 +1,41 @@
 # Master Refactoring Roadmap
 
 Audit metadata:
-- Evidence baseline: `9ff7e85b19bcbe17b6d810451904c0f981cb0571`
-- Application-source baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
+- Evidence baseline: `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
+- Accepted T14 application-source baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
 - Evidence scope: `PRODUCT.md`, `docs/project-knowledge-base.md`, every validated domain and
   production-readiness audit, `docs/decision-queue.md`, `docs/tasks/`,
   `docs/roadmap/T14-scope-and-closure-ledger.md`, and the repository evidence cited by the
-  revalidated reports.
-- Reviewed at: `2026-08-12T20:12:00+07:00`
-- Validation state: **Validated**
-- Predecessor baselines: `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`,
-  `docs/audits/frontend-audit.md`, `docs/audits/dashboard-ux-audit.md`, and
-  `docs/audits/production-readiness-audit.md` @
-  `9ff7e85b19bcbe17b6d810451904c0f981cb0571`; `docs/decision-queue.md` has one pending D-011
-  Public Feedback association refinement;
-  `docs/project-knowledge-base.md`, `docs/audits/backend-audit.md`,
-  `docs/audits/database-audit.md`, `docs/audits/infrastructure-device-audit.md`,
-  and `docs/audits/security-devops-observability-audit.md` @
-  `1eec866b986b4cb4e802f7a48fac93e54e780699`; D-001 through D-012 are approved, while the optional
-  D-011 refinement remains pending.
+  revalidated reports; the current planning change also adds
+  `docs/roadmap/T14-research-and-execution-plan.md`.
+- Reviewed at: `2026-08-12T23:15:48+07:00`
+- Validation state: **Validated — T14 Research Plan v1 approved; exact handoff required per unit**
+- Predecessor baselines: `docs/project-knowledge-base.md`, `docs/audits/product-audit.md`,
+  `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`,
+  `docs/audits/frontend-audit.md`, `docs/audits/database-audit.md`,
+  `docs/audits/infrastructure-device-audit.md`, `docs/audits/dashboard-ux-audit.md`,
+  `docs/audits/security-devops-observability-audit.md`, and
+  `docs/audits/production-readiness-audit.md`, validated in required R1–R8 order over
+  `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`; accepted T14 application behavior remains
+  `c72feb90e7a35da45d82bac61eb927ab7c55a37c`.
+- Owner-decision overlay: the user's 2026-08-12 approval of S15–S17, move of S14, migration repair,
+  and Frontend-team ownership of future OSM licence/attribution work is recorded in the current
+  `docs/decision-queue.md` synchronization; it is owner authority, not source evidence at
+  `531ec9e`.
 
 Last reviewed: 2026-08-12
 
 Current validated state: T1–T8, T10, and T12 are complete for their recorded repository scopes. T9
 is repository-complete but externally incomplete; T11 is blocked on coordinated Backend/Mobile
 work and Android evidence; T13 is owner-deferred behind T9 and target authority; T15 remains behind
-T13 and physical/provider facts. T14 has 12 accepted source slices (`T14-S01` through `T14-S11`
-plus `T14-S13`) at application baseline `c72feb9`, with S13 accepted at `a528054`. S12 is Deferred,
-S14 is Proposed/blocked, and no T14 source work may begin before the owner approves or revises the
-finite closure package in `docs/roadmap/T14-scope-and-closure-ledger.md`. Production remains No-Go. Detailed immutable T14
-history lives in the ledger, task files, and Git; domain audits retain current snapshots rather
-than repeated slice journals.
+T13 and physical/provider facts. T14 has 12 accepted outcomes, now registered as `T14-S01` through
+`T14-S11` plus `T14-S13`, at application baseline `c72feb9`, with S13 accepted at `a528054`.
+R0–R10 research is complete and Plan v1 is owner-approved. S12/OSM is Removed, S14 is Moved outside
+T14, and S15–S17 are registered in the approved order; no T14 source may begin without that unit's
+separate exact handoff. A newly current role-migration ordering defect is authorized Maintenance
+and a release stop condition outside T14. Production remains No-Go. Detailed immutable T14 history
+lives in the ledger, task files, and Git; domain audits retain current snapshots rather than
+repeated slice journals.
 
 ## 1. Executive Summary
 
@@ -79,27 +84,27 @@ playback, microservices, a second ingestion pipeline, or unbounded operations/re
 
 | Input | Date | Status | Use |
 |---|---:|---|---|
-| Knowledge Base | 2026-08-08 | Complete / Validated | Discovery is current at `1eec866...`; external Mobile source is pinned and its static/runtime limits are recorded. |
-| Product | 2026-08-12 | Complete / Validated at evidence `9ff7e85...`, application `c72feb9...` | S13 prevents false role denial and privileged Feedback reads during unresolved session hydration; Public/Login/request boundaries remain unchanged. |
-| Architecture, Backend, and Database audits | 2026-08-12 | Architecture validated at evidence `9ff7e85...` / application `c72feb9...`; Backend/Database current at `1eec866...` | Session/read authority remains at the incumbent auth/server boundaries; backend/data/canonical authority is unchanged. |
-| Infrastructure & Device and Security/DevOps/Observability audits | 2026-08-08 | Complete / Validated | Native foreground code is visible, while Android runtime is unverified and SEC-08 credential/backup/cleartext gaps block T11. |
-| Frontend audit | 2026-08-12 | Complete / Validated at evidence `9ff7e85...` / application `c72feb9...` | Twelve accepted IDs are explicit; score remains 15/20 with 1 P1, 5 P2, and 1 P3 open. |
-| Dashboard & UX audit | 2026-08-12 | Complete / Validated at evidence `9ff7e85...` / application `c72feb9...` | S13 narrows role/live-status evidence without a persistent visual delta; human/AT/device/runtime evidence remains absent. |
-| Production Readiness Audit | 2026-08-12 | Complete / Validated / No-Go at evidence `9ff7e85...` / application `c72feb9...` | S13 changes no deployment, operations, Mobile/device/provider, or release gate. |
-| Decision Queue and owner/task evidence | 2026-08-12 | D-001–D-012 approved; one D-011 refinement pending | S12 is Public-UI deferred; S14 has no source authority until the optional-association/Public-UI choice is resolved. |
+| Knowledge Base | 2026-08-12 | R1 Validated @ `531ec9e` | Current inventory, accepted Admin entry, migration blocker, credential-doc mismatch, and external evidence limits are recorded. |
+| Product and Architecture | 2026-08-12 | R2–R3 Validated @ `531ec9e` | T14 scope is separated from T11/T15/D-012/external work; intentional boundaries are not cleanup tasks. |
+| Backend, Frontend, and Database | 2026-08-12 | R4 Validated @ `531ec9e` | Three approved bounded T14 paths are known after OSM removal; backend/schema changes are unnecessary; migration ordering is a High non-T14 blocker. |
+| Infrastructure & Device | 2026-08-12 | R5 Validated @ `531ec9e` | Android/ESP32/TTN/provider/deployed/field results remain unavailable external evidence. |
+| Dashboard & UX | 2026-08-12 | R6 Validated @ `531ec9e` | 15/20 is normalized: its P1 is T15; approved T14 outcomes, Maintenance, and external proof are separated. |
+| Security/DevOps/Observability | 2026-08-12 | R7 Validated @ `531ec9e` | Migration, Mobile credentials, assets, durable signals, CI breadth, and operations retain their proper owners. |
+| Production Readiness | 2026-08-12 | R8 Validated / No-Go @ `531ec9e` | Local demo Conditional; research field, internal operations, and public service No-Go. |
+| T14 Plan and owner evidence | 2026-08-12 | R9–R10 Complete; owner approved | S12 Removed, S14 Moved, S15–S17 ordered; safety/Maintenance/Roadmap/evidence lanes remain separate. |
 
-Level 1 revalidated the owner-selected Admin direction at `a0a0ce1...`; the first eight T14 slices
-through implementation `06e0291` remain accepted at `23b4d6f...`. Level 3 completed the ninth,
-bright-neutral Admin foundation slice at `c4fdc3a`; Level 1 accepts that exact source/browser
-contract. Level 3 completed the mutation-feedback source slice at `2ddb835` and its bounded target-
-identity repair at `e6a04ad`; Level 1 accepts that exact baseline. Level 3 completes the separate
-shared browser Socket.IO lifecycle-ownership source unit at `70f42c1` without changing valid Public/
-Admin observable behavior or server contracts; the affected Level 1 chain accepts it as the eleventh
-slice. Level 3 completed S13 at `c72feb9`; Level 1 accepted it at `a528054`. The canonical ledger
-records all 14 stable IDs and the finite candidate-closure package.
-Unaffected profiles remain current at `1eec866...`.
-Actual
-hosting, TLS, production recovery, Android build/device behavior, browser/runtime behavior, physical
+Level 1 revalidated the owner-selected Admin direction at `a0a0ce1...`; the outcomes later
+registered as S01–S08 culminated in S08 source `06e0291`, Level 3 completion `23b4d6f`, and Level 1
+acceptance `9af2c59`. The bright-neutral Admin foundation outcome later registered as S09 has source
+`c4fdc3a`, completion `2b49fd8`, and Level 1 acceptance `f526939`. The S10 mutation-feedback chain
+has initial source/completion `2ddb835`/`8ebdf9a`, repair source/completion `e6a04ad`/`e5f6422`, and
+Level 1 acceptance `95a8de1`. The shared browser Socket.IO lifecycle outcome later registered as
+S11 has source `70f42c1`, completion `535ec73`, and Level 1 acceptance `fd527ac`; it preserves valid
+Public/Admin observable behavior and server contracts. S13 has source `c72feb9`, completion
+`9a9cf5c`, and Level 1 acceptance `a528054`. The canonical ledger records the complete chain for all
+17 retrospective/current stable IDs and C01–C16 final research dispositions. Plan v1 now owns the
+approved scope, ordering, decisions, exclusions, and per-unit handoff gate. Actual hosting, TLS,
+production recovery, Android build/device behavior, browser/runtime behavior, physical
 devices, and TTN console state remain external unknowns.
 
 ## 3. Consolidated Recommendation List
@@ -119,7 +124,7 @@ devices, and TTN console state remain external unknowns.
 | T11 | Supported sender operations, trip history, and exception view | Critical/High for daily operations | Production 3.1, 3.3; Product 7–9; Dashboard 7, 10 | Phase 3; native source pinned, but coordinated Backend/Mobile handoff, compatible patch, Android target, and acceptance artifact pending |
 | T12 | Feedback triage and device/source operations views | High for broad public support | Product 7, 11; Frontend 12; Dashboard 10; Database 12 | Phase 3; complete for the D-009/D-010:A exact handoff; runtime rollout remains unverified |
 | T13 | Production deployment/recovery drill and monitoring | High before production | Production 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16 | Phase 4; blocked on T9 external acceptance and target authority |
-| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; 12 accepted IDs (`S01–S11 + S13`) at application baseline `c72feb9`; S12 Deferred; S14 Proposed/blocked; owner review of the canonical ledger is next |
+| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | T14 Research Plan v1; current Frontend/Dashboard/Architecture audits | Phase 4; 12 accepted outcomes; S12 Removed, S14 Moved, S15–S17 approved for exact-handoff execution |
 | T15 | Physical senders, research dashboard, playback/reports, scale extensions | Deferred | Product 11; Architecture 9–10, 12; Infrastructure 7–9; D-002 | Phase 5; blocked on T13 and physical/provider facts |
 
 Every Critical/High finding remains represented. D-001=C opens T10–T12's release-scope gate, but
@@ -142,7 +147,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T11 | Blocked — cross-repository/external evidence | The v3 brief pins a partially compatible native app. Static-secret storage, backup/cleartext, task-removal and missing enrollment/claim/recovery gaps require a coordinated exact handoff plus writable Mobile/Android target and device acceptance. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
 | T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
-| T14 | Partially Complete — 12 source slices accepted | Accepted IDs are `T14-S01` through `T14-S11` plus `T14-S13`; S13 is accepted at `a528054`. S12 remains Deferred, S14 Proposed/blocked, and the canonical ledger freezes further source until owner review. |
+| T14 | Plan v1 approved — 12 source outcomes accepted | R0–R10 complete; S12 Removed, S14 Moved, S15–S17 approved. One source unit may run only after its committed exact handoff. |
 | T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
 
 ### Approved-batch continuation gate
@@ -152,14 +157,13 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | No source work eligible; one closure decision next | `docs/roadmap/T14-scope-and-closure-ledger.md` exposes every accepted/deferred/proposed slice, the finite terminal-disposition package, pass criteria, closure rules, and the only current next action. |
+| T14 | S15 exact handoff next | Plan v1 is approved. S15 is the first T14 unit; S16 waits for S15 acceptance and S17 waits for S16. RF-18 waits in a parallel Maintenance lane and blocks database rollout, not local T14 source. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
-Batch result: 12 T14 source slices are accepted: `T14-S01` through `T14-S11` plus `T14-S13`.
-S13 is accepted at `a528054`; S12 remains owner-deferred/open and S14 remains Proposed/blocked on
-the pending D-011/Public-UI choice. Further T14 source is frozen until the owner approves or revises
-the finite closure package in the canonical ledger. T9/T13 remain deferred without dependency bypass and T11/T15
-remain blocked.
+Batch result: 12 T14 source outcomes are accepted: `T14-S01` through `T14-S11` plus `T14-S13`.
+S13 is accepted at `a528054`; S12 is Removed, S14 is Moved, and S15–S17 are approved with exact
+handoffs still required. T9/T13 remain deferred without
+dependency bypass and T11/T15 remain blocked.
 
 ## 4. Dependency Map
 
@@ -1145,11 +1149,16 @@ Staff can manage feedback under the agreed policy; device/source views reveal sa
 
 ### Status
 
-Complete for the exact handoff — D-009/D-010:A are implemented through a reviewed migration, current
-persisted-role enforcement, 15-minute fresh authentication for privileged Feedback delete/restore,
+Complete for the exact historical T12 handoff — D-009/D-010:A were implemented through the
+then-reviewed migration, current persisted-role enforcement, 15-minute fresh authentication for
+privileged Feedback delete/restore,
 an additive triage/audit/retention model, a public notice, Super Admin inbox, and safe read-only
 source-health view. The implementation remains distinct from deployment, account management, T11
 recovery, and runtime migration/retention evidence.
+
+A post-baseline edit to that migration now places the supported-role constraint before legacy
+`OPERATOR` conversion. The current SQL therefore has a separate High-severity Maintenance blocker
+and is not covered by the historical T12 acceptance.
 
 ### Evidence
 
@@ -1233,12 +1242,13 @@ T4 and T5 are complete; remaining dependencies and deployment facts are unresolv
 
 > Current T14 detail is intentionally centralized in
 > `docs/roadmap/T14-scope-and-closure-ledger.md`. It is authoritative for stable slice IDs,
-> provenance, the finite closure package, pass criteria, closure, and the sole next action. The detailed
+> provenance, research inputs, pass criteria, eventual closure, and the sole next action. The
+> ordered planning contract is `docs/roadmap/T14-research-and-execution-plan.md`. The detailed
 > narrative below is retained as historical implementation context and grants no write authority.
 
-**Current snapshot:** 12 accepted source slices (`T14-S01` through `T14-S11` plus `T14-S13`),
-application baseline `c72feb9`, S13 Level 1 acceptance `a528054`, S12 Deferred, S14
-Proposed/blocked, no Active slice, and no next source selection before the finite closure decision.
+**Current snapshot:** 12 accepted source outcomes (`T14-S01` through `T14-S11` plus `T14-S13`),
+application baseline `c72feb9`, S13 Level 1 acceptance `a528054`, S12 Removed, S14 Moved, no Active
+slice, R0–R10 complete, and S15–S17 owner-approved pending one exact handoff at a time.
 
 ### Source Audit(s)
 
@@ -1255,10 +1265,10 @@ T8 completion evidence.
 ### Decision Gates
 
 D-011 fixes truthful/fail-closed behavior, Public ownership, and the bright-neutral fixed-light
-Admin direction. Twelve source slices are accepted; S12 is Deferred by the Public-UI authority gate
-and S14 is blocked on the pending optional-association/Public-UI choice. The canonical ledger holds
-the complete decision/provenance map. Approval or revision of its single finite closure package is
-the next gate; no dormant task, candidate, or generic Related Files list authorizes source work.
+Admin direction. Twelve source outcomes are accepted; S12/OSM is owner-cancelled/Removed and S14 is
+Moved outside T14. The canonical ledger holds the complete decision/provenance map. R0–R10 and Plan
+v1 are complete and approved; one committed exact handoff per selected unit is the next gate. No dormant task,
+candidate, or generic Related Files list authorizes source work.
 
 ### Blocks
 
@@ -1274,14 +1284,13 @@ Medium.
 
 ### Suggested Agent
 
-Level 1 coordinator for the finite closure decision. Route any later separately authorized outcome
-through its proper Maintenance or Roadmap lane and exact-path handoff.
+Main Agent supervision with one exact Level 3 handoff and acceptance cycle at a time. Route every non-T14 finding
+through its recorded Maintenance, Roadmap, or external-evidence lane.
 
 ### Execution Mode
 
-Source freeze. S13 measurement-first implementation and ordered Level 1 acceptance are complete.
-Continue only with owner approval or revision of the finite closure package; re-audit may not
-silently start another slice.
+Approved-batch execution. Research is complete. Re-audit may not silently add a slice; S15 → S16 →
+S17 execute only through individual committed exact handoffs.
 
 ### Task Brief
 
@@ -1297,7 +1306,7 @@ deployment, and external runtime remain separate.
 
 The latest completed source handoff is
 `docs/tasks/T14-admin-feedback-session-hydration-truth-state.md`. The full slice/task map is in the
-canonical ledger. This generic section authorizes no writes; the dormant S12 task and Proposed S14
+canonical ledger. This generic section authorizes no writes; the closed/Removed S12 task and Moved S14
 grant no source authority.
 
 ### Acceptance Criteria and Verification
@@ -1310,16 +1319,16 @@ technical closure is not Production Readiness, 20/20 UX, or human/AT/deployed ac
 ### Status
 
 Partially Complete — 12 source slices are accepted: `T14-S01` through `T14-S11` plus `T14-S13`.
-The latest application baseline is `c72feb9` and S13 is accepted at `a528054`. S12 remains Deferred
-under the Public-UI gate and has no accepted source delta. S14 remains Proposed/blocked and has no
-task or source authority. The ledger records exact H/S/C/R provenance and the finite closure package;
-no source slice is Active.
+The latest application baseline is `c72feb9` and S13 is accepted at `a528054`. S12/OSM is Removed by
+owner and has no accepted source delta. S14 is Moved and has no task or source authority. Plan v1
+registers S15 Admin mutation integrity, S16 timestamp contract, and S17 Public stop-image resilience;
+each is owner-approved but gains source authority only through its own committed task handoff.
 
 ### Evidence
 
 The ledger contains the H/S/C/R chain for every registered slice and points to its immutable task.
 The latest S13 evidence is handoff `4c33cf0`, source `c72feb9`, completion `9a9cf5c`, and Level 1
-acceptance `a528054`. The current five audits retain score/finding/evidence limits. Historical
+acceptance `a528054`. The current R1–R8 reports retain score/finding/evidence limits. Historical
 measurements remain in the task files and Git history rather than being repeated here.
 
 ## 9. Phase 5 — Future Enhancements
@@ -1414,7 +1423,7 @@ Repository simulators exist; physical/provider evidence is unavailable.
 |---|---|---|
 | Driver, trip-history, and exception workflows are absent | D-001=C now requires them, so this is no longer an accepted release omission. T10 route-stop operations are complete for their bounded scope. | Complete T11 with external Android evidence before release. |
 | Feedback runtime rollout is unverified | T12 source/test scope is complete, but no migration, retention run, staff/rider acceptance, backup, or deployed scheduling evidence exists. | Execute an approved disposable/staging rollout and retention/role acceptance before release. |
-| Dashboard/public UX is not release-ready | The validated score remains 15/20 at application baseline `c72feb9`. Accepted IDs are `T14-S01` through `T14-S11` plus `T14-S13`; human assistive-technology/usability, broader device/runtime evidence, T11-backed exceptions, deferred S12, other assets, and Research remain open. | Apply the T14 ledger closure contract; obtain missing human/runtime/dependency evidence without pulling external gates into source slices. |
+| Dashboard/public UX is not release-ready | The validated score remains 15/20 at application baseline `c72feb9`. Its P1 is T15; three approved bounded T14 outcomes, human/AT/device/runtime evidence, T11 exceptions, and other assets remain. Removed S12 leaves an external provider risk. | Execute S15–S17 through their exact gates; obtain missing evidence through its recorded owners without pulling external gates into source slices. |
 | Deployment/TLS/backup/recovery evidence is absent | D-008 policy and the T9 repository handoff exist, but University Server/Network acceptance checks are incomplete. | Obtain T9 external acceptance, then complete T13. |
 | Physical device/TTN evidence is absent | Provider/hardware/provisioning facts are unknown. | Record facts and execute T15. |
 | Playback/reports are absent | D-002=B authorizes bounded diagnostics, not unbounded fidelity claims. | Approve query/fidelity scope after T7 evidence. |
@@ -1423,8 +1432,8 @@ These are recorded residual risks, not accepted exceptions for the selected C re
 
 ## 12. External Acceptance and Remaining Owner Decisions
 
-D-008 and D-012 are approved. One D-011 refinement remains open for proposed T14-S14; T11 has
-cross-repository/external-evidence gates but no additional focused owner-policy blocker:
+D-008, D-011 refinements, D-012, and T14 Plan v1 are approved. T11 has cross-repository/external-
+evidence gates but no additional focused owner-policy blocker:
 
 | Needed information | Blocks | Reason |
 |---|---|---|
@@ -1432,7 +1441,7 @@ cross-repository/external-evidence gates but no additional focused owner-policy 
 | D-012 implementation paths and external `DEV` allowlist/recovery/backup target facts | T15 and later role-management work | Policy is approved but intentionally outside T11/T12/T14; target facts and exact implementation evidence remain absent. |
 | TTN application/device IDs; physical device/module models; firmware/provisioning; clock/reference and field protocol | T15 | D-004 fixes transport roles and dashboard scope, but repository evidence cannot establish physical behavior or absolute accuracy. |
 | None for feedback policy | — | D-009 approves owner, anonymous/no-reply scope, business-day lifecycle, retention, deletion/restore, and safe read-only source fields. |
-| Optional Public Feedback vehicle-association model and Public-UI authority | T14-S14 | Choose simple nullable association, explicit subject scope, or defer/remove. No source handoff exists. |
+| Optional Public Feedback vehicle-association model | Later roadmap synthesis | S14 is Moved outside T14; choose a Product/Data/Privacy contract only if the owner reopens the capability later. |
 
 ## 13. Recommended Level 2/3 Agent Usage
 
@@ -1440,7 +1449,7 @@ Route every focused technical question through `agents/level-2-specialist/AGENT.
 `tram-specialist-consultation`. Route every implementation through
 `agents/level-3-refactor/AGENT.md` with `tram-refactoring-workflow`.
 
-- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and the 12 accepted T14 source slices (`S01–S11 + S13`). Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. S12 is dormant; no further T14 source is eligible before the finite closure decision.
+- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and the 12 accepted T14 source outcomes (`S01–S11 + S13`). Maintenance M-20260807-01/02/03 and M-20260812-01 are complete without adding or reordering roadmap work. S12 is Removed; S14 Moved; S15 exact handoff is next.
 - Specialist-led: T2 security/abuse; T4, T9, T13 observability/deployment; T5 database transactions; T6/T7 realtime and time-series; T11 operations/mobile; T15 device/LoRaWAN.
 - T12's D-010:A account-transition choice and all exact source/test acceptance evidence are complete; runtime rollout remains separately gated.
 
@@ -1457,12 +1466,13 @@ The monolith remains the supported architecture; this roadmap does not authorize
 
 ## 15. Handoff
 
-No implementation is currently eligible for autonomous continuation. T9/T13 remain owner-deferred
+The approved local batch is eligible for supervised continuation. T9/T13 remain owner-deferred
 without satisfying their external gates; T11/T15 remain dependency/evidence blocked. T14 has no
-Active slice: the owner must first approve or revise the finite closure package in the canonical
-ledger. That review cannot itself authorize source; any later repository outcome still requires its
-proper lane, a committed exact-path handoff, and passed dependency/decision gates. Browser Login evidence remains
-limited to rejected requests and protected redirects rather than a successful-session acceptance.
+Active slice until S15's exact handoff is committed: R0–R10 and Plan v1 are complete/approved, OSM
+is owner-removed, and S14 is Moved. Plan approval alone does not authorize source; every
+repository outcome still requires its proper lane, a committed exact-path handoff, and passed
+dependency/decision gates. Browser Login evidence at the accepted T14 baseline remains limited to
+rejected requests and protected redirects rather than a successful-session acceptance.
 T14 source acceptance is not deployment or public-release authorization.
 
 Validate each completed task against its originating audit finding before advancing. Re-run Production Readiness only after the production-bar tasks applicable to the desired release scope are complete.
@@ -1472,20 +1482,22 @@ Validate each completed task against its originating audit finding before advanc
 **Roadmap impact:** D-001=C raises the release target; D-002 through D-010 govern the research,
 telemetry, topology, role, and Feedback boundaries recorded in T7–T13. D-011 preserves Public visual
 ownership and fixes the bright-neutral Signal Lens Admin direction; D-012 defines later lifecycle
-policy without implementing it here. T14's accepted/deferred/proposed inventory and immutable
+policy without implementing it here. T14's accepted/removed/proposed inventory and immutable
 evidence are centralized in `docs/roadmap/T14-scope-and-closure-ledger.md`. Affected audits are
-current at evidence `9ff7e85...` and application `c72feb9...`; unaffected audits remain current at
-`1eec866...`. No further T14 source change may start before the finite closure decision.
+validated in predecessor order at the compatible baselines recorded in each report;
+`M-20260812-01` is accepted separately at `cdd69f8` and does not change accepted T14 evidence. No
+T14 source change may start before its own committed exact-path handoff.
 
 **Assumptions and unknowns:** the target is C but no daily/public readiness claim is made before the
 required work passes. Diagnostics remain bounded/protected; no external host/provider/device fact or
 unapproved role permission is assumed.
 
-**Confidence:** High for the recorded owner directions and source/test maintenance evidence. Medium
-for provisional task/gate mapping and low for deployment, human UX outcomes, credential rotation,
+**Confidence:** High for the recorded owner directions, normalized task/gate mapping, and
+source-visible evidence. Medium for later isolated-browser outcomes and low for deployment, human
+UX outcomes, credential rotation,
 and device/field claims until external evidence exists.
 
-**Deferred work/evidence:** D-012 implementation outside T11/T12/T14, deferred S12 OSM work,
-proposed S14, the pending finite closure decision, plus human/runtime evidence,
+**Deferred work/evidence:** D-012 implementation outside T11/T12/T14, removed S12 with unresolved
+provider risk assigned to the Frontend team, moved S14, normalized C01–C16 dispositions, plus human/runtime evidence,
 physical sender/provider facts, playback/report scope, and scale-triggered
 features. D-006 retention/access/export parameters and T7 disposable evidence remain documented.

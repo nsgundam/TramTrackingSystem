@@ -2,16 +2,40 @@
 
 ## Pending
 
+No current T14 Plan v1 owner decision is pending. Implementation still stops on any newly discovered
+policy, provider, external-target, or scope question that is not answered below.
+
+## Approved
+
+### T14 Research Plan v1 — approved execution set
+
+R0–R10 research is complete at immutable evidence baseline `0d985d8`. The owner cancelled OSM/S12
+work and approved the remaining Plan v1 recommendations on 2026-08-12:
+
+1. execute bounded Admin operational mutation integrity as `T14-S15`;
+2. execute the Admin timestamp policy as `T14-S16`: English `en-GB`, 24-hour
+   `Asia/Bangkok`, visible `ICT`, `Unavailable` for missing/malformed values, and `Never` only for a
+   domain-confirmed never-seen source;
+3. execute bounded Public stop-image resilience as `T14-S17`, preserving successful rendering,
+   layout, modal focus, map, ETA, and incumbent Public identity; and
+4. move optional/general Feedback association (`T14-S14`) outside T14 rather than weakening the
+   accepted supplied-vehicle verification contract.
+
+The owner also authorizes the High-severity role-migration ordering Maintenance repair before any
+target rollout. Execute that safety unit as soon as its migration-history gate is known; it blocks
+database rollout but not the local T14 sequence S15 → S16 → S17. Each source unit still requires a
+separately committed exact-path Level 3 handoff,
+measurement-first evidence, full acceptance, and audit synchronization. This batch approval does
+not authorize a database target, migration execution, deployment, or external provider action.
+
 ### D-011 refinement — optional Public Feedback vehicle association
 
 Owner request captured on 2026-08-12: assess a Public Feedback journey in which a rider may either
-select a vehicle or submit general system Feedback without one. This is **Proposed / pending exact
-contract and Public-UI authority confirmation**, not implementation approval.
+select a vehicle or submit general system Feedback without one.
 
-Current planning disposition: **research input only**. The complete T14 research pass must compare
-this proposal with Public, product, data, privacy, and existing S01 evidence before recommending
-whether it belongs in T14, a later task, or no implementation. No closure or source choice is
-requested yet.
+Owner disposition on 2026-08-12: **Moved outside T14; no implementation in this approved batch.** The
+cross-domain pass confirms this is a new Product/Data/Privacy capability rather than an S01 defect.
+Any later implementation requires a new roadmap/product decision and exact handoff.
 
 If the owner instead authorizes the capability, vehicle association may be optional, but whenever a
 vehicle ID is supplied it remains server-verified and fail closed; an intended vehicle-specific
@@ -22,11 +46,8 @@ represent the simple variant, but `null` cannot distinguish explicit system Feed
 association cleared after vehicle deletion. If that analytics distinction is required, an explicit
 scope field and separately reviewed data/migration contract are needed.
 
-Owner input is deferred until the complete research and execution plan is presented. At that point
-the review may choose move/defer, the simple nullable-association contract, or an explicit-scope data
-model. Until then, no exact handoff or source write is authorized.
-
-## Approved
+The simple nullable-association and explicit-scope variants remain historical research alternatives,
+not current source authority.
 
 ## D-011 — T14 first corrective UX slice and acceptance order
 
@@ -76,19 +97,27 @@ Owner Public-UI authority refinement: **Approved on 2026-08-11.** The exact OSM 
 raster endpoint slice at coordination commit `45ecc0a` is deferred because the Public UI team has
 not authorized its visible-credit change. The deferral neither resolves the OSM finding nor creates
 a research/non-commercial exemption, and it authorizes no zero-credit/provider alternative. No
-application source from the interrupted attempt is accepted; `70f42c1` remains the source baseline.
-Other T14 work may continue only through a separately selected exact handoff that does not alter
-rendered Public UI.
+application source from the interrupted attempt was accepted; at that attempt, `70f42c1` was the
+source baseline. This historical deferral was superseded by the cancellation below.
 
-Roadmap effect: closes the owner-order gate and fixes the remaining Admin visual direction. The
-recorded sequencing requirement is now satisfied: Level 1 re-audited the target, the shared bright-
-neutral Admin Liquid Glass foundation was accepted at `c4fdc3a`, and the repaired mutation-feedback
-slice was accepted at `e6a04ad`; shared browser Socket.IO lifecycle ownership was accepted as the
-eleventh slice at `70f42c1`. The OSM exact handoff remains dormant and open at `45ecc0a`. Level 1 may
-accept the completed Admin Feedback hydration slice and register the optional-vehicle Feedback
-proposal as blocked on the pending refinement above. Any implementation still requires owner/Public-
-UI confirmation, its own exact Level 3 contract, passed gates, measurement-first evidence, and
-unchanged dependency boundaries.
+Owner OSM cancellation refinement: **Approved on 2026-08-12.** Remove the OSM attribution/endpoint
+unit from the T14 plan. `T14-S12` is now `Removed`; its dormant handoff is closed and grants no
+source authority. This decision changes no application source and does not make the current
+provider/licence finding resolved: the application still consumes OSM Standard tiles while Public
+credit is hidden. Before a production claim, a separate owner decision must either remove that
+basemap/provider from runtime or authorize a compliant provider/licence outcome. Do not recreate
+the cancelled work as another T14 slice. The owner clarified on 2026-08-12 that licence/attribution
+implementation is left to the Frontend team and is excluded from this approved Agent batch.
+
+Roadmap effect: closes the historical owner-order gate and fixes the Admin visual direction. The
+recorded sequencing requirement was satisfied: Level 1 re-audited the target; the outcome later
+registered as S09 has source/completion/Level 1 acceptance
+`c4fdc3a`/`2b49fd8`/`f526939`; the S10 repair has source/completion/acceptance
+`e6a04ad`/`e5f6422`/`95a8de1`; and the outcome later registered as S11 has
+source/completion/acceptance `70f42c1`/`535ec73`/`fd527ac`. S13 Feedback hydration is accepted at
+`a528054`; S14 is Moved outside T14; and the OSM handoff at `45ecc0a` is closed/Removed. The current
+T14 order is S15 → S16 → S17. Any selected implementation still requires its own exact Level 3
+contract, passed gates, measurement-first evidence, and unchanged dependency boundaries.
 
 ## D-012 — Remaining administrative and credential lifecycle matrix
 
@@ -160,8 +189,8 @@ Related reports: `docs/audits/security-devops-observability-audit.md`,
 `docs/audits/database-audit.md`, `docs/audits/specialized/T12-identity-feedback-triage-policy.md`,
 and `docs/roadmap/master-refactoring-roadmap.md`.
 
-Current evidence: `users.role` is a free string whose default and existing ordinary role are
-`OPERATOR`; current admin JWTs contain only identity. D-007 instead names the target hierarchy
+Evidence at decision time: `users.role` was a free string whose default and existing ordinary role
+were `OPERATOR`; admin JWTs contained only identity. D-007 instead names the target hierarchy
 `DEV` > `SUPER_ADMIN` > `ADMIN`. T12 cannot safely grant the approved read-only device view or
 restrict feedback deletion/re-authentication until the existing ordinary accounts have a defined,
 least-privilege transition.
@@ -173,6 +202,11 @@ server authorization boundary. Do not silently elevate any legacy account to `SU
 Roadmap effect: resolves the T12 role-migration policy gate. The implementation must use an additive,
 reviewed migration plus deterministic role/re-authentication tests; it does not change T9, T11, T13,
 or D-009's feedback policy.
+
+Current implementation caveat: a post-acceptance edit now installs the supported-role constraint
+before converting legacy `OPERATOR` rows. That ordering can fail on supported legacy data and is a
+separate High-severity Database Maintenance/Production blocker; the historical policy approval does
+not review or accept the current SQL ordering.
 
 ## D-001 — Operational MVP release scope
 
