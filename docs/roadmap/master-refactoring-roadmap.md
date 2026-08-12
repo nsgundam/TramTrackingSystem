@@ -1,97 +1,35 @@
 # Master Refactoring Roadmap
 
 Audit metadata:
-- Evidence baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
-- Evidence scope: `PRODUCT.md`, `docs/project-knowledge-base.md`, every validated domain and production-readiness audit, `docs/decision-queue.md`, `docs/tasks/`, and the repository evidence cited by the revalidated reports.
-- Reviewed at: `2026-08-12T11:01:00+07:00`
-- Validation state: **Needs Re-audit**
+- Evidence baseline: `9ff7e85b19bcbe17b6d810451904c0f981cb0571`
+- Application-source baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
+- Evidence scope: `PRODUCT.md`, `docs/project-knowledge-base.md`, every validated domain and
+  production-readiness audit, `docs/decision-queue.md`, `docs/tasks/`,
+  `docs/roadmap/T14-scope-and-closure-ledger.md`, and the repository evidence cited by the
+  revalidated reports.
+- Reviewed at: `2026-08-12T20:12:00+07:00`
+- Validation state: **Validated**
 - Predecessor baselines: `docs/audits/product-audit.md`, `docs/audits/architecture-audit.md`,
   `docs/audits/frontend-audit.md`, `docs/audits/dashboard-ux-audit.md`, and
   `docs/audits/production-readiness-audit.md` @
-  `70f42c15948bf09e71a3c91d594a4c21f52db23b`; `docs/decision-queue.md` has no pending decision;
+  `9ff7e85b19bcbe17b6d810451904c0f981cb0571`; `docs/decision-queue.md` has one pending D-011
+  Public Feedback association refinement;
   `docs/project-knowledge-base.md`, `docs/audits/backend-audit.md`,
   `docs/audits/database-audit.md`, `docs/audits/infrastructure-device-audit.md`,
   and `docs/audits/security-devops-observability-audit.md` @
-  `1eec866b986b4cb4e802f7a48fac93e54e780699`; D-001 through D-012 are approved.
+  `1eec866b986b4cb4e802f7a48fac93e54e780699`; D-001 through D-012 are approved, while the optional
+  D-011 refinement remains pending.
 
 Last reviewed: 2026-08-12
 
-Validation state: **Needs Re-audit** at T14 source baseline `c72feb9`. T9's repository handoff is
-independently revalidated and remains
-partially complete because its University Server/Network acceptance checklist has not been executed.
-T10 and T12 are complete for their exact bounded source/test scopes. T12 applies D-009/D-010:A
-through a reviewed migration, persisted server RBAC/fresh-auth, feedback lifecycle/retention/audit
-code, a public notice, and safe read-only operations UI. The pinned external Android source gives T11
-partial client evidence but exposes static-secret/backup/cleartext and lifecycle gaps; T11 remains
-blocked on a coordinated exact handoff, writable Mobile authority/Android target, and versioned
-device acceptance. The owner defers T9 continuation and T13 in this batch without satisfying their
-external gates. The first bounded D-011 T14 truth/integrity slice is implemented at `1b2b6c1`,
-passes focused/browser/full-CI checks, and is revalidated through `7aae795...`. The D-011
-accessibility/navigation slice is implemented at `8baa274`, with 4/4 focused browser journeys and
-full CI passing; both first slices and their affected chain are revalidated at `7aae795...`. The
-measured map-quality slice is implemented at `c5b2e69`: initial geometry is selected-route-only,
-marker motion is cancellable/reduced-motion-aware, and measured 320 px/touch targets pass. The
-contrast/color-governance slice at `799905f` passes pure 4/4, browser 2/2, every prior regression,
-and full CI. The bounded Admin shell/Dashboard foundation at `9411e36` passes browser 2/2, visual
-QA, every prior regression, detector `[]`, and full CI. The bounded Public service explanation/
-recovery slice is implemented at `bf80308`: snapshot failure/
-retry, canonical last-update age, state-aware ETA, slow-preloader recovery, focused browser 2/2,
-visual QA, every regression, detector `[]`, and full CI pass without a Public redesign or guessed
-dependency cause. Product, Architecture, Frontend, Dashboard & UX, Production Readiness, and this
-Roadmap are revalidated at `db72310...`; the technical score remains 15/20 with one P1, eight P2,
-and one P3 open. The Public explanation P1 is resolved for bounded source/browser evidence; the
-remaining Research P1 is blocked on T13. The bounded Admin master-data theme-convergence P2 slice
-is implemented at `7321a25`: Vehicles/Routes/Stops and four dialogs reuse typed semantic resource/
-modal primitives, inline read failure/retry, named 44 px actions, desktop/Mobile layouts, and the
-unchanged route-order payload; focused browser 4/4, visual review, detector `[]`, every regression,
-and full CI pass. Product, Architecture, Frontend, Dashboard & UX, Production Readiness, and this
-Roadmap are revalidated at `4e609e3...`; the technical score remains 15/20 with one P1, eight P2,
-and one P3 open. Public/Login, T11/Research, API/auth/schema, and external-runtime work remain
-excluded. The Admin theme and legacy failure-state P2s are further narrowed, while Source Health/
-Feedback hard-coded palettes, sub-44 px actions, and error-plus-empty paths remain. The bounded
-Source Health/Feedback Admin operations-support slice is implemented at `06e0291`: both pages reuse
-the semantic Admin hierarchy, explicit failure/retry/verified-empty state, named 44 px controls,
-responsive operational ledgers, and the shared sensitive dialog while preserving T12 roles, safe
-fields, status graph, fresh authentication, and exact delete/restore requests. Focused browser 5/5,
-visual review, detector `[]`, every regression, the 11-route build, and full repository CI pass.
-Public/Login, Dashboard/master data, backend/API/auth/schema, Mobile, Research, and external targets
-remain unchanged. That bounded source change triggered the affected-chain revalidation recorded
-below.
-Product, Architecture, Frontend, Dashboard & UX, Production Readiness, and this Roadmap are now
-revalidated at `23b4d6f...`; the technical score remains 15/20 with one P1, eight P2, and one P3.
-The owner then refines D-011 at `a0a0ce1`: the remaining Admin visual world should use a premium
-iOS-inspired Liquid Glass direction while Public identity stays unchanged. Product, Architecture,
-Frontend, Dashboard & UX, Production Readiness, and this Roadmap revalidate that decision without
-changing the 15/20 score or first-eight-slice acceptance. The ninth T14 slice at `c4fdc3a` now
-implements the owner-refined explicitly light white/gray Admin shell/navigation/Login/modal/control/
-token foundation with transparency/contrast/motion/filter fallbacks; it does not add an automatic
-dark theme or change Public visual/product identity, DOM/copy/layout, or observable behavior. Level 1 validates the affected chain at `c4fdc3a`;
-the score remains 15/20 with one P1, seven P2, and one P3. The tenth T14 slice is implemented at
-`2ddb835` and repaired at `e6a04ad`: Vehicles, Routes, and Stops now share safe inline mutation
-recovery, pending locks, persistent receipts, and a focus-managed delete confirmation while
-preserving exact CRUD and T10 route-stop requests. The repair displays and accessibly describes the
-selected immutable ID alongside its name. Focused/browser/visual/full-CI evidence passes, including
-the unchanged Admin Login request and redirect regressions. Product, Architecture, Frontend,
-Dashboard & UX, and Production Readiness accept this exact repaired local result. The technical
-score remains 15/20 with zero P0, one P1, six P2, and one P3 open. The Research P1 stays blocked on
-T13. The next bounded T14 unit is implemented at `70f42c1`: one shared browser Socket.IO lifecycle
-owner now replaces duplicated Public/Admin transport construction and listener wiring, while
-validation, canonical version/snapshot/hydration/queue/expiry authority remains consumer-owned.
-Measurement-first and final focused evidence, bounded browser regressions, full CI, and two
-independent reviews pass. Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
-and this Roadmap accept it as the eleventh T14 slice for exact local source/unit/browser-regression
-evidence. The duplicated lifecycle P2 is resolved, leaving one P1, five P2, and one P3 open while
-the score remains 15/20. The exact OSM attribution/Standard raster endpoint handoff exists at
-`45ecc0a` but is owner-deferred because the Public UI team has not authorized its visible-credit
-change; its P2 remains open and no interrupted source/test delta is accepted. Level 1 selects the
-bounded Admin Feedback session-hydration truth-state unit next under
-`docs/tasks/T14-admin-feedback-session-hydration-truth-state.md`; source commit `c72feb9` now passes
-its bounded local acceptance contract without changing rendered Public UI. Level 3 has downgraded
-the affected Product→Architecture→Frontend→Dashboard & UX→Production→Roadmap chain; the
-twelfth accepted-slice claim and any next source selection remain Level 1-owned.
-D-012
-fixes later lifecycle policy without implementing it. T15 remains deferred behind T13 and physical/
-provider facts.
+Current validated state: T1–T8, T10, and T12 are complete for their recorded repository scopes. T9
+is repository-complete but externally incomplete; T11 is blocked on coordinated Backend/Mobile
+work and Android evidence; T13 is owner-deferred behind T9 and target authority; T15 remains behind
+T13 and physical/provider facts. T14 has 12 accepted source slices (`T14-S01` through `T14-S11`
+plus `T14-S13`) at application baseline `c72feb9`, with S13 accepted at `a528054`. S12 is Deferred,
+S14 is Proposed/blocked, and no T14 source work may begin before owner review of S14 and C01–C16 in
+`docs/roadmap/T14-scope-and-closure-ledger.md`. Production remains No-Go. Detailed immutable T14
+history lives in the ledger, task files, domain audits, and Git rather than being repeated here.
 
 ## 1. Executive Summary
 
@@ -141,13 +79,13 @@ playback, microservices, a second ingestion pipeline, or unbounded operations/re
 | Input | Date | Status | Use |
 |---|---:|---|---|
 | Knowledge Base | 2026-08-08 | Complete / Validated | Discovery is current at `1eec866...`; external Mobile source is pinned and its static/runtime limits are recorded. |
-| Product | 2026-08-11 | Complete / Validated at `70f42c1...` | Eleventh T14 slice preserves capability, request, UI, Login, and external boundaries while invalid required structure, coercive enums, and Public source identity fail before use. |
-| Architecture, Backend, and Database audits | 2026-08-11 | Architecture validated at `70f42c1...`; Backend/Database current at `1eec866...` | One shared transport/listener implementation replaces duplication; backend/data/canonical authority remains separate. |
+| Product | 2026-08-12 | Complete / Validated at evidence `9ff7e85...`, application `c72feb9...` | S13 prevents false role denial and privileged Feedback reads during unresolved session hydration; Public/Login/request boundaries remain unchanged. |
+| Architecture, Backend, and Database audits | 2026-08-12 | Architecture validated at evidence `9ff7e85...` / application `c72feb9...`; Backend/Database current at `1eec866...` | Session/read authority remains at the incumbent auth/server boundaries; backend/data/canonical authority is unchanged. |
 | Infrastructure & Device and Security/DevOps/Observability audits | 2026-08-08 | Complete / Validated | Native foreground code is visible, while Android runtime is unverified and SEC-08 credential/backup/cleartext gaps block T11. |
-| Frontend audit | 2026-08-11 | Complete / Validated at `70f42c1...` | Lifecycle duplication is resolved locally; score remains 15/20 with 1 P1, 5 P2, and 1 P3 open. |
-| Dashboard & UX audit | 2026-08-11 | Complete / Validated at `70f42c1...` | No rendered UI changed; lifecycle P2 is resolved locally while human/AT/device/runtime evidence remains absent. |
-| Production Readiness Audit | 2026-08-11 | Complete / Validated / No-Go at `70f42c1...` | Eleventh slice changes no deployment, operations, Mobile/device/provider, or release gate. |
-| Decision Queue and owner/task evidence | 2026-08-10 | D-001–D-012 approved | D-011 now selects bounded Admin Liquid Glass with accessible fallbacks; Public identity remains preserved. |
+| Frontend audit | 2026-08-12 | Complete / Validated at evidence `9ff7e85...` / application `c72feb9...` | Twelve accepted IDs are explicit; score remains 15/20 with 1 P1, 5 P2, and 1 P3 open. |
+| Dashboard & UX audit | 2026-08-12 | Complete / Validated at evidence `9ff7e85...` / application `c72feb9...` | S13 narrows role/live-status evidence without a persistent visual delta; human/AT/device/runtime evidence remains absent. |
+| Production Readiness Audit | 2026-08-12 | Complete / Validated / No-Go at evidence `9ff7e85...` / application `c72feb9...` | S13 changes no deployment, operations, Mobile/device/provider, or release gate. |
+| Decision Queue and owner/task evidence | 2026-08-12 | D-001–D-012 approved; one D-011 refinement pending | S12 is Public-UI deferred; S14 has no source authority until the optional-association/Public-UI choice is resolved. |
 
 Level 1 revalidated the owner-selected Admin direction at `a0a0ce1...`; the first eight T14 slices
 through implementation `06e0291` remain accepted at `23b4d6f...`. Level 3 completed the ninth,
@@ -156,7 +94,8 @@ contract. Level 3 completed the mutation-feedback source slice at `2ddb835` and 
 identity repair at `e6a04ad`; Level 1 accepts that exact baseline. Level 3 completes the separate
 shared browser Socket.IO lifecycle-ownership source unit at `70f42c1` without changing valid Public/
 Admin observable behavior or server contracts; the affected Level 1 chain accepts it as the eleventh
-slice.
+slice. Level 3 completed S13 at `c72feb9`; Level 1 accepted it at `a528054`. The canonical ledger
+records all 14 stable IDs and the unregistered future candidate pool.
 Unaffected profiles remain current at `1eec866...`.
 Actual
 hosting, TLS, production recovery, Android build/device behavior, browser/runtime behavior, physical
@@ -179,7 +118,7 @@ devices, and TTN console state remain external unknowns.
 | T11 | Supported sender operations, trip history, and exception view | Critical/High for daily operations | Production 3.1, 3.3; Product 7–9; Dashboard 7, 10 | Phase 3; native source pinned, but coordinated Backend/Mobile handoff, compatible patch, Android target, and acceptance artifact pending |
 | T12 | Feedback triage and device/source operations views | High for broad public support | Product 7, 11; Frontend 12; Dashboard 10; Database 12 | Phase 3; complete for the D-009/D-010:A exact handoff; runtime rollout remains unverified |
 | T13 | Production deployment/recovery drill and monitoring | High before production | Production 3.5, 3.8, 7; Infrastructure 5, 12; Security 12–16 | Phase 4; blocked on T9 external acceptance and target authority |
-| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; first eleven slices accepted at `70f42c1`; OSM owner-deferred; Admin Feedback session-hydration source complete at `c72feb9`, Level 1 re-audit pending |
+| T14 | Dashboard/public-theme UX, map maintainability, accessibility, and measured scale improvements | Medium/High maintainability | Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10 | Phase 4; 12 accepted IDs (`S01–S11 + S13`) at application baseline `c72feb9`; S12 Deferred; S14 Proposed/blocked; owner review of the canonical ledger is next |
 | T15 | Physical senders, research dashboard, playback/reports, scale extensions | Deferred | Product 11; Architecture 9–10, 12; Infrastructure 7–9; D-002 | Phase 5; blocked on T13 and physical/provider facts |
 
 Every Critical/High finding remains represented. D-001=C opens T10–T12's release-scope gate, but
@@ -202,7 +141,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T11 | Blocked — cross-repository/external evidence | The v3 brief pins a partially compatible native app. Static-secret storage, backup/cleartext, task-removal and missing enrollment/claim/recovery gaps require a coordinated exact handoff plus writable Mobile/Android target and device acceptance. |
 | T12 | Complete — exact handoff | Reviewed migration, persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI pass. No runtime target was operated. |
 | T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
-| T14 | Partially Complete — first eleven slices accepted; hydration source complete / Needs Re-audit | `70f42c1` remains the latest accepted source. The OSM handoff remains owner-deferred/open; `T14-S13` passes its exact local source/browser contract at `c72feb9` and awaits ordered Level 1 acceptance. |
+| T14 | Partially Complete — 12 source slices accepted | Accepted IDs are `T14-S01` through `T14-S11` plus `T14-S13`; S13 is accepted at `a528054`. S12 remains Deferred, S14 Proposed/blocked, and the canonical ledger freezes further source until owner review. |
 | T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
 
 ### Approved-batch continuation gate
@@ -212,14 +151,14 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | Level 3 source complete; ordered Level 1 re-audit next | `docs/tasks/T14-admin-feedback-session-hydration-truth-state.md` records the passing bounded result at `c72feb9`; no next source slice may be selected until the affected chain is current. |
+| T14 | No source work eligible; owner ledger review next | `docs/roadmap/T14-scope-and-closure-ledger.md` exposes every accepted/deferred/proposed slice, all known future candidates, pass criteria, closure rules, and the only current next action. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
-Batch result: T14's first eleven slices are accepted at `70f42c1` under the refined D-011 bright-
-neutral Admin/Public-preservation direction. The OSM handoff at `45ecc0a` is owner-deferred and its
-finding remains open. Admin Feedback session-hydration truth state is source-complete locally at
-`c72feb9`; its affected Level 1 chain is the next eligible action. T9/T13 remain deferred without
-dependency bypass and T11/T15 remain blocked.
+Batch result: 12 T14 source slices are accepted: `T14-S01` through `T14-S11` plus `T14-S13`.
+S13 is accepted at `a528054`; S12 remains owner-deferred/open and S14 remains Proposed/blocked on
+the pending D-011/Public-UI choice. Further T14 source is frozen for owner review of S14 and
+C01–C16 in the canonical ledger. T9/T13 remain deferred without dependency bypass and T11/T15
+remain blocked.
 
 ## 4. Dependency Map
 
@@ -1291,6 +1230,15 @@ T4 and T5 are complete; remaining dependencies and deployment facts are unresolv
 
 ### T14 — Improve Dashboard UX, map maintainability, and measured scale quality
 
+> Current T14 detail is intentionally centralized in
+> `docs/roadmap/T14-scope-and-closure-ledger.md`. It is authoritative for stable slice IDs,
+> provenance, future candidates, pass criteria, closure, and the sole next action. The detailed
+> narrative below is retained as historical implementation context and grants no write authority.
+
+**Current snapshot:** 12 accepted source slices (`T14-S01` through `T14-S11` plus `T14-S13`),
+application baseline `c72feb9`, S13 Level 1 acceptance `a528054`, S12 Deferred, S14
+Proposed/blocked, no Active slice, and no next source selection before owner ledger review.
+
 ### Source Audit(s)
 
 Frontend 4, 13–14; Dashboard 5, 11–12; Architecture 5, 10.
@@ -1305,25 +1253,11 @@ T8 completion evidence.
 
 ### Decision Gates
 
-The 2026-08-10 affected-chain re-audit accepts the first eight T14 slices at `23b4d6f...`, including
-the bounded Source Health/Feedback Admin operations-support implementation at `06e0291`. D-011 owner
-refinement at `a0a0ce1` then selects premium iOS-inspired Liquid Glass for the remaining Admin visual
-world. Commit `c4fdc3a` implements that ninth slice as one explicitly light white/gray foundation for
-Admin shell, navigation, Login presentation, modal/control material, semantic tokens, and
-transparency/contrast/motion/filter fallbacks; no automatic dark palette is admitted. Existing page
-behavior, successful Login/session handling, CRUD endpoints, payloads, authorization, fields,
-T10/T12 behavior, Public visual/product identity, DOM/copy/layout and observable behavior, T11,
-Research, backend/API/schema ownership, dependencies,
-and external-runtime facts remain exclusions. The affected audit chain accepts this evidence at
-`c4fdc3a`. Commit `2ddb835` completes the mutation-feedback implementation and `e6a04ad` repairs
-destructive target identity; the affected audit chain accepts the exact local result at `e6a04ad`.
-Commit `70f42c1` completes shared browser Socket.IO lifecycle ownership, and the affected audit chain
-accepts it as the eleventh slice. Coordination commit `45ecc0a` defines the exact OSM attribution/
-endpoint unit, but the later D-011 Public-UI authority refinement defers it because its visible-credit
-change is not authorized. The focused Level 2 brief records that research use is not a waiver and
-does not choose a zero-credit/provider alternative. The bounded non-Public-visual Admin Feedback
-session-hydration unit is now source-complete at `c72feb9` without resolving or bypassing that open
-finding; its affected Level 1 chain must re-audit the result before acceptance.
+D-011 fixes truthful/fail-closed behavior, Public ownership, and the bright-neutral fixed-light
+Admin direction. Twelve source slices are accepted; S12 is Deferred by the Public-UI authority gate
+and S14 is blocked on the pending optional-association/Public-UI choice. The canonical ledger holds
+the complete decision/provenance map. Owner review of S14 and C01–C16 in that ledger is the next
+gate; no dormant task, candidate, or generic Related Files list authorizes source work.
 
 ### Blocks
 
@@ -1339,235 +1273,53 @@ Medium.
 
 ### Suggested Agent
 
-Level 1 Audit Agent for the ordered Product→Architecture→Frontend→Dashboard & UX→Production→
-Roadmap re-audit. No further Level 3 source work is eligible until that chain is current.
+Level 1 coordinator for owner review/classification. Route a later selected exact implementation to
+Level 3 only after the ledger and Master Roadmap expose it and its gates pass.
 
 ### Execution Mode
 
-Level 3 measurement-first implementation and verification are complete at `c72feb9`. Continue with
-`tram-audit-workflow`; Level 1 must inspect the immutable two-file delta, consume the recorded local
-evidence, and determine finding disposition without expanding source scope.
+Source freeze. S13 measurement-first implementation and ordered Level 1 acceptance are complete.
+Continue only with owner review of S14 and candidate classifications C01–C16; re-audit may not
+silently start another slice.
 
 ### Task Brief
 
-The first slice removed fabricated Feedback association and false Public/Admin state. The second
-establishes labelled modal/focus/form/navigation behavior. The third establishes selected-route-
-only geometry, owned/reduced marker and map motion, a non-colliding 320 px Public overlay, and audited
-44 px targets. The fourth governs contrast/route colors, and the fifth establishes a bounded Admin
-semantic theme and map-first hierarchy. Public identity and existing product behavior are preserved.
-The sixth slice improves Public service explanation/recovery only from existing truthful state.
-The seventh extends the established Admin semantic system to Vehicles, Routes, Stops, and their
-existing dialogs while preserving payload and authorization behavior. The eighth extends that
-system to Source Health, Feedback Inbox, and the existing sensitive confirmation dialog; it corrects
-failure-versus-empty projection and measured action sizing while preserving T12 policy and request
-boundaries. The tenth bounded unit at source baseline `e6a04ad` replaces the master-data pages'
-native mutation alerts and confirmations with typed pending, retained failure/retry, success receipt, and shared
-focus-managed delete states with visible and accessibly described immutable target IDs under
-`docs/tasks/T14-admin-master-data-mutation-feedback.md`; exact
-requests, fields, authorization, route-stop ordering, Public, and Login behavior remain intact.
-Commit `c4fdc3a` delivers the shared **Signal Lens Workbench** foundation: restrained bright-neutral
-glass navigation/context/control/modal layers over more opaque operational maps, tables, ledgers,
-forms, and long text, with accessibility fallbacks and no automatic dark theme. T11, Research/T13,
-Public visual/product identity, DOM/copy/layout and observable behavior, rooms, backend ETA,
-API/auth/schema changes, dependencies, and external runtime remain separate.
-The bounded unit at `70f42c1` extracts only duplicated browser Socket.IO transport construction,
-listener registration, connection-state/reconnect-attempt signaling, and socket/listener cleanup
-shared by the Public tracker hook and Admin LiveMap. Event payloads enter that boundary as `unknown`;
-validation, canonical version acceptance, snapshot reconciliation, visible state, and canonical-
-expiry timers remain consumer-owned. The exact handoff preserves Public snapshot-before-connect,
-failed-snapshot continuation, second-and-later-connect rehydration, map/zoom queue ordering, Admin
-initial `await hydrate(false)` before socket construction/connect, reconnect `hydrate(true)` plus
-queued-version reconciliation/failure replay, manual Retry-driven effect/socket restart, strict
-unknown-payload validation, current event names/handling order, and cleanup. Copy, DOM/layout/theme,
-backend events, origins, and T9/T11/T13 boundaries remain unchanged. The affected Level 1 chain
-accepts that lifecycle unit. The OSM unit described by the dormant exact task is not execution-
-eligible. Commit `c72feb9` completes the selected Admin Feedback projection: while `GET auth/me` is
-pending it shows the existing polite verification state and issues no Feedback reads, then retains
-the exact `SUPER_ADMIN`/`DEV` inbox and final `ADMIN` denial behavior. Public UI, Login/session
-authority, APIs/payloads, roles, schema, theme, and external boundaries are unchanged; Level 1
-acceptance is pending.
+T14 is a sequence of bounded, measurement-first frontend/dashboard outcomes, not an unlimited polish
+task. The accepted set covers truthful state/Feedback, accessibility, measured map quality, contrast,
+Admin Dashboard and operations convergence, Public recovery, bright Signal Lens Admin/Login,
+master-data mutation recovery, shared browser transport ownership, and truthful Admin Feedback
+session hydration. Exact ownership, overlap locks, tasks, and evidence for every slice are in the
+canonical ledger. T11, Research/T13/T15, D-012, Public redesign, backend/API/schema policy,
+deployment, and external runtime remain separate.
 
 ### Related Files
 
-The completed source handoff is `docs/tasks/T14-admin-feedback-session-hydration-truth-state.md`. It binds
-only `app/admin/feedback/page.tsx`, `tests/t14-admin-operations-support.spec.ts`, and the exact
-coordination paths enumerated by that task. This generic section authorizes no additional writes;
-the dormant OSM task retains its separate historical scope.
+The latest completed source handoff is
+`docs/tasks/T14-admin-feedback-session-hydration-truth-state.md`. The full slice/task map is in the
+canonical ledger. This generic section authorizes no writes; the dormant S12 task and Proposed S14
+grant no source authority.
 
 ### Acceptance Criteria and Verification
 
-These Roadmap criteria are synthesis guardrails; the exact Level 3 task's controlled pending
-`auth/me` journey failed against the incumbent false role denial and now passes with no Feedback
-read until a privileged role resolves and with final `ADMIN` denial preserved. The selected
-Admin Dashboard exposes a documented priority order for verified data, canonical
-service state, available actions, and supporting metrics without inventing unavailable exceptions;
-every element uses shared Public tokens or a documented semantic extension; scoped loading/error/
-stale/navigation states are clear;
-responsive layout, keyboard order, focus, contrast, Thai/English text, and role-specific navigation
-are browser-verified. One maintained public realtime map path remains; extracted units clean up
-correctly; no scale work occurs without captured measurement. Run lint, production build, focused
-component/accessibility checks, and desktop/mobile browser smoke tests.
+Use the ledger's seven-part per-slice pass contract and technical closure contract. A source task
+must have a committed exact-path handoff, genuine failing measurement, focused/boundary/regression
+proof, relevant frontend quality checks, allowlist integrity, and ordered Level 1 acceptance. T14
+technical closure is not Production Readiness, 20/20 UX, or human/AT/deployed acceptance.
 
 ### Status
 
-Partially Complete — the first eight D-011 slices, including bounded Admin operations-support
-convergence at `06e0291`, remain accepted at `23b4d6f...`. The ninth bright-neutral Admin Liquid
-Glass foundation and Login convergence are implemented at `c4fdc3a`; the affected audit chain is
-validated. The tenth mutation-feedback source baseline is accepted at `e6a04ad` with its local
-acceptance checks passing. Shared browser Socket.IO lifecycle ownership is implemented at `70f42c1`
-under `docs/tasks/T14-shared-browser-socket-lifecycle.md`; its measurement-first/final evidence and
-completion record pass, and the affected Level 1 chain accepts it as the eleventh slice. The OSM
-attribution/Standard raster endpoint handoff at `45ecc0a` is deferred by the Public-UI authority
-refinement; it has no accepted source/test delta and its finding remains open. The separate non-
-Public-visual `T14-S13` unit under
-`docs/tasks/T14-admin-feedback-session-hydration-truth-state.md` is source-complete at `c72feb9`;
-its measurement-first and final local evidence pass, and the affected Level 1 chain is pending.
-The eighth slice's exact completion evidence is in
-`docs/tasks/T14-admin-operations-support-convergence.md`. The master-data completion evidence is in
-`docs/tasks/T14-admin-master-data-theme-convergence.md`. The map-quality handoff is
-`docs/tasks/T14-measured-public-map-quality.md`, covering measured route/map performance, reduced
-motion, narrow-screen collision, and audited touch targets. The exact handoff
-`docs/tasks/T14-truthful-feedback-and-live-state.md` records the bounded Public/Admin paths,
-acceptance mapping, and remaining human/runtime limits.
-`docs/tasks/T14-accessible-dialogs-and-navigation.md` records the second slice's paths, acceptance,
-and verification. `docs/tasks/T14-contrast-and-color-governance.md` records the fourth slice's exact
-paths and passing evidence. `docs/tasks/T14-admin-dashboard-foundation.md` now binds the Admin-only
-shell/Dashboard theme and hierarchy paths, tests, invariants, stop conditions, and completion evidence.
-`docs/tasks/T14-public-service-explanation-and-recovery.md` binds the sixth slice's existing-state
-guidance, canonical age, ETA truth, snapshot retry, slow-preloader recovery, and exact Public paths.
-`docs/tasks/T14-admin-operations-support-convergence.md` records the eighth slice's exact Admin-only
-paths, T12 invariants, measurement-first/final browser evidence, stop conditions, and completion.
-`docs/tasks/T14-admin-liquid-glass-foundation.md` records the ninth slice's exact Admin/Login paths,
-measurement-first/final browser evidence, visual verdict, design-system record, stop conditions, and
-accepted source/browser completion. `docs/tasks/T14-admin-master-data-mutation-feedback.md` now
-records the tenth slice's exact paths, invariants, stop conditions, measurement-first/final evidence,
-source commit, and local/synthetic limits. `docs/tasks/T14-shared-browser-socket-lifecycle.md`
-records the lifecycle unit's exact paths, consumer-authority invariants, two measurement-first
-failures, final regression evidence, source commit, and local/synthetic limits.
+Partially Complete — 12 source slices are accepted: `T14-S01` through `T14-S11` plus `T14-S13`.
+The latest application baseline is `c72feb9` and S13 is accepted at `a528054`. S12 remains Deferred
+under the Public-UI gate and has no accepted source delta. S14 remains Proposed/blocked and has no
+task or source authority. The ledger records exact H/S/C/R provenance and all remaining candidates;
+no source slice is Active.
 
 ### Evidence
 
-`docs/audits/dashboard-ux-audit.md` records the pre-implementation 9/20 audit, the post-truth 10/20
-checkpoint, the post-accessibility 11/20 audit, and the measured map-quality 13/20 checkpoint
-(no P0; three open P1, eight P2, one P3; six resolved P1 and two resolved P2). Commit `1b2b6c1`
-removes fabricated Feedback association, adds
-truthful Public/Admin loading/connection/freshness/recovery, reconciles Admin snapshot/event state,
-and bypasses Socket.IO in the PWA Service Worker. T14 pure tests pass 5/5; the mobile/desktop journeys
-pass 2/2 and the transport repair repeat passes 4/4; T8 route/expiry passes; final detector output is
-`[]`; production build and full repository CI pass on 2026-08-09. Human visual/usability and deployed
-runtime acceptance remain unavailable.
-
-Commit `8baa274` adds one typed focus lifecycle used by every scoped Public/Admin dialog, associates
-the scoped form labels/selection state, restores root zoom/language semantics, makes the Public stop
-image keyboard-operable, and makes the Mobile Admin drawer inert when closed and focus-trapped/
-current-page-aware when open. Focused accessibility journeys pass 4/4; T14 truth journeys pass 2/2;
-T8 passes 1/1; lint has zero errors and two pre-existing warnings; production build, final scoped
-detector `[]`, and full repository CI pass on 2026-08-09. Human assistive-technology/usability,
-measured contrast, and deployed-runtime evidence remain unavailable.
-
-Commit `c5b2e69` adds deterministic request/motion/viewport budgets, loads geometry only for the
-selected route and each later route once, owns cancellable marker motion, honors reduced-motion for
-marker/map/scroll/CSS behavior, retains 36 px Public control visuals inside 44 px targets, prevents
-320 px dock/control overlap, and raises audited Admin route-order targets to 44 px. Motion tests pass
-4/4; map-quality browser journeys pass 2/2; T8 1/1, truth 2/2, accessibility 4/4, production build,
-and full repository CI pass. The final detector has one reviewed pre-existing actual-map fallback
-advisory; human/device/deployed performance and usability evidence remain unavailable.
-
-Commit `799905f` adds strict sRGB normalization/luminance/contrast, one shared route badge that
-preserves valid backgrounds and chooses readable black/white text, one scoped muted-on-light token,
-and exact source/browser guards. The measurement-first browser baseline failed at 2.6301:1 and zero
-shared badges; final pure tests pass 4/4 and browser journeys 2/2. All prior frontend checks, the
-11-page build, and full repository CI pass. The detector retains only the reviewed actual-map
-fallback advisory. Human/assistive-technology/device/dark-theme/deployed acceptance remains absent.
-
-Commit `9411e36` adds a scoped `RSU Operations` Admin theme, a map-first Dashboard hierarchy,
-configured-inventory rail, existing Source Health/Vehicle shortcuts, consolidated responsive map
-status, and desktop/Mobile browser evidence. Measurement-first browser tests moved from 2/2 failing
-to 2/2 passing; every prior frontend suite, the 11-route build, final detector `[]`, and full CI pass
-after repairing the T6 exact source-expression regression found by the first CI run. Public files,
-T11 operations, Research data, broader Admin pages, APIs/auth, backend/schema, and external targets
-remain unchanged. Human/assistive-technology/device/dark-theme/deployed acceptance remains absent.
-
-Commit `bf80308` adds typed snapshot/connection/service explanation, canonical last-update age,
-duplicate-safe Public snapshot Retry, state-aware ETA projection, and slow-preloader fallback copy
-inside the incumbent Public visual system. Measurement-first unit compilation and browser 2/2 fail
-on the absent contracts; final pure/source tests pass 8/8 and Public recovery browser journeys pass
-2/2 at 320/390/1280 px. Every prior frontend suite, the 11-route build, visual trace review, final
-detector `[]`, and full repository CI pass. No API/schema/auth/canonical selection, T11, Admin,
-Research, Mobile, dependency, or external target changed. Human/assistive-technology/device/
-deployed acceptance remains absent. The affected-chain re-audit at `db72310...` closes the Public
-explanation P1 for bounded source/browser evidence and retains a 15/20 score with one P1, eight P2,
-and one P3 open.
-
-Commit `7321a25` adds one typed Admin resource hierarchy and one shared dialog shell across
-Vehicles, Routes, Stops, and route-stop ordering; distinguishes initial failure from verified empty
-state with inline retry; and provides named 44 px actions plus desktop tables/Mobile cards. The
-measurement-first master-data suite moved from 4/4 failing to 4/4 passing, the unchanged reordered
-`{ stopIds: ["ST02", "ST01"] }` payload is browser-verified, all earlier frontend suites and the
-11-route build pass, final detector output is `[]`, visual traces were reviewed, and full repository
-CI passes. Public/Login, Dashboard, Devices, Feedback, API/auth/schema, backend, Mobile, and external
-targets are unchanged. Evidence remains synthetic. Level 1 revalidation at `4e609e3...` retains the
-15/20 score with one P1, eight P2, and one P3; the theme/error findings are further narrowed, and
-Source Health/Feedback convergence was selected as the next eligible bounded unit.
-
-Commit `06e0291` converges Source Health and Feedback Inbox on the typed semantic Admin page/state/
-notice/action vocabulary, adds responsive operational ledgers with status rails and named 44 px
-controls, distinguishes initial failure from verified empty with Retry, and reuses the sensitive
-dialog while retaining T12 safe fields, role denial, status/note payloads, fresh authentication,
-delete reason, and payload-free restore. Measurement-first evidence failed on all five absent
-journeys across two bounded runs; final operations-support browser coverage passes 5/5, accessibility
-4/4, every prior frontend suite, the 11-route Turbopack build, visual trace review, detector `[]`,
-and full repository CI. Public/Login, Dashboard/master data, backend/API/auth/schema, Mobile,
-Research, dependencies, migrations, and external targets are unchanged. Evidence remains synthetic;
-Level 1 revalidation at `23b4d6f...` accepts the bounded source/browser contract, retains the 15/20
-technical score with one P1, eight P2, and one P3, further narrows the theme and legacy-recovery
-P2s, and selects master-data mutation feedback as the next eligible bounded finding.
-Subsequent owner refinement `a0a0ce1` supersedes that immediate sequencing only: the shared Admin
-Liquid Glass foundation now comes first, while the accepted operations-support evidence and later
-mutation-feedback boundary remain intact.
-
-Commit `c4fdc3a` implements the ninth slice as the owner-refined fixed-light white/gray Signal Lens
-foundation across authenticated Admin and Login. Glass is bounded to functional navigation/context/
-control/modal/Login layers; operational content remains opaque; reduced-transparency, increased/
-forced-contrast, reduced-motion, and unsupported-filter fallbacks are present. The exact Login body
-and successful session path remain; rejected `auth/login` errors reach the inline alert while every
-other 401/403 retains protected-route redirection. Measurement-first browser evidence failed 4/4
-before source and final coverage passes 5/5; Dashboard 2/2, master-data plus operations-support 9/9,
-accessibility/contrast groups, production design-seed search, detector `[]`, finish review `PASS`,
-frontend check, and full repository CI pass. Level 1 revalidation at `c4fdc3a...` accepts the exact
-source/browser contract, retains the 15/20 score with one P1, seven P2, and one P3, and selects
-master-data mutation feedback for its own bounded follow-up. Public, backend/API/schema, dependency,
-Mobile, migration,
-Research, deployment, and external targets remain unchanged; human/assistive-
-technology/device/deployed evidence remains absent.
-
-Commits `2ddb835` and `e6a04ad` implement and repair that tenth slice across Vehicles, Routes, and
-Stops. One typed safe-error and semantic-feedback boundary, persistent page receipts, ref-backed pending guards, retained
-failure/retry forms, and one focus-managed delete confirmation with explicit immutable target ID
-replace native alerts/confirmations.
-Measurement-first coverage failed 4/4 on the absent paths; final master-data coverage passes 8/8
-after exact-ID/body and synchronous modal-initialization repairs. Accessibility 4/4, Admin Liquid
-Glass/Login 5/5, Dashboard 2/2, operations support 5/5, the 11-route build, detector `[]`, visual
-finish review `PASS`, and final full repository CI pass. Exact POST/PUT/DELETE and T10 route-stop
-bodies remain regression-covered; Public/Login source, authorization, backend/API/schema,
-dependencies, Mobile, migrations, blocked lanes, and external targets remain unchanged. Evidence is
-local/synthetic; human/assistive-technology/device/deployed acceptance remains absent. The affected
-Level 1 chain accepts this exact result at `e6a04ad`.
-
-Commit `70f42c1` adds one shared browser Socket.IO lifecycle owner and removes direct construction/
-listener ownership from the Public tracker hook and Admin LiveMap. The shared boundary forwards
-payloads as `unknown`; Public/Admin consumers retain strict validation, canonical version/snapshot/
-hydration/queue/expiry authority, map behavior, and Retry. The incumbent duplicate-owner guard
-failed 1/1 and final focused coverage passes 4/4. A second measurement-first guard then failed on
-coercive enum narrowing before strict string/source-ID repair restored 4/4. T8, T9, and T14 pure
-groups pass 2/2, 5/5, and 8/8; bounded surrounding browser regressions pass 16/16; focused/full lint,
-the scoped changed-target detector `[]`, production build, workflow validation, diff check, and full
-repository CI pass. Two independent finish reviews return `PASS`. Public/Admin DOM, copy, layout,
-theme, requests, event names, origin, backend/API/auth/schema, dependencies, Login source behavior,
-Mobile, Research, migrations, and external targets remain unchanged. Browser evidence does not force
-a reconnect or zoom-time socket event, and no human/AT/device/deployed acceptance is claimed. The
-affected Level 1 chain accepts this immutable source baseline, resolves the duplicated lifecycle P2
-for exact local evidence, and retains the 15/20 score with one P1, five P2, and one P3 open.
+The ledger contains the H/S/C/R chain for every registered slice and points to its immutable task.
+The latest S13 evidence is handoff `4c33cf0`, source `c72feb9`, completion `9a9cf5c`, and Level 1
+acceptance `a528054`. The current five audits retain score/finding/evidence limits. Historical
+measurements remain in the task files and Git history rather than being repeated here.
 
 ## 9. Phase 5 — Future Enhancements
 
@@ -1661,7 +1413,7 @@ Repository simulators exist; physical/provider evidence is unavailable.
 |---|---|---|
 | Driver, trip-history, and exception workflows are absent | D-001=C now requires them, so this is no longer an accepted release omission. T10 route-stop operations are complete for their bounded scope. | Complete T11 with external Android evidence before release. |
 | Feedback runtime rollout is unverified | T12 source/test scope is complete, but no migration, retention run, staff/rider acceptance, backup, or deployed scheduling evidence exists. | Execute an approved disposable/staging rollout and retention/role acceptance before release. |
-| Dashboard/public UX is not release-ready | The validated score remains 15/20 at `70f42c1`. The first eleven slices are accepted; human assistive-technology/usability, broader device/runtime evidence, T11-backed exceptions, visible OSM attribution/endpoint alignment, other assets, and Research remain open. | Complete only bounded eligible T14 units and obtain missing human/runtime/dependency evidence without bypassing external gates. |
+| Dashboard/public UX is not release-ready | The validated score remains 15/20 at application baseline `c72feb9`. Accepted IDs are `T14-S01` through `T14-S11` plus `T14-S13`; human assistive-technology/usability, broader device/runtime evidence, T11-backed exceptions, deferred S12, other assets, and Research remain open. | Apply the T14 ledger closure contract; obtain missing human/runtime/dependency evidence without pulling external gates into source slices. |
 | Deployment/TLS/backup/recovery evidence is absent | D-008 policy and the T9 repository handoff exist, but University Server/Network acceptance checks are incomplete. | Obtain T9 external acceptance, then complete T13. |
 | Physical device/TTN evidence is absent | Provider/hardware/provisioning facts are unknown. | Record facts and execute T15. |
 | Playback/reports are absent | D-002=B authorizes bounded diagnostics, not unbounded fidelity claims. | Approve query/fidelity scope after T7 evidence. |
@@ -1670,8 +1422,8 @@ These are recorded residual risks, not accepted exceptions for the selected C re
 
 ## 12. External Acceptance and Remaining Owner Decisions
 
-No D-008, D-011, or D-012 application-owner decision remains open. T11 has cross-repository/
-external-evidence gates but no additional focused owner-policy blocker:
+D-008 and D-012 are approved. One D-011 refinement remains open for proposed T14-S14; T11 has
+cross-repository/external-evidence gates but no additional focused owner-policy blocker:
 
 | Needed information | Blocks | Reason |
 |---|---|---|
@@ -1679,7 +1431,7 @@ external-evidence gates but no additional focused owner-policy blocker:
 | D-012 implementation paths and external `DEV` allowlist/recovery/backup target facts | T15 and later role-management work | Policy is approved but intentionally outside T11/T12/T14; target facts and exact implementation evidence remain absent. |
 | TTN application/device IDs; physical device/module models; firmware/provisioning; clock/reference and field protocol | T15 | D-004 fixes transport roles and dashboard scope, but repository evidence cannot establish physical behavior or absolute accuracy. |
 | None for feedback policy | — | D-009 approves owner, anonymous/no-reply scope, business-day lifecycle, retention, deletion/restore, and safe read-only source fields. |
-| None for the first eleven accepted T14 slices or the selected Feedback hydration projection | — | D-011 fixes the bright-neutral Admin Liquid Glass direction and Public boundary. Its later refinement owner-defers OSM; the Admin-only session-hydration truth-state correction needs no new owner decision. |
+| Optional Public Feedback vehicle-association model and Public-UI authority | T14-S14 | Choose simple nullable association, explicit subject scope, or defer/remove. No source handoff exists. |
 
 ## 13. Recommended Level 2/3 Agent Usage
 
@@ -1687,7 +1439,7 @@ Route every focused technical question through `agents/level-2-specialist/AGENT.
 `tram-specialist-consultation`. Route every implementation through
 `agents/level-3-refactor/AGENT.md` with `tram-refactoring-workflow`.
 
-- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, T14's first eleven accepted slices through shared browser lifecycle ownership, and the locally complete `T14-S13` hydration source unit awaiting Level 1 acceptance. Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. The OSM handoff is dormant; run the ordered `T14-S13` affected-chain re-audit before another source selection.
+- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and the 12 accepted T14 source slices (`S01–S11 + S13`). Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. S12 is dormant; no further T14 source is eligible before owner ledger review.
 - Specialist-led: T2 security/abuse; T4, T9, T13 observability/deployment; T5 database transactions; T6/T7 realtime and time-series; T11 operations/mobile; T15 device/LoRaWAN.
 - T12's D-010:A account-transition choice and all exact source/test acceptance evidence are complete; runtime rollout remains separately gated.
 
@@ -1704,53 +1456,25 @@ The monolith remains the supported architecture; this roadmap does not authorize
 
 ## 15. Handoff
 
-T1–T8, T10, and T12 are complete for their recorded scopes; M-20260807-01/02/03 are complete corrective
-maintenance outside roadmap ordering. T9's repository handoff is validated and partially complete;
-the owner defers its external continuation and T13 without satisfying their gates. T11 remains
-blocked on coordinated Backend/Mobile implementation and Android acceptance. T14's first eight
-D-011 slices, including bounded Source Health/Feedback Admin operations-support convergence at
-`06e0291`, remain accepted at `23b4d6f...`. D-011 refinement and affected audits were revalidated at
-`a0a0ce1...`; `c4fdc3a` implements and Level 1 accepts the ninth bright-neutral Admin Liquid Glass
-foundation and Login convergence under its exact task. Commits `2ddb835` and `e6a04ad` implement and
-repair the tenth mutation-feedback slice with passing local evidence; Level 1 accepts that baseline.
-Commit `70f42c1` completes the exact `docs/tasks/T14-shared-browser-socket-lifecycle.md` source/test
-contract while preserving Public/Admin visual/product identity, DOM/copy/layout, requests, events,
-and consumer-owned canonical behavior. The affected Level 1 chain accepts it as the eleventh slice.
-The exact OSM handoff at `45ecc0a` is owner-deferred with no accepted source/test delta. Commit
-`c72feb9` completes the exact Admin Feedback session-hydration source/test handoff with passing
-measurement-first and final local evidence; the next eligible work is its ordered Level 1 re-audit.
-T11 and
-Research/T13 remain separate; successful Admin Login/session source
-behavior is unchanged, while browser Login regression evidence covers rejected requests and protected
-redirects rather than a successful-session journey. T15 remains
-deferred behind T13 and external physical facts. T12/
-T14 source acceptance is not deployment/public-release authorization.
+No implementation is currently eligible for autonomous continuation. T9/T13 remain owner-deferred
+without satisfying their external gates; T11/T15 remain dependency/evidence blocked. T14 has no
+Active slice: the owner must first review S14 and C01–C16 in the canonical ledger. That review may
+classify work but cannot itself authorize source; any selected repository outcome still requires a
+committed exact-path handoff and passed dependency/decision gates. Browser Login evidence remains
+limited to rejected requests and protected redirects rather than a successful-session acceptance.
+T14 source acceptance is not deployment or public-release authorization.
 
 Validate each completed task against its originating audit finding before advancing. Re-run Production Readiness only after the production-bar tasks applicable to the desired release scope are complete.
 
 ## Roadmap Impact, Assumptions and Unknowns, Confidence, and Deferred Decisions
 
-**Roadmap impact:** D-001=C makes T10–T12 required for the selected release target; D-002=B creates T7
-research diagnostics; D-003=A removes the configuration cycle by sequencing T9 before alignment;
-D-005=B keeps the 30-second stale state separate but adds an all-source 10-minute no-GPS auto-close
-with fixed close fields/no-reopen to T11;
-D-006 resolves T7's safer target/export
-policy; D-007 introduces a three-tier role direction; D-008 fixes the university single-origin
-handoff and separates the now-validated repository work from pending Server/Network acceptance;
-D-009 binds feedback/privacy/read-only device policy; D-010:A maps legacy roles while requiring
-unknown roles to fail closed; D-011 orders T14, preserves Public identity, and now selects a premium
-iOS-inspired Liquid Glass world for bounded Admin redesign; and D-012 fixes later least-privilege
-lifecycle controls. T14's first ten slices are accepted at `e6a04ad`, including the earlier eight
-through `06e0291`, the shared explicitly light Admin foundation at `c4fdc3a`, and repaired mutation
-feedback. The shared browser Socket.IO lifecycle source unit at `70f42c1` is accepted as the
-eleventh slice.
-M-20260807-01/02/03
-correct logging, simulator, and generated-artifact boundaries without changing roadmap order. The
-affected audits and this Roadmap are current at `70f42c1...`; unaffected audits remain current at
-`1eec866...`. `docs/tasks/T14-osm-attribution-and-raster-endpoint-alignment.md` retains a dormant
-exact contract but authorizes no source while its Public-UI authority gate is closed.
-`docs/tasks/T14-admin-feedback-session-hydration-truth-state.md` records the exact completed Admin-
-only source/test unit at `c72feb9`; no further source change may start before Level 1 revalidates it.
+**Roadmap impact:** D-001=C raises the release target; D-002 through D-010 govern the research,
+telemetry, topology, role, and Feedback boundaries recorded in T7–T13. D-011 preserves Public visual
+ownership and fixes the bright-neutral Signal Lens Admin direction; D-012 defines later lifecycle
+policy without implementing it here. T14's accepted/deferred/proposed inventory and immutable
+evidence are centralized in `docs/roadmap/T14-scope-and-closure-ledger.md`. Affected audits are
+current at evidence `9ff7e85...` and application `c72feb9...`; unaffected audits remain current at
+`1eec866...`. No further T14 source change may start before owner review of that ledger.
 
 **Assumptions and unknowns:** the target is C but no daily/public readiness claim is made before the
 required work passes. Diagnostics remain bounded/protected; no external host/provider/device fact or
@@ -1760,7 +1484,7 @@ unapproved role permission is assumed.
 for provisional task/gate mapping and low for deployment, human UX outcomes, credential rotation,
 and device/field claims until external evidence exists.
 
-**Deferred work/evidence:** D-012 implementation outside T11/T12/T14, the OSM attribution/endpoint
-finding, later T14 selection after the Feedback hydration unit, plus human/runtime evidence,
+**Deferred work/evidence:** D-012 implementation outside T11/T12/T14, deferred S12 OSM work,
+proposed S14, owner classification of the candidate pool, plus human/runtime evidence,
 physical sender/provider facts, playback/report scope, and scale-triggered
 features. D-006 retention/access/export parameters and T7 disposable evidence remain documented.

@@ -174,9 +174,11 @@ operation, credential action, deployment, external request, or runtime target is
 
 ## Completion Evidence
 
-- Status: `Complete — local source/synthetic-browser scope; Level 1 re-audit required`
+- Status: `Accepted — exact local source/synthetic-browser scope`
 - Handoff baseline: `4c33cf071051b9244a9b4f925f5d37610c81546a`.
 - Source baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`.
+- Level 1 acceptance: `a5280542be9628e08174892f9546ecf7bb64858e` accepts `T14-S13`
+  after the ordered Product→Architecture→Frontend→Dashboard & UX→Production Readiness re-audit.
 - Changed source/test files:
   - `shuttle-tracking-web/app/admin/feedback/page.tsx`
   - `shuttle-tracking-web/tests/t14-admin-operations-support.spec.ts`
@@ -201,9 +203,11 @@ operation, credential action, deployment, external request, or runtime target is
     workflow validation. `node scripts/validate-agent-workflow.js` and `git diff --check` pass.
   - Two independent read-only finish reviews returned `PASS` for the source and deterministic test
     contract.
-- Audit freshness changes: Product, Architecture, Frontend, Dashboard & UX, Production Readiness,
-  and Roadmap are `Needs Re-audit` against `c72feb9`. Level 3 records the bounded result but does not
-  accept `T14-S13` or mark those Level 1 reports complete.
+- Subsequent audit disposition: Product, Architecture, Frontend, Dashboard & UX, and Production
+  Readiness are Complete/Validated at evidence baseline `9ff7e85` with application-source baseline
+  `c72feb9`; Roadmap synchronization points to the canonical T14 ledger. This later Level 1 record
+  supersedes the historical Level 3 `Needs Re-audit` freshness state without changing the original
+  handoff or source evidence.
 - Evidence limits: local source/synthetic browser evidence only; no successful credential Login,
   human usability, assistive technology, deployed session/runtime, security penetration, Mobile,
   device, provider, field, or production-release acceptance is authorized or claimed.
