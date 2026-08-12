@@ -69,7 +69,7 @@ const reasonLabels: Record<DeleteReason, string> = {
 };
 
 export default function FeedbackInboxPage() {
-  const { user, reauthenticate } = useAuth();
+  const { user, isLoading, reauthenticate } = useAuth();
   const [cases, setCases] = useState<FeedbackCase[]>([]);
   const [deletedCases, setDeletedCases] = useState<FeedbackCase[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,12 +102,12 @@ export default function FeedbackInboxPage() {
   };
 
   useEffect(() => {
-    if (!user || (user.role !== "SUPER_ADMIN" && user.role !== "DEV")) return;
+    if (isLoading || !user || (user.role !== "SUPER_ADMIN" && user.role !== "DEV")) return;
     const timer = window.setTimeout(() => {
       void load();
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [user]);
+  }, [isLoading, user]);
 
   const updateCase = async (caseItem: FeedbackCase, status?: FeedbackStatus) => {
     setActionError(null);
@@ -148,6 +148,14 @@ export default function FeedbackInboxPage() {
   };
 
   const canUseInbox = user?.role === "SUPER_ADMIN" || user?.role === "DEV";
+
+  if (isLoading || !user) {
+    return (
+      <AdminResourcePanel>
+        <AdminResourceState state="loading" message="Verifying feedback access…" />
+      </AdminResourcePanel>
+    );
+  }
 
   if (!canUseInbox) {
     return (

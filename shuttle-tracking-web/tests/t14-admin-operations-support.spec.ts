@@ -216,12 +216,85 @@ test("T14 Source Health initial failure is distinct from empty and retryable on 
 test("T14 Feedback Inbox retains the T12 role boundary", async ({ page, context }) => {
   await authenticateAdmin(context);
   await useRole(page, "ADMIN");
+  let feedbackGets = 0;
+  page.on("request", (request) => {
+    const pathname = new URL(request.url()).pathname;
+    if (request.method() === "GET" && (
+      pathname === "/api/admin/feedback"
+      || pathname === "/api/admin/feedback/deleted"
+    )) {
+      feedbackGets += 1;
+    }
+  });
+  await useFeedbackApi(page);
 
   await page.goto("/admin/feedback");
   await expect(page.getByRole("alert").filter({
     hasText: "Feedback triage is restricted to Super Admin and Dev roles.",
   })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Feedback Inbox" })).toHaveCount(0);
+  await page.waitForLoadState("networkidle");
+  expect(feedbackGets).toBe(0);
+});
+
+test("T14 Feedback session hydration remains neutral before privileged reads", async ({ page, context }) => {
+  await authenticateAdmin(context);
+
+  let markAuthRequestStarted: (() => void) | undefined;
+  const authRequestStarted = new Promise<void>((resolve) => {
+    markAuthRequestStarted = resolve;
+  });
+  let releaseAuthResponse: (() => void) | undefined;
+  const authResponseGate = new Promise<void>((resolve) => {
+    releaseAuthResponse = resolve;
+  });
+  await page.route(/\/api\/auth\/me$/, async (route) => {
+    markAuthRequestStarted?.();
+    await authResponseGate;
+    await fulfillJson(route, {
+      user: { id: "t14-super_admin", username: "super_admin", role: "SUPER_ADMIN" },
+    });
+  });
+
+  let activeFeedbackGets = 0;
+  let deletedFeedbackGets = 0;
+  page.on("request", (request) => {
+    if (request.method() !== "GET") return;
+    const pathname = new URL(request.url()).pathname;
+    if (pathname === "/api/admin/feedback") activeFeedbackGets += 1;
+    if (pathname === "/api/admin/feedback/deleted") deletedFeedbackGets += 1;
+  });
+  await useFeedbackApi(page);
+
+  await page.goto("/admin/feedback");
+  await authRequestStarted;
+
+  const verificationStatus = page.getByRole("status").filter({
+    hasText: "Verifying feedback access…",
+  });
+  const restrictionAlert = page.getByRole("alert").filter({
+    hasText: "Feedback triage is restricted to Super Admin and Dev roles.",
+  });
+  try {
+    await expect(verificationStatus).toBeVisible();
+    await expect(restrictionAlert).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Feedback Inbox" })).toHaveCount(0);
+    await expect(page.locator('[data-admin-operations-ledger="feedback"]')).toHaveCount(0);
+    expect(activeFeedbackGets).toBe(0);
+    expect(deletedFeedbackGets).toBe(0);
+  } finally {
+    releaseAuthResponse?.();
+  }
+
+  await expect(verificationStatus).toBeHidden();
+  await expect(restrictionAlert).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Feedback Inbox" })).toBeVisible();
+  await expect(page.locator('[data-admin-operations-ledger="feedback"]')).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Recoverable deletions" })).toBeVisible();
+  await expect.poll(() => ({ activeFeedbackGets, deletedFeedbackGets })).toEqual({
+    activeFeedbackGets: 1,
+    deletedFeedbackGets: 1,
+  });
 });
 
 test("T14 Feedback initial failure is not an empty queue and retry restores the case ledger", async ({ page, context }) => {
