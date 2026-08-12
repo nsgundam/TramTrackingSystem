@@ -176,5 +176,7 @@ external environment action is authorized.
 - Acceptance mapping and final validation: pending.
 - Evidence limits: local source/synthetic-browser evidence only; no human, assistive-technology,
   deployed runtime, database target, migration, provider, device, field, or production acceptance.
-- Audit freshness after source: Product, Architecture, Frontend, Dashboard & UX, Production
-  Readiness, and Roadmap become `Needs Re-audit`; Level 3 may not mark them complete.
+- Audit freshness after source: Product, Frontend, Dashboard & UX, Production Readiness, and Roadmap
+  become `Needs Re-audit`; Level 3 may not mark them complete. Architecture remains current unless
+  the implementation crosses this task's page-local request/DTO/refresh boundary, which is a stop
+  condition rather than approved scope.
