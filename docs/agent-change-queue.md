@@ -6,6 +6,45 @@
 
 ## Applied Changes
 
+### AC-016
+
+Agent: Level 1 audit and roadmap workflow
+Files: `.agents/skills/tram-audit-workflow/SKILL.md` and
+`scripts/validate-agent-workflow.js`
+
+Problem/evidence:
+T14 accumulated a complete re-audit narrative after nearly every bounded slice. The same handoff,
+validation, finding state, and next-candidate text was then repeated across five active audits, the
+Roadmap, task files, and coordination summaries. That append-only pattern made historical findings
+look like newly authorized T14 work and allowed each re-audit to imply another slice without one
+finite owner-reviewed closure plan.
+
+Exact approved change:
+Make active audit reports current-state snapshots rather than append-only journals. Superseded
+narrative is replaced by current findings plus a compact provenance pointer; exact history stays in
+committed task specifications, immutable briefs, the task closure ledger, and Git. A re-audit may
+record a candidate but may not assign a stable slice ID, create a handoff, or select it as next work
+without owner review. After task closure, only a regression may reopen the accepted outcome; a new
+outcome must enter Maintenance or a later Roadmap synthesis. Enforce the contract's critical tokens
+in the repository workflow validator.
+
+Expected benefit:
+Audit files remain readable and evidence-complete, T14 has one finite closure decision, and future
+re-audits cannot silently turn residual findings into an endless sequence of slices.
+
+Priority: High
+Audit-blocking status: Cleared — required before the T14 documentation compaction
+Owner decision: Approved explicitly in the 2026-08-12 request to reorganize excessive documents,
+establish a clear T14 plan, and stop re-audit-generated work from expanding without review
+Proposal date: 2026-08-12
+Approval date: 2026-08-12
+Applied date: 2026-08-12
+Verification: `node scripts/validate-agent-workflow.js` passed with exactly three agents, three
+skills, and 15 roadmap tasks; the Markdown-link check embedded in that validator passed; and
+`git diff --check` passed on 2026-08-12.
+
+---
+
 ### AC-015
 
 Agent: Repository-wide UX/UI skill routing

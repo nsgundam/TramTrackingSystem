@@ -42,115 +42,12 @@ policy and task-order facts, not implemented controls. The external Mobile sourc
 “application unavailable” inventory statement, but T11 remains incomplete and requires coordinated
 Backend/Admin and Mobile changes plus the v2 device/OS acceptance artifact.
 
-## T9 Implementation Re-audit — 2026-08-07
+## Discovery Re-audit Provenance
 
-The preceding validated Discovery baseline was
-`82f4d97d8609d73f79aa74eea6efaadaa34238d9`. T9 changed evidence that this profile consumes:
-
-| Changed evidence | Discovery effect |
-|---|---|
-| `docker-compose.prod.yml`, `env.production.example`, `scripts/test-production-topology.mjs`, `scripts/ci-checks.sh` | Adds the static university production template, private data network, loopback-only app bindings, Redis authentication, versioned images, health ordering, and deterministic topology evidence. |
-| `shuttle-tracking-backend/src/config/runtime.ts`, `validate-runtime.ts`, `prisma.ts`, `redis.ts`, `server.ts`, `middleware/rate-limit.ts`, `docker-entrypoint.sh`, backend tests/package/README | Adds one fail-closed runtime authority for production URLs, secrets, CORS origin, proxy trust, client address, and port; validation runs before migration. |
-| `shuttle-tracking-web/config/backend.ts` and the changed REST/Socket consumers, `next.config.ts`, tests/package | Adds one browser connection authority: production defaults REST to `/api` and Socket.IO to the current origin; explicit production overrides must be one safe HTTPS origin. |
-| `docs/tasks/T9-production-topology-origin-handoff.md`, `docs/operations/university-server-network-handoff.md`, D-008 specialist/decision evidence | Records the exact repository handoff and the external host, DNS/TLS, secrets, restore, alert, contact, proxy-chain, and capacity evidence that remains unavailable. |
-
-Exact changed paths within Discovery scope:
-
-- Runtime/topology: `docker-compose.prod.yml`, `env.production.example`,
-  `scripts/ci-checks.sh`, and `scripts/test-production-topology.mjs`.
-- Backend: `shuttle-tracking-backend/README.md`,
-  `shuttle-tracking-backend/docker-entrypoint.sh`, `shuttle-tracking-backend/package.json`,
-  `shuttle-tracking-backend/src/config/prisma.ts`,
-  `shuttle-tracking-backend/src/config/redis.ts`,
-  `shuttle-tracking-backend/src/config/runtime.ts`,
-  `shuttle-tracking-backend/src/config/validate-runtime.ts`,
-  `shuttle-tracking-backend/src/middleware/rate-limit.ts`,
-  `shuttle-tracking-backend/src/server.ts`, and
-  `shuttle-tracking-backend/tests/test_t9_runtime_config.js`.
-- Frontend: `shuttle-tracking-web/components/admin/LiveMap.tsx`,
-  `shuttle-tracking-web/components/public/FeedbackModal.tsx`,
-  `shuttle-tracking-web/config/backend.ts`, `shuttle-tracking-web/hooks/useShuttleTracker.ts`,
-  `shuttle-tracking-web/hooks/useSocketConnection.ts`, `shuttle-tracking-web/next.config.ts`,
-  `shuttle-tracking-web/package.json`, `shuttle-tracking-web/services/api.ts`,
-  `shuttle-tracking-web/services/publicApi.ts`, and
-  `shuttle-tracking-web/tests/t9-backend-origin.test.ts`.
-- Handoff/decision evidence: `docs/tasks/T9-production-topology-origin-handoff.md`,
-  `docs/operations/university-server-network-handoff.md`,
-  `docs/audits/specialized/D-008-observability-production-topology-handoff-v2.md`, and
-  `docs/decision-queue.md`.
-
-Focused revalidation passed at the current baseline: backend `npm run check` (build, boundary tests,
-T9 runtime checks, and Prisma validation), frontend `npm run test:t9` (5/5), and
-`node scripts/test-production-topology.mjs`. These are deterministic repository checks; no Compose
-stack, migration, seed, deployment, proxy, certificate, backup/restore, alert, provider, device,
-field, load, or human-browser target was operated.
-
-## D-008 Decision Re-audit — 2026-08-07
-
-D-008 now selects a university-managed single-host, single-origin production handoff at the
-preferred `https://tram-tracking.rsu.ac.th`, subject to university DNS approval. The application
-team owns versioned artifacts, environment schema, migrations and runbook; the University
-Server/Network Team owns host/network/firewall, DNS/TLS, deployed secrets, off-host backup/restore,
-logs/alerts and incident response. Vercel/Render/Neon and AWS learning deployments are isolated
-non-production profiles. This is an approved logical topology and responsibility boundary, not
-evidence of an actual host, port policy, certificate, backup, alert, restore, or 10,000-viewer
-capacity result. Those facts remain external acceptance evidence for T9/T13.
-
-The T9 repository implementation described above now realizes the checked-in topology and
-configuration portion of that decision. It does not change the external-evidence limitation.
-
-Discovery refresh: 2026-07-22
-
-## T7 Re-audit Addendum — 2026-07-29
-
-The inventory was revalidated from `847a18c...` through `d94abb3...`. T7 adds an additive
-Postgres/PostGIS research schema, session-scoped raw-observation capture, metric/lifecycle services,
-and authenticated research-read/export routes. Mobile Socket.IO, ESP32+GPS over Wi-Fi/HTTP, and the
-separate LoRaWAN/Gateway/TTN/Webhook path remain distinct source boundaries; the implemented first
-campaign fixtures cover mobile and LoRaWAN and do not evidence physical-device or provider behavior.
-Raw diagnostics are separate from T6 canonical state and public DTOs. The previous finding that raw
-observations were absent is **Resolved** for D-002=B's bounded research scope; production topology,
-physical senders, TTN console state, and ground-truth accuracy remain **Unable to Verify**. CI evidence
-was rerun from the repository; the earlier findings about unavailable external runtime evidence remain
-**Still Present**.
-
-## T8 Re-audit Addendum — 2026-08-01
-
-The inventory was revalidated from `d94abb3...` through `671b712...`. T8 changes only the public
-canonical-state projection and its deterministic/isolated Playwright evidence: an expired `live`
-state is projected locally as non-live for the Marker, active-count, and ETA; stale/no-service/unknown
-states do not display a Marker; and selecting another route cannot restore an expired Marker until a
-newer authoritative `live` state arrives. The public REST hydration and Socket.IO event remain the
-same canonical contract. The Playwright local server is a synthetic test fixture, not a production
-service or physical-device result.
-
-D-001=C, D-005=B, D-007, and D-008 now constrain downstream work: C requires operational
-capabilities before a public-service claim, timeout is a separate 10-minute receipt-time lifecycle
-rule, administrative authority is intended to be `DEV` > `SUPER_ADMIN` > `ADMIN`, and production
-uses the approved university handoff boundary above. These are decision facts, not implementation
-or external operations evidence for the missing C-scope surfaces.
-
-## T10 / D-009 Re-audit Addendum — 2026-08-01
-
-The inventory was revalidated through committed baseline `6697acbd62c740039722769588b1c464231e5ce1`
-and the current owner-decision working copy. T10 adds a bounded authenticated admin replacement
-command for a route's full stop list, active-stop membership validation, contiguous server-assigned
-ordering, an atomic Prisma replacement transaction, and post-success public-cache invalidation.
-Legacy create/delete route-stop mutations now invoke that invalidator too. The Admin Routes page now
-has a route-stop modal for loading, adding, removing, reordering, and publishing the full sequence.
-The deterministic replacement test and repository CI are source/test evidence; no database mutation,
-ambient browser session, deployment, provider, or hardware result is implied.
-
-D-009 records anonymous one-way feedback with a `SUPER_ADMIN` business-day triage owner, 180-day
-feedback/case retention, 30-day rate-limit-only IP retention, protected soft deletion/restore, and
-read-only safe source/device fields. At this historical decision-only baseline it did not create an
-inbox, privacy notice, retention job, server RBAC, or role hierarchy; T12 subsequently implemented
-those bounded repository surfaces. Android locked-screen functionality remains external and the
-required versioned Android acceptance artifact is unavailable in this repository.
-
-This document describes the current repository state from source code, configuration, schema,
-migrations, seed data, tests, and repository documentation. It is the Level 1 Discovery profile
-output and does not make owner-controlled product, retention, deployment, or hardware decisions.
+The full T7, T8, T9, T10, D-008, and D-009 chronological addenda were compacted on 2026-08-12.
+Their current repository facts remain in the inventory below; exact implementation and validation
+history remains in the corresponding task specifications, immutable decision briefs, downstream
+audits, and Git. This structural compaction changes no Discovery evidence baseline or finding.
 
 ## Executive Summary
 
@@ -997,12 +894,10 @@ fully compare intended behavior with implementation:
 
 ## Actionable Recommendations
 
-- Run the Product profile next. Discovery is the only profile without a predecessor; Product must
-  consume this `1eec866...` baseline before Architecture and the later domain profiles can be
-  revalidated for the new decision/Mobile evidence.
-- Revalidate Architecture, Backend, and Database against the T5 Operations/Trip boundary before
-  treating lifecycle integrity as a release capability; this Discovery report does not replace their
-  domain findings or live integration evidence.
+- Use `docs/audits/README.md` for current coordination. Every successor profile has consumed this
+  `1eec866...` Discovery baseline; historical “run Product next” instructions no longer select work.
+- Treat lifecycle integrity according to the current domain/readiness reports; this Discovery
+  inventory does not replace their findings or live integration evidence.
 - Keep the three research boundaries separate in all later work: Mobile/Socket.IO, ESP32+GPS/Wi-Fi/
   HTTP, and independent LoRaWAN/Gateway/TTN/Webhook. Simulators remain test tools, not physical
   evidence.
@@ -1012,8 +907,8 @@ fully compare intended behavior with implementation:
 
 ## Roadmap Impact
 
-- Discovery is validated and unblocks the Product profile; no later profile may consume the prior
-  legacy Discovery snapshot.
+- Discovery is validated and every successor profile has consumed this baseline; no later profile
+  may consume the prior legacy Discovery snapshot.
 - T5 lifecycle facts are now part of the current baseline. Downstream audits must revalidate the
   transaction, partial active-trip index, status/time constraints, idempotent start/end behavior,
   and virtual-trip policy before confirming or closing related findings.
@@ -1055,138 +950,11 @@ No unsupported business or deployment assumptions are used as facts.
 
 ## Audit Readiness
 
-Validated at `1eec866...`; successor audits must consume this decision/external-source baseline.
-D-011 now permits a bounded first T14 task after dependent revalidation and an exact handoff.
+Validated at `1eec866...`; every successor audit has consumed this decision/external-source
+baseline. Current coordination and the sole next action live in `docs/audits/README.md` and the
+Master Roadmap rather than in this baseline-specific Discovery handoff.
 
 The current repository behavior, multi-source tracking boundary, data model, APIs, frontend
 features, deployment files, simulators, tests, and open information gaps are documented from
 available evidence. Production-specific audits still require the missing deployment, device,
 operational, product, and credential decisions listed above.
-
-## Project Knowledge Base
-
-### Business Domain
-
-University shuttle/tram tracking with real-time public visibility, route and stop data, operational
-vehicle management, multi-source location ingestion, and public rider feedback.
-
-### Users
-
-- Public riders and visitors.
-- Admin/transport operators.
-- Mobile/driver/location senders.
-- ESP32 and simulator senders.
-- TTN/LoRaWAN device integrations.
-
-### User Roles
-
-- Public user.
-- `ADMIN`, `SUPER_ADMIN`, and `DEV` administrative users with persisted hierarchical authority.
-- Sender/device identity bound to a tracking source and vehicle.
-
-The current code implements the D-007 `DEV` > `SUPER_ADMIN` > `ADMIN` hierarchy for the bounded T12
-surfaces and revalidates the persisted current role on admin requests. It does not implement separate
-driver accounts or the complete D-012 account/source lifecycle and out-of-band `DEV` controls.
-
-### Features
-
-- Public live map, route selection, stops, vehicles, ETA, geolocation, nearest stop, and feedback.
-- Admin login/re-authentication, dashboard, live map, vehicle CRUD, route CRUD, stop CRUD,
-  route-stop management, safe source health, and role-gated feedback triage.
-- Backend route-stop and tracking-source/device CRUD plus safe device-health and research-read APIs.
-- Sender JWT authentication and credential-version validation.
-- Authenticated trip start/end.
-- HTTP and Socket.IO location ingestion.
-- TTN webhook ingestion and simulator.
-- Source priority and freshness-based canonical location selection.
-- Redis current-location/cache/throttle/analytics behavior.
-- Sampled PostGIS GPS history.
-- Bounded T7 research observations/aggregates/lifecycle evidence and protected export.
-- T9 fail-closed production runtime/origin configuration and university handoff runbook.
-- Health and readiness endpoints.
-- Boundary and pipeline test scripts.
-
-### Technology Stack
-
-Next.js, React, TypeScript, Leaflet, React-Leaflet, Turf, Socket.IO client, Axios, Tailwind CSS,
-Express, Socket.IO, Prisma, PostgreSQL, PostGIS, Redis, JWT, bcrypt, Docker Compose, and Node.js 22.
-
-### Repository Structure
-
-The repository consists of root Compose/configuration and documentation, a TypeScript backend with
-Prisma/migrations and ingestion services, and a Next.js frontend with public/admin map experiences,
-API clients, and simulators. Audit instructions and audit documents are stored under `agents/` and
-`docs/`.
-
-### Architecture
-
-Browser clients use REST for initial/configuration data and Socket.IO for live canonical vehicle
-updates. Sender identities authenticate against registered tracking sources. The backend uses Redis
-for live source/current state and coordination, PostgreSQL/PostGIS for durable entities and sampled
-history, and Docker Compose for local and production-mode runtime composition.
-
-### Data Flow
-
-The principal flows are public route/stop loading, live source observation ingestion and canonical
-selection, TTN webhook ingestion, admin CRUD, feedback submission, and migration/seed/startup.
-
-### Business Entities
-
-User, Route, Vehicle, Stop, RouteStop, Trip, GPSTrack, TrackingSource, Feedback,
-FeedbackAuditEvent, ResearchSession, ResearchRawObservation, ResearchMetricAggregate, and
-ResearchLifecycleRun.
-
-### APIs
-
-REST groups are health, auth/re-authentication, public, admin vehicle/route/stop/route-stop/device,
-admin feedback, protected research reads/export, trip lifecycle, HTTP ingestion, and TTN ingestion.
-Socket.IO events are `send-location`, `location-update`, and `error-response`.
-
-### External Services
-
-PostgreSQL/PostGIS, Redis, Docker Compose, OpenStreetMap, CARTO, OSRM, Flaticon CDN, and the
-repository-defined TTN webhook boundary. No cloud hosting provider or live TTN deployment is
-configured in the repository.
-
-### Known Limitations
-
-See “Known Limitations From Available Evidence” and “Missing Information”.
-
-### Open Questions
-
-- Has the University Server/Network Team named contacts and accepted the actual host, TLS, firewall,
-  secret, backup, monitoring, alert, recovery, and capacity checklist under D-008?
-- Who will grant a writable Mobile checkout/review path, and which versioned cross-repository API/
-  event contract will replace its current static-secret workflow?
-- What are the ESP32 and TTN device provisioning and payload contracts?
-- Which source IDs are authoritative for LoRaWAN fixtures and deployed devices?
-- When will the approved D-012 account/Sender/deletion/backup/out-of-band recovery matrix receive an
-  exact implementation task and approved disposable validation target?
-- What are the GPS event-time, update-rate, retention, and stale-state policies?
-- Has the approved T7 research protocol and bounded raw-observation lifecycle been exercised with
-  physical Mobile, ESP32, and LoRaWAN sources without promoting simulator/proxy metrics to
-  ground-truth evidence?
-- Has bounded feedback triage/retention/deletion behavior passed migration, runtime, retention-sweep,
-  and human acceptance on an approved target?
-- Which later T14 accessibility/Admin-theme slice follows the approved data-integrity slice after
-  its measured browser evidence is reviewed?
-- Which reports, alerts, notifications, trip history, and playback capabilities belong to the MVP?
-
-## Handoff Recommendation
-
-Next eligible profile: Product Re-audit.
-
-## Historical T12 Implementation Addendum — 2026-08-01
-
-The then-current implementation evidence extended `6697acbd62c740039722769588b1c464231e5ce1` with D-010:A,
-the reviewed `20260801110000_feedback_triage_roles` migration, and the bounded T12 source/UI/tests.
-`OPERATOR` is migrated to the ordinary `ADMIN` role; only `ADMIN`, `SUPER_ADMIN`, and `DEV` pass the
-new persisted server-role allowlist. Login and explicit re-authentication issue signed freshness
-claims; current-role lookup occurs on every administrative request. The public feedback form now
-states its anonymous/no-reply/non-emergency/business-day and 180-day/30-day IP policy. Super Admin
-and Dev have a dedicated feedback inbox; all three roles receive only the separate read-only source
-health view. No account-provisioning UI, Android runtime, device/source write action, deployment,
-database migration execution, or physical/provider evidence was observed.
-
-The consolidated current inventory above supersedes this historical addendum and revalidates the
-same bounded T12 surfaces at `cdedcc2...`.

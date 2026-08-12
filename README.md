@@ -208,6 +208,9 @@ Audit readiness and the next eligible phase are recorded in
 [`docs/audits/README.md`](docs/audits/README.md). Do not select a roadmap task from historical audit
 text without checking that register first.
 
+For the concise documentation reading order and current project/T14 summary, start at
+[`docs/README.md`](docs/README.md).
+
 ## Contributing
 
 - [Frontend Documentation](./shuttle-tracking-web/README.md)

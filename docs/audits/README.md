@@ -14,7 +14,7 @@ Last updated: 2026-08-12
 | Dashboard & UX | Complete / Validated | `docs/audits/dashboard-ux-audit.md` | evidence `9ff7e85`; app `c72feb9` | 2026-08-12 | S13 removes one transient false denial; score remains 15/20 and broad role/live-region/human/AT/runtime limits remain. |
 | Security, DevOps & Observability | Complete | `docs/audits/security-devops-observability-audit.md` | `1eec866` | 2026-08-08 | D-012 is approved but unimplemented; SEC-08 records external Mobile credential/backup/cleartext/lifecycle risk. |
 | Production Readiness | Complete / Validated / No-Go | `docs/audits/production-readiness-audit.md` | evidence `9ff7e85`; app `c72feb9` | 2026-08-12 | S13 changes no human, AT, deployed, Mobile/device, operations, stage, or release gate. |
-| Roadmap | Complete / Validated | `docs/roadmap/master-refactoring-roadmap.md` | evidence `9ff7e85`; app `c72feb9` | 2026-08-12 | The canonical [T14 ledger](../roadmap/T14-scope-and-closure-ledger.md) records 12 accepted slices, S12 Deferred, S14 Proposed/blocked, every visible future candidate, pass criteria, closure rules, and a source freeze for owner review. |
+| Roadmap | Plan / Research | `docs/roadmap/master-refactoring-roadmap.md` | evidence `9ff7e85`; app `c72feb9` | 2026-08-12 | The [T14 research plan](../roadmap/T14-research-and-execution-plan.md) requires a complete predecessor-ordered audit, deduplicated finding register, and whole-plan owner review before another T14 source slice. |
 
 `Evidence baseline` records the immutable source/decision commit consumed by each report. Each
 report's metadata remains authoritative for its full scope and predecessor chain.

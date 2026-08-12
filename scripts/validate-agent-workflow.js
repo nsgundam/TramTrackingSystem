@@ -144,6 +144,11 @@ const supervisionContractTokens = {
     "## Repair loop",
     "Do not stop merely because the first implementation or",
   ],
+  ".agents/skills/tram-audit-workflow/SKILL.md": [
+    "## Current-state report maintenance",
+    "Active audit reports are current-state snapshots",
+    "may not assign a new stable slice ID",
+  ],
   "docs/tasks/task-spec-template.md": [
     "Work ID: `T<number>` or `M-YYYYMMDD-NN`",
     "Lane: `Roadmap` or `Maintenance`",

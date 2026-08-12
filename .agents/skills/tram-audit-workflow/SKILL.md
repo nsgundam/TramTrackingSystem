@@ -86,6 +86,21 @@ Audit metadata:
 Also include executive summary/scope, prior-finding table, domain analysis, actionable
 recommendations, roadmap impact, assumptions/unknowns, confidence, and proposed owner decisions.
 
+## Current-state report maintenance
+
+- Active audit reports are current-state snapshots, not append-only journals. On re-audit, replace
+  superseded narrative with the current metadata, current finding dispositions, and at most one
+  compact provenance table or pointer.
+- Keep exact implementation history in committed task specifications, immutable specialist briefs,
+  a task-specific closure ledger when one exists, and Git. Do not copy the full handoff, test log,
+  and superseded re-audit narrative into every downstream report.
+- A re-audit may identify a new finding, but it may not assign a new stable slice ID, create an
+  implementation handoff, or make that finding the next task automatically. For split roadmap work,
+  expose the candidate and its proposed disposition in the task's closure ledger for owner review.
+- After a roadmap task closes, a regression against an accepted outcome reopens that same outcome;
+  a materially new outcome must enter the Maintenance lane or a later Roadmap synthesis instead of
+  extending the closed task.
+
 ## Shared-state ownership
 
 Domain runs write only their profile output and proposed decisions. In coordinator mode only:

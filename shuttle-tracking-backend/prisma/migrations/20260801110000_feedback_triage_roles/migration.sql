@@ -1,5 +1,10 @@
 -- D-010:A: retain privileged roles, promote only legacy ordinary operators, and
 -- leave any unexpected historical value intact so the application can fail closed.
+ALTER TABLE "users" DROP CONSTRAINT IF EXISTS "users_role_check";
+ALTER TABLE "users"
+  ADD CONSTRAINT "users_role_check"
+  CHECK ("role" IN ('ADMIN', 'DEV', 'SUPER_ADMIN'));
+
 UPDATE "users" SET "role" = 'ADMIN' WHERE "role" = 'OPERATOR';
 ALTER TABLE "users" ALTER COLUMN "role" SET DEFAULT 'ADMIN';
 

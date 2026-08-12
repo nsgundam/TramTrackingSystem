@@ -8,7 +8,12 @@ Owner request captured on 2026-08-12: assess a Public Feedback journey in which 
 select a vehicle or submit general system Feedback without one. This is **Proposed / pending exact
 contract and Public-UI authority confirmation**, not implementation approval.
 
-Recommended bounded contract for confirmation: vehicle association is optional, but whenever a
+Current planning disposition: **research input only**. The complete T14 research pass must compare
+this proposal with Public, product, data, privacy, and existing S01 evidence before recommending
+whether it belongs in T14, a later task, or no implementation. No closure or source choice is
+requested yet.
+
+If the owner instead authorizes the capability, vehicle association may be optional, but whenever a
 vehicle ID is supplied it remains server-verified and fail closed; an intended vehicle-specific
 submission never silently degrades to general Feedback; and a failed/empty vehicle list does not
 block a clearly general/system submission or fabricate a selection. Preserve D-009 privacy,
@@ -17,9 +22,9 @@ represent the simple variant, but `null` cannot distinguish explicit system Feed
 association cleared after vehicle deletion. If that analytics distinction is required, an explicit
 scope field and separately reviewed data/migration contract are needed.
 
-Owner input required: confirm the recommended simple nullable-association contract (and its small
-Public form-copy/control change), or request the explicit-scope data model. Until then, no exact
-handoff or source write is authorized.
+Owner input is deferred until the complete research and execution plan is presented. At that point
+the review may choose move/defer, the simple nullable-association contract, or an explicit-scope data
+model. Until then, no exact handoff or source write is authorized.
 
 ## Approved
 

@@ -14,13 +14,14 @@ Last updated: 2026-08-12
 - `T14-S14`: Proposed/blocked; optional Public Feedback vehicle association awaits the pending
   D-011/Public-UI owner choice and has no task or source authority.
 - Active T14 source slice: none.
-- T14 next action: owner review of S14 and candidate references C01 through C16 in the canonical
-  slice/candidate/closure ledger; source is frozen until that review.
+- T14 next action: execute Research R0 through R10 in the canonical research plan, then present one
+  complete deduplicated implementation plan for owner review; source is frozen during research.
 
-The canonical current detail is
-`docs/roadmap/T14-scope-and-closure-ledger.md`. Historical implementation detail remains in the
-individual `docs/tasks/T14-*.md` records, the five domain/readiness audits, specialist briefs, and
-Git history; it is intentionally not duplicated here.
+The current planning contract is `docs/roadmap/T14-research-and-execution-plan.md`; the canonical
+slice and research-input inventory remains in `docs/roadmap/T14-scope-and-closure-ledger.md`.
+Exact historical implementation detail remains in
+the individual `docs/tasks/T14-*.md` records, specialist briefs, and Git history; the five affected
+domain/readiness audits retain current findings and evidence limits rather than full slice journals.
 
 ## T14-S13 Accepted Result
 
@@ -54,7 +55,7 @@ successful credential/session acceptance journey.
 | Dashboard & UX | Complete / Validated @ evidence `9ff7e85...`, app `c72feb9...` | 0 P0, 1 P1, 5 P2, and 1 P3 remain; broad human/AT/runtime evidence is open. |
 | Security, DevOps & Observability | Complete / Validated @ `1eec866...` | SEC-08 and external operations evidence remain open. |
 | Production Readiness | Complete / Validated / No-Go @ evidence `9ff7e85...`, app `c72feb9...` | No deployment, operations, Mobile/device, provider, human, AT, or release gate changes. |
-| Roadmap | Complete / Validated @ app `c72feb9...` | The T14 ledger owns the candidate pool, closure contract, source freeze, and sole next action. |
+| Roadmap | Plan / Research @ app `c72feb9...` | The research plan owns the predecessor-ordered investigation, complete-plan gate, source freeze, and sole next action. |
 
 ## Decisions, Dependencies, and Limits
 
@@ -67,8 +68,8 @@ successful credential/session acceptance journey.
   and a versioned device acceptance artifact.
 - T15 remains blocked behind T13 and physical/provider facts.
 - Research Dashboard, sender claim/timeout/history/recovery, D-012 lifecycle controls, deployment,
-  and human/AT/device evidence are not hidden future T14 source slices; the ledger proposes moving
-  them or treating them as evidence-only, pending owner review.
+  and human/AT/device evidence are research inputs whose final ownership must be proved before the
+  complete plan is presented; none is a hidden future T14 source slice.
 - The unrelated dirty Feedback-role migration remains preserved and excluded.
 
 The technical score remains **15/20** with zero P0, one P1, five P2, and one P3 open. Controlled
@@ -77,8 +78,8 @@ public rider service remain No-Go.
 
 ## No-Surprise Next-Work Rule
 
-Re-audit may discover a candidate but may not assign a new stable slice ID, create a handoff, or
-start source work silently. A future item must first appear in the canonical ledger with its owner,
-dependency, overlap, success boundary, and proposed classification. The owner reviews that
-classification; only then may the Master Roadmap select one item and Level 3 create a committed
-exact-path task. At most one T14 source slice may be Active.
+Re-audit may discover a finding but may not assign a stable slice ID, create a handoff, or start
+source work silently. Research first maps every finding exactly once and produces the complete
+proposed set, dependencies, exclusions, and acceptance evidence. Only after owner review may a
+selected item receive an exact-path handoff. A regression reuses its accepted outcome identity;
+materially new work is never appended to T14 automatically.

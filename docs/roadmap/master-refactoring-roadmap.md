@@ -27,9 +27,10 @@ is repository-complete but externally incomplete; T11 is blocked on coordinated 
 work and Android evidence; T13 is owner-deferred behind T9 and target authority; T15 remains behind
 T13 and physical/provider facts. T14 has 12 accepted source slices (`T14-S01` through `T14-S11`
 plus `T14-S13`) at application baseline `c72feb9`, with S13 accepted at `a528054`. S12 is Deferred,
-S14 is Proposed/blocked, and no T14 source work may begin before owner review of S14 and C01–C16 in
-`docs/roadmap/T14-scope-and-closure-ledger.md`. Production remains No-Go. Detailed immutable T14
-history lives in the ledger, task files, domain audits, and Git rather than being repeated here.
+S14 is Proposed/blocked, and no T14 source work may begin before the owner approves or revises the
+finite closure package in `docs/roadmap/T14-scope-and-closure-ledger.md`. Production remains No-Go. Detailed immutable T14
+history lives in the ledger, task files, and Git; domain audits retain current snapshots rather
+than repeated slice journals.
 
 ## 1. Executive Summary
 
@@ -95,7 +96,7 @@ identity repair at `e6a04ad`; Level 1 accepts that exact baseline. Level 3 compl
 shared browser Socket.IO lifecycle-ownership source unit at `70f42c1` without changing valid Public/
 Admin observable behavior or server contracts; the affected Level 1 chain accepts it as the eleventh
 slice. Level 3 completed S13 at `c72feb9`; Level 1 accepted it at `a528054`. The canonical ledger
-records all 14 stable IDs and the unregistered future candidate pool.
+records all 14 stable IDs and the finite candidate-closure package.
 Unaffected profiles remain current at `1eec866...`.
 Actual
 hosting, TLS, production recovery, Android build/device behavior, browser/runtime behavior, physical
@@ -151,13 +152,13 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | No source work eligible; owner ledger review next | `docs/roadmap/T14-scope-and-closure-ledger.md` exposes every accepted/deferred/proposed slice, all known future candidates, pass criteria, closure rules, and the only current next action. |
+| T14 | No source work eligible; one closure decision next | `docs/roadmap/T14-scope-and-closure-ledger.md` exposes every accepted/deferred/proposed slice, the finite terminal-disposition package, pass criteria, closure rules, and the only current next action. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
 Batch result: 12 T14 source slices are accepted: `T14-S01` through `T14-S11` plus `T14-S13`.
 S13 is accepted at `a528054`; S12 remains owner-deferred/open and S14 remains Proposed/blocked on
-the pending D-011/Public-UI choice. Further T14 source is frozen for owner review of S14 and
-C01–C16 in the canonical ledger. T9/T13 remain deferred without dependency bypass and T11/T15
+the pending D-011/Public-UI choice. Further T14 source is frozen until the owner approves or revises
+the finite closure package in the canonical ledger. T9/T13 remain deferred without dependency bypass and T11/T15
 remain blocked.
 
 ## 4. Dependency Map
@@ -1232,12 +1233,12 @@ T4 and T5 are complete; remaining dependencies and deployment facts are unresolv
 
 > Current T14 detail is intentionally centralized in
 > `docs/roadmap/T14-scope-and-closure-ledger.md`. It is authoritative for stable slice IDs,
-> provenance, future candidates, pass criteria, closure, and the sole next action. The detailed
+> provenance, the finite closure package, pass criteria, closure, and the sole next action. The detailed
 > narrative below is retained as historical implementation context and grants no write authority.
 
 **Current snapshot:** 12 accepted source slices (`T14-S01` through `T14-S11` plus `T14-S13`),
 application baseline `c72feb9`, S13 Level 1 acceptance `a528054`, S12 Deferred, S14
-Proposed/blocked, no Active slice, and no next source selection before owner ledger review.
+Proposed/blocked, no Active slice, and no next source selection before the finite closure decision.
 
 ### Source Audit(s)
 
@@ -1256,8 +1257,8 @@ T8 completion evidence.
 D-011 fixes truthful/fail-closed behavior, Public ownership, and the bright-neutral fixed-light
 Admin direction. Twelve source slices are accepted; S12 is Deferred by the Public-UI authority gate
 and S14 is blocked on the pending optional-association/Public-UI choice. The canonical ledger holds
-the complete decision/provenance map. Owner review of S14 and C01–C16 in that ledger is the next
-gate; no dormant task, candidate, or generic Related Files list authorizes source work.
+the complete decision/provenance map. Approval or revision of its single finite closure package is
+the next gate; no dormant task, candidate, or generic Related Files list authorizes source work.
 
 ### Blocks
 
@@ -1273,13 +1274,13 @@ Medium.
 
 ### Suggested Agent
 
-Level 1 coordinator for owner review/classification. Route a later selected exact implementation to
-Level 3 only after the ledger and Master Roadmap expose it and its gates pass.
+Level 1 coordinator for the finite closure decision. Route any later separately authorized outcome
+through its proper Maintenance or Roadmap lane and exact-path handoff.
 
 ### Execution Mode
 
 Source freeze. S13 measurement-first implementation and ordered Level 1 acceptance are complete.
-Continue only with owner review of S14 and candidate classifications C01–C16; re-audit may not
+Continue only with owner approval or revision of the finite closure package; re-audit may not
 silently start another slice.
 
 ### Task Brief
@@ -1311,7 +1312,7 @@ technical closure is not Production Readiness, 20/20 UX, or human/AT/deployed ac
 Partially Complete — 12 source slices are accepted: `T14-S01` through `T14-S11` plus `T14-S13`.
 The latest application baseline is `c72feb9` and S13 is accepted at `a528054`. S12 remains Deferred
 under the Public-UI gate and has no accepted source delta. S14 remains Proposed/blocked and has no
-task or source authority. The ledger records exact H/S/C/R provenance and all remaining candidates;
+task or source authority. The ledger records exact H/S/C/R provenance and the finite closure package;
 no source slice is Active.
 
 ### Evidence
@@ -1439,7 +1440,7 @@ Route every focused technical question through `agents/level-2-specialist/AGENT.
 `tram-specialist-consultation`. Route every implementation through
 `agents/level-3-refactor/AGENT.md` with `tram-refactoring-workflow`.
 
-- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and the 12 accepted T14 source slices (`S01–S11 + S13`). Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. S12 is dormant; no further T14 source is eligible before owner ledger review.
+- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and the 12 accepted T14 source slices (`S01–S11 + S13`). Maintenance M-20260807-01/02/03 is also complete without adding or reordering roadmap tasks. S12 is dormant; no further T14 source is eligible before the finite closure decision.
 - Specialist-led: T2 security/abuse; T4, T9, T13 observability/deployment; T5 database transactions; T6/T7 realtime and time-series; T11 operations/mobile; T15 device/LoRaWAN.
 - T12's D-010:A account-transition choice and all exact source/test acceptance evidence are complete; runtime rollout remains separately gated.
 
@@ -1458,9 +1459,9 @@ The monolith remains the supported architecture; this roadmap does not authorize
 
 No implementation is currently eligible for autonomous continuation. T9/T13 remain owner-deferred
 without satisfying their external gates; T11/T15 remain dependency/evidence blocked. T14 has no
-Active slice: the owner must first review S14 and C01–C16 in the canonical ledger. That review may
-classify work but cannot itself authorize source; any selected repository outcome still requires a
-committed exact-path handoff and passed dependency/decision gates. Browser Login evidence remains
+Active slice: the owner must first approve or revise the finite closure package in the canonical
+ledger. That review cannot itself authorize source; any later repository outcome still requires its
+proper lane, a committed exact-path handoff, and passed dependency/decision gates. Browser Login evidence remains
 limited to rejected requests and protected redirects rather than a successful-session acceptance.
 T14 source acceptance is not deployment or public-release authorization.
 
@@ -1474,7 +1475,7 @@ ownership and fixes the bright-neutral Signal Lens Admin direction; D-012 define
 policy without implementing it here. T14's accepted/deferred/proposed inventory and immutable
 evidence are centralized in `docs/roadmap/T14-scope-and-closure-ledger.md`. Affected audits are
 current at evidence `9ff7e85...` and application `c72feb9...`; unaffected audits remain current at
-`1eec866...`. No further T14 source change may start before owner review of that ledger.
+`1eec866...`. No further T14 source change may start before the finite closure decision.
 
 **Assumptions and unknowns:** the target is C but no daily/public readiness claim is made before the
 required work passes. Diagnostics remain bounded/protected; no external host/provider/device fact or
@@ -1485,6 +1486,6 @@ for provisional task/gate mapping and low for deployment, human UX outcomes, cre
 and device/field claims until external evidence exists.
 
 **Deferred work/evidence:** D-012 implementation outside T11/T12/T14, deferred S12 OSM work,
-proposed S14, owner classification of the candidate pool, plus human/runtime evidence,
+proposed S14, the pending finite closure decision, plus human/runtime evidence,
 physical sender/provider facts, playback/report scope, and scale-triggered
 features. D-006 retention/access/export parameters and T7 disposable evidence remain documented.
