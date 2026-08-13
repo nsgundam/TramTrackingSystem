@@ -1,26 +1,27 @@
 # Tram Tracking System Project Knowledge Base
 
 Audit metadata:
-- Evidence baseline: `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
-- Accepted T14 application baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
+- Evidence baseline: `0cb7dcc691527b7b7b0e2a238f3ecb329dac93f3`
+- Accepted T14 application baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Evidence scope: `README.md`, `AGENTS.md`, Compose/environment configuration and scripts,
   `shuttle-tracking-backend/`, `shuttle-tracking-web/`, `docs/testing/`, `docs/research/`,
   `docs/tasks/`, `docs/operations/`, `docs/decision-queue.md`, `docs/audits/specialized/`, and the
   immutable external Mobile revision recorded in the T11 v3 specialist brief
-- Reviewed at: `2026-08-12T23:15:48+07:00`
+- Reviewed at: `2026-08-13T19:20:00+07:00`
 - Validation state: `Validated`
 - Predecessor baselines: `None` (Discovery has no required predecessor)
-- Owner-decision overlay: the user's 2026-08-12 Plan v1 approval, S14 move, migration authorization,
-  and Frontend-team OSM assignment are recorded in the current `docs/decision-queue.md`
-  synchronization; Discovery consumes them as owner authority, not source evidence at `531ec9e`.
+- Owner-decision overlay: the user's 2026-08-12 Plan v1/S14/OSM directions and 2026-08-13 facts that
+  the migration source change exists only on this Git branch, the migration has never run on
+  production, and `ADMIN` receives active Feedback read-only access are recorded in
+  `docs/decision-queue.md`; Discovery consumes them as authority, not implemented behavior at
+  `0cb7dcc`.
 
 Evidence status: **Validated for T14 Research R1**. Research baseline `0d985d8` remains the R0
-historical anchor; current evidence baseline `531ec9e` additionally accepts Maintenance
-`M-20260812-01` without changing accepted T14 source. Current coordination-document edits are
-research/owner outputs, not proof of application behavior. Use `docs/audits/README.md` as the
-coordination authority.
+historical anchor; current coordination baseline `0cb7dcc` includes accepted `M-20260812-01` and
+T14-S15. The 2026-08-13 owner facts select later Maintenance contracts but do not themselves change
+application behavior. Use `docs/audits/README.md` as the coordination authority.
 
-## T14 Research Discovery Snapshot — 2026-08-12
+## T14 Research Discovery Snapshot — 2026-08-12 (historical anchor)
 
 Research R0 fixed immutable HEAD `0d985d8` and accepted T14 application baseline `c72feb9`. Compared
 with the last T14 evidence baseline `9ff7e85`, application behavior is unchanged except for a
@@ -43,6 +44,17 @@ level fail-closed handling. Existing static tests assert only that the later `UP
 Prisma validation and frontend/backend builds do not execute this upgrade ordering. Treat this as a
 high-severity Database/Maintenance migration-safety finding and a Production Readiness stop
 condition; research records it but does not edit or revert the user-owned migration.
+
+On 2026-08-13 the owner confirmed that the migration source change exists only on this Git branch
+and the migration has never run on production. That selects an in-place repair of this branch's
+source for `M-20260812-02`; it does not establish local/shared/staging target history or authorize
+migration execution. A target rollout still requires explicit target authority and disposable
+upgrade/rollback evidence.
+
+The owner also approved a later least-privilege refinement: `ADMIN` may read active Feedback and its
+existing internal note but may not mutate status/note, read deleted records, delete, or restore.
+Accepted source `5955b7a` still enforces `SUPER_ADMIN` minimum access for the Feedback group, so the
+policy is approved but unimplemented and belongs to `M-20260813-01`, not S15.
 
 The root README also still advertises `admin123`, while the seed path requires an explicit
 `SEED_ADMIN_PASSWORD` and production provisioning controls. This is an existing bounded
@@ -123,19 +135,20 @@ provider configuration are not present in this repository. An external native Mo
 repository is now recorded and partially evidenced, but it does not satisfy the approved T11
 contract.
 
-## Freshness and Validation Summary
+## Historical R1 Freshness and Validation Summary — 2026-08-12
 
-The R0 research evidence baseline was `0d985d8`; R1 is currently validated at `531ec9e`. The complete
+At that snapshot, the R0 research evidence baseline was `0d985d8` and R1 was validated at
+`531ec9e`. The complete
 change map since the preceding Discovery snapshot includes accepted T14 frontend work, audit/task records, design
 sidecars, workflow documentation, one backend realtime test adjustment, and the role-migration edit
-called out above. Accepted T14 source remains `c72feb9`; the accepted Admin-entry Maintenance stays
-outside it.
+called out above. Accepted T14 source at that snapshot was `c72feb9`; the accepted Admin-entry
+Maintenance stayed outside it.
 
 R1 used static repository inspection and immutable prior test/evidence records. No migration,
 deployment, provider, physical device, external Mobile build, stateful target, or human/AT session
-was executed. The most recent full repository CI passed for the accepted Admin-entry Maintenance,
-but that result neither executes a legacy-role migration nor proves T14 production
-acceptance.
+was executed. The recorded full repository CI for the accepted Admin-entry Maintenance passed, but
+that result neither executed a legacy-role migration nor proved T14 production acceptance. Later
+S15 evidence and current baselines are recorded in this document's metadata and current addenda.
 
 ### Prior-finding revalidation
 
@@ -926,9 +939,12 @@ fully compare intended behavior with implementation:
 - Use `docs/audits/README.md` for current coordination. R2–R10 have consumed the compatible
   `531ec9e` current-evidence and `0d985d8` immutable-research baselines; historical handoffs no
   longer select work.
-- Execute the authorized role-upgrade repair as `M-20260812-02` after confirming whether the
-  existing migration has been applied anywhere; no target migration is authorized, and disposable
-  evidence remains required before rollout against data that may contain `OPERATOR`.
+- Execute the authorized role-upgrade repair as `M-20260812-02` by repairing this Git branch's
+  existing migration source in place. No target migration is authorized, and target-history plus
+  disposable upgrade/rollback evidence remains required before rollout against data that may
+  contain `OPERATOR`.
+- Implement the approved `ADMIN` active Feedback read-only policy separately as `M-20260813-01`;
+  preserve server-side denial for all mutations and deleted/recovery reads.
 - Align the root credential instructions with the explicit seed/provisioning contract through a
   separate documentation Maintenance task; do not publish a placeholder password as a valid login.
 - Treat lifecycle integrity according to the current domain/readiness reports; this Discovery
@@ -986,10 +1002,10 @@ No unsupported business or deployment assumptions are used as facts.
 
 ## Audit Readiness
 
-Validated for T14 Research R1 at `531ec9e`; R2–R10 and Plan v1 owner approval are complete. S15 is
-the first approved T14 outcome, but Discovery grants no source authority without its committed
-exact-path handoff. Current authority lives in `docs/audits/README.md` and the Master Roadmap rather
-than in older baseline-specific handoffs.
+Validated for T14 Research R1 with current coordination at `0cb7dcc`; R2–R10 and Plan v1 owner
+approval are complete, and S15 is accepted at source `5955b7a`. Discovery grants no source authority
+for later work without its committed exact-path handoff. Current authority lives in
+`docs/audits/README.md` and the Master Roadmap rather than in older baseline-specific handoffs.
 
 The current repository behavior, multi-source tracking boundary, data model, APIs, frontend
 features, deployment files, simulators, tests, and open information gaps are documented from

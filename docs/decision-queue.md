@@ -22,9 +22,12 @@ work and approved the remaining Plan v1 recommendations on 2026-08-12:
    accepted supplied-vehicle verification contract.
 
 The owner also authorizes the High-severity role-migration ordering Maintenance repair before any
-target rollout. Execute that safety unit as soon as its migration-history gate is known; it blocks
-database rollout but not the local T14 sequence S15 → S16 → S17. Each source unit still requires a
-separately committed exact-path Level 3 handoff,
+target rollout. On 2026-08-13 the owner supplied the source-form gate: the migration source change
+exists only on this Git branch, and the migration has never run on production. Execute
+`M-20260812-02`, then the separate
+ADMIN read-only Feedback Maintenance `M-20260813-01`; S16 follows because it overlaps the latter's
+Feedback paths, and S17 follows S16. Each source unit still requires a separately committed
+exact-path Level 3 handoff,
 measurement-first evidence, full acceptance, and audit synchronization. This batch approval does
 not authorize a database target, migration execution, deployment, or external provider action.
 
@@ -115,9 +118,11 @@ registered as S09 has source/completion/Level 1 acceptance
 `c4fdc3a`/`2b49fd8`/`f526939`; the S10 repair has source/completion/acceptance
 `e6a04ad`/`e5f6422`/`95a8de1`; and the outcome later registered as S11 has
 source/completion/acceptance `70f42c1`/`535ec73`/`fd527ac`. S13 Feedback hydration is accepted at
-`a528054`; S14 is Moved outside T14; and the OSM handoff at `45ecc0a` is closed/Removed. The current
-T14 order is S15 → S16 → S17. Any selected implementation still requires its own exact Level 3
-contract, passed gates, measurement-first evidence, and unchanged dependency boundaries.
+`a528054`; S14 is Moved outside T14; and the OSM handoff at `45ecc0a` is closed/Removed. S15 is
+accepted; the remaining T14 order is S16 → S17. `M-20260812-02` and `M-20260813-01` run before S16
+as separate Maintenance and do not add or reorder T14. Any selected implementation still requires
+its own exact Level 3 contract, passed gates, measurement-first evidence, and unchanged dependency
+boundaries.
 
 ## D-012 — Remaining administrative and credential lifecycle matrix
 
@@ -207,6 +212,13 @@ Current implementation caveat: a post-acceptance edit now installs the supported
 before converting legacy `OPERATOR` rows. That ordering can fail on supported legacy data and is a
 separate High-severity Database Maintenance/Production blocker; the historical policy approval does
 not review or accept the current SQL ordering.
+
+Owner-supplied execution fact (2026-08-13): the source change to
+`20260801110000_feedback_triage_roles` exists only on the current Git branch, and the migration has
+not been applied to production. `M-20260812-02` may therefore repair this branch's existing
+migration source rather than add a forward corrective migration. This does not authorize a database
+operation or prove the state of any local, shared, staging, or other target; target history and
+disposable rollout evidence remain required before target execution.
 
 ## D-001 — Operational MVP release scope
 
@@ -499,6 +511,19 @@ add device/source writes.
 Roadmap effect: resolves T12's feedback/privacy/retention/deletion/SLA and device action policy gate.
 It does not bypass the required re-audits, server-side role/re-authentication enforcement, an exact
 T12 handoff, retention/deletion verification, or T9/T13 production gates.
+
+### D-009 refinement — ADMIN active Feedback read-only access
+
+Owner decision: **Approved on 2026-08-13.** `ADMIN` may read active, non-deleted Feedback cases,
+including the existing internal-note text. `ADMIN` may not change status or notes, soft-delete,
+read deleted/recovery records, or restore Feedback. `SUPER_ADMIN` remains the accountable triage
+owner, and `DEV` inherits that authority.
+
+Enforce this split independently at each server route; hiding frontend controls is supplemental and
+must not grant write authority. The existing retention, anonymity, business-day/non-emergency copy,
+fresh-auth deletion/restore, audit, and safe-error policies remain unchanged. Accepted source
+`5955b7a` does not implement this refinement; it requires the separate exact-path Maintenance unit
+`M-20260813-01` after migration safety and before S16.
 
 ## Postponed
 

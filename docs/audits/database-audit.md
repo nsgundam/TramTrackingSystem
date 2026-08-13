@@ -2,17 +2,19 @@
 
 Audit metadata:
 - Evidence baseline: `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
-- Accepted T14 application baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
+- Accepted T14 application baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Evidence scope: `shuttle-tracking-backend/prisma/schema.prisma`,
   `shuttle-tracking-backend/prisma/migrations/`, data-owning backend services/tests,
-  `docs/research/`, and the R1–R3 predecessor reports named below
-- Reviewed at: `2026-08-12T23:15:48+07:00`
+  `docs/research/`, `docs/decision-queue.md`, and the R1–R3 predecessor reports named below
+- Reviewed at: `2026-08-13T19:23:32+07:00`
 - Validation state: **Validated for T14 Research R4 — High non-T14 blocker open**
-- Predecessor baselines: `docs/project-knowledge-base.md` (R1),
-  `docs/audits/product-audit.md` (R2), and `docs/audits/architecture-audit.md` (R3), each validated
-  over `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
-- Owner-decision overlay: current Plan v1/S14/OSM directions affect placement only and change no
-  data evidence.
+- Predecessor baselines: `docs/project-knowledge-base.md` (R1) coordinated at `0cb7dcc` plus the
+  2026-08-13 owner facts, `docs/audits/product-audit.md` (R2) validated at `5955b7a`, and
+  `docs/audits/architecture-audit.md` (R3) retaining source evidence at `531ec9e`; S15 and the owner
+  facts change no Database boundary
+- Owner-decision overlay: current Plan v1/S14/OSM directions plus the 2026-08-13 migration-source and
+  ADMIN read-only decisions affect placement only and change no data evidence; S15 changes no
+  database boundary.
 
 ## 1. Current durable data products
 
@@ -46,10 +48,11 @@ Current coverage is insufficient: `test_t12_feedback_identity.js` matches the la
 does not assert ordering or execute a migration against legacy rows. `prisma validate`, builds, and
 the repository's ordinary CI do not prove the upgrade.
 
-Disposition: **Authorized Maintenance M-20260812-02, High, release blocker**. The applied-history
-answer is required before choosing between editing the existing migration and a forward corrective
-migration. Rollout still requires an approved disposable target or deterministic PostgreSQL fixture;
-no migration execution is authorized.
+Disposition: **Authorized Maintenance M-20260812-02, High, release blocker**. The owner selected an
+in-place repair of this Git branch's existing migration source because the source change exists only
+here and the migration never ran on production. Unknown local/shared/staging target history remains
+a per-target rollout gate. Execution still requires an approved disposable target or deterministic
+PostgreSQL fixture; no migration execution is authorized.
 
 ## 3. Remaining database findings
 

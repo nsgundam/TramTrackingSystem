@@ -2,18 +2,20 @@
 
 Audit metadata:
 - Evidence baseline: `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
-- Accepted T14 application baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
+- Accepted T14 application baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Evidence scope: `shuttle-tracking-backend/src/`, `shuttle-tracking-backend/prisma/`,
   `shuttle-tracking-backend/tests/`, `shuttle-tracking-backend/package.json`,
-  `shuttle-tracking-backend/tsconfig.json`, `scripts/ci-checks.sh`, and the R1–R3 predecessor reports
-  named below
-- Reviewed at: `2026-08-12T23:15:48+07:00`
+  `shuttle-tracking-backend/tsconfig.json`, `scripts/ci-checks.sh`, `docs/decision-queue.md`, and the
+  R1–R3 predecessor reports named below
+- Reviewed at: `2026-08-13T19:23:32+07:00`
 - Validation state: **Validated for T14 Research R4**
-- Predecessor baselines: `docs/project-knowledge-base.md` (R1),
-  `docs/audits/product-audit.md` (R2), and `docs/audits/architecture-audit.md` (R3), each validated
-  over `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
-- Owner-decision overlay: current Plan v1/S14/OSM directions affect placement only, not backend
-  baseline facts.
+- Predecessor baselines: `docs/project-knowledge-base.md` (R1) coordinated at `0cb7dcc` plus the
+  2026-08-13 owner facts, `docs/audits/product-audit.md` (R2) validated at `5955b7a`, and
+  `docs/audits/architecture-audit.md` (R3) retaining source evidence at `531ec9e`; S15 and the owner
+  facts change no Backend boundary
+- Owner-decision overlay: current Plan v1/S14/OSM directions plus the 2026-08-13 migration-source and
+  ADMIN read-only decisions affect placement only, not backend baseline facts; S15 changes no
+  backend boundary.
 - Evidence note: no backend runtime source changed after the prior validated backend baseline; one
   committed SQL migration changed and is assessed at the backend/data boundary below.
 
@@ -51,10 +53,12 @@ and stop before conversion. The static T12 identity test checks only that the `U
 present; normal TypeScript/Prisma/build checks do not execute upgrade order against legacy rows.
 
 This is High severity, outside T14, and is authorized as bounded Database Maintenance
-`M-20260812-02`. Before selecting the source form, the owner must answer whether the existing
-migration has already been applied anywhere; before rollout, a disposable migration fixture must
-cover legacy `OPERATOR`, supported privileged roles, unexpected roles, rollback/stop behavior, and
-final constraint/default state. No target migration is authorized or claimed here.
+`M-20260812-02`. The owner-selected source form is an in-place repair of this Git branch's existing
+migration because the source change exists only here and the migration never ran on production.
+Unknown local/shared/staging history remains a per-target gate; before any execution, an authorized
+disposable migration fixture must cover legacy `OPERATOR`, supported privileged roles, unexpected
+roles, rollback/stop behavior, and final constraint/default state. No target migration is authorized
+or claimed here.
 
 ## 4. T14 relevance
 

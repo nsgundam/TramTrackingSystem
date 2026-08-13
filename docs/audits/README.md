@@ -6,11 +6,12 @@ Immutable T14 research baseline: `0d985d8948624cb2134a937ce57f071b53bb1852`
 
 Accepted T14 application baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 
-Current coordinated evidence baseline: `c2dbe9851063a47bcdd89b1f77b4ded7e835c190`
+Current coordinated evidence baseline: `0cb7dcc691527b7b7b0e2a238f3ecb329dac93f3`
 
-Owner-decision overlay: the user's 2026-08-12 Plan v1 approval, S14 move, migration authorization,
-and Frontend-team OSM assignment are recorded in the current `docs/decision-queue.md`
-synchronization. They are owner authority, not source behavior at `531ec9e`.
+Owner-decision overlay: the user's 2026-08-12 Plan v1/S14/OSM directions and 2026-08-13 facts that
+the migration source change exists only on this Git branch, the migration has never run on
+production, and `ADMIN` receives active Feedback read-only access are recorded in
+`docs/decision-queue.md`. They are owner authority, not implemented behavior at `0cb7dcc`.
 
 Latest T14 acceptance: `T14-S15` at source
 `5955b7aa2a84cc52cc536cc6509219a2adcb577c`, completion `caf913d`, and ordered Level 1 re-audit
@@ -19,12 +20,12 @@ Latest T14 acceptance: `T14-S15` at source
 | Stage / profile | Status | Current result |
 |---|---|---|
 | R0 Baseline | Complete | Immutable research HEAD `0d985d8`, then-current dirty exclusions, accepted T14 ancestry, and profile freshness recorded. |
-| R1 Discovery | Validated @ `531ec9e` | Current inventory plus accepted Admin entry, High role-migration blocker, and credential-document mismatch. |
+| R1 Discovery | Validated @ `0cb7dcc` + owner facts | Current inventory, accepted S15/Admin entry, Git-branch migration source-form gate, approved-but-unimplemented ADMIN read-only policy, and remaining evidence limits are explicit. |
 | R2 Product | Validated @ `5955b7a` | S15's bounded mutation progress, failure/retry, and completion behavior is accepted for local evidence. |
-| R3 Architecture | Validated @ `531ec9e` | Current data/authority boundaries remain appropriate; generic refactors rejected without defects. |
-| R4 Backend | Validated @ `531ec9e` | No approved T14 outcome needs API/auth/backend work; T11 and bounded Security Maintenance remain. |
+| R3 Architecture | Validated @ `531ec9e` source + owner facts | Current data/authority boundaries remain appropriate; selected migration source form and future ADMIN policy remain separate Maintenance. |
+| R4 Backend | Validated @ `531ec9e` source + owner facts | No remaining T14 outcome needs API/auth/backend work; migration safety and ADMIN read-only access are bounded Maintenance. |
 | R4 Frontend | Validated @ `5955b7a` | S15's five-path guards, safe feedback, receipts, focus, detector, build, and regressions pass. |
-| R4 Database | Validated @ `531ec9e` — High blocker | Role constraint precedes supported legacy `OPERATOR` conversion; the user reports branch-only/no-production history, so authorized existing-file repair is next, with no target execution authorized. |
+| R4 Database | Validated @ `531ec9e` + owner facts — High blocker | Role constraint precedes supported legacy `OPERATOR` conversion; the Git-branch source may be repaired in place because production never ran it, while all other target history remains unknown and no execution is authorized. |
 | R5 Infrastructure & Device | Validated @ `531ec9e` | Deployment, Mobile/ESP32/TTN/provider/field facts remain external evidence. |
 | R6 Dashboard & UX | Validated @ `5955b7a` | Named busy/failure/success semantics, scoped locking, focus, 44 px, and 390 px evidence pass. |
 | R7 Security/DevOps/Observability | Validated @ `531ec9e` | Mobile credential, migration, durable observability, CI breadth, and external operations gates preserved. |

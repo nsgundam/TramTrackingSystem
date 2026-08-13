@@ -1,7 +1,7 @@
 # T14 Research and Execution Planning Contract
 
-Status: **Research R0–R10 complete; Plan v1 approved; S15–S17 ordered; OSM excluded; exact-handoff
-gates active**
+Status: **Research R0–R10 complete; Plan v1 approved; S15 accepted; S16–S17 ordered; OSM excluded;
+exact-handoff gates active**
 
 Owner direction: on 2026-08-12, research the complete remaining T14 problem space and present one
 reviewable execution plan before implementing another T14 slice. Re-audit findings must not become
@@ -228,7 +228,7 @@ is assigned exactly one primary classification.
 | RF-15 | C15 | General Public redesign/unbounded Admin polish has no measurable outcome and conflicts with D-011. | **Removed / no longer relevant** | New bounded owner-approved outcome only |
 | RF-16 | C16 | Consumer validators duplicate some structure and differ on optional source identity; S11 intentionally keeps consumer policy separate and no observed bug exists. | **Removed from T14**; future focused Maintenance only if a contract proves drift | Architecture/Security decision plus failing behavior |
 | RF-17 | S14 | Optional/general Feedback vehicle association is a new Product/Data/Privacy capability, not an S01 regression. | **Moved outside T14 by owner** | New roadmap/Product/Data/Privacy decision if reopened |
-| RF-18 | New R0 | Role constraint precedes supported legacy `OPERATOR` conversion; current test checks text, not execution/order. High. | **Authorized Maintenance — migration safety** | Applied-history answer before source form; disposable PostgreSQL evidence before rollout |
+| RF-18 | New R0 | Role constraint precedes supported legacy `OPERATOR` conversion; current test checks text, not execution/order. High. | **Authorized Maintenance — migration safety** | In-place Git-branch source repair selected; per-target history and disposable PostgreSQL evidence required before execution |
 | RF-19 | Discovery | Root README advertises `admin123`; seed requires explicit controlled credentials. Medium security/docs. | **Maintenance — credential documentation** | Confirm intended developer provisioning instructions |
 | RF-20 | Security | Legacy master-data writes have less consistent parsing/rate limiting than newer boundaries. Medium. | **Maintenance — Backend/Security** | Exact boundary measurement and allowlist |
 | RF-21 | Architecture/Security | Redis current state has no durable replay; durable metrics/alerts/recovery/load evidence is absent. High release impact. | **Other Roadmap owner — T13/later operations** | External topology and approved target |
@@ -260,7 +260,7 @@ exact-path handoff.
 | Proposal | Observable value | Prerequisite | Risk / size | Recommended position |
 |---|---|---|---|---:|
 | WP-A / S15 — Admin operational mutation integrity | Prevent duplicate case updates; expose pending, retained failure/retry, and completion to visual/screen-reader users | Approved; exact handoff required | Medium / Small–Medium | 1 |
-| WP-B / S16 — Admin timestamp contract | Deterministic, truthful dates/deadlines across Dashboard, Source Health, and Feedback | Approved timestamp policy; accepted S15 first; exact handoff required | Medium / Small | 2 |
+| WP-B / S16 — Admin timestamp contract | Deterministic, truthful dates/deadlines across Dashboard, Source Health, and Feedback | Approved timestamp policy; accepted S15; M-20260812-02 then M-20260813-01 accepted first; exact handoff required | Medium / Small | 2 |
 | WP-C — OSM attribution/endpoint alignment | **Removed by owner on 2026-08-12** | No implementation | — | — |
 | WP-D / S17 — Public stop-image resilience | Stable image layout and truthful failure behavior without redesign | Public fallback authority approved; exact handoff required | Medium / Small | 3 |
 
@@ -294,8 +294,9 @@ exact-path handoff.
    across three Admin surfaces and accurately labels the display zone.
 2. **Non-goals:** no stored timestamp, API, schema, retention cutoff, receipt-time, expiry, or status
    change.
-3. **Prerequisite:** approved policy recorded, accepted S15 because both touch Feedback, and S16's
-   committed exact-path handoff.
+3. **Prerequisite:** approved policy recorded; accepted S15; accepted `M-20260812-02` then
+   `M-20260813-01`; and S16's committed exact-path handoff. M-20260813-01 and S16 are serialized
+   because both touch Feedback.
 4. **Candidate paths/overlap:** a new typed Admin timestamp utility; Dashboard, Source Health, and
    Feedback pages; focused pure tests plus existing Admin browser specs.
 5. **Impact:** UX/i18n presentation only. Parsing accepts `unknown`/string at the display edge and
@@ -365,18 +366,22 @@ T14 slice.
 
 ```text
 Owner approved Plan v1
-├─ Safety lane: RF-18 authorized; applied-history answer ──> source form ──> required before rollout
-├─ T14 S15 Admin mutation integrity
-│  └─ accepted S15 ──> S16 Admin timestamp contract
+├─ T14 S15 Admin mutation integrity ──> accepted
+├─ M-20260812-02 in-place branch-source repair (Maintenance; no target execution)
+│  └─ M-20260813-01 ADMIN active Feedback read-only (Maintenance)
+│     └─ S16 Admin timestamp contract
 ├─ WP-C/S12 OSM ──> Removed by owner; no T14 continuation
 ├─ accepted S16 + approved Public authority ──> S17 stop-image resilience
 └─ S14 ──> Moved outside T14
 ```
 
-There is no cycle. S15 and S16 are serialized because both touch Feedback; S17 follows under the
-owner-approved batch order and is independent of removed S12.
-The safety, Roadmap, and external-evidence lanes do not become hidden prerequisites for local T14
-implementation, but their unresolved state continues to block release claims.
+There is no cycle. S15 is accepted. `M-20260812-02` then `M-20260813-01` run before S16 as explicit
+Maintenance prerequisites; they do not add or reorder a T14 slice. M-20260813-01 and S16 are
+serialized because both touch Feedback. S17 follows under the owner-approved batch order and is
+independent of removed S12. RF-18's unknown local/shared/staging target history and disposable
+evidence remain gates before any target execution, not evidence produced by source repair. Other
+Roadmap and external-evidence lanes do not become hidden prerequisites for local T14 implementation,
+but their unresolved state continues to block release claims.
 
 ## 17. Owner Review and Approval Record
 
@@ -397,7 +402,11 @@ claim the current provider/licence finding is resolved. Licence/attribution work
 Frontend team and is outside this Agent batch.
 
 The owner also authorized a separate RF-18 migration-safety Maintenance repair before any target
-rollout. Its source form depends on whether the existing migration has already been applied anywhere;
-no database execution is authorized. The Main Agent must still create and commit one exact-path
-Level 3 handoff per work unit before source implementation; the removed S12 handoff may not be
-revived.
+rollout. On 2026-08-13 the owner confirmed that the source change exists only on this Git branch and
+the migration never ran on production, selecting an in-place repair of this branch's migration
+source. Local/shared/staging target history remains unknown; no database execution is authorized.
+The owner also approved `M-20260813-01`: `ADMIN` may read active, non-deleted Feedback and existing
+internal-note text, while every mutation plus deleted/recovery read stays `SUPER_ADMIN`/`DEV`. This
+Maintenance follows M-20260812-02 and precedes overlapping S16 without becoming a T14 slice.
+The Main Agent must still create and commit one exact-path Level 3 handoff per work unit before
+source implementation; the removed S12 handoff may not be revived.

@@ -1,7 +1,7 @@
 # Master Refactoring Roadmap
 
 Audit metadata:
-- Evidence baseline: `c2dbe9851063a47bcdd89b1f77b4ded7e835c190`
+- Evidence baseline: `0cb7dcc691527b7b7b0e2a238f3ecb329dac93f3`
 - Accepted T14 application-source baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Evidence scope: `PRODUCT.md`, `docs/project-knowledge-base.md`, every validated domain and
   production-readiness audit, `docs/decision-queue.md`, `docs/tasks/`,
@@ -18,10 +18,10 @@ Audit metadata:
   `docs/audits/production-readiness-audit.md`; Product, Frontend, Dashboard & UX, and Production
   Readiness are validated in order for S15 at `5955b7a`, while unchanged predecessor domains remain
   compatible at `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`.
-- Owner-decision overlay: the user's 2026-08-12 approval of S15–S17, move of S14, migration repair,
-  and Frontend-team ownership of future OSM licence/attribution work is recorded in the current
-  `docs/decision-queue.md` synchronization; it is owner authority, not source evidence at
-  `531ec9e`.
+- Owner-decision overlay: the user's 2026-08-12 Plan/S14/OSM directions and 2026-08-13 facts that
+  the migration source change exists only on this Git branch, the migration has never run on
+  production, and `ADMIN` receives active Feedback read-only access are recorded in
+  `docs/decision-queue.md`; they are authority, not implemented behavior at `0cb7dcc`.
 
 Last reviewed: 2026-08-13
 
@@ -60,11 +60,14 @@ This roadmap supersedes the earlier task list. It uses all completed re-audits a
   runbook to the application team and host/network/DNS/TLS/secrets/recovery/alerts/incidents to the
   University Server/Network Team. External VPS is manual cold recovery; Vercel/Render/Neon and AWS
   learning are isolated non-production profiles.
-- D-009: `SUPER_ADMIN` owns anonymous, one-way business-day feedback triage; feedback/case data is
-  retained for 180 days, IP only for 30 days of rate limiting, protected deletion/restore is bounded,
-  and source/device visibility is read-only and safe-field-only.
+- D-009: `SUPER_ADMIN` owns anonymous, one-way business-day feedback triage; `ADMIN` may read active
+  Feedback and existing note text but may not mutate, read deleted records, delete, or restore;
+  feedback/case data is retained for 180 days, IP only for 30 days of rate limiting, and protected
+  deletion/restore remains bounded.
 - D-010:A: map every legacy `OPERATOR` to `ADMIN`, make `ADMIN` the ordinary-user default, retain
-  `SUPER_ADMIN`/`DEV`, and reject unknown roles at every server authorization boundary.
+  `SUPER_ADMIN`/`DEV`, and reject unknown roles at every server authorization boundary. The owner
+  reports that the source change exists only on this Git branch and the migration never ran on
+  production, selecting an in-place branch-source repair but authorizing no database target.
 - D-011: start T14 with fail-closed Feedback association and truthful Public/Admin state, preserve
   the Public visual identity, then address accessibility/navigation before measured responsive/
   performance/visual-system work; Admin pages may use a separately bounded complementary theme.
@@ -1157,7 +1160,14 @@ recovery, and runtime migration/retention evidence.
 
 A post-baseline edit to that migration now places the supported-role constraint before legacy
 `OPERATOR` conversion. The current SQL therefore has a separate High-severity Maintenance blocker
-and is not covered by the historical T12 acceptance.
+and is not covered by the historical T12 acceptance. The owner reports that the source change exists
+only on this Git branch and the migration never ran on production, so `M-20260812-02` may repair this
+branch's existing migration source. Local/shared/staging target history remains unknown and no target
+execution is implied.
+
+The later D-009 refinement grants `ADMIN` read-only active Feedback access while keeping all
+mutations and deleted/recovery reads at `SUPER_ADMIN`/`DEV`. It remains unimplemented at source
+`5955b7a` and requires `M-20260813-01` before the overlapping S16 Feedback work.
 
 ### Evidence
 

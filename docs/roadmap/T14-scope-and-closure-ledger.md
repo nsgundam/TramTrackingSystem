@@ -20,7 +20,7 @@ the immutable implementation evidence.
 | Technical score | 15/20 health signal; its P1 belongs to T15 and does not imply seven T14 tasks |
 | Release state | Production `No-Go`; controlled local demonstration is Conditional only |
 | Research state | R0–R10 complete; Plan v1 approved; S12 Removed, S14 Moved, S15–S17 ordered; separate safety/Roadmap/evidence lanes retained |
-| Next action | Execute authorized migration-safety Maintenance now that applied history is known, then the owner-approved ADMIN read-only Feedback Maintenance; only then open S16 because the latter two overlap Feedback source/tests. |
+| Next action | Execute `M-20260812-02` as an in-place repair of this Git branch's migration source; production never ran it, while other target history remains unknown and no execution is authorized. Then execute `M-20260813-01` for ADMIN active Feedback read-only access; only then open S16 because M-20260813-01 and S16 overlap Feedback source/tests. |
 
 The stable ID is an identity, not an acceptance counter. `T14-S12` remains S12 even though S13 was
 accepted first. Never describe the accepted set as “the first twelve.”
@@ -144,10 +144,10 @@ contracts live in Plan v1 Sections 13–16; this table records each C input exac
 | C16 | Removed from T14 | Consumer policy separation is intentional; focused Maintenance only if a future contract proves drift. |
 
 S12 (Removed) and S14 (Moved) remain the registered terminal rows in Section 5.
-`M-20260812-01` remains Maintenance. The High
-role-migration blocker, README credential mismatch, legacy Admin boundary hardening, T10/T12 runtime
-proof, T13 observability/recovery, and external Mobile/provider/field facts are normalized in the
-Plan rather than being assigned new C or slice IDs.
+`M-20260812-01`, `M-20260812-02`, and `M-20260813-01` are separate Maintenance units outside T14.
+The README credential mismatch, legacy Admin boundary hardening, T10/T12 runtime proof, T13
+observability/recovery, and external Mobile/provider/field facts retain their Plan or other-owner
+dispositions. None receives a new T14 C or slice ID.
 
 ## 8. Research Completion and Future Closure Gate
 
