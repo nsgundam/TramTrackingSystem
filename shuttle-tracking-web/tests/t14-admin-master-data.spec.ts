@@ -255,7 +255,8 @@ const useMasterData = async (
   page: Page,
   options: {
     vehiclesResponse?: () => { status: number; body: unknown };
-    onRouteStopsPut?: (body: unknown) => void;
+    stopsResponse?: () => { status: number; body: unknown };
+    onRouteStopsPut?: (body: unknown) => MutationResponse | Promise<MutationResponse>;
     onMutation?: MutationHandler;
   } = {},
 ) => {
@@ -264,8 +265,9 @@ const useMasterData = async (
     const pathname = new URL(request.url()).pathname;
     if (pathname === "/api/admin/route-stops/R01") {
       if (request.method() === "PUT") {
-        options.onRouteStopsPut?.(request.postDataJSON());
-        await fulfillJson(route, { success: true });
+        const response = await options.onRouteStopsPut?.(request.postDataJSON())
+          ?? { status: 200, body: { success: true } };
+        await fulfillJson(route, response.body ?? { success: true }, response.status ?? 200);
         return;
       }
       await fulfillJson(route, stops.map((stop, index) => ({ ...stop, stopOrder: index + 1 })));
@@ -282,7 +284,9 @@ const useMasterData = async (
     if (request.method() === "GET") {
       const response = resource === "vehicles"
         ? options.vehiclesResponse?.() ?? { status: 200, body: responseData[resource] }
-        : { status: 200, body: responseData[resource] };
+        : resource === "stops"
+          ? options.stopsResponse?.() ?? { status: 200, body: responseData[resource] }
+          : { status: 200, body: responseData[resource] };
       await fulfillJson(route, response.body, response.status);
       return;
     }
@@ -770,30 +774,142 @@ test("T14 Admin Mobile cards and CRUD dialog keep data, focus, and 44 px control
   await expect(editButton).toBeFocused();
 });
 
-test("T14 route-stop ordering keeps its ordered payload inside the shared Admin dialog", async ({ page, context }) => {
+test("T14 route-stop mutation integrity keeps one exact publish retry and names pending and completion", async ({ page, context }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await authenticateAdmin(context);
-  let publishedBody: unknown = null;
+  const failureGate = deferredMutation();
+  const successGate = deferredMutation();
+  let activeGate = failureGate;
+  const publishedBodies: unknown[] = [];
+  const availableStop = {
+    id: "ST03",
+    nameTh: "หอสมุด",
+    nameEn: "Library",
+    lat: 13.9661,
+    lng: 100.5882,
+    status: "active",
+  };
   await useMasterData(page, {
+    stopsResponse: () => ({ status: 200, body: [...stops, availableStop] }),
     onRouteStopsPut: (body) => {
-      publishedBody = body;
+      publishedBodies.push(body);
+      return activeGate.response;
     },
   });
 
   await page.goto("/admin/routes");
-  await page.getByRole("button", { name: "Manage stops for Campus Loop" }).click();
+  const manageStops = page.getByRole("button", { name: "Manage stops for Campus Loop" });
+  await manageStops.click();
   const dialog = page.locator('[data-admin-dialog="route-stops"]');
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByLabel("Published stop order").getByRole("listitem")).toHaveCount(2);
+  const closeButton = dialog.getByRole("button", { name: "Close route stops manager" });
+  await expect(closeButton).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(manageStops).toBeFocused();
+  expect(publishedBodies).toEqual([]);
+
+  await manageStops.click();
+  await expect(dialog).toBeVisible();
+  const order = dialog.getByLabel("Published stop order");
+  const orderItems = order.getByRole("listitem");
+  await expect(orderItems).toHaveCount(2);
   await expectMinimumTarget(dialog.locator("[data-admin-control]:visible"));
-  const overflow = await page.evaluate(() => ({
+  let overflow = await page.evaluate(() => ({
     viewport: window.innerWidth,
     document: document.documentElement.scrollWidth,
   }));
   expect(overflow.document).toBeLessThanOrEqual(overflow.viewport);
+  const dialogOverflow = await dialog.evaluate((element) => ({
+    visible: element.clientWidth,
+    content: element.scrollWidth,
+  }));
+  expect(dialogOverflow.content).toBeLessThanOrEqual(dialogOverflow.visible);
 
   await dialog.getByRole("button", { name: "Move ประตูหลัก down" }).click();
-  await dialog.getByRole("button", { name: "Publish order" }).click();
-  await expect.poll(() => publishedBody).toEqual({ stopIds: ["ST02", "ST01"] });
+  await expect(orderItems.nth(0)).toContainText("อาคารเรียน");
+  await expect(orderItems.nth(1)).toContainText("ประตูหลัก");
+
+  const stopSelection = dialog.getByLabel("Add active stop");
+  const addButton = dialog.getByRole("button", { name: "Add", exact: true });
+  await stopSelection.selectOption("ST03");
+  await expect(stopSelection).toBeEnabled();
+  await expect(addButton).toBeEnabled();
+
+  const publishButton = dialog.getByRole("button", { name: /(?:Publish|Publishing) order/ });
+  const completionReceipt = page
+    .getByRole("status")
+    .filter({ hasText: "Campus Loop" })
+    .filter({ hasText: "R01" });
+  const softExpect = expect.configure({ soft: true, timeout: 1_000 });
+
+  await publishButton.evaluate((element) => {
+    if (!(element instanceof HTMLButtonElement)) {
+      throw new Error("Publish order control must be a button");
+    }
+    element.click();
+    element.click();
+  });
+
+  await softExpect.poll(() => publishedBodies.length).toBe(1);
+  softExpect(publishedBodies).toEqual([{ stopIds: ["ST02", "ST01"] }]);
+  await softExpect(publishButton).toHaveAttribute("aria-busy", "true");
+  await softExpect(publishButton).toHaveAccessibleName(/Publishing.*order/i);
+  await softExpect.poll(
+    () => dialog.locator("[data-admin-control]:not(:disabled)").count(),
+  ).toBe(0);
+  await softExpect(completionReceipt).toHaveCount(0);
+
+  await closeButton.evaluate((element) => {
+    if (!(element instanceof HTMLButtonElement)) {
+      throw new Error("Close route stops manager control must be a button");
+    }
+    element.click();
+  });
+  await softExpect(dialog).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await softExpect(dialog).toBeVisible();
+  await softExpect.poll(() => publishedBodies.length).toBe(1);
+
+  failureGate.resolve({
+    status: 503,
+    body: {
+      details: "Internal route publication failure",
+      debug: { credential: "secret-route-order-token" },
+    },
+  });
+
+  const failure = dialog.getByRole("alert").filter({
+    hasText: "Unable to publish route stops. Try again.",
+  });
+  await expect(failure).toBeVisible();
+  await expect(failure).not.toContainText("secret-route-order-token");
+  await expect(failure).not.toContainText("Internal route publication failure");
+  await expect(orderItems.nth(0)).toContainText("อาคารเรียน");
+  await expect(orderItems.nth(1)).toContainText("ประตูหลัก");
+  await expect(publishButton).toBeEnabled();
+  await expect(publishButton).toHaveAccessibleName(/(?:Publish|Retry).*order/i);
+
+  activeGate = successGate;
+  await publishButton.click();
+  await softExpect.poll(() => publishedBodies.length).toBe(2);
+  softExpect(publishedBodies.at(-1)).toEqual({ stopIds: ["ST02", "ST01"] });
+  await softExpect(publishButton).toHaveAttribute("aria-busy", "true");
+  await softExpect(publishButton).toHaveAccessibleName(/Publishing.*order/i);
+  await softExpect(completionReceipt).toHaveCount(0);
+
+  successGate.resolve();
   await expect(dialog).toBeHidden();
+  await softExpect(completionReceipt).toBeVisible();
+  await softExpect(completionReceipt).toHaveAttribute("aria-live", "polite");
+  await softExpect(completionReceipt).toHaveAttribute("data-admin-mutation-feedback", "success");
+  await softExpect(completionReceipt).toContainText(/(?:route.*(?:order|stops)|(?:order|stops).*route)/i);
+  await softExpect(manageStops).toBeFocused();
+
+  overflow = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    document: document.documentElement.scrollWidth,
+  }));
+  softExpect(overflow.document).toBeLessThanOrEqual(overflow.viewport);
 });

@@ -42,6 +42,13 @@ const activeCase = {
   restoreExpiresAt: null,
 } as const;
 
+const secondaryActiveCase = {
+  ...activeCase,
+  id: "feedback-secondary",
+  message: "The timetable display is difficult to read.",
+  internalNote: null,
+} as const;
+
 const deletedCase = {
   ...activeCase,
   id: "feedback-deleted",
@@ -70,6 +77,26 @@ const fulfillJson = async (route: PlaywrightRoute, body: unknown, status = 200) 
     contentType: "application/json",
     body: JSON.stringify(body),
   });
+};
+
+interface FeedbackApiResponse {
+  status: number;
+  body: unknown;
+}
+
+const deferredFeedbackResponse = () => {
+  let settle: ((response: FeedbackApiResponse) => void) | undefined;
+  const response = new Promise<FeedbackApiResponse>((resolve) => {
+    settle = resolve;
+  });
+
+  return {
+    response,
+    resolve(value: FeedbackApiResponse) {
+      if (!settle) throw new Error("Feedback response was not initialized");
+      settle(value);
+    },
+  };
 };
 
 const useRole = async (page: Page, role: "ADMIN" | "SUPER_ADMIN" | "DEV") => {
@@ -125,8 +152,9 @@ const expectGlassPresentation = async (locator: Locator) => {
 const useFeedbackApi = async (
   page: Page,
   options: {
-    activeResponse?: () => { status: number; body: unknown };
+    activeResponse?: () => FeedbackApiResponse | Promise<FeedbackApiResponse>;
     onPatch?: (body: unknown) => void;
+    patchResponse?: (body: unknown) => FeedbackApiResponse | Promise<FeedbackApiResponse>;
     onDelete?: (body: unknown) => void;
     onRestore?: (body: unknown | null) => void;
   } = {},
@@ -139,13 +167,21 @@ const useFeedbackApi = async (
       return;
     }
     if (pathname === "/api/admin/feedback" && request.method() === "GET") {
-      const response = options.activeResponse?.() ?? { status: 200, body: [activeCase] };
+      const response = await (options.activeResponse?.() ?? {
+        status: 200,
+        body: [activeCase],
+      });
       await fulfillJson(route, response.body, response.status);
       return;
     }
     if (pathname === `/api/admin/feedback/${activeCase.id}` && request.method() === "PATCH") {
-      options.onPatch?.(request.postDataJSON());
-      await fulfillJson(route, { success: true });
+      const body = request.postDataJSON();
+      options.onPatch?.(body);
+      const response = await (options.patchResponse?.(body) ?? {
+        status: 200,
+        body: { success: true },
+      });
+      await fulfillJson(route, response.body, response.status);
       return;
     }
     if (pathname === `/api/admin/feedback/${activeCase.id}/delete`) {
@@ -327,6 +363,174 @@ test("T14 Feedback initial failure is not an empty queue and retry restores the 
   await expect(ledger).toContainText("super");
   await expect(page.getByRole("heading", { name: "Recoverable deletions" })).toBeVisible();
   await expectMinimumTarget(feedbackPage.locator("[data-admin-resource-action]:visible"));
+});
+
+test("T14 Feedback mutation integrity locks one case, retries the exact PATCH, and publishes a receipt", async ({ page, context }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await authenticateAdmin(context);
+  await useRole(page, "SUPER_ADMIN");
+
+  const firstPatch = deferredFeedbackResponse();
+  const retryPatch = deferredFeedbackResponse();
+  const refreshResponse = deferredFeedbackResponse();
+  const patchBodies: unknown[] = [];
+  let patchAttempt = 0;
+  let currentStatus: "new" | "acknowledged" = "new";
+  let currentInternalNote: string | null = activeCase.internalNote;
+  let holdNextRefresh = false;
+  let markRefreshStarted: (() => void) | undefined;
+  const refreshStarted = new Promise<void>((resolve) => {
+    markRefreshStarted = resolve;
+  });
+
+  await useFeedbackApi(page, {
+    activeResponse: () => {
+      const response = {
+        status: 200,
+        body: [{
+          ...activeCase,
+          status: currentStatus,
+          internalNote: currentInternalNote,
+        }, secondaryActiveCase],
+      };
+      if (!holdNextRefresh) return response;
+      holdNextRefresh = false;
+      markRefreshStarted?.();
+      return refreshResponse.response;
+    },
+    onPatch: (body) => {
+      patchBodies.push(body);
+    },
+    patchResponse: () => {
+      patchAttempt += 1;
+      if (patchAttempt === 1) return firstPatch.response;
+      if (patchAttempt === 2) return retryPatch.response;
+      throw new Error(`Unexpected feedback PATCH attempt ${patchAttempt}`);
+    },
+  });
+
+  await page.goto("/admin/feedback");
+  const feedbackPage = page.locator('[data-admin-resource="feedback"]');
+  const ledger = feedbackPage.locator('[data-admin-operations-ledger="feedback"]');
+  const recordFor = (id: string) => ledger.locator("article").filter({
+    has: page.getByRole("heading", { level: 3, name: id, exact: true }),
+  });
+  const activeRecord = recordFor(activeCase.id);
+  const secondaryRecord = recordFor(secondaryActiveCase.id);
+  const note = activeRecord.getByLabel(`Internal note for feedback ${activeCase.id}`);
+  const noteText = "  Inspect the stop sign this afternoon.  ";
+  const expectedBody = {
+    status: "acknowledged",
+    internalNote: "Inspect the stop sign this afternoon.",
+  };
+
+  await expect(activeRecord).toBeVisible();
+  await expect(secondaryRecord).toBeVisible();
+  await note.fill(noteText);
+  const markAcknowledged = activeRecord.getByRole("button", {
+    name: "Mark acknowledged",
+    exact: true,
+  });
+  await markAcknowledged.evaluate((element) => {
+    if (!(element instanceof HTMLButtonElement)) {
+      throw new Error("Expected the feedback status action to be a button");
+    }
+    element.click();
+    element.click();
+  });
+
+  await expect.poll(() => patchBodies.length).toBe(1);
+  expect(patchBodies).toEqual([expectedBody]);
+  const busyStatusAction = activeRecord.getByRole("button", {
+    name: "Marking acknowledged…",
+    exact: true,
+  });
+  await expect(busyStatusAction).toBeDisabled();
+  await expect(busyStatusAction).toHaveAttribute("aria-busy", "true");
+  await expect(note).toBeDisabled();
+  await expect(activeRecord.getByRole("button", { name: "Save note", exact: true })).toBeDisabled();
+  await expect(activeRecord.getByRole("button", { name: "Mark duplicate", exact: true })).toBeDisabled();
+  await expect(activeRecord.getByRole("button", { name: "Mark rejected", exact: true })).toBeDisabled();
+  await expect(activeRecord.getByRole("button", {
+    name: `Delete feedback ${activeCase.id}`,
+  })).toBeDisabled();
+  await expect(secondaryRecord.getByLabel(
+    `Internal note for feedback ${secondaryActiveCase.id}`,
+  )).toBeEnabled();
+  await expect(secondaryRecord.getByRole("button", {
+    name: "Mark acknowledged",
+    exact: true,
+  })).toBeEnabled();
+  await expect(feedbackPage.locator('[data-admin-mutation-feedback="success"]')).toHaveCount(0);
+
+  firstPatch.resolve({
+    status: 409,
+    body: {
+      error: "Feedback update was rejected. Try again.",
+      debug: { credential: "secret-debug-token" },
+    },
+  });
+
+  const failure = feedbackPage.locator('[data-admin-mutation-feedback="error"]').filter({
+    hasText: "Feedback update was rejected. Try again.",
+  });
+  await expect(failure).toBeVisible();
+  await expect(failure).not.toContainText("secret-debug-token");
+  await expect(note).toHaveValue(noteText);
+  await expect(activeRecord).toHaveAttribute("data-admin-signal", "new");
+  await expect(markAcknowledged).toBeEnabled();
+  await expect(activeRecord.getByRole("button", { name: "Save note", exact: true })).toBeEnabled();
+
+  await markAcknowledged.click();
+  await expect.poll(() => patchBodies.length).toBe(2);
+  expect(patchBodies).toEqual([expectedBody, expectedBody]);
+  await expect(busyStatusAction).toBeDisabled();
+  await expect(busyStatusAction).toHaveAttribute("aria-busy", "true");
+
+  currentStatus = "acknowledged";
+  currentInternalNote = expectedBody.internalNote;
+  holdNextRefresh = true;
+  retryPatch.resolve({ status: 200, body: { success: true } });
+  await refreshStarted;
+
+  const receipt = feedbackPage.locator('[data-admin-mutation-feedback="success"]').filter({
+    hasText: activeCase.id,
+  });
+  await expect(page.getByRole("status").filter({ hasText: "Loading inbox…" })).toBeVisible();
+  await expect(receipt).toBeVisible();
+  await expect(receipt).toHaveAttribute("role", "status");
+  await expect(receipt).toHaveAttribute("aria-live", "polite");
+  await expect(failure).toHaveCount(0);
+
+  refreshResponse.resolve({
+    status: 200,
+    body: [{
+      ...activeCase,
+      status: currentStatus,
+      internalNote: currentInternalNote,
+    }, secondaryActiveCase],
+  });
+
+  await expect(note).toHaveValue("");
+  await expect(activeRecord).toHaveAttribute("data-admin-signal", "acknowledged");
+  await expect(activeRecord.getByRole("button", {
+    name: "Mark investigating",
+    exact: true,
+  })).toBeVisible();
+  await expect(activeRecord.getByRole("button", {
+    name: "Mark acknowledged",
+    exact: true,
+  })).toHaveCount(0);
+  await expect(activeRecord.getByRole("button", {
+    name: "Mark duplicate",
+    exact: true,
+  })).toHaveCount(0);
+  await expect(activeRecord.getByRole("button", {
+    name: "Mark rejected",
+    exact: true,
+  })).toHaveCount(0);
+  await expect(receipt).toBeVisible();
+  expect(patchBodies).toEqual([expectedBody, expectedBody]);
 });
 
 test("T14 Feedback Mobile actions and sensitive dialog preserve focus and payloads", async ({ page, context }) => {

@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, ListOrdered, Loader2, Plus, Trash2 } from "lucide-react";
 import AdminFormModal from "@/components/admin/AdminFormModal";
+import {
+  AdminMutationFeedback,
+  adminMutationErrorMessage,
+} from "@/components/admin/AdminMutationFeedback";
 import api from "@/services/api";
 import { Route } from "@/types/route";
 import { Stop } from "@/types/stop";
@@ -18,16 +22,13 @@ interface AdminStop extends Stop {
 interface RouteStopsModalProps {
   route: Route | null;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (route: Route) => void;
 }
 
-const messageForError = (error: unknown, fallback: string): string =>
-  typeof error === "object" && error !== null && "response" in error
-    ? (() => {
-      const response = (error as { response?: { data?: { error?: unknown } } }).response;
-      return typeof response?.data?.error === "string" ? response.data.error : fallback;
-    })()
-    : fallback;
+interface RouteStopsError {
+  title: string;
+  message: string;
+}
 
 export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsModalProps) {
   const [allStops, setAllStops] = useState<AdminStop[]>([]);
@@ -35,7 +36,8 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
   const [selectedStopId, setSelectedStopId] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<RouteStopsError | null>(null);
+  const publishInFlight = useRef(false);
 
   useEffect(() => {
     if (!route) return;
@@ -65,7 +67,12 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
             })),
         );
       } catch (loadError) {
-        if (!cancelled) setError(messageForError(loadError, "Unable to load route stops."));
+        if (!cancelled) {
+          setError({
+            title: "Unable to load route stops",
+            message: adminMutationErrorMessage(loadError, "Unable to load route stops."),
+          });
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -103,19 +110,29 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
     setSelectedStopId("");
   };
 
+  const guardedClose = () => {
+    if (publishInFlight.current) return;
+    onClose();
+  };
+
   const save = async () => {
-    if (!route) return;
+    if (!route || publishInFlight.current) return;
+    const completedRoute = route;
+    const body = { stopIds: orderedStops.map((stop) => stop.id) };
+    publishInFlight.current = true;
     setSaving(true);
     setError(null);
     try {
-      await api.put(`admin/route-stops/${route.id}`, {
-        stopIds: orderedStops.map((stop) => stop.id),
-      });
-      onSaved();
+      await api.put(`admin/route-stops/${completedRoute.id}`, body);
+      onSaved(completedRoute);
       onClose();
     } catch (saveError) {
-      setError(messageForError(saveError, "Unable to publish route stops."));
+      setError({
+        title: "Unable to publish route stop order",
+        message: adminMutationErrorMessage(saveError, "Unable to publish route stops. Try again."),
+      });
     } finally {
+      publishInFlight.current = false;
       setSaving(false);
     }
   };
@@ -130,7 +147,7 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
       title="Route stops"
       description={`Arrange the published stop order for ${route.name} (${route.id}).`}
       closeLabel="Close route stops manager"
-      onClose={onClose}
+      onClose={guardedClose}
       closeDisabled={saving}
       size="wide"
       leading={<ListOrdered size={18} aria-hidden="true" />}
@@ -151,6 +168,7 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
                 onChange={(event) => setSelectedStopId(event.target.value)}
                 className="admin-form-control"
                 data-admin-control
+                disabled={saving}
               >
                 <option value="">Select a stop</option>
                 {availableStops.map((stop) => (
@@ -163,7 +181,7 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
             <button
               type="button"
               onClick={addStop}
-              disabled={!selectedStopId}
+              disabled={!selectedStopId || saving}
               className="admin-button"
               data-tone="primary"
               data-admin-control
@@ -173,7 +191,13 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
             </button>
           </div>
 
-          {error && <div role="alert" className="admin-inline-alert">{error}</div>}
+          {error && (
+            <AdminMutationFeedback
+              tone="error"
+              title={error.title}
+              message={error.message}
+            />
+          )}
 
           <ol className="admin-route-stops__list" aria-label="Published stop order">
             {orderedStops.map((stop, index) => (
@@ -230,7 +254,7 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
           <footer className="admin-modal__footer">
             <button
               type="button"
-              onClick={onClose}
+              onClick={guardedClose}
               disabled={saving}
               className="admin-button"
               data-tone="secondary"
@@ -242,12 +266,13 @@ export default function RouteStopsModal({ route, onClose, onSaved }: RouteStopsM
               type="button"
               onClick={() => void save()}
               disabled={saving || loading}
+              aria-busy={saving}
               className="admin-button"
               data-tone="primary"
               data-admin-control
             >
               {saving && <Loader2 className="admin-resource-state__spinner" size={17} aria-hidden="true" />}
-              Publish order
+              {saving ? "Publishing order…" : "Publish order"}
             </button>
           </footer>
         </>

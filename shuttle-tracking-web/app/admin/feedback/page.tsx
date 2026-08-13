@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import {
   ArchiveRestore,
   Inbox,
@@ -13,6 +13,10 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/services/api";
 import AdminFormModal from "@/components/admin/AdminFormModal";
+import {
+  AdminMutationFeedback,
+  adminMutationErrorMessage,
+} from "@/components/admin/AdminMutationFeedback";
 import {
   AdminButton,
   AdminNotice,
@@ -37,6 +41,17 @@ interface FeedbackCase {
   deletedAt: string | null;
   deletionReason: DeleteReason | null;
   restoreExpiresAt: string | null;
+}
+
+type PendingCaseAction =
+  | { kind: "note" }
+  | { kind: "status"; status: FeedbackStatus };
+
+interface CaseMutationNotice {
+  caseId: string;
+  tone: "success" | "error";
+  title: string;
+  message: string;
 }
 
 const nextStatuses: Record<FeedbackStatus, FeedbackStatus[]> = {
@@ -83,6 +98,13 @@ export default function FeedbackInboxPage() {
   const [password, setPassword] = useState("");
   const [deleteReason, setDeleteReason] = useState<DeleteReason>("privacy_request");
   const [submitting, setSubmitting] = useState(false);
+  const [pendingCaseActions, setPendingCaseActions] = useState<
+    Record<string, PendingCaseAction>
+  >({});
+  const [caseMutationNotices, setCaseMutationNotices] = useState<
+    Record<string, CaseMutationNotice>
+  >({});
+  const caseUpdatesInFlight = useRef(new Set<string>());
 
   const load = async () => {
     setLoading(true);
@@ -110,18 +132,56 @@ export default function FeedbackInboxPage() {
   }, [isLoading, user]);
 
   const updateCase = async (caseItem: FeedbackCase, status?: FeedbackStatus) => {
+    const internalNote = noteDrafts[caseItem.id];
+    const body: { status?: FeedbackStatus; internalNote?: string } = {};
+    if (status) body.status = status;
+    if (internalNote?.trim()) body.internalNote = internalNote.trim();
+    if (Object.keys(body).length === 0 || caseUpdatesInFlight.current.has(caseItem.id)) return;
+
+    caseUpdatesInFlight.current.add(caseItem.id);
+    const pendingAction: PendingCaseAction = status
+      ? { kind: "status", status }
+      : { kind: "note" };
+    setPendingCaseActions((current) => ({ ...current, [caseItem.id]: pendingAction }));
+    setCaseMutationNotices((current) => {
+      const next = { ...current };
+      delete next[caseItem.id];
+      return next;
+    });
     setActionError(null);
     try {
-      const internalNote = noteDrafts[caseItem.id];
-      const body: { status?: FeedbackStatus; internalNote?: string } = {};
-      if (status) body.status = status;
-      if (internalNote?.trim()) body.internalNote = internalNote.trim();
-      if (Object.keys(body).length === 0) return;
       await api.patch(`admin/feedback/${caseItem.id}`, body);
       setNoteDrafts((current) => ({ ...current, [caseItem.id]: "" }));
+      setCaseMutationNotices((current) => ({
+        ...current,
+        [caseItem.id]: {
+          caseId: caseItem.id,
+          tone: "success",
+          title: status ? `Feedback marked ${status}` : "Feedback note saved",
+          message: `Feedback ${caseItem.id} was updated.`,
+        },
+      }));
       await load();
-    } catch {
-      setActionError("The feedback case could not be updated.");
+    } catch (error) {
+      setCaseMutationNotices((current) => ({
+        ...current,
+        [caseItem.id]: {
+          caseId: caseItem.id,
+          tone: "error",
+          title: "Unable to update feedback",
+          message: adminMutationErrorMessage(
+            error,
+            "The feedback case could not be updated. Try again.",
+          ),
+        },
+      }));
+    } finally {
+      caseUpdatesInFlight.current.delete(caseItem.id);
+      setPendingCaseActions((current) => {
+        const next = { ...current };
+        delete next[caseItem.id];
+        return next;
+      });
     }
   };
 
@@ -187,6 +247,21 @@ export default function FeedbackInboxPage() {
         data is retained for at most 180 days; deletion is recoverable for 30 days.
       </AdminNotice>
 
+      {Object.values(caseMutationNotices).map((notice) => (
+        <AdminMutationFeedback
+          key={notice.caseId}
+          tone={notice.tone}
+          title={notice.title}
+          message={notice.message}
+          onDismiss={() => setCaseMutationNotices((current) => {
+            const next = { ...current };
+            delete next[notice.caseId];
+            return next;
+          })}
+          dismissLabel={`Dismiss feedback ${notice.caseId} mutation notice`}
+        />
+      ))}
+
       {actionError && (
         <div className="admin-inline-alert" role="alert">
           <ShieldAlert size={18} aria-hidden="true" />
@@ -229,12 +304,15 @@ export default function FeedbackInboxPage() {
                   className="admin-operations-ledger admin-feedback-ledger"
                   data-admin-operations-ledger="feedback"
                 >
-                  {cases.map((caseItem) => (
-                    <article
-                      key={caseItem.id}
-                      className="admin-operation-record admin-feedback-case"
-                      data-admin-signal={caseItem.status}
-                    >
+                  {cases.map((caseItem) => {
+                    const pendingAction = pendingCaseActions[caseItem.id];
+                    const casePending = Boolean(pendingAction);
+                    return (
+                      <article
+                        key={caseItem.id}
+                        className="admin-operation-record admin-feedback-case"
+                        data-admin-signal={caseItem.status}
+                      >
                       <header className="admin-operation-record__header">
                         <div className="admin-operation-record__identity">
                           <span className="admin-operation-record__icon" aria-hidden="true">
@@ -284,23 +362,35 @@ export default function FeedbackInboxPage() {
                             rows={2}
                             placeholder="Bounded internal case note"
                             className="admin-form-control admin-feedback-case__note"
+                            disabled={casePending}
                           />
                         </label>
                         <div className="admin-feedback-case__actions">
-                          <AdminButton onClick={() => void updateCase(caseItem)}>Save note</AdminButton>
+                          <AdminButton
+                            onClick={() => void updateCase(caseItem)}
+                            disabled={casePending}
+                            aria-busy={pendingAction?.kind === "note"}
+                          >
+                            {pendingAction?.kind === "note" ? "Saving note…" : "Save note"}
+                          </AdminButton>
                           {nextStatuses[caseItem.status].map((status) => (
                             <AdminButton
                               key={status}
                               tone="primary"
                               onClick={() => void updateCase(caseItem, status)}
+                              disabled={casePending}
+                              aria-busy={pendingAction?.kind === "status" && pendingAction.status === status}
                             >
-                              Mark {status}
+                              {pendingAction?.kind === "status" && pendingAction.status === status
+                                ? `Marking ${status}…`
+                                : `Mark ${status}`}
                             </AdminButton>
                           ))}
                           <AdminButton
                             tone="danger"
                             icon={<Trash2 size={16} aria-hidden="true" />}
                             aria-label={`Delete feedback ${caseItem.id}`}
+                            disabled={casePending}
                             onClick={() => {
                               setConfirmation({ action: "delete", caseItem });
                               setPassword("");
@@ -310,8 +400,9 @@ export default function FeedbackInboxPage() {
                           </AdminButton>
                         </div>
                       </div>
-                    </article>
-                  ))}
+                      </article>
+                    );
+                  })}
                 </div>
               )}
             </section>

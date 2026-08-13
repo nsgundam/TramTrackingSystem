@@ -42,8 +42,8 @@ export default function RoutesPage() {
   const saveInFlight = useRef(false);
   const deleteInFlight = useRef(false);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     setLoadError(null);
     try {
       const response = await api.get<Route[]>("admin/routes");
@@ -51,7 +51,7 @@ export default function RoutesPage() {
     } catch {
       setLoadError("Unable to load routes. Check the connection and try again.");
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -289,7 +289,10 @@ export default function RoutesPage() {
       <RouteStopsModal
         route={managingStopsFor}
         onClose={() => setManagingStopsFor(null)}
-        onSaved={() => void fetchData()}
+        onSaved={(route) => {
+          setReceipt({ action: "updated", target: `${route.name} (${route.id}) stop order` });
+          void fetchData(false);
+        }}
       />
       <AdminDeleteConfirmation
         active={Boolean(deleteTarget)}
