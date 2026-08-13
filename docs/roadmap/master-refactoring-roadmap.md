@@ -1,27 +1,28 @@
 # Master Refactoring Roadmap
 
 Audit metadata:
-- Evidence baseline: `0cb7dcc691527b7b7b0e2a238f3ecb329dac93f3`
+- Evidence baseline: `9323afce3d2085eadb9b736eca4a121a9a91c4db`
 - Accepted T14 application-source baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Evidence scope: `PRODUCT.md`, `docs/project-knowledge-base.md`, every validated domain and
   production-readiness audit, `docs/decision-queue.md`, `docs/tasks/`,
   `docs/roadmap/T14-scope-and-closure-ledger.md`, and the repository evidence cited by the
   revalidated reports; the current planning change also adds
   `docs/roadmap/T14-research-and-execution-plan.md`.
-- Reviewed at: `2026-08-13T19:11:41+07:00`
-- Validation state: **Validated — T14-S15 accepted; Maintenance is the next execution lane**
+- Reviewed at: `2026-08-13T21:51:09+07:00`
+- Validation state: **Validated**
+- Re-audit result: M-20260812-02 static/source scope passes; final coordination is pending.
 - Predecessor baselines: `docs/project-knowledge-base.md`, `docs/audits/product-audit.md`,
   `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`,
   `docs/audits/frontend-audit.md`, `docs/audits/database-audit.md`,
   `docs/audits/infrastructure-device-audit.md`, `docs/audits/dashboard-ux-audit.md`,
   `docs/audits/security-devops-observability-audit.md`, and
-  `docs/audits/production-readiness-audit.md`; Product, Frontend, Dashboard & UX, and Production
-  Readiness are validated in order for S15 at `5955b7a`, while unchanged predecessor domains remain
-  compatible at `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`.
+  `docs/audits/production-readiness-audit.md`, validated in required R1–R8 order over
+  `9323afce3d2085eadb9b736eca4a121a9a91c4db`; accepted T14 application behavior remains `5955b7a`.
 - Owner-decision overlay: the user's 2026-08-12 Plan/S14/OSM directions and 2026-08-13 facts that
   the migration source change exists only on this Git branch, the migration has never run on
   production, and `ADMIN` receives active Feedback read-only access are recorded in
-  `docs/decision-queue.md`; they are authority, not implemented behavior at `0cb7dcc`.
+  `docs/decision-queue.md`. M-02 implements only the migration source-form decision at `71f2002`;
+  target facts remain unavailable and ADMIN read-only access remains unimplemented.
 
 Last reviewed: 2026-08-13
 
@@ -86,13 +87,13 @@ playback, microservices, a second ingestion pipeline, or unbounded operations/re
 
 | Input | Date | Status | Use |
 |---|---:|---|---|
-| Knowledge Base | 2026-08-12 | R1 Validated @ `531ec9e` | Current inventory, accepted Admin entry, migration blocker, credential-doc mismatch, and external evidence limits are recorded. |
-| Product and Architecture | 2026-08-12 | R2–R3 Validated @ `531ec9e` | T14 scope is separated from T11/T15/D-012/external work; intentional boundaries are not cleanup tasks. |
-| Backend, Frontend, and Database | 2026-08-12 | R4 Validated @ `531ec9e` | Three approved bounded T14 paths are known after OSM removal; backend/schema changes are unnecessary; migration ordering is a High non-T14 blocker. |
-| Infrastructure & Device | 2026-08-12 | R5 Validated @ `531ec9e` | Android/ESP32/TTN/provider/deployed/field results remain unavailable external evidence. |
-| Dashboard & UX | 2026-08-12 | R6 Validated @ `531ec9e` | 15/20 is normalized: its P1 is T15; approved T14 outcomes, Maintenance, and external proof are separated. |
-| Security/DevOps/Observability | 2026-08-12 | R7 Validated @ `531ec9e` | Migration, Mobile credentials, assets, durable signals, CI breadth, and operations retain their proper owners. |
-| Production Readiness | 2026-08-12 | R8 Validated / No-Go @ `531ec9e` | Local demo Conditional; research field, internal operations, and public service No-Go. |
+| Knowledge Base | 2026-08-13 | R1 Validated @ `9323afc` | M-02 inventory and static-vs-target evidence boundary are current. |
+| Product and Architecture | 2026-08-13 | R2–R3 Validated @ `9323afc` | M-02 changes no product capability/runtime architecture; static migration boundary is resolved. |
+| Backend, Frontend, and Database | 2026-08-13 | R4 Validated @ `9323afc` | SQL/test source passes; runtime/web boundaries are unchanged; target execution remains unavailable. |
+| Infrastructure & Device | 2026-08-13 | R5 Validated @ `9323afc` | No topology/device target changed; external facts remain unavailable. |
+| Dashboard & UX | 2026-08-13 | R6 Validated @ `9323afc` | No UI change; 15/20 and remaining bounded outcomes are unchanged. |
+| Security/DevOps/Observability | 2026-08-13 | R7 Validated @ `9323afc` | Least-privilege static sequence is resolved; target/operations gates remain. |
+| Production Readiness | 2026-08-13 | R8 Validated / No-Go @ `9323afc` | PR-02 is partially resolved; target execution/rollback and all other release gates remain. |
 | T14 Plan and owner evidence | 2026-08-12 | R9–R10 Complete; owner approved | S12 Removed, S14 Moved, S15–S17 ordered; safety/Maintenance/Roadmap/evidence lanes remain separate. |
 
 Level 1 revalidated the owner-selected Admin direction at `a0a0ce1...`; the outcomes later
@@ -147,7 +148,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 | Partially Complete — repository handoff validated; external acceptance unavailable | Fail-closed runtime/origin configuration, private/authenticated production template, deterministic checks, full CI, and the Server/Network runbook passed; external deployment acceptance remains a completion gate. |
 | T10 | Complete | The exact-path handoff delivered authenticated route-stop management, transactional replacement, and public-cache invalidation with deterministic backend and repository-CI evidence. No ambient browser/database smoke ran; this re-audit carries its changed evidence. |
 | T11 | Blocked — cross-repository/external evidence | The v3 brief pins a partially compatible native app. Static-secret storage, backup/cleartext, task-removal and missing enrollment/claim/recovery gaps require a coordinated exact handoff plus writable Mobile/Android target and device acceptance. |
-| T12 | Complete — exact accepted handoff | The accepted baseline delivered persisted role/fresh-auth enforcement, feedback lifecycle/audit/retention source, public notice, inbox, safe health UI, deterministic tests, and CI. A post-baseline migration edit has a separately authorized ordering repair; no runtime target was operated. |
+| T12 | Complete — exact accepted handoff | The accepted baseline delivered persisted role/fresh-auth enforcement and Feedback behavior. M-02 separately resolves the later static migration ordering/atomicity defect at `71f2002`; no runtime target was operated. |
 | T13 | Blocked — dependency/external authority | T4/T5/T6 pass, but T9 external acceptance, an approved disposable production-mode target, recovery owners, and alert destinations are absent. |
 | T14 | Plan v1 approved — 13 source outcomes accepted | R0–R10 complete; S15 Accepted; S12 Removed; S14 Moved; S16–S17 approved. One source unit may run only after its committed exact handoff. |
 | T15 | Deferred / blocked — dependency/external facts | T7 is complete for disposable scope; T13 plus physical sender/provider/protocol facts remain open. |
@@ -159,7 +160,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | S15 Accepted / Maintenance next | Plan v1 is approved. Run migration safety, then ADMIN read-only Feedback; S16 follows because it overlaps the latter's Feedback paths, and S17 waits for S16. |
+| T14 | S15 Accepted / Maintenance re-audit complete | M-02 static/source scope passes ordered re-audit outside T14; finish its final coordination, then execute ADMIN read-only Feedback. S16 follows because it overlaps those paths, and S17 waits for S16. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
 Batch result: 13 T14 source outcomes are accepted: `T14-S01` through `T14-S11`, `T14-S13`, and
@@ -1158,12 +1159,11 @@ an additive triage/audit/retention model, a public notice, Super Admin inbox, an
 source-health view. The implementation remains distinct from deployment, account management, T11
 recovery, and runtime migration/retention evidence.
 
-A post-baseline edit to that migration now places the supported-role constraint before legacy
-`OPERATOR` conversion. The current SQL therefore has a separate High-severity Maintenance blocker
-and is not covered by the historical T12 acceptance. The owner reports that the source change exists
-only on this Git branch and the migration never ran on production, so `M-20260812-02` may repair this
-branch's existing migration source. Local/shared/staging target history remains unknown and no target
-execution is implied.
+M-02 source `71f2002` resolves the later static migration defect with one exact transaction and
+normalized deterministic sequence coverage. Only `OPERATOR` maps to `ADMIN`; the final allowlist is
+validated after conversion and all Feedback DDL remains inside the transaction. Local/shared/staging
+target history, affected rows, executed upgrade/rollback, and live final state remain unavailable;
+no target execution is implied.
 
 The later D-009 refinement grants `ADMIN` read-only active Feedback access while keeping all
 mutations and deleted/recovery reads at `SUPER_ADMIN`/`DEV`. It remains unimplemented at source
@@ -1462,7 +1462,7 @@ Route every focused technical question through `agents/level-2-specialist/AGENT.
 `tram-specialist-consultation`. Route every implementation through
 `agents/level-3-refactor/AGENT.md` with `tram-refactoring-workflow`.
 
-- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10 after its refreshed audits/task handoff, T12 under its D-010:A-constrained exact handoff, and the 13 accepted T14 source outcomes (`S01–S11 + S13 + S15`). Maintenance M-20260807-01/02/03 and M-20260812-01 are complete without adding or reordering roadmap work. S12 is Removed; S14 Moved; migration safety is the next unit.
+- Direct Level 3 tasks completed: T1, T3, T8 after T6, T10, T12, the 13 accepted T14 source outcomes (`S01–S11 + S13 + S15`), and Maintenance M-20260807-01/02/03 plus M-20260812-01. M-20260812-02 source and ordered re-audit are complete but final coordination is pending. S12 is Removed; S14 Moved; ADMIN read-only Feedback Maintenance follows M-02 acceptance.
 - Specialist-led: T2 security/abuse; T4, T9, T13 observability/deployment; T5 database transactions; T6/T7 realtime and time-series; T11 operations/mobile; T15 device/LoRaWAN.
 - T12's D-010:A account-transition choice and all exact source/test acceptance evidence are complete; runtime rollout remains separately gated.
 

@@ -1,7 +1,7 @@
 # Dashboard & UX Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
+- Evidence baseline: `9323afce3d2085eadb9b736eca4a121a9a91c4db`
 - Accepted T14 application baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Evidence scope: Public/Admin routes and components under `shuttle-tracking-web/app/` and
   `shuttle-tracking-web/components/`, browser tests under `shuttle-tracking-web/tests/`,
@@ -10,18 +10,21 @@ Audit metadata:
   `docs/audits/frontend-audit.md`, and `docs/audits/infrastructure-device-audit.md`
 - Task evidence: `docs/tasks/T14-admin-operational-mutation-integrity.md` at completion record
   `caf913d` over source `5955b7a`
-- Reviewed at: `2026-08-13T19:03:20+07:00`
+- Reviewed at: `2026-08-13T21:51:09+07:00`
 - Validation state: **Validated**
-- Re-audit purpose: T14-S15 Level 1 Dashboard & UX acceptance over source `5955b7a` and completion
-  evidence `caf913d`.
-- Predecessor baselines: `docs/audits/product-audit.md` and `docs/audits/frontend-audit.md` validated
-  for S15 at `5955b7a`; `docs/audits/infrastructure-device-audit.md` (R5) remains compatible at
-  `531ec9e` because S15 changes no infrastructure/device boundary
+- Re-audit purpose: M-20260812-02 Dashboard & UX compatibility; accepted UI/T14 behavior remains at
+  `5955b7a`.
+- Predecessor baselines: `docs/audits/product-audit.md`, `docs/audits/frontend-audit.md`, and
+  `docs/audits/infrastructure-device-audit.md` (R5), validated in order over `9323afc` while the
+  accepted visible application behavior remains `5955b7a`
 - Owner-decision overlay: current Plan v1/S14/OSM directions are owner authority, not UI behavior at
   `531ec9e`.
 - Bounded delta: `M-20260812-01` is accepted at source commit `cdd69f8`; authenticated `/admin` and
   successful Login land on the incumbent Dashboard while unauthenticated entry remains protected.
   This Maintenance result does not change the accepted T14 application baseline.
+- M-02 compatibility: source `71f2002` changes no UI path, copy, role exposure, layout, interaction,
+  or browser behavior. The 15/20 score and S16/S17 findings remain unchanged; ADMIN read-only
+  Feedback remains separate and unimplemented.
 
 ## 1. Audience and information boundary
 
@@ -66,18 +69,18 @@ creates no work. The context loader separately reports `.impeccable/design.json`
 
 ## 3. Current UX finding register
 
-| Finding | Severity / state | Destination |
+| Finding | State | Severity / destination |
 |---|---|---|
-| Feedback note/status PATCH has per-case one-request mutation integrity | **Resolved at `5955b7a` for local/synthetic scope** | T14-S15 validated with per-case guard, scoped lock, safe retry, and polite receipt |
-| Route-order publish exposes named one-request progress and completion | **Resolved at `5955b7a` for local/synthetic scope** | T14-S15 validated with full modal lock, named busy, exact retry, receipt, and focus restoration |
-| Public stop thumbnail/modal image has no intrinsic/lazy/decode/error contract | P2, reproducible | **Approved T14-S17** within bounded Public authority |
-| Public map hides required OSM attribution while using Standard tiles | Compliance/policy finding; owner cancelled S12 | **Removed from T14**; keep as a separate pre-production provider/basemap stop condition |
-| Admin timestamp locale/time-zone/invalid handling differs by page | P2, reproducible | **Approved T14-S16** under the recorded policy |
-| Admin marker uses remote Flaticon asset with no local provenance/licence | P2 dependency | Maintenance/asset decision |
-| Google Material Symbols loads globally for two Public App Tour glyphs | P2 dependency/performance | Public-authority-gated Maintenance |
-| Research Dashboard absent | P1, still present | T15 |
-| T11 history/timeout/sender recovery and exception-first operations absent | Release-critical, still present | T11 |
-| Human/AT/device/deployed UX proof | Unable to verify | External acceptance |
+| Feedback note/status PATCH has per-case one-request mutation integrity | Resolved | At `5955b7a` for local/synthetic scope; T14-S15 validated with per-case guard, scoped lock, safe retry, and polite receipt |
+| Route-order publish exposes named one-request progress and completion | Resolved | At `5955b7a` for local/synthetic scope; T14-S15 validated with full modal lock, named busy, exact retry, receipt, and focus restoration |
+| Public stop thumbnail/modal image has no intrinsic/lazy/decode/error contract | Still Present | P2, reproducible; **Approved T14-S17** within bounded Public authority |
+| Public map hides required OSM attribution while using Standard tiles | Still Present | Compliance/policy finding; owner cancelled S12 and **Removed it from T14**; keep a separate pre-production provider/basemap stop condition |
+| Admin timestamp locale/time-zone/invalid handling differs by page | Still Present | P2, reproducible; **Approved T14-S16** under the recorded policy |
+| Admin marker uses remote Flaticon asset with no local provenance/licence | Still Present | P2 dependency; Maintenance/asset decision |
+| Google Material Symbols loads globally for two Public App Tour glyphs | Still Present | P2 dependency/performance; Public-authority-gated Maintenance |
+| Research Dashboard absent | Still Present | P1; T15 |
+| T11 history/timeout/sender recovery and exception-first operations absent | Still Present | Release-critical; T11 |
+| Human/AT/device/deployed UX proof | Unable to Verify | External acceptance |
 
 ## 4. Approved T14 UX outcome contracts
 
@@ -126,6 +129,6 @@ runtime or authorize a compliant outcome.
 No human usability, assistive-technology, physical device, provider, deployed proxy, ambient
 network, load, or production session was performed. Confidence is High for source-visible
 residuals and audience boundaries, Medium for the completed isolated browser outcomes, and Low for
-external acceptance. This report validates S15 locally; S16/S17 still require ordered handoffs and
-the ADMIN read-only policy remains a separate implementation unit. No new owner decision is
-required for S15 acceptance.
+external acceptance. This report validates M-02 Dashboard/UX compatibility while retaining S15's
+local acceptance; M-20260813-01 remains next, and S16/S17 still require ordered handoffs. No new
+owner decision is required for M-02 source acceptance.

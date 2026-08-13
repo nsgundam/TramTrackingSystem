@@ -1,17 +1,20 @@
 # Product Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
+- Evidence baseline: `9323afce3d2085eadb9b736eca4a121a9a91c4db`
 - Accepted T14 application baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Evidence scope: `PRODUCT.md`, `docs/project-knowledge-base.md`, `docs/decision-queue.md`,
+  `docs/tasks/M-20260812-02-admin-role-migration-safety.md`,
+  `shuttle-tracking-backend/prisma/migrations/20260801110000_feedback_triage_roles/migration.sql`,
+  `shuttle-tracking-backend/tests/test_t12_feedback_identity.js`,
   `docs/tasks/T14-*.md`, Public/Admin journeys under `shuttle-tracking-web/app/` and
   `shuttle-tracking-web/components/`, and their browser tests under `shuttle-tracking-web/tests/`
-- Reviewed at: `2026-08-13T19:03:20+07:00`
+- Reviewed at: `2026-08-13T21:51:09+07:00`
 - Validation state: **Validated**
-- Re-audit purpose: T14-S15 Level 1 Product acceptance over source `5955b7a` and completion evidence
-  `caf913d`.
+- Re-audit purpose: M-20260812-02 Product compatibility over source `71f2002` and completion evidence
+  `9323afc`; accepted T14 application behavior remains `5955b7a`.
 - Predecessor baselines: `docs/project-knowledge-base.md` (R1) validated over
-  `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
+  `9323afce3d2085eadb9b736eca4a121a9a91c4db`
 - Owner-decision overlay: the user's 2026-08-12 Plan v1 approval, S14 move, and Frontend-team OSM
   assignment are owner authority recorded in current coordination, not source behavior at `531ec9e`.
 - Separate Maintenance: `M-20260812-01` is accepted at source `cdd69f8`; it changes the Admin entry
@@ -19,6 +22,9 @@ Audit metadata:
 - Bounded S15 source: `5955b7a` changes only Admin Feedback/route-order mutation progress,
   recovery, and completion behavior. Full CI and exact held-request evidence are recorded in
   `docs/tasks/T14-admin-operational-mutation-integrity.md`.
+- Bounded M-02 source: `71f2002` changes only SQL transaction/order and the deterministic identity
+  test. It adds no route, UI, role policy, request/response, schema shape, or product capability;
+  ADMIN active Feedback read-only access remains approved but unimplemented.
 
 ## 1. Current product state
 
@@ -52,7 +58,7 @@ the separate entry defect without absorbing it into T14.
 | Admin maintains vehicles/routes/stops/route order | Implemented with truthful read/mutation state and deterministic browser contracts | Runtime database/cache and staff acceptance are external evidence |
 | Admin monitors current service and source health | Partial | T11 owns history, timeout exceptions, sender claim/revocation, and audited recovery actions |
 | Super Admin/Dev triages Feedback | Implemented with S15 guarded mutation source/test evidence | Migration, retention/purge, backup, multi-instance scheduling, and staff/rider acceptance remain rollout evidence |
-| Admin reads active Feedback without mutation authority | Owner-approved on 2026-08-13; current source still denies access | Separate exact-path Product/Security Maintenance; active list only, with note/status/delete/restore and deleted recovery remaining privileged |
+| Admin reads active Feedback without mutation authority | Owner-approved on 2026-08-13; current source still denies access | Separate exact-path Product/Security Maintenance: active non-deleted list including existing internal-note text is readable; status/note mutation, delete/restore, and deleted/recovery reads remain privileged |
 | Researcher compares physical sources | APIs/data definitions are partial; UI and field evidence are absent | T15 after T13 and physical/provider facts |
 | General account/source lifecycle | Policy approved, implementation absent | D-012/later Roadmap task, explicitly outside T14 |
 
@@ -60,19 +66,19 @@ the separate entry defect without absorbing it into T14.
 
 | Finding | State | T14 planning disposition |
 |---|---|---|
-| Public stop imagery has no deterministic loading/error fallback and its raw images omit intrinsic dimensions/lazy loading | Still present | **Approved T14-S17**, with Public fallback authority granted and exact handoff still required |
-| Current OSM Standard raster use requires visible OpenStreetMap credit | Still present, but owner cancelled S12 on 2026-08-12 | **Removed from T14**. Before production, separately stop using the basemap/provider or authorize a compliant provider/licence outcome. |
-| Feedback must always require a vehicle | S14 Moved | **Outside T14**; the incumbent verified supplied-vehicle contract remains unchanged in this batch |
-| Admin timestamps have inconsistent locale/time-zone/invalid-value behavior | Policy approved | **Approved T14-S16**: en-GB, 24-hour Asia/Bangkok, visible ICT, safe fallback, domain-only Never |
-| Non-sensitive Feedback updates and route-order publish lack the full pending/completion semantics used by accepted Admin mutation journeys | **Resolved for exact local source/browser scope at `5955b7a`** | **T14-S15 validated**: synchronous guards, scoped locks, retained safe retry, exact payloads, polite receipts, focus, and synthetic 390 px viewport/no-overflow evidence pass |
-| ADMIN read-only active Feedback access | New finding: owner-approved policy is not implemented at `5955b7a` | Separate exact-path Product/Security implementation; do not reopen or expand S15 |
-| Admin remote icon, global Material Symbols, and design-sidecar drift | Bounded dependency/documentation hygiene | **Maintenance**, not new product capability |
-| Automatic dark Admin theme | Contradicts fixed-light Signal Lens direction | **Removed** |
-| General Public redesign or unlimited Admin polish | Contradicts D-011 and bounded T14 | **Removed** |
-| Research Dashboard | Missing and release-relevant, but not T14 | **T15** |
-| Sender claim, timeout, protected history, exceptions, and recovery | Missing and release-critical, but not T14 | **T11** |
-| Account/Sender/deletion/backup lifecycle controls | Approved policy, unimplemented | **D-012/later Roadmap task** |
-| Human, assistive-technology, deployed, provider, load, and physical-device proof | Unavailable | **External evidence**, not repository source slices |
+| Public stop imagery has no deterministic loading/error fallback and its raw images omit intrinsic dimensions/lazy loading | Still Present | **Approved T14-S17**, with Public fallback authority granted and exact handoff still required |
+| Current OSM Standard raster use requires visible OpenStreetMap credit | Still Present | **Removed from T14** by the owner's 2026-08-12 cancellation. Before production, separately stop using the basemap/provider or authorize a compliant provider/licence outcome. |
+| Feedback must always require a vehicle | Still Present | **Outside T14 / S14 Moved**; the incumbent verified supplied-vehicle contract remains unchanged in this batch |
+| Admin timestamps have inconsistent locale/time-zone/invalid-value behavior | Still Present | **Approved T14-S16** under the recorded en-GB, 24-hour Asia/Bangkok, visible ICT, safe-fallback, domain-only-Never policy |
+| Non-sensitive Feedback updates and route-order publish lack the full pending/completion semantics used by accepted Admin mutation journeys | Resolved | **T14-S15 validated at `5955b7a` for exact local source/browser scope**: synchronous guards, scoped locks, retained safe retry, exact payloads, polite receipts, focus, and synthetic 390 px viewport/no-overflow evidence pass |
+| ADMIN read-only active Feedback access | New Finding | Owner-approved policy is not implemented at `5955b7a`; use a separate exact-path Product/Security implementation and do not reopen or expand S15 |
+| Admin remote icon, global Material Symbols, and design-sidecar drift | Still Present | **Maintenance** for bounded dependency/documentation hygiene, not new product capability |
+| Automatic dark Admin theme | No Longer Relevant | **Removed** because it contradicts fixed-light Signal Lens direction |
+| General Public redesign or unlimited Admin polish | No Longer Relevant | **Removed** because it contradicts D-011 and bounded T14 |
+| Research Dashboard | Still Present | Missing and release-relevant; owned by **T15**, not T14 |
+| Sender claim, timeout, protected history, exceptions, and recovery | Still Present | Missing and release-critical; owned by **T11**, not T14 |
+| Account/Sender/deletion/backup lifecycle controls | Still Present | Approved policy remains unimplemented; **D-012/later Roadmap task** |
+| Human, assistive-technology, deployed, provider, load, and physical-device proof | Unable to Verify | **External evidence**, not repository source slices |
 
 No accepted-outcome T14 regression is established at the immutable research baseline. The separate
 `/admin` defect is correctly owned by Maintenance.
@@ -97,8 +103,9 @@ committed exact-path handoff.
 
 ## 5. Evidence limits and confidence
 
-Confidence is High for repository-visible routes, roles, S15's exact local outcome, and missing T11/T15/
-D-012 capabilities; Medium for synthetic browser behavior; and Low for human comprehension,
-assistive technology, deployed service behavior, provider policy enforcement, device/field
-performance, and operations. This Product re-audit accepts S15's observable behavior only; it does
-not accept deployment, human/AT outcomes, or the later ADMIN read-only policy implementation.
+Confidence is High for repository-visible routes, roles, S15's retained exact local outcome, and
+missing T11/T15/D-012 capabilities; Medium for synthetic browser behavior; and Low for human
+comprehension, assistive technology, deployed service behavior, provider policy enforcement,
+device/field performance, and operations. This Product re-audit validates M-02 compatibility while
+retaining S15 behavior; it does not accept deployment, human/AT outcomes, or the later ADMIN
+read-only policy implementation.

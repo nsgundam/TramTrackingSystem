@@ -1,24 +1,25 @@
 # Frontend Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
+- Evidence baseline: `9323afce3d2085eadb9b736eca4a121a9a91c4db`
 - Accepted T14 application baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Evidence scope: `shuttle-tracking-web/app/`, `shuttle-tracking-web/components/`,
   `shuttle-tracking-web/config/`, `shuttle-tracking-web/contexts/`, `shuttle-tracking-web/hooks/`,
   `shuttle-tracking-web/services/`, `shuttle-tracking-web/tests/`, and the R1–R3 predecessor reports
-- Reviewed at: `2026-08-13T19:03:20+07:00`
+- Reviewed at: `2026-08-13T21:51:09+07:00`
 - Validation state: **Validated**
-- Re-audit purpose: T14-S15 Level 1 Frontend acceptance over source `5955b7a` and completion
-  evidence `caf913d`.
+- Re-audit purpose: M-20260812-02 Frontend compatibility; accepted frontend/T14 behavior remains at
+  `5955b7a`.
 - Predecessor baselines: `docs/project-knowledge-base.md` (R1),
-  `docs/audits/product-audit.md` (S15 Product re-audit) at `5955b7a`, and
-  `docs/audits/architecture-audit.md` (R3) at `531ec9e`; Architecture remains compatible because
-  S15 preserves page-local request/DTO/refresh ownership
+  `docs/audits/product-audit.md` (R2), and `docs/audits/architecture-audit.md` (R3), each validated
+  over `9323afce3d2085eadb9b736eca4a121a9a91c4db`
 - Owner-decision overlay: current Plan v1/S14/OSM directions are owner authority, not frontend
   behavior at `531ec9e`.
 - Bounded delta: `M-20260812-01` source commit `cdd69f8` adds only the canonical `/admin` redirect,
   its deterministic journey, and isolated Playwright build-cache configuration. It is accepted as
   Maintenance evidence and does not change the accepted T14 application baseline.
+- M-02 compatibility: source `71f2002` changes only backend SQL and the shared T12 identity test;
+  no web path or behavior changes. ADMIN read-only Feedback remains unimplemented and separate.
 
 ## 1. Current frontend state
 
@@ -41,17 +42,17 @@ build, focused suites, and full CI pass. The later ADMIN read-only policy remain
 
 ## 2. Verified residual source findings
 
-| Ref | Current source evidence | Disposition |
+| Ref | State | Current evidence / disposition |
 |---|---|---|
-| C01 — broad live-region inconsistency | **Resolved** at `5955b7a`; no broader shared-state defect was established. | T14-S15 validates one-request pending, retained retry, named completion, focus, and 390 px behavior. |
-| C02 — Public stop images | `StopInfoCard.tsx` renders thumbnail and modal raw `<img>` elements without intrinsic dimensions, `loading`, `decoding`, or an `onError` fallback. | **Approved T14-S17** within the granted Public fallback authority. |
-| C03 — Admin vehicle icon | `LiveMap.tsx` uses a live Flaticon CDN URL for every vehicle marker; no local licence/provenance artifact exists. | **Maintenance/asset decision**. Do not copy the file without licence evidence; prefer an approved local/code-native marker. |
-| C04 — global Material Symbols | Root `app/layout.tsx` loads a Google font globally; only `AppTour.tsx` uses two glyphs. The tour is mounted dynamically by `ShuttleTracker`. | **Maintenance**, Public-authority gated if icon presentation changes. Replace with the existing local icon system or remove the dependency after usage tests. |
-| C05 — timestamp policy | Dashboard uses Thai locale with `Asia/Bangkok`; Source Health and Feedback use viewer-default `toLocaleString()` and do not guard invalid values. | **Approved T14-S16** under the recorded en-GB/Asia-Bangkok/ICT policy. |
-| C06 — generic mutation state machine | Shared semantic feedback/confirmation exists; pages intentionally own requests, DTOs, targets, refresh, and pending state. | **Removed**; no harmful duplication/defect measured. |
-| C12 — design sidecar | Impeccable context reports `.impeccable/design.json` older than `DESIGN.md`. | **Documentation Maintenance** only; no UI implementation defect is inferred. |
-| C14/S12 — OSM | Public disables attribution and uses the wildcard Standard tile URL; owner cancelled S12 on 2026-08-12. | **Removed from T14**. No source change; provider/basemap risk remains a separate pre-production decision. |
-| C16 — shared canonical decoder | Public and Admin share transport/listener mechanics but retain consumer-specific validation/canonical/UI rules. | **Removed** unless a concrete policy drift/regression is measured. |
+| C01 — broad live-region inconsistency | Resolved | At `5955b7a`, no broader shared-state defect was established; T14-S15 validates one-request pending, retained retry, named completion, focus, and 390 px behavior. |
+| C02 — Public stop images | Still Present | `StopInfoCard.tsx` lacks intrinsic dimensions, loading/decoding policy, and `onError`; **Approved T14-S17** within granted Public fallback authority. |
+| C03 — Admin vehicle icon | Still Present | `LiveMap.tsx` uses a live Flaticon CDN URL without a local licence/provenance artifact; use a bounded Maintenance/asset decision and do not copy the file without licence evidence. |
+| C04 — global Material Symbols | Still Present | Root `app/layout.tsx` loads a Google font for two `AppTour.tsx` glyphs; Public-authority-gated Maintenance may replace it with the local icon system after usage tests. |
+| C05 — timestamp policy | Still Present | Dashboard and the two operational pages differ and do not consistently guard invalid values; **Approved T14-S16** under the en-GB/Asia-Bangkok/ICT policy. |
+| C06 — generic mutation state machine | No Longer Relevant | Shared semantic feedback exists while pages intentionally own requests, DTOs, targets, refresh, and pending state; no harmful duplication was measured. |
+| C12 — design sidecar | Still Present | Impeccable reports `.impeccable/design.json` older than `DESIGN.md`; Documentation Maintenance only, with no UI defect inferred. |
+| C14/S12 — OSM | Still Present | Public still uses the provider while hiding attribution, but the owner removed S12 from T14; provider/basemap risk remains a separate pre-production decision. |
+| C16 — shared canonical decoder | No Longer Relevant | Public and Admin intentionally retain consumer-specific validation/canonical/UI rules; reopen only for a concrete drift/regression. |
 
 Additional source facts:
 
@@ -108,12 +109,13 @@ The current documented technical score remains **15/20** for continuity; it must
 into a closure counter. Its sole open P1 is the missing Research Dashboard owned by T15. Current
 open counts are 0 P0 / 1 P1 / 4 P2 / 1 P3 after C01 resolution. Remaining P2/P3 observations
 decompose into the approved stop-image outcome, external assets/Maintenance, timestamp policy, and
-optional sidecar documentation. Focused S15 and recorded regressions/full CI passed; this re-audit
-independently reran both focused tests and the detector. No human/AT/device/deployed session ran.
+optional sidecar documentation. The S15 re-audit independently reran both focused tests and the
+detector, and recorded regressions/full CI passed. The current M-02 compatibility re-audit changes no
+web source and ran no human/AT/device/deployed session.
 
 ## 5. Confidence and handoff
 
-Confidence is High for exact source locations and S15 local invariants; Medium for synthetic
-accessibility impact; and Low for real-device,
-assistive-technology, deployed/provider, and human outcomes. This report validates S15 only; it
-does not authorize or accept the separate ADMIN read-only policy implementation.
+Confidence is High for exact source locations and retained S15 local invariants; Medium for
+synthetic accessibility impact; and Low for real-device, assistive-technology, deployed/provider,
+and human outcomes. This report validates M-02 Frontend compatibility because no web path changed;
+it does not authorize or accept the separate ADMIN read-only policy implementation.

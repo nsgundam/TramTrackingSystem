@@ -5,7 +5,7 @@
 - Work ID: `M-20260812-02`
 - Lane: `Maintenance`
 - Roadmap task: `Not applicable`
-- Status: `Source complete at 71f2002 — affected Level 1 re-audit required`
+- Status: `Source Complete — ordered Level 1 re-audit validated; final coordination pending`
 - User authorization: on 2026-08-12 the owner authorized the High-severity migration-ordering
   repair; on 2026-08-13 the owner confirmed that the migration source change exists only on this
   Git branch and the migration has never run on production.
@@ -146,8 +146,7 @@
 
 ## Completion Evidence
 
-- Status: `Source complete at 71f20028f12ae4b04a8005ab3d7d71cd3b0cefa0; affected Level 1
-  re-audit required before Maintenance acceptance`
+- Status: `Source Complete at 71f20028f12ae4b04a8005ab3d7d71cd3b0cefa0 — final coordination pending`
 - Handoff baseline: `a31f352c89f5ecbe9ac2b9b493785d61816e6ae1` over owner-fact
   coordination `387ea597c3b5c92fb2c70bb859b5222ac5519f98`.
 - Measurement-first evidence: after adding the exact migration contract but before SQL repair,
@@ -157,6 +156,10 @@
   itself passed.
 - Source baseline: `71f20028f12ae4b04a8005ab3d7d71cd3b0cefa0` changes only the two
   allowlisted implementation paths.
+- Level 3 completion: `9323afce3d2085eadb9b736eca4a121a9a91c4db`.
+- Ordered Level 1 re-audit: the R1–R8 profiles and Master Roadmap validate the exact source/static
+  evidence at `9323afc`; their committed coordination record becomes R before the separate final
+  acceptance synchronization, and changes no inspected source.
 - Implemented behavior: one explicit PostgreSQL transaction now orders drop → `OPERATOR`-only
   conversion → `ADMIN` default → exact validated final role constraint → byte-preserved Feedback
   DDL → commit. Unknown roles remain unmapped; static PostgreSQL semantics make the final constraint
@@ -180,9 +183,8 @@
     mutations, constraint drops, transaction controls, `NOT VALID`, and Feedback DDL drift;
   - `node scripts/validate-agent-workflow.js`, `git diff --check`, `git status --short`, and exact
     `git diff --name-only` review passed for the source scope.
-- Audit freshness after source: downgrade R1 Discovery, R3 Architecture, R4 Backend, R4 Database,
-  R7 Security/DevOps/Observability, R8 Production Readiness, and Roadmap coordination to
-  `Needs Re-audit`. Product, Frontend, Infrastructure & Device, and Dashboard & UX remain current
-  unless implementation crosses a stop condition.
+- Audit disposition: R1–R8 and Roadmap are validated in predecessor order over `9323afc`; Product,
+  Frontend, Infrastructure & Device, and Dashboard & UX confirm compatibility without changing the
+  accepted T14 application baseline `5955b7a`.
 - Evidence limits: static/source/deterministic-test evidence only; no database target, affected-row,
   migration execution, rollback, deployed, or production evidence.

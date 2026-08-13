@@ -23,19 +23,17 @@ No T14 source slice is Active. The owner approved Plan v1 on 2026-08-12 with thr
 
 S14 optional/general Feedback is Moved outside T14. S12 remains Removed, with future
 licence/attribution handling assigned to the Frontend team outside this batch. Source remains frozen
-per unit until that unit receives a committed exact-path handoff. Before S16, execute the two
-separate Maintenance units in order: migration safety, then ADMIN active Feedback read-only access.
+per unit until that unit receives a committed exact-path handoff. M-02 has source `71f2002`,
+completion `9323afc`, and ordered Level 1 validation for its static scope. Final evidence
+synchronization precedes ADMIN active Feedback read-only access and S16.
 
 ## Important non-T14 result
 
-The committed Feedback-role migration adds a check constraint allowing only `ADMIN`, `DEV`, and
-`SUPER_ADMIN` before converting legacy `OPERATOR` rows. It can therefore fail on supported legacy
-data. Existing tests check for the later SQL text but do not execute or verify ordering. This is a
-High-severity Database Maintenance item and a release stop condition. The owner reports that the
-migration source change exists only on this Git branch and the migration has never run on
-production, so `M-20260812-02` may repair this branch's existing source file in place. This does not
-establish local/shared/staging target history; no database target or migration execution is
-authorized.
+M-02 source `71f2002` repairs the Feedback-role migration with one exact transaction: drop the old
+constraint, convert only `OPERATOR`, set the `ADMIN` default, install the exact validated final
+allowlist, preserve Feedback DDL, then commit. The normalized deterministic test and full CI pass.
+This resolves the High static source defect; target history, affected rows, executed upgrade/
+rollback, and live final state remain `Unable to Verify`. No database target was queried or operated.
 
 The owner separately approved `ADMIN` read-only access to active, non-deleted Feedback and existing
 internal-note text. Status/note mutation, deleted-record reads, delete, and restore remain
@@ -68,7 +66,7 @@ Dashboard; the bounded T14 residuals, Maintenance, and external evidence are now
 
 ## Approved execution order
 
-1. `M-20260812-02` migration safety, without operating a database target;
+1. finish M-02 final H/S/C/R synchronization without operating a database target;
 2. `M-20260813-01` ADMIN active Feedback read-only access;
 3. S16 timestamp contract using `en-GB`, 24-hour `Asia/Bangkok`, visible `ICT`, and safe fallbacks;
 4. S17 bounded Public stop-image failure resilience.

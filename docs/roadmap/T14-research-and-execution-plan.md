@@ -228,7 +228,7 @@ is assigned exactly one primary classification.
 | RF-15 | C15 | General Public redesign/unbounded Admin polish has no measurable outcome and conflicts with D-011. | **Removed / no longer relevant** | New bounded owner-approved outcome only |
 | RF-16 | C16 | Consumer validators duplicate some structure and differ on optional source identity; S11 intentionally keeps consumer policy separate and no observed bug exists. | **Removed from T14**; future focused Maintenance only if a contract proves drift | Architecture/Security decision plus failing behavior |
 | RF-17 | S14 | Optional/general Feedback vehicle association is a new Product/Data/Privacy capability, not an S01 regression. | **Moved outside T14 by owner** | New roadmap/Product/Data/Privacy decision if reopened |
-| RF-18 | New R0 | Role constraint precedes supported legacy `OPERATOR` conversion; current test checks text, not execution/order. High. | **Authorized Maintenance — migration safety** | In-place Git-branch source repair selected; per-target history and disposable PostgreSQL evidence required before execution |
+| RF-18 | New R0 | Role constraint preceded supported legacy `OPERATOR` conversion and lacked atomic enclosure. High. | **Resolved for static source by M-20260812-02 at `71f2002`** | Per-target history and disposable PostgreSQL execution/rollback evidence remain required before target use |
 | RF-19 | Discovery | Root README advertises `admin123`; seed requires explicit controlled credentials. Medium security/docs. | **Maintenance — credential documentation** | Confirm intended developer provisioning instructions |
 | RF-20 | Security | Legacy master-data writes have less consistent parsing/rate limiting than newer boundaries. Medium. | **Maintenance — Backend/Security** | Exact boundary measurement and allowlist |
 | RF-21 | Architecture/Security | Redis current state has no durable replay; durable metrics/alerts/recovery/load evidence is absent. High release impact. | **Other Roadmap owner — T13/later operations** | External topology and approved target |
@@ -350,7 +350,7 @@ T14 slice.
 
 | Lane | Recommended handling | Relationship to T14 |
 |---|---|---|
-| Migration safety RF-18 | Highest-priority bounded Database Maintenance before any target rollout | Independent of local T14 coding; blocks release/migration acceptance |
+| Migration safety RF-18 | M-20260812-02 static source validated at `71f2002`; target execution evidence remains | Complete outside T14 after final sync; target gate blocks target execution/rollout and release claims, not M-02 source acceptance |
 | Admin-entry RF-26 | Accepted `M-20260812-01` at source `cdd69f8` / Level 1 record `531ec9e` | Complete outside T14; never a T14 slice |
 | Assets RF-03/RF-04 | Separate Admin and Public Maintenance units after licence/Public gates | Do not broaden WP-D automatically |
 | Docs RF-12/RF-19 | Optional sidecar refresh and credential-instruction correction | Documentation Maintenance |
@@ -367,16 +367,16 @@ T14 slice.
 ```text
 Owner approved Plan v1
 ├─ T14 S15 Admin mutation integrity ──> accepted
-├─ M-20260812-02 in-place branch-source repair (Maintenance; no target execution)
-│  └─ M-20260813-01 ADMIN active Feedback read-only (Maintenance)
+├─ M-20260812-02 static source validated (Maintenance; no target execution)
+│  └─ final H/S/C/R sync ──> M-20260813-01 ADMIN active Feedback read-only (Maintenance)
 │     └─ S16 Admin timestamp contract
 ├─ WP-C/S12 OSM ──> Removed by owner; no T14 continuation
 ├─ accepted S16 + approved Public authority ──> S17 stop-image resilience
 └─ S14 ──> Moved outside T14
 ```
 
-There is no cycle. S15 is accepted. `M-20260812-02` then `M-20260813-01` run before S16 as explicit
-Maintenance prerequisites; they do not add or reorder a T14 slice. M-20260813-01 and S16 are
+There is no cycle. S15 is accepted. M-02 static source passes ordered validation and final evidence
+synchronization precedes `M-20260813-01`; they do not add or reorder a T14 slice. M-20260813-01 and S16 are
 serialized because both touch Feedback. S17 follows under the owner-approved batch order and is
 independent of removed S12. RF-18's unknown local/shared/staging target history and disposable
 evidence remain gates before any target execution, not evidence produced by source repair. Other

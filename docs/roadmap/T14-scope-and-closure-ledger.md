@@ -20,7 +20,7 @@ the immutable implementation evidence.
 | Technical score | 15/20 health signal; its P1 belongs to T15 and does not imply seven T14 tasks |
 | Release state | Production `No-Go`; controlled local demonstration is Conditional only |
 | Research state | R0–R10 complete; Plan v1 approved; S12 Removed, S14 Moved, S15–S17 ordered; separate safety/Roadmap/evidence lanes retained |
-| Next action | Execute `M-20260812-02` as an in-place repair of this Git branch's migration source; production never ran it, while other target history remains unknown and no execution is authorized. Then execute `M-20260813-01` for ADMIN active Feedback read-only access; only then open S16 because M-20260813-01 and S16 overlap Feedback source/tests. |
+| Next action | Finish M-20260812-02 final H/S/C/R synchronization after ordered static/source validation; target history/execution remains unavailable. Then execute `M-20260813-01` for ADMIN active Feedback read-only access; only then open S16 because M-20260813-01 and S16 overlap Feedback source/tests. |
 
 The stable ID is an identity, not an acceptance counter. `T14-S12` remains S12 even though S13 was
 accepted first. Never describe the accepted set as “the first twelve.”
@@ -190,5 +190,5 @@ deployed acceptance, or completion of T9, T11, T13, or T15. Those remain separat
 - C01 through C16 appear exactly once with evidence-based dispositions; none is a pre-approved task.
 - S13 provenance is exactly `4c33cf0 / c72feb9 / 9a9cf5c / a528054`.
 - `node scripts/validate-agent-workflow.js` and `git diff --check` pass after synchronization.
-- The committed Feedback-role migration remains preserved, is assessed as a High non-T14 blocker,
-  and is not silently edited through this ledger.
+- M-20260812-02 resolves the committed Feedback-role migration's static High defect outside T14;
+  target execution/rollback remains a Production gate and this ledger grants no database authority.

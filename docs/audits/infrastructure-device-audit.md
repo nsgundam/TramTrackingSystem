@@ -1,17 +1,18 @@
 # Infrastructure & Device Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
-- Accepted T14 application baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
+- Evidence baseline: `9323afce3d2085eadb9b736eca4a121a9a91c4db`
+- Accepted T14 application baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Evidence scope: `docker-compose.yml`, `docker-compose.prod.yml`, `docker/`,
   `shuttle-tracking-backend/Dockerfile`, `shuttle-tracking-web/Dockerfile`, `.github/workflows/`,
   `scripts/`, `docs/operations/`, `docs/research/`, simulator boundaries under both application
   test trees, and the pinned external Android revision recorded by Discovery
-- Reviewed at: `2026-08-12T23:15:48+07:00`
-- Validation state: **Validated for T14 Research R5**
+- Reviewed at: `2026-08-13T21:51:09+07:00`
+- Validation state: **Validated**
+- Re-audit purpose: M-20260812-02 Infrastructure & Device compatibility.
 - Predecessor baselines: `docs/audits/backend-audit.md`, `docs/audits/frontend-audit.md`, and
   `docs/audits/database-audit.md` (R4), each validated over
-  `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
+  `9323afce3d2085eadb9b736eca4a121a9a91c4db`
 - Owner-decision overlay: current Plan v1/S14/OSM directions affect placement only, not
   topology/device evidence.
 
@@ -25,6 +26,10 @@ restore, log/metric sink, alerts, restart, scaling, and incident ownership remai
 
 Accepted `M-20260812-01` Playwright/Next/TypeScript configuration isolates the browser-test build
 cache. It does not alter the intended production topology and remains separate Maintenance evidence.
+
+M-02 source `71f2002` changes no Compose, image, topology, device, provider, firmware, Mobile, or
+external-target path. Full CI is static/regression evidence only; no infrastructure or device target
+ran, and every external gate below remains unchanged.
 
 ## 2. Device/source boundaries
 

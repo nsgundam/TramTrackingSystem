@@ -1,25 +1,37 @@
 # Tram Tracking System Project Knowledge Base
 
 Audit metadata:
-- Evidence baseline: `0cb7dcc691527b7b7b0e2a238f3ecb329dac93f3`
+- Evidence baseline: `9323afce3d2085eadb9b736eca4a121a9a91c4db`
 - Accepted T14 application baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Evidence scope: `README.md`, `AGENTS.md`, Compose/environment configuration and scripts,
   `shuttle-tracking-backend/`, `shuttle-tracking-web/`, `docs/testing/`, `docs/research/`,
   `docs/tasks/`, `docs/operations/`, `docs/decision-queue.md`, `docs/audits/specialized/`, and the
   immutable external Mobile revision recorded in the T11 v3 specialist brief
-- Reviewed at: `2026-08-13T19:20:00+07:00`
+- Reviewed at: `2026-08-13T21:51:09+07:00`
 - Validation state: `Validated`
 - Predecessor baselines: `None` (Discovery has no required predecessor)
 - Owner-decision overlay: the user's 2026-08-12 Plan v1/S14/OSM directions and 2026-08-13 facts that
   the migration source change exists only on this Git branch, the migration has never run on
   production, and `ADMIN` receives active Feedback read-only access are recorded in
-  `docs/decision-queue.md`; Discovery consumes them as authority, not implemented behavior at
-  `0cb7dcc`.
+  `docs/decision-queue.md`. `M-20260812-02` consumes only the source-form authority at `71f2002`;
+  target facts remain unknown and ADMIN read-only access remains unimplemented.
 
-Evidence status: **Validated for T14 Research R1**. Research baseline `0d985d8` remains the R0
-historical anchor; current coordination baseline `0cb7dcc` includes accepted `M-20260812-01` and
-T14-S15. The 2026-08-13 owner facts select later Maintenance contracts but do not themselves change
-application behavior. Use `docs/audits/README.md` as the coordination authority.
+Evidence status: **Validated for M-20260812-02 R1 compatibility at `9323afc`**. Research baseline
+`0d985d8` remains the R0 historical anchor; accepted T14 application behavior remains `5955b7a`.
+The current evidence includes M-02 source `71f2002` and completion record `9323afc`; it does not
+include a database-target operation. Use `docs/audits/README.md` as the coordination authority.
+
+## M-20260812-02 Discovery Re-audit — 2026-08-13
+
+| Finding | State | Current evidence / limit |
+|---|---|---|
+| Constraint-before-conversion order and missing atomic enclosure | Resolved | Repository source `71f2002` uses one exact transaction: drop → `OPERATOR`-only conversion → `ADMIN` default → validated final allowlist → unchanged Feedback DDL → commit. The normalized test and recorded full CI pass. |
+| Local/shared/staging target history, affected rows, executed upgrade/rollback, and live final default/constraint | Unable to Verify | No database target was queried or operated. Explicit target authority and disposable PostgreSQL upgrade/rollback evidence remain required before execution. |
+
+This Maintenance changes only the existing migration and its deterministic T12 identity test. It
+adds no route, API, schema shape, UI, runtime role capability, T14 outcome, deployment, or research
+claim. PostgreSQL rollback behavior is inferred from transactional DDL semantics and is not an
+observed target result.
 
 ## T14 Research Discovery Snapshot — 2026-08-12 (historical anchor)
 
@@ -154,13 +166,13 @@ S15 evidence and current baselines are recorded in this document's metadata and 
 
 | Prior material finding | State | Current evidence |
 |---|---|---|
-| Discovery metadata and baseline were incomplete | **Resolved** | This report now records the full baseline, scope, reviewed time, validation state, and predecessor baseline. |
-| Trip lifecycle had competing non-transactional writers | **Resolved** | `shuttle-tracking-backend/src/services/operations.service.ts`, the T5 migration, and `test_t5_operations.js` define one transactional/idempotent boundary; live integration was not rerun here. |
-| Simulator and seed source fixtures diverged | **Resolved** | `env.example`, `prisma/seed.js`, `shuttle-tracking-web/simulate.js`, `shuttle-tracking-backend/simulate-ttn.js`, and `docs/testing/pipeline-smoke-tests.md` use aligned source/vehicle mappings. |
-| Raw observations, event-time ordering, and high-fidelity history are absent | **Partially Resolved** | T7 records bounded research raw observations separately from sampled canonical `gps_tracks`; it does not add event-time/sequence semantics or general high-fidelity operational history. |
-| Public/admin stale or offline truth is not exposed as a user-facing contract | **Partially Resolved** | T8 keeps public Marker/count/ETA truthful after local expiry and route changes; T12 adds a safe read-only admin source-health API/page. Public service-state explanation and complete daily-operations freshness/recovery journeys remain incomplete. |
-| Physical sender, firmware, TTN deployment, and production topology are unavailable | **Partially Resolved** | D-008 plus T9 now define and statically validate the repository topology/configuration/runbook. Physical sources and actual host/network/DNS/TLS/proxy/recovery/alert/capacity evidence remain unavailable. |
-| Production configuration and frontend backend-origin behavior were duplicated or permissive | **Resolved** | T9 supplies one fail-closed backend runtime parser and one frontend REST/Socket connection resolver; focused backend, frontend, and topology tests pass at `cdedcc2...`. External proxy/deployment behavior remains outside this repository finding. |
+| Discovery metadata and baseline were incomplete | Resolved | This report now records the full baseline, scope, reviewed time, validation state, and predecessor baseline. |
+| Trip lifecycle had competing non-transactional writers | Resolved | `shuttle-tracking-backend/src/services/operations.service.ts`, the T5 migration, and `test_t5_operations.js` define one transactional/idempotent boundary; live integration was not rerun here. |
+| Simulator and seed source fixtures diverged | Resolved | `env.example`, `prisma/seed.js`, `shuttle-tracking-web/simulate.js`, `shuttle-tracking-backend/simulate-ttn.js`, and `docs/testing/pipeline-smoke-tests.md` use aligned source/vehicle mappings. |
+| Raw observations, event-time ordering, and high-fidelity history are absent | Partially Resolved | T7 records bounded research raw observations separately from sampled canonical `gps_tracks`; it does not add event-time/sequence semantics or general high-fidelity operational history. |
+| Public/admin stale or offline truth is not exposed as a user-facing contract | Partially Resolved | T8 keeps public Marker/count/ETA truthful after local expiry and route changes; T12 adds a safe read-only admin source-health API/page. Public service-state explanation and complete daily-operations freshness/recovery journeys remain incomplete. |
+| Physical sender, firmware, TTN deployment, and production topology are unavailable | Partially Resolved | D-008 plus T9 now define and statically validate the repository topology/configuration/runbook. Physical sources and actual host/network/DNS/TLS/proxy/recovery/alert/capacity evidence remain unavailable. |
+| Production configuration and frontend backend-origin behavior were duplicated or permissive | Resolved | T9 supplies one fail-closed backend runtime parser and one frontend REST/Socket connection resolver; focused backend, frontend, and topology tests pass at `cdedcc2...`. External proxy/deployment behavior remains outside this repository finding. |
 
 ## Project Overview
 
@@ -936,13 +948,12 @@ fully compare intended behavior with implementation:
 
 ## Actionable Recommendations
 
-- Use `docs/audits/README.md` for current coordination. R2–R10 have consumed the compatible
-  `531ec9e` current-evidence and `0d985d8` immutable-research baselines; historical handoffs no
-  longer select work.
-- Execute the authorized role-upgrade repair as `M-20260812-02` by repairing this Git branch's
-  existing migration source in place. No target migration is authorized, and target-history plus
-  disposable upgrade/rollback evidence remains required before rollout against data that may
-  contain `OPERATOR`.
+- Use `docs/audits/README.md` for current coordination. R1–R8 and Roadmap have consumed the
+  `9323afc` M-02 evidence in predecessor order; `0d985d8` remains only the immutable T14 research
+  baseline, and historical handoffs no longer select work.
+- Finish only the final H/S/C/R acceptance synchronization for source-complete
+  `M-20260812-02`; no target migration is authorized, and target-history plus disposable upgrade/
+  rollback evidence remains required before rollout against data that may contain `OPERATOR`.
 - Implement the approved `ADMIN` active Feedback read-only policy separately as `M-20260813-01`;
   preserve server-side denial for all mutations and deleted/recovery reads.
 - Align the root credential instructions with the explicit seed/provisioning contract through a
@@ -958,8 +969,8 @@ fully compare intended behavior with implementation:
 
 ## Roadmap Impact
 
-- Discovery is validated for Research R1 at `531ec9e`; every later research profile has consumed
-  this predecessor in order.
+- Discovery is validated at `9323afc` for the M-02 source/completion evidence; R2–R8 and Roadmap
+  have consumed this predecessor in order, leaving only final H/S/C/R acceptance synchronization.
 - T5 lifecycle facts are now part of the current baseline. Downstream audits must revalidate the
   transaction, partial active-trip index, status/time constraints, idempotent start/end behavior,
   and virtual-trip policy before confirming or closing related findings.
@@ -993,8 +1004,9 @@ No unsupported business or deployment assumptions are used as facts.
 
 - **High** for repository-visible source, schema, route/page inventory, accepted T14 provenance, and
   checked-in T9 topology/configuration contracts at the recorded immutable baselines.
-- **High** for the migration ordering diagnosis from SQL semantics; **low** for affected-row count
-  because no approved database target was queried.
+- **High** for the static migration ordering/atomicity repair from exact SQL semantics and its
+  deterministic contract; **low** for target history, affected-row count, execution, and rollback
+  because no approved database target was queried or operated.
 - **High** for downstream audit/roadmap mapping now that R2–R10 consumed this predecessor in order.
 - **Low** for actual deployment, proxy behavior, DNS/TLS, production secrets, backup/restore,
   alerts, capacity, physical devices/providers, Android behavior, field research, and human workflow
@@ -1002,10 +1014,11 @@ No unsupported business or deployment assumptions are used as facts.
 
 ## Audit Readiness
 
-Validated for T14 Research R1 with current coordination at `0cb7dcc`; R2–R10 and Plan v1 owner
-approval are complete, and S15 is accepted at source `5955b7a`. Discovery grants no source authority
-for later work without its committed exact-path handoff. Current authority lives in
-`docs/audits/README.md` and the Master Roadmap rather than in older baseline-specific handoffs.
+Validated at `9323afc` for M-02 Discovery evidence. R2–R8 and Roadmap have completed the ordered
+re-audit over that evidence; M-02 remains Source Complete at `71f2002` and unaccepted only until the
+separate final H/S/C/R synchronization. T14 remains accepted at `5955b7a`. Discovery grants no
+source or database-target authority for later work; current coordination lives in
+`docs/audits/README.md` and the Master Roadmap.
 
 The current repository behavior, multi-source tracking boundary, data model, APIs, frontend
 features, deployment files, simulators, tests, and open information gaps are documented from

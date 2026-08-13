@@ -21,13 +21,12 @@ work and approved the remaining Plan v1 recommendations on 2026-08-12:
 4. move optional/general Feedback association (`T14-S14`) outside T14 rather than weakening the
    accepted supplied-vehicle verification contract.
 
-The owner also authorizes the High-severity role-migration ordering Maintenance repair before any
-target rollout. On 2026-08-13 the owner supplied the source-form gate: the migration source change
-exists only on this Git branch, and the migration has never run on production. Execute
-`M-20260812-02`, then the separate
-ADMIN read-only Feedback Maintenance `M-20260813-01`; S16 follows because it overlaps the latter's
-Feedback paths, and S17 follows S16. Each source unit still requires a separately committed
-exact-path Level 3 handoff,
+The owner authorized the High-severity role-migration ordering Maintenance repair before any target
+rollout and supplied its source-form gate on 2026-08-13. `M-20260812-02` now has source `71f2002`,
+completion `9323afc`, and ordered Level 1 validation for its static scope; no database target was
+operated. After final evidence synchronization, execute ADMIN read-only Feedback Maintenance
+`M-20260813-01`; S16 follows because it overlaps the latter's Feedback paths, and S17 follows S16.
+Each source unit still requires a separately committed exact-path Level 3 handoff,
 measurement-first evidence, full acceptance, and audit synchronization. This batch approval does
 not authorize a database target, migration execution, deployment, or external provider action.
 
@@ -208,15 +207,16 @@ Roadmap effect: resolves the T12 role-migration policy gate. The implementation 
 reviewed migration plus deterministic role/re-authentication tests; it does not change T9, T11, T13,
 or D-009's feedback policy.
 
-Current implementation caveat: a post-acceptance edit now installs the supported-role constraint
-before converting legacy `OPERATOR` rows. That ordering can fail on supported legacy data and is a
-separate High-severity Database Maintenance/Production blocker; the historical policy approval does
-not review or accept the current SQL ordering.
+Current implementation result: M-02 source `71f2002` uses one explicit transaction and orders the
+predecessor-constraint drop before `OPERATOR` conversion/default and the exact validated final role
+constraint. The deterministic test freezes the complete SQL sequence and role mapping. This resolves
+the static source defect but does not establish target history, affected rows, executed upgrade/
+rollback, or live final state.
 
 Owner-supplied execution fact (2026-08-13): the source change to
 `20260801110000_feedback_triage_roles` exists only on the current Git branch, and the migration has
-not been applied to production. `M-20260812-02` may therefore repair this branch's existing
-migration source rather than add a forward corrective migration. This does not authorize a database
+not been applied to production. M-02 therefore repaired this branch's existing migration source
+rather than adding a forward corrective migration. This does not authorize a database
 operation or prove the state of any local, shared, staging, or other target; target history and
 disposable rollout evidence remain required before target execution.
 

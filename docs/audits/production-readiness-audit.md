@@ -1,27 +1,29 @@
 # Production Readiness Audit
 
 Audit metadata:
-- Evidence baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
+- Evidence baseline: `9323afce3d2085eadb9b736eca4a121a9a91c4db`
 - Accepted T14 application baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Evidence scope: `PRODUCT.md`, `docs/project-knowledge-base.md`, every R2–R7 path named below,
   `docs/roadmap/master-refactoring-roadmap.md`, `docs/decision-queue.md`, `docs/tasks/`,
   `.github/workflows/`, `scripts/`, `docker-compose.prod.yml`, `docs/operations/`, and every
   external-evidence limit cited by predecessors
-- Reviewed at: `2026-08-13T19:03:20+07:00`
+- Reviewed at: `2026-08-13T21:51:09+07:00`
 - Validation state: **Validated**
-- Re-audit purpose: T14-S15 Level 1 Production Readiness acceptance over source `5955b7a` and
-  completion evidence `caf913d`; release determination remains **No-Go**.
-- Predecessor baselines: `docs/audits/product-audit.md`, `docs/audits/frontend-audit.md`, and
-  `docs/audits/dashboard-ux-audit.md` validated for S15 at `5955b7a`; compatible unchanged reports
-  are `docs/project-knowledge-base.md`,
+- Re-audit purpose: M-20260812-02 Production Readiness acceptance over source `71f2002` and
+  completion evidence `9323afc`; release determination remains **No-Go**.
+- Predecessor baselines: `docs/project-knowledge-base.md`, `docs/audits/product-audit.md`,
   `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`,
-  `docs/audits/database-audit.md`, `docs/audits/infrastructure-device-audit.md`, and
-  `docs/audits/security-devops-observability-audit.md`, each retained at `531ec9e` where S15 changes
-  no owned boundary
-- Owner-decision overlay: current Plan v1/S14/OSM directions are owner authority consumed by the
-  release assessment, not source evidence at `531ec9e`.
+  `docs/audits/frontend-audit.md`, `docs/audits/database-audit.md`,
+  `docs/audits/infrastructure-device-audit.md`, `docs/audits/dashboard-ux-audit.md`, and
+  `docs/audits/security-devops-observability-audit.md`, validated in required order over
+  `9323afce3d2085eadb9b736eca4a121a9a91c4db`
+- Owner-decision overlay: M-02 consumes only the 2026-08-13 migration source-form authority at
+  `71f2002`; local/shared/staging target facts remain unknown and ADMIN read-only access remains
+  unimplemented. Accepted T14 application behavior remains `5955b7a`.
 - Bounded Maintenance evidence: `M-20260812-01` is accepted at source commit `cdd69f8`; it resolves
   Admin entry but is not accepted T14 source and changes no release gate.
+- M-02 evidence: source `71f2002` resolves static migration ordering/atomicity, while target history,
+  execution, rollback, and affected rows remain unavailable.
 
 ## 1. Release-stage determination
 
@@ -38,18 +40,18 @@ an endless sequence of T14 slices.
 
 ## 2. Consolidated material findings
 
-| ID | Finding | State / owner |
-|---|---|---|
-| PR-01 | Accepted T14 truth, accessibility, map quality, Admin hierarchy/mutations, shared transport, session hydration, and S15 operational mutation integrity | Resolved for exact local evidence through `5955b7a`; preserve through regression tests |
-| PR-02 | Legacy-role migration can fail because the new constraint precedes `OPERATOR` conversion | **High stop condition — Database Maintenance** |
-| PR-03 | Supported Mobile installation/claim/Keystore refresh, receipt-time timeout/no-reopen, protected history/exceptions, and audited recovery | Still absent — T11 |
-| PR-04 | General account/session/source credential/deletion/backup/recovery controls | Approved policy, unimplemented — D-012/later Roadmap |
-| PR-05 | Feedback migration, retention/purge, backup, proxy-IP, multi-instance scheduling and accountable staff/rider workflow | Source exists; runtime/external evidence absent — T12/T13 |
-| PR-06 | Host, TLS, firewall, proxy, secret store, private services, off-host backup/restore, logs/alerts, restart and capacity | External evidence absent — T9/T13 |
-| PR-07 | Durable observability, on-call, incident, recovery, rollback and promotion evidence | Still absent — T13 |
-| PR-08 | Mobile, ESP32, TTN/gateway/provider and representative field evidence | Unable to verify — T11/T15 |
-| PR-09 | Research comparison Dashboard, metric definitions in UI, drill-down/export and physical comparison | Still absent — T15 |
-| PR-10 | Human usability, assistive technology, representative device/browser, deployed recovery and provider acceptance | Unable to verify — release evidence |
+| ID | Finding | State | Owner / evidence |
+|---|---|---|---|
+| PR-01 | Accepted T14 truth, accessibility, map quality, Admin hierarchy/mutations, shared transport, session hydration, and S15 operational mutation integrity | Resolved | Exact local evidence through `5955b7a`; preserve through regression tests |
+| PR-02 | Legacy-role migration ordering/atomicity and target rollout | Partially Resolved | Static source fixed at `71f2002`; target history/execution/upgrade/rollback remains unavailable and a High stop condition |
+| PR-03 | Supported Mobile installation/claim/Keystore refresh, receipt-time timeout/no-reopen, protected history/exceptions, and audited recovery | Still Present | Absent; T11 |
+| PR-04 | General account/session/source credential/deletion/backup/recovery controls | Still Present | Approved policy remains unimplemented; D-012/later Roadmap |
+| PR-05 | Feedback migration, retention/purge, backup, proxy-IP, multi-instance scheduling and accountable staff/rider workflow | Partially Resolved | Source exists; runtime/external evidence absent; T12/T13 |
+| PR-06 | Host, TLS, firewall, proxy, secret store, private services, off-host backup/restore, logs/alerts, restart and capacity | Unable to Verify | External evidence absent; T9/T13 |
+| PR-07 | Durable observability, on-call, incident, recovery, rollback and promotion evidence | Still Present | Absent; T13 |
+| PR-08 | Mobile, ESP32, TTN/gateway/provider and representative field evidence | Unable to Verify | T11/T15 |
+| PR-09 | Research comparison Dashboard, metric definitions in UI, drill-down/export and physical comparison | Still Present | Absent; T15 |
+| PR-10 | Human usability, assistive technology, representative device/browser, deployed recovery and provider acceptance | Unable to Verify | Release evidence |
 
 ## 3. T14 residual impact
 
@@ -65,7 +67,8 @@ current provider/licence exposure because source still uses the provider. Before
 separate Frontend-team/owner decision must stop using that basemap/provider or authorize a compliant
 outcome.
 
-S15 improves local interaction integrity but does not close PR-02 through PR-10,
+M-02 closes PR-02's static source defect but not its target rollout gate. S15 improves local
+interaction integrity but does not close the remaining PR-02 evidence or PR-03 through PR-10,
 change the No-Go, certify accessibility, or prove production. Remote Admin/Public assets and design
 sidecar drift are Maintenance; S14 optional/general Feedback is Moved outside T14;
 T11, T15, D-012, and external evidence remain outside T14.
@@ -86,8 +89,8 @@ Do not release beyond a controlled local demonstration if any of these remains t
 
 ## 5. Minimum evidence before D-001=C
 
-1. Repair and execute the legacy-role migration contract on an approved disposable target, including
-   rollback/recovery and supported legacy fixtures.
+1. Execute the repaired legacy-role migration contract on an explicitly authorized disposable
+   target, including rollback/recovery and supported/unknown legacy fixtures.
 2. Complete T11 across Backend/Admin/Mobile and obtain the versioned Android/device acceptance
    artifact.
 3. Obtain T9 external infrastructure acceptance, then complete T13 deployment, TLS/proxy,
@@ -102,7 +105,8 @@ Do not release beyond a controlled local demonstration if any of these remains t
 ## 6. Confidence and handoff
 
 Confidence is High in the unchanged No-Go because every validated predecessor agrees on independent
-migration, lifecycle, operations, device, and evidence blockers. Confidence is Low for all external
-runtime outcomes because none was observed. This re-audit accepts only S15's local source/synthetic
-evidence; it does not approve release, the later ADMIN read-only implementation, or any target
-operation. No new owner decision is required for S15 acceptance.
+target-migration, lifecycle, operations, device, and evidence blockers. Confidence is High for the
+static M-02 repair and Low for all target/external runtime outcomes because none was observed. This
+re-audit accepts only repository source/test evidence; it does not approve release, the later ADMIN
+read-only implementation, or any target operation. No new owner decision is required for M-02
+source acceptance.

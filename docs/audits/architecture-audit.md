@@ -1,23 +1,25 @@
 # Architecture Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
+- Evidence baseline: `9323afce3d2085eadb9b736eca4a121a9a91c4db`
 - Accepted T14 application baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Evidence scope: `docs/project-knowledge-base.md`, `docs/audits/product-audit.md`,
   `docs/decision-queue.md`,
+  `docs/tasks/M-20260812-02-admin-role-migration-safety.md`,
   `shuttle-tracking-backend/src/`, `shuttle-tracking-backend/prisma/`,
   `shuttle-tracking-web/app/`, `shuttle-tracking-web/components/`, `shuttle-tracking-web/hooks/`,
   `docker-compose.yml`, `docker-compose.prod.yml`, `.github/workflows/`, and the T11/T13/T15/D-012
   records cited below
-- Reviewed at: `2026-08-13T19:23:32+07:00`
-- Validation state: **Validated for T14 Research R3**
-- Predecessor baselines: `docs/project-knowledge-base.md` (R1) coordinated at `0cb7dcc` plus the
-  2026-08-13 owner facts, and `docs/audits/product-audit.md` (R2) validated at `5955b7a`; the
-  inspected Architecture source boundary remains at `531ec9e` because S15 and these decisions do
-  not change it
-- Owner-decision overlay: current Plan v1/S14/OSM directions plus the 2026-08-13 migration-source and
-  ADMIN read-only decisions are authority, not source evidence at `531ec9e`; S15 changes no
-  architecture boundary.
+- Reviewed at: `2026-08-13T21:51:09+07:00`
+- Validation state: **Validated**
+- Re-audit purpose: M-20260812-02 Architecture acceptance over source `71f2002` and completion
+  evidence `9323afc`.
+- Predecessor baselines: `docs/project-knowledge-base.md` (R1) and
+  `docs/audits/product-audit.md` (R2), each validated over
+  `9323afce3d2085eadb9b736eca4a121a9a91c4db`
+- Owner-decision overlay: M-02 consumes only the 2026-08-13 migration source-form authority at
+  `71f2002`; local/shared/staging target facts remain unknown and ADMIN read-only access remains
+  unimplemented. Accepted T14 application behavior remains `5955b7a`.
 - Separate Maintenance: the accepted `M-20260812-01` redirect/test-cache delta remains outside T14
   and changes no architecture boundary below.
 
@@ -51,32 +53,34 @@ generic mutation state machine is not justified by current evidence.
 
 | Finding | State | Placement |
 |---|---|---|
-| One browser transport/listener implementation was duplicated | Resolved by accepted T14 outcome | Preserve regression tests; repair under the accepted identity if it regresses |
-| Consumer-specific canonical decoding remains separate | Intentional boundary | Remove C16 unless a concrete policy drift/defect is measured |
-| Page-local Admin resource mutation ownership remains | Intentional after shared semantic feedback | Remove C06; no harmful duplication is evidenced |
-| Redis current version/live state has no durable replay after loss | Still present | T13/later architecture and operations work, not T14 |
-| Protected history, timeout exception, sender claim/recovery data flow is absent | Still present | T11 cross-repository work |
-| Research comparison UI/data contract is incomplete | Still present | T15 after physical/provider gates |
-| General account/session/source/deletion/backup lifecycle is absent | Still present | D-012/later Roadmap work |
-| Realtime rooms/replay/backpressure/load behavior | Unable to verify | External/load evidence under T13/T15, not T14 source by default |
-| Timestamp rendering policy is not centralized | Policy approved | T14-S16 bounded shared formatter after S15 acceptance |
-| OSM URL/attribution literals are duplicated across Public/Admin | Still present; owner cancelled S12 | Removed from T14; provider/basemap removal or compliance is a later separate decision before production |
-| External image/font assets bypass a repository-owned asset boundary | Still present | Bounded Maintenance unless a product-visible change requires Public authority |
+| One browser transport/listener implementation was duplicated | Resolved | Accepted T14 outcome; preserve regression tests and repair under the accepted identity if it regresses |
+| Consumer-specific canonical decoding remains separate | No Longer Relevant | Intentional boundary; remove C16 unless a concrete policy drift/defect is measured |
+| Page-local Admin resource mutation ownership remains | No Longer Relevant | Intentional after shared semantic feedback; remove C06 because no harmful duplication is evidenced |
+| Redis current version/live state has no durable replay after loss | Still Present | T13/later architecture and operations work, not T14 |
+| Protected history, timeout exception, sender claim/recovery data flow is absent | Still Present | T11 cross-repository work |
+| Research comparison UI/data contract is incomplete | Still Present | T15 after physical/provider gates |
+| General account/session/source/deletion/backup lifecycle is absent | Still Present | D-012/later Roadmap work |
+| Realtime rooms/replay/backpressure/load behavior | Unable to Verify | External/load evidence under T13/T15, not T14 source by default |
+| Timestamp rendering policy is not centralized | Still Present | Policy is approved; T14-S16 owns the bounded shared formatter after S15 acceptance |
+| OSM URL/attribution literals are duplicated across Public/Admin | Still Present | Owner cancelled S12; removed from T14, with provider/basemap removal or compliance left as a separate pre-production decision |
+| External image/font assets bypass a repository-owned asset boundary | Still Present | Bounded Maintenance unless a product-visible change requires Public authority |
 
-## 3. Newly changed database boundary
+## 3. Role-migration source repair and target boundary
 
-The committed `20260801110000_feedback_triage_roles` migration adds a constraint accepting only
-`ADMIN`, `DEV`, and `SUPER_ADMIN` before converting legacy `OPERATOR` rows. On a database containing
-an `OPERATOR`, PostgreSQL can reject the new constraint before the conversion executes. Unexpected
-historical roles also no longer remain available for the documented application-level fail-closed
-path; they can stop the migration instead.
+`M-20260812-02` resolves the repository source defect at `71f2002`. The existing migration now has
+one explicit `BEGIN`/`COMMIT` boundary and the exact order drop predecessor constraint → convert only
+`OPERATOR` to `ADMIN` → set the `ADMIN` default → install the validated
+`ADMIN`/`DEV`/`SUPER_ADMIN` constraint → preserve all Feedback DDL → commit. Unknown roles remain
+unmapped and statically make the final constraint abort the transaction.
 
-This is a high-severity migration-ordering defect and a Production Readiness stop condition. It is
-not T14 and is authorized as `M-20260812-02`. The owner selected an in-place repair of this Git
-branch's existing migration source because the source change exists only here and the migration
-never ran on production. Unknown local/shared/staging history remains a per-target gate. No target
-execution is authorized, and no target was queried or migrated during research, so affected-row
-count is unknown.
+| Finding | State | Placement |
+|---|---|---|
+| Constraint-before-conversion and partial-commit source defect | Resolved | At `71f2002`; preserve the exact normalized SQL/test contract under M-02 |
+| Target history, executed upgrade/rollback, live final default/constraint, affected rows | Unable to Verify | Explicit target authority plus disposable PostgreSQL evidence before execution/release |
+
+The modular-monolith, runtime owner, API, schema shape, and role-policy boundaries are unchanged.
+The rollback conclusion is PostgreSQL source semantics, not observed target behavior. No database
+was queried or migrated, and later ADMIN read-only access remains separate Maintenance.
 
 ## 4. Dependency and authority rules
 
