@@ -5,7 +5,7 @@
 - Work ID: `M-20260812-02`
 - Lane: `Maintenance`
 - Roadmap task: `Not applicable`
-- Status: `Ready — exact-path handoff must be committed before test/source work`
+- Status: `Source complete at 71f2002 — affected Level 1 re-audit required`
 - User authorization: on 2026-08-12 the owner authorized the High-severity migration-ordering
   repair; on 2026-08-13 the owner confirmed that the migration source change exists only on this
   Git branch and the migration has never run on production.
@@ -146,11 +146,40 @@
 
 ## Completion Evidence
 
-- Status: `Pending source implementation`
-- Handoff baseline: `Pending this document's commit`
-- Measurement-first evidence: Pending.
-- Source baseline: Pending.
-- Validation results: Pending.
+- Status: `Source complete at 71f20028f12ae4b04a8005ab3d7d71cd3b0cefa0; affected Level 1
+  re-audit required before Maintenance acceptance`
+- Handoff baseline: `a31f352c89f5ecbe9ac2b9b493785d61816e6ae1` over owner-fact
+  coordination `387ea597c3b5c92fb2c70bb859b5222ac5519f98`.
+- Measurement-first evidence: after adding the exact migration contract but before SQL repair,
+  `npm --prefix shuttle-tracking-backend run build && node
+  shuttle-tracking-backend/tests/test_t12_feedback_identity.js` failed with
+  `AssertionError: Missing transaction begin`. This was the intended incumbent defect; the build
+  itself passed.
+- Source baseline: `71f20028f12ae4b04a8005ab3d7d71cd3b0cefa0` changes only the two
+  allowlisted implementation paths.
+- Implemented behavior: one explicit PostgreSQL transaction now orders drop → `OPERATOR`-only
+  conversion → `ADMIN` default → exact validated final role constraint → byte-preserved Feedback
+  DDL → commit. Unknown roles remain unmapped; static PostgreSQL semantics make the final constraint
+  abort the transaction, but no target-executed rollback is claimed.
+- Deterministic test strength: the complete normalized executable SQL statement sequence is frozen,
+  including transaction controls and every Feedback DDL statement; all `users.role` update,
+  default, drop, and final-constraint statements are exact; `NOT VALID` is rejected
+  case-insensitively; predecessor/final allowlists are exact; role fixtures derive their mapping
+  from the sole parsed SQL update.
+- Validation results on 2026-08-13:
+  - backend build and focused identity/migration test passed;
+  - `npm --prefix shuttle-tracking-backend run check` passed every backend boundary test plus
+    Prisma validation;
+  - the first sandboxed full-CI attempt passed Backend and deterministic frontend tests, then was
+    blocked by sandbox `listen EPERM 127.0.0.1:13001` before Playwright execution;
+  - the approved rerun of `bash scripts/ci-checks.sh` outside that bind restriction passed all
+    Backend, Prisma, frontend pure/browser suites, lint, build, Compose, topology, logging, and
+    workflow checks; lint retained only the two pre-existing warnings in `app/layout.tsx` and
+    `utils/IconHelpers.ts`;
+  - independent source/adversarial reviews passed after hardening the test against extra role
+    mutations, constraint drops, transaction controls, `NOT VALID`, and Feedback DDL drift;
+  - `node scripts/validate-agent-workflow.js`, `git diff --check`, `git status --short`, and exact
+    `git diff --name-only` review passed for the source scope.
 - Audit freshness after source: downgrade R1 Discovery, R3 Architecture, R4 Backend, R4 Database,
   R7 Security/DevOps/Observability, R8 Production Readiness, and Roadmap coordination to
   `Needs Re-audit`. Product, Frontend, Infrastructure & Device, and Dashboard & UX remain current
