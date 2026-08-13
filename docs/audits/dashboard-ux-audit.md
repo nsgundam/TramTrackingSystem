@@ -1,17 +1,21 @@
 # Dashboard & UX Audit: Tram Tracking System
 
 Audit metadata:
-- Evidence baseline: `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
+- Evidence baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Accepted T14 application baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
 - Evidence scope: Public/Admin routes and components under `shuttle-tracking-web/app/` and
   `shuttle-tracking-web/components/`, browser tests under `shuttle-tracking-web/tests/`,
   `DESIGN.md`, `.impeccable/design.json`, `docs/audits/product-audit.md`,
   `docs/audits/frontend-audit.md`, and `docs/audits/infrastructure-device-audit.md`
-- Reviewed at: `2026-08-12T23:15:48+07:00`
-- Validation state: **Validated for T14 Research R6**
-- Predecessor baselines: `docs/audits/product-audit.md` (R2),
-  `docs/audits/frontend-audit.md` (R4), and `docs/audits/infrastructure-device-audit.md` (R5), each
-  validated over `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
+- Task evidence: `docs/tasks/T14-admin-operational-mutation-integrity.md` at completion record
+  `caf913d` over source `5955b7a`
+- Reviewed at: `2026-08-13T19:03:20+07:00`
+- Validation state: **Validated**
+- Re-audit purpose: T14-S15 Level 1 Dashboard & UX acceptance over source `5955b7a` and completion
+  evidence `caf913d`.
+- Predecessor baselines: `docs/audits/product-audit.md` and `docs/audits/frontend-audit.md` validated
+  for S15 at `5955b7a`; `docs/audits/infrastructure-device-audit.md` (R5) remains compatible at
+  `531ec9e` because S15 changes no infrastructure/device boundary
 - Owner-decision overlay: current Plan v1/S14/OSM directions are owner authority, not UI behavior at
   `531ec9e`.
 - Bounded delta: `M-20260812-01` is accepted at source commit `cdd69f8`; authenticated `/admin` and
@@ -29,11 +33,16 @@ Audit metadata:
 The fixed-light Signal Lens system remains the approved Admin identity. Automatic dark mode and a
 general Public redesign are not outstanding quality tasks; they contradict the owner boundary.
 
+S15 at `5955b7a` now provides one-request, named pending, retained failure/retry, and polite
+completion behavior for the two residual mutation paths. The UI reuses incumbent Signal Lens
+materials and safe feedback semantics; no CSS or visual identity changed. Synthetic evidence covers
+keyboard focus, 44 px controls, and 390 px no-overflow. The later ADMIN read-only policy is separate.
+
 ## 2. Technical audit score and interpretation
 
 | Dimension | Score | Current limiting evidence |
 |---|---:|---|
-| Accessibility | 3/4 | Broad semantic/focus coverage exists; exact Feedback/route-order pending/completion states remain, and human/AT acceptance is absent |
+| Accessibility | 3/4 | S15's exact Feedback/route-order semantics and focus pass; human/AT acceptance remains absent |
 | Performance | 3/4 | Map request/motion budgets exist; raw stop images and global/external assets remain |
 | Responsive Design | 3/4 | Deterministic 320/390 px journeys exist; representative physical-device/text/human coverage is absent |
 | Theming | 3/4 | Coherent fixed-light Admin system exists; the generated design sidecar is stale documentation |
@@ -43,8 +52,8 @@ general Public redesign are not outstanding quality tasks; they contradict the o
 The prior “one P1, five P2, one P3” aggregate is normalized as follows:
 
 - the P1 missing Research Dashboard belongs to **T15**, not T14;
-- P2 repository work is the narrow Admin mutation residual, Public stop images, asset dependencies,
-  and timestamp policy; T11 operations and external acceptance are separate owners;
+- P2 repository work is Public stop images, asset dependencies, and timestamp policy; S15 resolved
+  the narrow Admin mutation residual, while T11 operations and external acceptance remain separate;
 - P3 design-sidecar drift is optional Documentation Maintenance; and
 - human, assistive-technology, physical-device, provider, deployed recovery, and load results are
   evidence gates, not source defects.
@@ -58,8 +67,8 @@ creates no work. The context loader separately reports `.impeccable/design.json`
 
 | Finding | Severity / state | Destination |
 |---|---|---|
-| Feedback note/status PATCH lacks per-case pending lock and success announcement; rapid repeat is not guarded | P2, reproducible | **Approved T14-S15: narrow Admin operational mutation integrity** |
-| Route-order publish has disabled/spinner behavior but no named busy/completion status | P2, narrow | Include in S15; preserve exact T10 behavior |
+| Feedback note/status PATCH has per-case one-request mutation integrity | **Resolved at `5955b7a` for local/synthetic scope** | T14-S15 validated with per-case guard, scoped lock, safe retry, and polite receipt |
+| Route-order publish exposes named one-request progress and completion | **Resolved at `5955b7a` for local/synthetic scope** | T14-S15 validated with full modal lock, named busy, exact retry, receipt, and focus restoration |
 | Public stop thumbnail/modal image has no intrinsic/lazy/decode/error contract | P2, reproducible | **Approved T14-S17** within bounded Public authority |
 | Public map hides required OSM attribution while using Standard tiles | Compliance/policy finding; owner cancelled S12 | **Removed from T14**; keep as a separate pre-production provider/basemap stop condition |
 | Admin timestamp locale/time-zone/invalid handling differs by page | P2, reproducible | **Approved T14-S16** under the recorded policy |
@@ -71,18 +80,17 @@ creates no work. The context loader separately reports `.impeccable/design.json`
 
 ## 4. Approved T14 UX outcome contracts
 
-### T14-S15 — Admin operational mutation integrity
+### T14-S15 — Admin operational mutation integrity — validated
 
-Outcome: the two remaining non-sensitive mutation paths expose one-request pending, retained
+Outcome met at `5955b7a`: the two non-sensitive mutation paths expose one-request pending, retained
 failure/retry, and polite success semantics consistent with the accepted Admin system.
 
 Non-goals: no endpoint/payload/status graph, sensitive delete/restore, T10 order rule, role,
 authorization, schema, CSS identity, Public, Login, or backend change.
 
-First measurement: hold each PATCH/PUT in Playwright; repeated activation produces exactly one
-request, busy state is programmatically named, failure preserves input/order and retries, and
-success produces a stable polite receipt. Planned paths are limited to the two components, their
-two existing browser specs, and a shared primitive only if strictly required.
+Evidence: held PATCH/PUT measurements failed before source and pass after repair. Full Admin
+operations 7/7, master data 8/8, accessibility 4/4, Liquid Glass/Login 5/5, Dashboard 2/2, detector
+`[]`, lint/build, and full repository CI pass.
 
 ### T14-S17 — Public stop-image resilience
 
@@ -116,7 +124,7 @@ runtime or authorize a compliant outcome.
 
 No human usability, assistive-technology, physical device, provider, deployed proxy, ambient
 network, load, or production session was performed. Confidence is High for source-visible
-residuals and audience boundaries, Medium for isolated browser outcomes until measurement-first
-tests run, and Low for external acceptance. Security/DevOps/Observability R7 may consume this
-report; S15–S17 are registered/approved outcomes but gain write authority only from their individual
-committed task handoffs.
+residuals and audience boundaries, Medium for the completed isolated browser outcomes, and Low for
+external acceptance. This report validates S15 locally; S16/S17 still require ordered handoffs and
+the ADMIN read-only policy remains a separate implementation unit. No new owner decision is
+required for S15 acceptance.

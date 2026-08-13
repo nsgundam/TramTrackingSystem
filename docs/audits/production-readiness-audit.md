@@ -1,20 +1,23 @@
 # Production Readiness Audit
 
 Audit metadata:
-- Evidence baseline: `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
+- Evidence baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Accepted T14 application baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
 - Evidence scope: `PRODUCT.md`, `docs/project-knowledge-base.md`, every R2–R7 path named below,
   `docs/roadmap/master-refactoring-roadmap.md`, `docs/decision-queue.md`, `docs/tasks/`,
   `.github/workflows/`, `scripts/`, `docker-compose.prod.yml`, `docs/operations/`, and every
   external-evidence limit cited by predecessors
-- Reviewed at: `2026-08-12T23:15:48+07:00`
-- Validation state: **Validated for T14 Research R8 / No-Go**
-- Predecessor baselines: `docs/project-knowledge-base.md`, `docs/audits/product-audit.md`,
+- Reviewed at: `2026-08-13T19:03:20+07:00`
+- Validation state: **Validated**
+- Re-audit purpose: T14-S15 Level 1 Production Readiness acceptance over source `5955b7a` and
+  completion evidence `caf913d`; release determination remains **No-Go**.
+- Predecessor baselines: `docs/audits/product-audit.md`, `docs/audits/frontend-audit.md`, and
+  `docs/audits/dashboard-ux-audit.md` validated for S15 at `5955b7a`; compatible unchanged reports
+  are `docs/project-knowledge-base.md`,
   `docs/audits/architecture-audit.md`, `docs/audits/backend-audit.md`,
-  `docs/audits/frontend-audit.md`, `docs/audits/database-audit.md`,
-  `docs/audits/infrastructure-device-audit.md`, `docs/audits/dashboard-ux-audit.md`, and
-  `docs/audits/security-devops-observability-audit.md`, validated in required R1–R7 order over
-  `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
+  `docs/audits/database-audit.md`, `docs/audits/infrastructure-device-audit.md`, and
+  `docs/audits/security-devops-observability-audit.md`, each retained at `531ec9e` where S15 changes
+  no owned boundary
 - Owner-decision overlay: current Plan v1/S14/OSM directions are owner authority consumed by the
   release assessment, not source evidence at `531ec9e`.
 - Bounded Maintenance evidence: `M-20260812-01` is accepted at source commit `cdd69f8`; it resolves
@@ -29,15 +32,15 @@ Audit metadata:
 | Internal daily operations | **No-Go** | T11 sender/timeout/history/recovery, safe migration rollout, deployed topology/TLS/backups/alerts/on-call, and runtime data-lifecycle proof are absent |
 | D-001=C public rider service | **No-Go** | All internal blockers plus human/AT/device/deployed recovery and release approval remain absent |
 
-Accepted T14 outcomes remain credible local source/synthetic evidence, but they do not elevate any
-stage. The 15/20 UX score is not a release counter and its missing Research Dashboard is owned by
-T15, not by an endless sequence of T14 slices.
+S15 at `5955b7a` is credible local source/synthetic evidence and does not elevate any stage. The
+15/20 UX score is not a release counter and its missing Research Dashboard is owned by T15, not by
+an endless sequence of T14 slices.
 
 ## 2. Consolidated material findings
 
 | ID | Finding | State / owner |
 |---|---|---|
-| PR-01 | Accepted T14 truth, accessibility, map quality, Admin hierarchy/mutations, shared transport, and session hydration | Resolved for exact local evidence; preserve through regression tests |
+| PR-01 | Accepted T14 truth, accessibility, map quality, Admin hierarchy/mutations, shared transport, session hydration, and S15 operational mutation integrity | Resolved for exact local evidence through `5955b7a`; preserve through regression tests |
 | PR-02 | Legacy-role migration can fail because the new constraint precedes `OPERATOR` conversion | **High stop condition — Database Maintenance** |
 | PR-03 | Supported Mobile installation/claim/Keystore refresh, receipt-time timeout/no-reopen, protected history/exceptions, and audited recovery | Still absent — T11 |
 | PR-04 | General account/session/source credential/deletion/backup/recovery controls | Approved policy, unimplemented — D-012/later Roadmap |
@@ -50,9 +53,10 @@ T15, not by an endless sequence of T14 slices.
 
 ## 3. T14 residual impact
 
-The owner approved only these three remaining bounded T14 outcomes:
+The owner approved only these three bounded T14 outcomes:
 
-1. Admin operational mutation integrity for Feedback note/status and route-order publish;
+1. Admin operational mutation integrity for Feedback note/status and route-order publish — source
+   complete and validated locally at `5955b7a`;
 2. one Admin timestamp presentation contract under the recorded en-GB/Asia-Bangkok/ICT policy;
 3. Public stop-image resilience within the granted bounded fallback authority.
 
@@ -61,7 +65,7 @@ current provider/licence exposure because source still uses the provider. Before
 separate Frontend-team/owner decision must stop using that basemap/provider or authorize a compliant
 outcome.
 
-Completing any or all would improve local UX/compliance but would not close PR-02 through PR-10,
+S15 improves local interaction integrity but does not close PR-02 through PR-10,
 change the No-Go, certify accessibility, or prove production. Remote Admin/Public assets and design
 sidecar drift are Maintenance; S14 optional/general Feedback is Moved outside T14;
 T11, T15, D-012, and external evidence remain outside T14.
@@ -97,7 +101,8 @@ Do not release beyond a controlled local demonstration if any of these remains t
 
 ## 6. Confidence and handoff
 
-Confidence is High in the No-Go because every validated predecessor agrees on independent
+Confidence is High in the unchanged No-Go because every validated predecessor agrees on independent
 migration, lifecycle, operations, device, and evidence blockers. Confidence is Low for all external
-runtime outcomes because none was observed. R8 validates synthesis only; it does not approve release
-or choose a next task. R9 finding normalization is the sole next research stage.
+runtime outcomes because none was observed. This re-audit accepts only S15's local source/synthetic
+evidence; it does not approve release, the later ADMIN read-only implementation, or any target
+operation. No new owner decision is required for S15 acceptance.
