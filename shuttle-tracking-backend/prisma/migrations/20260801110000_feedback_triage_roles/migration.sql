@@ -1,12 +1,14 @@
+BEGIN;
+
 -- D-010:A: retain privileged roles, promote only legacy ordinary operators, and
--- leave any unexpected historical value intact so the application can fail closed.
+-- reject unexpected historical values without partially committing this migration.
 ALTER TABLE "users" DROP CONSTRAINT IF EXISTS "users_role_check";
-ALTER TABLE "users"
-  ADD CONSTRAINT "users_role_check"
-  CHECK ("role" IN ('ADMIN', 'DEV', 'SUPER_ADMIN'));
 
 UPDATE "users" SET "role" = 'ADMIN' WHERE "role" = 'OPERATOR';
 ALTER TABLE "users" ALTER COLUMN "role" SET DEFAULT 'ADMIN';
+ALTER TABLE "users"
+  ADD CONSTRAINT "users_role_check"
+  CHECK ("role" IN ('ADMIN', 'DEV', 'SUPER_ADMIN'));
 
 ALTER TABLE "feedback"
   ADD COLUMN "status" VARCHAR(30) NOT NULL DEFAULT 'new',
@@ -47,3 +49,5 @@ CREATE INDEX "feedback_audit_events_feedback_id_occurred_at_idx"
   ON "feedback_audit_events"("feedback_id", "occurred_at" DESC);
 CREATE UNIQUE INDEX "feedback_audit_events_feedback_id_event_key_key"
   ON "feedback_audit_events"("feedback_id", "event_key");
+
+COMMIT;
