@@ -2,7 +2,7 @@
 
 Audit metadata:
 - Evidence baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
-- Accepted T14 application baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
+- Accepted T14 application baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Evidence scope: `PRODUCT.md`, `docs/project-knowledge-base.md`, `docs/decision-queue.md`,
   `docs/tasks/T14-*.md`, Public/Admin journeys under `shuttle-tracking-web/app/` and
   `shuttle-tracking-web/components/`, and their browser tests under `shuttle-tracking-web/tests/`
@@ -24,8 +24,8 @@ Audit metadata:
 
 The product has a canonical-only Public rider tracker, an authenticated Admin operations/master-data
 workspace, protected research APIs without a Research UI, and separate Mobile, ESP32/HTTP,
-LoRaWAN/TTN, and simulator sender boundaries. Twelve bounded T14 outcomes are accepted:
-`T14-S01` through `T14-S11` plus `T14-S13`. Those outcomes materially improved truthful state,
+LoRaWAN/TTN, and simulator sender boundaries. Thirteen bounded T14 outcomes are accepted:
+`T14-S01` through `T14-S11`, `T14-S13`, and `T14-S15`. Those outcomes materially improved truthful state,
 keyboard/dialog behavior, map quality, contrast, Admin hierarchy, mutation recovery, shared browser
 transport mechanics, and session-hydration truth.
 

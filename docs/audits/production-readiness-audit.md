@@ -2,7 +2,7 @@
 
 Audit metadata:
 - Evidence baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
-- Accepted T14 application baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
+- Accepted T14 application baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Evidence scope: `PRODUCT.md`, `docs/project-knowledge-base.md`, every R2–R7 path named below,
   `docs/roadmap/master-refactoring-roadmap.md`, `docs/decision-queue.md`, `docs/tasks/`,
   `.github/workflows/`, `scripts/`, `docker-compose.prod.yml`, `docs/operations/`, and every
@@ -53,10 +53,10 @@ an endless sequence of T14 slices.
 
 ## 3. T14 residual impact
 
-The owner approved only these three bounded T14 outcomes:
+Plan v1 registered only these three bounded T14 outcomes:
 
-1. Admin operational mutation integrity for Feedback note/status and route-order publish — source
-   complete and validated locally at `5955b7a`;
+1. Admin operational mutation integrity for Feedback note/status and route-order publish — Accepted
+   at `5955b7a` for the recorded local source/synthetic-browser scope;
 2. one Admin timestamp presentation contract under the recorded en-GB/Asia-Bangkok/ICT policy;
 3. Public stop-image resilience within the granted bounded fallback authority.
 

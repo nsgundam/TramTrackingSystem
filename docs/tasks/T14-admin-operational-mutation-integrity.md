@@ -169,10 +169,13 @@ external environment action is authorized.
 
 ## Completion Evidence
 
-- Status: `Source complete at 5955b7a; affected Level 1 re-audit required before acceptance`
+- Status: `Accepted — exact local source/synthetic-browser scope`
 - Handoff baseline: `99e67e8a3d8b36009aeebfb5c71584596c93e799`, refined without source
   expansion at `8eafa44ed088f7b70991755affbf610e50e6e3e3`.
 - Source baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`.
+- Level 3 completion: `caf913d7e15ea968c9cde4bc1e036a2f88b6c090`.
+- Ordered Level 1 re-audit: `c2dbe9851063a47bcdd89b1f77b4ded7e835c190`; the coordination record
+  containing this update is the final acceptance synchronization and changes no inspected source.
 - Changed source/test paths: the five application/test paths in the allowlist; no documentation,
   backend, API/schema, migration, CSS, dependency, Public/Login, provider, or external-target path
   is part of the source commit.
@@ -201,7 +204,6 @@ external environment action is authorized.
   fallback repairs.
 - Evidence limits: local source/synthetic-browser evidence only; no human, assistive-technology,
   deployed runtime, database target, migration, provider, device, field, or production acceptance.
-- Audit freshness after source: Product, Frontend, Dashboard & UX, Production Readiness, and Roadmap
-  become `Needs Re-audit`; Level 3 may not mark them complete. Architecture remains current unless
-  the implementation crosses this task's page-local request/DTO/refresh boundary, which is a stop
-  condition rather than approved scope.
+- Audit disposition: Product, Frontend, Dashboard & UX, Production Readiness, and Roadmap are
+  validated in order at source `5955b7a`; Architecture remains current because the implementation
+  preserved the task's page-local request/DTO/refresh boundary.

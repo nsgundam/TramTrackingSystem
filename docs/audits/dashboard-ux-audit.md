@@ -2,10 +2,11 @@
 
 Audit metadata:
 - Evidence baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
-- Accepted T14 application baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
+- Accepted T14 application baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 - Evidence scope: Public/Admin routes and components under `shuttle-tracking-web/app/` and
   `shuttle-tracking-web/components/`, browser tests under `shuttle-tracking-web/tests/`,
-  `DESIGN.md`, `.impeccable/design.json`, `docs/audits/product-audit.md`,
+  `DESIGN.md`, `.impeccable/design.json`,
+  `docs/tasks/T14-admin-operational-mutation-integrity.md`, `docs/audits/product-audit.md`,
   `docs/audits/frontend-audit.md`, and `docs/audits/infrastructure-device-audit.md`
 - Task evidence: `docs/tasks/T14-admin-operational-mutation-integrity.md` at completion record
   `caf913d` over source `5955b7a`

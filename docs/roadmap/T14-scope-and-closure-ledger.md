@@ -10,18 +10,17 @@ the immutable implementation evidence.
 | Item | Current value |
 |---|---|
 | Research evidence baseline | `0d985d8948624cb2134a937ce57f071b53bb1852` |
-| Application-source baseline | `c72feb90e7a35da45d82bac61eb927ab7c55a37c` |
-| Latest unaccepted source | `T14-S15` at `5955b7aa2a84cc52cc536cc6509219a2adcb577c` |
-| Latest T14 Level 1 acceptance | `a5280542be9628e08174892f9546ecf7bb64858e` |
-| Accepted source slices | 12: `T14-S01` through `T14-S11` plus `T14-S13` |
+| Application-source baseline | `5955b7aa2a84cc52cc536cc6509219a2adcb577c` |
+| Latest T14 Level 1 acceptance | `c2dbe9851063a47bcdd89b1f77b4ded7e835c190` with final coordination synchronization |
+| Accepted source slices | 13: `T14-S01` through `T14-S11`, `T14-S13`, and `T14-S15` |
 | Removed registered slice | `T14-S12` — OSM work owner-cancelled on 2026-08-12; underlying provider risk remains outside T14 |
 | Moved registered slice | `T14-S14` — optional Public Feedback vehicle association moved outside T14 on 2026-08-12 |
-| Approved registered slices | `T14-S15` Admin mutation integrity is Source Complete; `T14-S16` Admin timestamp contract and `T14-S17` Public stop-image resilience await their ordered exact handoffs |
-| Active source slice | None — S15 awaits Level 1 acceptance; S16 is not yet eligible |
+| Approved registered slices | `T14-S15` Admin mutation integrity is Accepted; `T14-S16` Admin timestamp contract and `T14-S17` Public stop-image resilience await their ordered exact handoffs |
+| Active source slice | None |
 | Technical score | 15/20 health signal; its P1 belongs to T15 and does not imply seven T14 tasks |
 | Release state | Production `No-Go`; controlled local demonstration is Conditional only |
 | Research state | R0–R10 complete; Plan v1 approved; S12 Removed, S14 Moved, S15–S17 ordered; separate safety/Roadmap/evidence lanes retained |
-| Next action | Re-audit S15 in order: Product → Frontend → Dashboard & UX → Production Readiness → Roadmap. The RF-18 applied-history answer is now supplied; its separate Maintenance handoff follows without changing T14 acceptance. |
+| Next action | Execute authorized migration-safety Maintenance now that applied history is known, then the owner-approved ADMIN read-only Feedback Maintenance; only then open S16 because the latter two overlap Feedback source/tests. |
 
 The stable ID is an identity, not an acceptance counter. `T14-S12` remains S12 even though S13 was
 accepted first. Never describe the accepted set as “the first twelve.”
@@ -94,7 +93,7 @@ S14's pending proposal/decision gate was recorded at `9ff7e85` without creating 
 | T14-S12 | Visible OSM attribution and Standard raster endpoint alignment | Owner-cancelled | Removed | `T14-osm-attribution-and-raster-endpoint-alignment.md` | `45ecc0a / — / — / —` | Owner cancelled OSM work on 2026-08-12. Dormant handoff is closed and grants no future authority. Current provider/licence risk is unresolved outside T14. |
 | T14-S13 | Truthful Admin Feedback session hydration and zero premature privileged reads | Required | Accepted | `T14-admin-feedback-session-hydration-truth-state.md` | `4c33cf0 / c72feb9 / 9a9cf5c / a528054` | Owns only unresolved `auth/me` projection/read timing; Login/AuthContext/API/role policy remain unchanged. |
 | T14-S14 | Optional Public Feedback vehicle association / general-system Feedback | New Product/Data/Privacy capability | Moved outside T14 | No task | `— / — / — / —` | Owner accepted the move on 2026-08-12. Any later capability requires new roadmap synthesis and must preserve S01 verification. |
-| T14-S15 | Admin Feedback note/status and route-order publish mutation integrity | Plan v1 approved | Source Complete — Level 1 acceptance pending | `T14-admin-operational-mutation-integrity.md` | `99e67e8 / 5955b7a / completion commit pending / —` | Re-audit the exact source delta; S16 remains ineligible until acceptance. |
+| T14-S15 | Admin Feedback note/status and route-order publish mutation integrity | Plan v1 approved | Accepted | `T14-admin-operational-mutation-integrity.md` | `99e67e8 / 5955b7a / caf913d / c2dbe98` | Preserve exact request/status/T10/auth behavior; later ADMIN read-only policy is separate. |
 | T14-S16 | Deterministic Admin timestamp presentation contract | Plan v1 approved | Proposed — approved, handoff pending | No task yet | `— / — / — / —` | Execute after S15 due Feedback overlap; approved policy is en-GB, 24-hour Asia/Bangkok with visible ICT and safe fallbacks. |
 | T14-S17 | Public stop-image loading/error resilience | Plan v1 approved | Proposed — approved, handoff pending | No task yet | `— / — / — / —` | Execute after S16; Public fallback authority is approved while successful composition and focus behavior remain fixed. |
 
@@ -168,8 +167,7 @@ deployed acceptance, or completion of T9, T11, T13, or T15. Those remain separat
 ## 9. No-Surprise and Source-Freeze Rules
 
 - Slice IDs are immutable, never renumbered, and never reused.
-- At most one slice may be `Active` after plan approval; currently none is Active because S15 is
-  Source Complete and awaiting Level 1 acceptance.
+- At most one slice may be `Active` after plan approval; currently none is Active.
 - Re-audit may discover a finding but cannot assign a stable slice ID, create a handoff, or select
   the next task.
 - After Plan v1 approval, source remains frozen per unit until that unit has a committed exact-path
@@ -183,7 +181,7 @@ deployed acceptance, or completion of T9, T11, T13, or T15. Those remain separat
 ## 10. Validation Checklist for This Ledger
 
 - IDs are unique; S12 is excluded from the accepted count.
-- At most one row is Active; currently it is S15 only.
+- At most one row is Active; currently none is Active.
 - Every Accepted row has H/S/C/R provenance; non-acceptance coordination commits are kept outside
   those four fields.
 - Every Deferred or Removed row has a reason and no live source allowlist.

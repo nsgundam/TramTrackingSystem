@@ -4,17 +4,17 @@ Last updated: 2026-08-13
 
 Immutable T14 research baseline: `0d985d8948624cb2134a937ce57f071b53bb1852`
 
-Accepted T14 application baseline: `c72feb90e7a35da45d82bac61eb927ab7c55a37c`
+Accepted T14 application baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`
 
-Current coordinated evidence baseline: `531ec9e31d7325ccc2b617c394f71d8ebdcacb69`
+Current coordinated evidence baseline: `c2dbe9851063a47bcdd89b1f77b4ded7e835c190`
 
 Owner-decision overlay: the user's 2026-08-12 Plan v1 approval, S14 move, migration authorization,
 and Frontend-team OSM assignment are recorded in the current `docs/decision-queue.md`
 synchronization. They are owner authority, not source behavior at `531ec9e`.
 
-Latest unaccepted T14 source: `T14-S15` at
-`5955b7aa2a84cc52cc536cc6509219a2adcb577c`; ordered Level 1 re-audit is required before it can
-replace the accepted T14 application baseline.
+Latest T14 acceptance: `T14-S15` at source
+`5955b7aa2a84cc52cc536cc6509219a2adcb577c`, completion `caf913d`, and ordered Level 1 re-audit
+`c2dbe98`; final acceptance synchronization is this coordination record.
 
 | Stage / profile | Status | Current result |
 |---|---|---|
@@ -24,14 +24,14 @@ replace the accepted T14 application baseline.
 | R3 Architecture | Validated @ `531ec9e` | Current data/authority boundaries remain appropriate; generic refactors rejected without defects. |
 | R4 Backend | Validated @ `531ec9e` | No approved T14 outcome needs API/auth/backend work; T11 and bounded Security Maintenance remain. |
 | R4 Frontend | Validated @ `5955b7a` | S15's five-path guards, safe feedback, receipts, focus, detector, build, and regressions pass. |
-| R4 Database | Validated @ `531ec9e` — High blocker | Role constraint precedes supported legacy `OPERATOR` conversion; authorized repair awaits migration-history fact. |
+| R4 Database | Validated @ `531ec9e` — High blocker | Role constraint precedes supported legacy `OPERATOR` conversion; the user reports branch-only/no-production history, so authorized existing-file repair is next, with no target execution authorized. |
 | R5 Infrastructure & Device | Validated @ `531ec9e` | Deployment, Mobile/ESP32/TTN/provider/field facts remain external evidence. |
 | R6 Dashboard & UX | Validated @ `5955b7a` | Named busy/failure/success semantics, scoped locking, focus, 44 px, and 390 px evidence pass. |
 | R7 Security/DevOps/Observability | Validated @ `531ec9e` | Mobile credential, migration, durable observability, CI breadth, and external operations gates preserved. |
 | R8 Production Readiness | Validated @ `5955b7a` / No-Go unchanged | Local/synthetic S15 evidence does not alter external release gates. |
 | R9 Finding normalization | Complete | C01–C16, S12/S14, prior scores, task residuals, new findings, and external unknowns mapped exactly once. |
 | R10 Plan synthesis | Complete / owner approved | S12 is Removed, S14 Moved, and S15–S17 are approved in dependency order with separate safety/Roadmap/evidence lanes. |
-| Roadmap | S15 acceptance synchronization pending | All affected reports validate S15; the final coordination commit will establish R and make the separate Maintenance lane next. |
+| Roadmap | S15 Accepted / Maintenance next | S15's H/S/C/R chain is complete. Execute migration safety, then ADMIN read-only Feedback, then S16 because the latter pair overlap Feedback source/tests; S17 follows S16. |
 
 Approved Plan v1 package:
 [`T14-research-and-execution-plan.md`](../roadmap/T14-research-and-execution-plan.md).
