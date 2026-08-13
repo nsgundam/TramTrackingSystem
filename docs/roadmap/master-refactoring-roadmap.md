@@ -157,7 +157,7 @@ fresh audits and their independent policy/evidence gates are still mandatory.
 | T9 continuation | Deferred by owner / not eligible for autonomous repository work | The remaining acceptance actions operate University Server/Network infrastructure and require named operators, actual target facts, and target authority. Deferral does not satisfy them. |
 | T11 | Not eligible | The exact additive lifecycle/schema/API handoff and versioned external Android test artifact do not exist. |
 | T13 | Deferred by owner / not eligible | T9 is not complete externally, and no disposable production-mode target, recovery owners, or alert destinations are approved. Deferral does not satisfy them. |
-| T14 | S15 Active under exact handoff | Plan v1 is approved. S15 is the first T14 unit; S16 waits for S15 acceptance and S17 waits for S16. RF-18 waits in a parallel Maintenance lane and blocks database rollout, not local T14 source. |
+| T14 | S15 Source Complete / re-audit next | Plan v1 is approved. S15 source is `5955b7a`; S16 waits for S15 acceptance and S17 waits for S16. RF-18 has its applied-history answer and remains a separate Maintenance lane that blocks database rollout, not local T14 acceptance. |
 | T15 | Not eligible | T13 and physical sender/provider/protocol evidence are unresolved; the task is explicitly deferred. |
 
 Batch result: 12 T14 source outcomes are accepted: `T14-S01` through `T14-S11` plus `T14-S13`.
@@ -1247,9 +1247,10 @@ T4 and T5 are complete; remaining dependencies and deployment facts are unresolv
 > narrative below is retained as historical implementation context and grants no write authority.
 
 **Current snapshot:** 12 accepted source outcomes (`T14-S01` through `T14-S11` plus `T14-S13`),
-application baseline `c72feb9`, S13 Level 1 acceptance `a528054`, S12 Removed, S14 Moved, S15 Active
-under `docs/tasks/T14-admin-operational-mutation-integrity.md`, R0–R10 complete, and S16–S17 waiting
-for their ordered exact handoffs.
+accepted application baseline `c72feb9`, S13 Level 1 acceptance `a528054`, S12 Removed, S14 Moved,
+and S15 Source Complete at `5955b7a` under
+`docs/tasks/T14-admin-operational-mutation-integrity.md`. S15 awaits ordered Level 1 re-audit;
+S16–S17 wait for predecessor acceptance and their exact handoffs.
 
 ### Source Audit(s)
 
@@ -1306,8 +1307,8 @@ deployment, and external runtime remain separate.
 
 ### Related Files
 
-The active source handoff is `docs/tasks/T14-admin-operational-mutation-integrity.md`; the latest
-completed source handoff is `docs/tasks/T14-admin-feedback-session-hydration-truth-state.md`. The full slice/task map is in the
+The latest source-complete handoff is `docs/tasks/T14-admin-operational-mutation-integrity.md`; the
+latest accepted handoff is `docs/tasks/T14-admin-feedback-session-hydration-truth-state.md`. The full slice/task map is in the
 canonical ledger. This generic section authorizes no writes; the closed/Removed S12 task and Moved S14
 grant no source authority.
 
@@ -1324,14 +1325,16 @@ Partially Complete — 12 source slices are accepted: `T14-S01` through `T14-S11
 The latest application baseline is `c72feb9` and S13 is accepted at `a528054`. S12/OSM is Removed by
 owner and has no accepted source delta. S14 is Moved and has no task or source authority. Plan v1
 registers S15 Admin mutation integrity, S16 timestamp contract, and S17 Public stop-image resilience.
-S15 is Active under its exact handoff; S16/S17 remain approved but gain source authority only through
-their own later committed task handoffs.
+S15 is Source Complete at `5955b7a` and awaits Level 1 acceptance. S16/S17 remain approved but gain
+source authority only after their predecessor and their own later committed task handoffs.
 
 ### Evidence
 
 The ledger contains the H/S/C/R chain for every registered slice and points to its immutable task.
-The latest S13 evidence is handoff `4c33cf0`, source `c72feb9`, completion `9a9cf5c`, and Level 1
-acceptance `a528054`. The current R1–R8 reports retain score/finding/evidence limits. Historical
+The latest accepted S13 evidence is handoff `4c33cf0`, source `c72feb9`, completion `9a9cf5c`, and
+Level 1 acceptance `a528054`. S15 evidence is handoff `99e67e8`, source `5955b7a`, with completion
+and acceptance synchronization pending. The affected Product, Frontend, Dashboard & UX, Production
+Readiness, and Roadmap records require ordered re-audit. Historical
 measurements remain in the task files and Git history rather than being repeated here.
 
 ## 9. Phase 5 — Future Enhancements

@@ -169,11 +169,36 @@ external environment action is authorized.
 
 ## Completion Evidence
 
-- Status: `Active after committed handoff; source not started`
-- Handoff baseline: pending this document's commit.
-- Source baseline: pending.
-- Measurement-first evidence: pending.
-- Acceptance mapping and final validation: pending.
+- Status: `Source complete at 5955b7a; affected Level 1 re-audit required before acceptance`
+- Handoff baseline: `99e67e8a3d8b36009aeebfb5c71584596c93e799`, refined without source
+  expansion at `8eafa44ed088f7b70991755affbf610e50e6e3e3`.
+- Source baseline: `5955b7aa2a84cc52cc536cc6509219a2adcb577c`.
+- Changed source/test paths: the five application/test paths in the allowlist; no documentation,
+  backend, API/schema, migration, CSS, dependency, Public/Login, provider, or external-target path
+  is part of the source commit.
+- Measurement-first evidence:
+  - Feedback focused measurement failed 1/1 before source because two same-turn activations produced
+    two PATCH requests instead of one.
+  - Route-stop focused measurement failed 1/1 before source and exposed two held PUTs, absent named
+    busy semantics, unlocked select/Add controls, no completion receipt, and lost invoker focus.
+- Acceptance mapping:
+  - per-case ref guards issue one exact trimmed Feedback PATCH, lock note/status/delete only for the
+    active case, retain the draft/status graph on safe failure, retry the same body, clear only after
+    success, and retain a polite case-ID receipt across reload;
+  - the route modal ref guard issues one exact `{ stopIds }` PUT, locks every mutation/close path,
+    blocks same-turn close/Escape, preserves order and safe actionable failure, and retries the same
+    payload;
+  - successful route publish closes the modal, refreshes without detaching the invoker, restores
+    focus, and publishes a polite route-name/ID receipt; and
+  - existing sensitive Feedback delete/restore, T12 roles, status transitions, privacy text,
+    master-data CRUD, 44 px controls, and 390 px no-overflow behavior remain covered.
+- Final validation on 2026-08-13: focused Feedback and route-order measurements pass 1/1 each;
+  Admin operations support passes 7/7; Admin master data 8/8; accessibility 4/4; Admin Liquid
+  Glass/Login 5/5; Admin Dashboard 2/2; scoped Impeccable detector returns `[]`; lint has zero
+  errors and the same two pre-existing warnings; production build succeeds. Full
+  `bash scripts/ci-checks.sh`, workflow validation, and `git diff --check` pass. Independent
+  read-only finish review returned `PASS` after the guarded-close, same-case Delete-lock, and safe
+  fallback repairs.
 - Evidence limits: local source/synthetic-browser evidence only; no human, assistive-technology,
   deployed runtime, database target, migration, provider, device, field, or production acceptance.
 - Audit freshness after source: Product, Frontend, Dashboard & UX, Production Readiness, and Roadmap
