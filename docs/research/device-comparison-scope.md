@@ -1,7 +1,8 @@
 # Three-Device Comparison Scope
 
-Status: Approved initial scope on 2026-07-22. Implementation remains gated by audit revalidation,
-roadmap dependencies, exact task specifications, and the unresolved parameters below.
+Status: Approved initial scope on 2026-07-22. Any implementation must begin with an owner-approved
+problem, requirements, acceptance criteria, and design that resolves or explicitly defers the
+parameters below.
 
 ## Research sources
 
@@ -56,5 +57,6 @@ points before accuracy analysis.
 - Clock-synchronization method and timestamp semantics for end-to-end latency.
 - Experiment repetition, checkpoints/reference receiver, route exclusions, and minimum sample size.
 
-Level 2 must research these as focused task-keyed questions using repository evidence, current
-primary sources, and field evidence before Level 3 implements a binding design.
+Use a focused specialist consultation when one of these parameters is needed for a design. Preserve
+the source, uncertainty, and field evidence; do not infer missing device/provider behavior from
+repository code or simulators.

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Tram Refactoring Workflow"
-  short_description: "Supervise roadmap or maintenance implementation"
-  default_prompt: "Use $tram-refactoring-workflow to implement an approved Roadmap or Maintenance work unit, repair failed checks, and verify every acceptance criterion."

@@ -2,8 +2,8 @@
 
 <!-- impeccable:product-schema 1 -->
 
-This record combines explicit owner directions with facts already validated in repository audits.
-Items described as repository-evidenced are not claims of deployed, field, or human acceptance.
+This record combines explicit owner directions with repository-visible engineering facts. Items
+described as repository-evidenced are not claims of deployed, field, device, or human acceptance.
 
 ## Platform
 
@@ -39,8 +39,8 @@ Research observations remain separate from canonical operational truth.
   web viewports.
 - The operating environment can include bright university offices and on-the-go Mobile use, so
   state, text, tables, and actions must remain legible without relying on translucency or color.
-- T9/T13 external infrastructure work is deferred by the owner; T11 still requires coordinated
-  Backend/Mobile and Android evidence. These gates cannot be visually designed away.
+- Production infrastructure and mobile/device acceptance remain external evidence gates. These
+  constraints cannot be visually designed away.
 
 ## Capabilities and Constraints
 
@@ -49,8 +49,8 @@ Research observations remain separate from canonical operational truth.
 - The Public UI must preserve its incumbent identity and layout as far as practical. Public changes
   are limited to separately approved source quality, semantics, accessibility, truthful state/copy,
   and small behavior-preserving UX corrections.
-- Admin pages may be restructured and visually redesigned only through bounded exact-path roadmap
-  slices with deterministic desktop/Mobile and accessibility evidence.
+- Admin pages may be restructured or visually redesigned only through an approved requirement and
+  design, with deterministic desktop/Mobile and accessibility evidence proportional to the change.
 - Existing API methods, payloads, authorization, canonical state, privacy/retention, schema,
   persistence, and Mobile contracts remain authoritative unless a separate task explicitly changes
   them.
@@ -74,8 +74,8 @@ Research observations remain separate from canonical operational truth.
 
 ## Evidence on Hand
 
-- Validated product/discovery/audit evidence under `docs/`, including the revalidated T14 baseline
-  at `9af2c59` and approved decisions in `docs/decision-queue.md`.
+- Active product, architecture, deployment, research, and runbook documentation under `docs/`, with
+  historical evidence retained in `docs/archive/old-ai-workflow/`.
 - Admin implementation and tokens in `shuttle-tracking-web/app/admin/`, shared components in
   `shuttle-tracking-web/components/admin/`, and deterministic browser journeys in
   `shuttle-tracking-web/tests/`.

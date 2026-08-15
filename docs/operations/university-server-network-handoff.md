@@ -1,8 +1,8 @@
 # University Server/Network Production Handoff
 
-This runbook is the application-team delivery contract for D-008/T9. It targets the approved
-single university-managed host and preferred origin `https://tram-tracking.rsu.ac.th`. It is not a
-record that deployment, migration, restore, TLS, alerting, or capacity validation has happened.
+This runbook is the application-team delivery contract for the intended single university-managed
+host and preferred origin `https://tram-tracking.rsu.ac.th`. It is not a record that deployment,
+migration, restore, TLS, alerting, or capacity validation has happened.
 
 ## 1. Release and responsibility record
 
@@ -251,5 +251,5 @@ status.
 | Demo isolation | Vercel/Render/Neon demo uses separate credentials, database, senders and synthetic/test data; no production access | Unavailable — owner/provider evidence required |
 
 Repository CI, Compose parsing, image build, simulator output, or a cloud-console screenshot cannot
-replace these results. Production Readiness remains No-Go until the required downstream audits and
-external acceptance are complete.
+replace these results. Production release remains a no-go until the required external acceptance is
+complete.

@@ -57,14 +57,12 @@ The fastest way to get everything running. One command sets up the entire stack 
    - Backend API server starts on **http://localhost:3001**
    - Frontend web app starts on **http://localhost:3000**
 
-### Default Admin Credentials
+### Development Admin Accounts
 
-| Username | Password |
-|---|---|
-| `admin` | `admin123` |
-| `transport` | `admin123` |
-
-> ⚠️ **Change these passwords** in a production environment.
+The seed creates the `admin` and `transport` accounts only when you set a non-placeholder
+`SEED_ADMIN_PASSWORD` in your local `.env`. There is no checked-in default password. This is for a
+disposable development environment only; production provisioning must follow the deployment
+runbook and use an access-controlled secret.
 
 ### Useful Docker Commands
 
@@ -178,38 +176,31 @@ TramTrackingSystem/
 
 ## AI Agent Workflow
 
-The project-specific agent router is [`AGENTS.md`](AGENTS.md). It maps Level 1 audits, Level 2
-specialists, Level 3 implementation, shared-state ownership, and safety gates. The complete active
-instruction surface is intentionally small:
+AI is used as an engineering team under a human engineering owner. The owner frames the problem,
+acceptance criteria, design trade-offs, and merge/release decision; agents investigate, implement
+approved work, test, and review.
 
 ```text
-agents/                  # Three Level 1–3 role contracts
-.agents/skills/          # Three workflows with on-demand domain references
-docs/                    # Audit, decision, roadmap, and task state
+Problem → Analyze → Requirement + Acceptance Criteria → Design → Plan
+        → Implement → Test → AI Review → Human Review → Commit / PR → CI/CD → Learn
 ```
 
-Project skills live only in `.agents/skills/`; there is no mirrored root `skills/` directory.
-Level 1 loads one of nine audit playbooks and Level 2 loads one of ten specialist playbooks from the
-matching skill's `references/` directory, so domain depth does not expand the always-loaded agent
-surface.
+Use the smallest useful role shape: a SWE agent for analysis/design, a coding agent for approved
+implementation, a reviewer for independent findings, and a specialist only when the risk calls for
+one. Specialists are a toolbox, not a mandatory pipeline.
 
-- [Level 1 audit contract](agents/level-1-audit/AGENT.md)
-- [Level 2 specialist contract](agents/level-2-specialist/AGENT.md)
-- [Level 3 refactoring contract](agents/level-3-refactor/AGENT.md)
-- [Three-device research scope](docs/research/device-comparison-scope.md)
+- [Agent guide](AGENTS.md)
+- [Engineering workflow](docs/engineering-workflow.md)
+- [Active documentation map](docs/README.md)
 
-Validate the workflow contract locally with:
+Requirements and acceptance criteria may live in the conversation, issue, or pull request; do not
+create a task document just to start ordinary work. Git history, PRs, tests, and CI are the primary
+working record. Keep docs for stable product, architecture, deployment, runbook, research, and
+decision knowledge.
 
-```bash
-node scripts/validate-agent-workflow.js
-```
-
-Audit readiness and the next eligible phase are recorded in
-[`docs/audits/README.md`](docs/audits/README.md). Do not select a roadmap task from historical audit
-text without checking that register first.
-
-For the concise documentation reading order and current project/T14 summary, start at
-[`docs/README.md`](docs/README.md).
+Agents may discover problems, but discovery does not authorize implementation. Historical audit,
+roadmap, task, and agent-workflow material is retained for provenance in
+[`docs/archive/old-ai-workflow/`](docs/archive/old-ai-workflow/); it is not an active backlog.
 
 ## Contributing
 

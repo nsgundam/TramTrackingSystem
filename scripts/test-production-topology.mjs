@@ -151,4 +151,4 @@ assert.match(exampleVariables.DATABASE_URL, /REPLACE_WITH_/);
 assert.match(exampleVariables.FRONTEND_URL, /^https:\/\//);
 assert.doesNotMatch(exampleVariables.FRONTEND_URL, /localhost|127\.0\.0\.1|\[::1\]/i);
 
-console.log("T9 production topology checks passed");
+console.log("Production topology checks passed");

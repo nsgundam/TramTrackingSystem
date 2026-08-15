@@ -24,7 +24,4 @@ if rg -n --glob '*.ts' --glob '*.tsx' \
   exit 1
 fi
 
-echo "== Agent workflow validation =="
-node "$repo_root/scripts/validate-agent-workflow.js"
-
 echo "All CI checks passed."

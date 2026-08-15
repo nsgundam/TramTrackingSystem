@@ -1,6 +1,6 @@
 # Repeatable CI and local checks
 
-T4 keeps the current stack and makes the release checks runnable from one command. From the
+The repository keeps its repeatable static and build checks runnable from one command. From the
 repository root, install both lockfile-defined dependency sets, then run:
 
 ```bash
@@ -24,4 +24,4 @@ coordinates, URLs, headers, credentials, hashes, or exception messages.
 The checks do not start a database, Redis, or application process. The configured pipeline smoke
 remains the disposable-stack evidence described in
 [`pipeline-smoke-tests.md`](pipeline-smoke-tests.md); vendor monitoring, alert routing, and
-production recovery remain outside T4 and are deferred to T9/T13.
+production recovery require separately authorized operational evidence.
