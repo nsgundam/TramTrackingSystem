@@ -6,6 +6,7 @@ export interface Stop {
     id: string | number;
     name?: string;
     nameTh?: string;
+    nameEn?: string;
     imageUrl?: string;
     lat: number;
     lng: number;

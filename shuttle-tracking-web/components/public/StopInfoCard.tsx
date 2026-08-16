@@ -2,6 +2,7 @@
 import { useState, memo } from "react";
 import ReactDOM from "react-dom";
 import { useModalFocus } from "@/hooks/useModalFocus";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Stop } from "@/types";
 import {
   getPublicEtaPresentation,
@@ -44,6 +45,7 @@ const CLOSE_BTN_STYLE: React.CSSProperties = {
 
 function StopInfoCard({ targetStop, eta, availabilityReason }: StopInfoCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { locale, t } = useLanguage();
   const dialogRef = useModalFocus<HTMLDivElement>({
     active: isModalOpen,
     onClose: () => setIsModalOpen(false),
@@ -53,6 +55,18 @@ function StopInfoCard({ targetStop, eta, availabilityReason }: StopInfoCardProps
   if (!targetStop) return null;
 
   const etaPresentation = getPublicEtaPresentation(eta, availabilityReason);
+  const stopName = locale === "th"
+    ? (targetStop.nameTh || targetStop.name || "")
+    : (targetStop.nameEn || targetStop.nameTh || targetStop.name || "");
+  const etaStatusText = (() => {
+    if (availabilityReason === "reconnecting" || availabilityReason === "disconnected") return t("etaWaitingForLiveData");
+    if (availabilityReason === "snapshot_error" || availabilityReason === "waiting") return t("etaNotReady");
+    if (availabilityReason === "stale") return t("vehicleDataDelayed");
+    if (availabilityReason === "no_service") return t("noVerifiedEta");
+    if (availabilityReason === "unknown") return t("etaUnavailable");
+    if (etaPresentation.value === null) return t("noEtaForStop");
+    return etaPresentation.value === 0 ? t("arriving") : t("enRoute");
+  })();
 
   const imgUrl = targetStop.imageUrl;
 
@@ -68,7 +82,7 @@ function StopInfoCard({ targetStop, eta, availabilityReason }: StopInfoCardProps
             ref={dialogRef}
             role="dialog"
             aria-modal="true"
-            aria-label={`รูปขยาย ${targetStop.nameTh || targetStop.name}`}
+            aria-label={`${t("closeImage")}: ${stopName}`}
             tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
             style={MODAL_CONTENT_STYLE}
@@ -77,7 +91,7 @@ function StopInfoCard({ targetStop, eta, availabilityReason }: StopInfoCardProps
               type="button"
               onClick={() => setIsModalOpen(false)}
               style={CLOSE_BTN_STYLE}
-              aria-label="ปิดรูปภาพ"
+              aria-label={t("closeImage")}
               data-modal-initial-focus
             >
               <span aria-hidden="true">×</span>
@@ -85,7 +99,7 @@ function StopInfoCard({ targetStop, eta, availabilityReason }: StopInfoCardProps
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src={imgUrl} 
-              alt={targetStop.nameTh || "รูปขยายป้ายรถเมล์"} 
+              alt={stopName || t("unknownStop")}
               style={{ maxWidth: "100%", maxHeight: "calc(85vh - 12px)", objectFit: "contain", borderRadius: "10px" }} 
             />
           </div>
@@ -99,31 +113,31 @@ function StopInfoCard({ targetStop, eta, availabilityReason }: StopInfoCardProps
           className="block w-full h-21.25 sm:h-30 rounded-lg overflow-hidden bg-surface-dim/30 cursor-pointer border-0 p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           onClick={() => setIsModalOpen(true)}
           aria-haspopup="dialog"
-          aria-label={`ขยายรูป ${targetStop.nameTh || targetStop.name}`}
-          title="คลิกเพื่อขยายรูป"
+          aria-label={`${t("clickToEnlarge")}: ${stopName}`}
+          title={t("clickToEnlarge")}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imgUrl} alt={targetStop.nameTh || "รูปป้าย"} className="w-full h-full object-cover" />
+          <img src={imgUrl} alt={stopName || t("unknownStop")} className="w-full h-full object-cover" />
         </button>
       )}
 
       <div className="flex flex-col gap-1">
-        <span className="font-label-caps text-[10px] sm:text-label-caps text-on-surface-variant">Selected Station</span>
+        <span className="font-label-caps text-[10px] sm:text-label-caps text-on-surface-variant">{t("selectedStation")}</span>
         <h2 className="font-headline-md text-[16px] sm:text-headline-md text-on-surface leading-tight font-semibold">
-          {targetStop.nameTh || targetStop.name}
+          {stopName}
         </h2>
       </div>
 
       <div className="rsu-stop-eta-box flex justify-between items-center">
         <div className="flex flex-col">
-          <span className="font-label-caps text-label-caps text-on-surface-variant">Estimated Waiting Time</span>
+          <span className="font-label-caps text-label-caps text-on-surface-variant">{t("estimatedWaitingTime")}</span>
           <div className="flex items-baseline gap-1 mt-1">
             {etaPresentation.value !== null ? (
               <>
                 <span className="font-headline-lg text-headline-lg text-on-surface leading-none font-bold">
                   {etaPresentation.value === 0 ? "< 1" : etaPresentation.value}
                 </span>
-                <span className="font-body-sm text-body-sm text-on-surface-variant">min</span>
+                <span className="font-body-sm text-body-sm text-on-surface-variant">{t("minSuffix")}</span>
               </>
             ) : (
               <span className="font-headline-lg text-headline-lg text-on-surface-variant leading-none font-bold">-</span>
@@ -140,7 +154,7 @@ function StopInfoCard({ targetStop, eta, availabilityReason }: StopInfoCardProps
             aria-hidden="true"
           />
           <span className="font-label-caps text-center text-[10px] font-bold leading-tight text-on-surface sm:text-label-caps">
-            {etaPresentation.statusText}
+            {etaStatusText}
           </span>
         </div>
       </div>

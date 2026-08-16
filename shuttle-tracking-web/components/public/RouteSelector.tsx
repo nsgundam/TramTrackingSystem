@@ -2,6 +2,7 @@
 import { memo } from "react";
 import { ChevronDown } from "lucide-react";
 import { normalizeHexColor } from "@/utils/colorContrast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface RouteData {
   id: string;
@@ -27,7 +28,20 @@ function RouteSelector({
   onSelect,
   menuRef,
 }: RouteSelectorProps) {
+  const { locale } = useLanguage();
   const currentRoute = routes.find((r) => r.id === selectedRoute);
+
+  const getRouteName = (routeId: string, defaultName: string) => {
+    if (locale === "en") {
+      switch (routeId) {
+        case "R01": return "Campus Loop";
+        case "R02": return "Train Station - University";
+        case "R03": return "University - Future Park";
+        default: return defaultName;
+      }
+    }
+    return defaultName;
+  };
 
   return (
     <div className="flex gap-3 w-full relative" ref={menuRef}>
@@ -44,7 +58,7 @@ function RouteSelector({
               }}
             />
             <span className="truncate max-w-25 md:max-w-30">
-              {currentRoute?.name || selectedRoute}
+              {getRouteName(selectedRoute, currentRoute?.name || selectedRoute)}
             </span>
           </div>
           <ChevronDown
@@ -72,7 +86,7 @@ function RouteSelector({
                   className="w-2.5 h-2.5 rounded-full"
                   style={{ backgroundColor: normalizeHexColor(route.color) }}
                 />
-                <span className="truncate">{route.name}</span>
+                <span className="truncate">{getRouteName(route.id, route.name)}</span>
               </button>
             ))}
           </div>

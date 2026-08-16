@@ -7,6 +7,7 @@ import { usePreloader } from "@/hooks/usePreloader";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useSocketConnection } from "@/hooks/useSocketConnection";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { calculateETAForStop } from "@/utils/ShuttleHelpers";
 import {
   Stop,
@@ -40,6 +41,7 @@ import {
 const BACKEND_ORIGINS = [backendConnection.origin];
 
 export function useShuttleTracker() {
+  const { t } = useLanguage();
   const { mapRef, LRef } = useLeafletMap();
   const configuredBackendOrigin = backendConnection.origin;
 
@@ -331,7 +333,7 @@ export function useShuttleTracker() {
 
   const handleFindNearestStop = useCallback(() => {
     if (!userLoc)
-      return alert("กรุณาเปิดการเข้าถึงตำแหน่งที่ตั้ง (GPS) ในเบราว์เซอร์ของคุณ");
+      return alert(t("gpsAlert"));
     const currentStops = stopsByRouteRef.current[selectedRoute] || [];
     if (currentStops.length === 0) return;
 
@@ -365,7 +367,7 @@ export function useShuttleTracker() {
         activeStopMarkerRef.current = nearestMarker;
       }
     }
-  }, [mapRef, userLoc, selectedRoute, stopsByRouteRef, activeStopMarkerRef, stopMarkersMapRef, calculateETA]);
+  }, [mapRef, userLoc, selectedRoute, stopsByRouteRef, activeStopMarkerRef, stopMarkersMapRef, calculateETA, t]);
 
   const handleRouteChange = useCallback((routeId: string) => {
     routeGeometry.handleRouteChange(routeId);
@@ -419,9 +421,9 @@ export function useShuttleTracker() {
       mapRef.current?.flyTo(userLoc, 18, mapMotionOptions(1));
       handleFindNearestStop();
     } else {
-      alert("กรุณาเปิดการเข้าถึงตำแหน่งที่ตั้ง (GPS) ในเบราว์เซอร์ของคุณ");
+      alert(t("gpsAlert"));
     }
-  }, [mapRef, userLoc, handleFindNearestStop]);
+  }, [mapRef, userLoc, handleFindNearestStop, t]);
 
   const handleRecenter = useCallback(() => {
     if (selectedVehicleIdRef.current && mapRef.current) {

@@ -1,6 +1,7 @@
 "use client";
 import { memo, useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { RealtimeConnectionState } from "@/types";
 import type { CanonicalVehicleStateCounts } from "@/utils/canonical-public-state";
 import {
@@ -34,6 +35,7 @@ function AvailabilityCard({
   isRetrying,
   onRetry,
 }: Props) {
+  const { t } = useLanguage();
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   useEffect(() => {
@@ -49,6 +51,49 @@ function AvailabilityCard({
     lastCanonicalUpdateAt,
     nowMs,
   });
+
+  const availabilityText = (() => {
+    switch (presentation.reason) {
+      case "reconnecting":
+        return {
+          label: t("reconnecting"),
+          value: "—",
+          detail: snapshotState === "error" && !hasAuthoritativeState
+            ? t("reconnectingNoStateDetail")
+            : t("reconnectingDetail"),
+        };
+      case "disconnected":
+        return { label: t("liveDataUnavailable"), value: "—", detail: t("liveDataUnavailableDetail") };
+      case "snapshot_error":
+        return { label: t("latestStatusLoadFailed"), value: "—", detail: t("noVerifiedVehicleStatus") };
+      case "waiting":
+        return { label: t("waitingVehicleData"), value: "—", detail: t("loadingLatestStatus") };
+      case "live":
+        return { label: t("activeTrams"), value: t("tramCount", { count: counts.live }), detail: null };
+      case "stale":
+        return { label: t("vehicleLocationDelayed"), value: t("tramCount", { count: counts.stale }), detail: t("showingVerifiedStatus") };
+      case "no_service":
+        return { label: t("noVehicleLocation"), value: t("tramCount", { count: counts.no_service }), detail: t("noVehicleLocationDetail") };
+      case "unknown":
+        return { label: t("statusCannotVerify"), value: t("tramCount", { count: counts.unknown }), detail: t("statusCannotVerifyDetail") };
+      case "empty":
+        return { label: t("noActiveTrams"), value: t("tramCount", { count: 0 }), detail: t("noActiveTramsDetail") };
+    }
+  })();
+
+  const lastUpdateText = (() => {
+    if (!presentation.lastUpdateText || !lastCanonicalUpdateAt || !Number.isFinite(nowMs)) return null;
+    const lastUpdateMs = Date.parse(lastCanonicalUpdateAt);
+    if (!Number.isFinite(lastUpdateMs)) return null;
+
+    const ageMinutes = Math.floor(Math.max(0, nowMs - lastUpdateMs) / 60_000);
+    if (ageMinutes < 1) return t("lastUpdatedJustNow");
+    if (ageMinutes < 60) return t("lastUpdatedMinutesAgo", { count: ageMinutes });
+
+    const ageHours = Math.floor(ageMinutes / 60);
+    if (ageHours < 24) return t("lastUpdatedHoursAgo", { count: ageHours });
+    return t("lastUpdatedDaysAgo", { count: Math.floor(ageHours / 24) });
+  })();
 
   return (
     <div
@@ -73,24 +118,24 @@ function AvailabilityCard({
           </span>
           <div className="flex min-w-0 flex-col select-none">
             <span className="font-body-sm text-[12px] md:text-[13px] text-on-surface-variant leading-tight">
-              {presentation.label}
+              {availabilityText.label}
             </span>
             <span className="font-headline-md text-[16px] md:text-[18px] text-on-surface leading-tight">
-              {presentation.value}
+              {availabilityText.value}
             </span>
           </div>
         </div>
 
-        {(presentation.detail || presentation.lastUpdateText) && (
+        {(availabilityText.detail || lastUpdateText) && (
           <div className="flex flex-col gap-0.5 border-t border-outline-variant/30 pt-1.5">
-            {presentation.detail && (
+            {availabilityText.detail && (
               <span className="font-body-sm text-[10px] md:text-[11px] leading-snug text-on-surface-variant">
-                {presentation.detail}
+                {availabilityText.detail}
               </span>
             )}
-            {presentation.lastUpdateText && (
+            {lastUpdateText && (
               <span className="font-body-sm text-[10px] md:text-[11px] leading-snug text-on-surface-variant">
-                {presentation.lastUpdateText}
+                {lastUpdateText}
               </span>
             )}
           </div>
@@ -105,7 +150,7 @@ function AvailabilityCard({
           className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-primary/25 bg-primary/10 px-2 py-2 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-wait disabled:opacity-70"
         >
           <RefreshCw size={14} className={isRetrying ? "animate-spin" : ""} aria-hidden="true" />
-          <span>{isRetrying ? "กำลังโหลดข้อมูล" : "ลองโหลดข้อมูลอีกครั้ง"}</span>
+          <span>{isRetrying ? t("retryLoading") : t("retryLoad")}</span>
         </button>
       )}
     </div>

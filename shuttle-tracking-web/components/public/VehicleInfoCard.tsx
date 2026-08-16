@@ -3,6 +3,7 @@ import { useEffect, useRef, memo } from "react";
 import { Stop } from "@/types";
 import { Locate } from "lucide-react";
 import { motionScrollBehavior } from "@/utils/motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface VehicleInfoCardProps {
   vehicleId: string;
@@ -27,6 +28,21 @@ function VehicleInfoCard({
 }: VehicleInfoCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const nextIdx = stops.findIndex((s) => s.id === nextStopId);
+  const { locale, t } = useLanguage();
+
+  let displayNextStop = nextStop;
+  if (nextStop === "ไม่พร้อมให้บริการ") {
+    displayNextStop = t("outOfService");
+  } else if (nextStop === "กำลังประเมิน...") {
+    displayNextStop = t("calculating");
+  } else {
+    const nextStopItem = stops.find((stop) => stop.id === nextStopId);
+    if (nextStopItem) {
+      displayNextStop = locale === "th"
+        ? (nextStopItem.nameTh || nextStopItem.name || "")
+        : (nextStopItem.nameEn || nextStopItem.nameTh || nextStopItem.name || "");
+    }
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -82,16 +98,16 @@ function VehicleInfoCard({
           <button
             onClick={() => onFeedbackClick(vehicleId)}
             className="px-2.5 py-1 text-[11px] sm:text-[12px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-all duration-200 cursor-pointer flex items-center gap-1 border border-primary/20 shadow-sm shrink-0"
-            title="แจ้งปัญหา/ข้อเสนอแนะเกี่ยวกับรถคันนี้"
+            title={t("reportIssueTitle")}
           >
-            <span>แจ้งปัญหา</span>
+            <span>{t("reportIssue")}</span>
           </button>
         )}
       </div>
 
       {/* Row 2: Next Station (takes 100% width so text doesn't wrap awkwardly next to the button) */}
       <div className="rsu-vehicle-next-stop font-body-lg text-[14px] sm:text-body-lg text-on-surface-variant leading-normal">
-        Next Station: {nextStop}
+        {t("nextStation")}: {displayNextStop}
       </div>
 
       {/* Horizontally scrolling list of stations */}
@@ -101,7 +117,9 @@ function VehicleInfoCard({
       >
         {stops.map((stop) => {
           const isNext = stop.id === nextStopId;
-          const stopName = stop.nameTh || stop.name;
+          const stopName = locale === "th"
+            ? (stop.nameTh || stop.name || "")
+            : (stop.nameEn || stop.nameTh || stop.name || "");
           return (
             <span
               key={stop.id}
