@@ -16,6 +16,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import api from "@/services/api";
+import { formatAdminTimestamp } from "@/utils/admin-timestamp";
 
 const LiveMap = dynamic(() => import("@/components/admin/LiveMap"), {
   ssr: false,
@@ -180,11 +181,7 @@ export default function DashboardPage() {
     return () => controller.abort();
   }, [loadStats]);
 
-  const updatedAtLabel = updatedAt?.toLocaleTimeString("th-TH", {
-    timeZone: "Asia/Bangkok",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const updatedAtLabel = formatAdminTimestamp(updatedAt);
 
   return (
     <div className="admin-dashboard" data-testid="admin-dashboard-content">
@@ -212,7 +209,7 @@ export default function DashboardPage() {
           )}
           {loadState === "loading" && "Loading dashboard data"}
           {loadState === "error" && "Dashboard data unavailable"}
-          {loadState === "ready" && `Updated ${updatedAtLabel ?? "—"} น.`}
+          {loadState === "ready" && `Updated ${updatedAtLabel ?? "—"}`}
         </div>
       </header>
 

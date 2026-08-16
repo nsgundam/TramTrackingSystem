@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/services/api";
+import { formatAdminTimestamp } from "@/utils/admin-timestamp";
 import AdminFormModal from "@/components/admin/AdminFormModal";
 import {
   AdminMutationFeedback,
@@ -340,7 +341,7 @@ export default function FeedbackInboxPage() {
                         </div>
                         <div>
                           <dt>Received</dt>
-                          <dd>{new Date(caseItem.createdAt).toLocaleString()}</dd>
+                          <dd>{formatAdminTimestamp(caseItem.createdAt) ?? "unavailable"}</dd>
                         </div>
                         <div>
                           <dt>Responsible</dt>
@@ -439,7 +440,7 @@ export default function FeedbackInboxPage() {
                       </p>
                       <p className="admin-feedback-recovery__deadline">
                         Restore until {caseItem.restoreExpiresAt
-                          ? new Date(caseItem.restoreExpiresAt).toLocaleString()
+                          ? formatAdminTimestamp(caseItem.restoreExpiresAt) ?? "unavailable"
                           : "unavailable"}
                       </p>
                     </div>

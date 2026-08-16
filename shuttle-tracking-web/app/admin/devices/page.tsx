@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Activity, AlertTriangle, Radio, RefreshCw, ShieldCheck } from "lucide-react";
 import api from "@/services/api";
+import { formatAdminTimestamp } from "@/utils/admin-timestamp";
 import {
   AdminNotice,
   AdminResourcePage,
@@ -125,7 +126,7 @@ export default function DeviceHealthPage() {
                   </div>
                   <div>
                     <dt>Last seen</dt>
-                    <dd>{device.lastSeenAt ? new Date(device.lastSeenAt).toLocaleString() : "Never"}</dd>
+                    <dd>{formatAdminTimestamp(device.lastSeenAt) ?? "Never"}</dd>
                   </div>
                   <div>
                     <dt><AlertTriangle size={15} aria-hidden="true" /> Error category</dt>

@@ -215,6 +215,7 @@ test("T14 Source Health uses the semantic operations ledger and only safe fields
   const firstRecord = ledger.locator("article").first();
   await expect(firstRecord).toContainText("mobile");
   await expect(firstRecord).toContainText("Tram 01 (VH001)");
+  await expect(firstRecord).toContainText("10 Aug 2026, 08:30 ICT");
   await expect(firstRecord).toContainText("Error category");
   await expect(firstRecord).toContainText("Source status");
   await expect(firstRecord).not.toContainText(/credential|payload|location|IP address/i);
@@ -359,9 +360,11 @@ test("T14 Feedback initial failure is not an empty queue and retry restores the 
   const ledger = feedbackPage.locator('[data-admin-operations-ledger="feedback"]');
   await expect(ledger.locator('[data-admin-signal="new"]')).toContainText("new");
   await expect(ledger).toContainText("The pickup point sign is difficult to find.");
+  await expect(ledger).toContainText("09 Aug 2026, 14:30 ICT");
   await expect(ledger).toContainText("Responsible");
   await expect(ledger).toContainText("super");
   await expect(page.getByRole("heading", { name: "Recoverable deletions" })).toBeVisible();
+  await expect(page.getByText("Restore until 09 Sep 2026, 07:00 ICT")).toBeVisible();
   await expectMinimumTarget(feedbackPage.locator("[data-admin-resource-action]:visible"));
 });
 

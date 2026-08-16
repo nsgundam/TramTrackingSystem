@@ -112,6 +112,9 @@ test("T14 Admin Dashboard prioritizes canonical state over configured inventory"
   await expect(page.getByTestId("admin-stat-vehicles")).toHaveText("1");
   await expect(page.getByTestId("admin-stat-routes")).toHaveText("2");
   await expect(page.getByTestId("admin-stat-stops")).toHaveText("4");
+  await expect(page.getByTestId("admin-dashboard-status")).toHaveText(
+    /^Updated \d{2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2} ICT$/,
+  );
   await expect(inventory).toContainText("Configured service inventory");
   await expect(inventory).toContainText("Live telemetry state appears on the map");
 
