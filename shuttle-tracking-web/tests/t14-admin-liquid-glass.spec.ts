@@ -308,6 +308,25 @@ test("T14 protected Admin rejection keeps the incumbent Login redirect", async (
   await expect(page.locator('main[data-admin-theme="signal-lens"]')).toBeVisible();
 });
 
+test("T14 malformed authenticated user response clears the session without crashing the Admin shell", async ({ page, context }) => {
+  await authenticateAdmin(context);
+  await page.route("**/api/auth/me", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      headers: { "Access-Control-Allow-Origin": ADMIN_ORIGIN },
+      body: JSON.stringify({ user: { id: "t14-admin", username: "admin" } }),
+    });
+  });
+
+  await page.goto("/admin/dashboard");
+  await expect(page).toHaveURL(/\/admin\/login$/);
+  await expect(page.locator('main[data-admin-theme="signal-lens"]')).toBeVisible();
+  await expect(page.locator("body")).not.toContainText("Application error");
+  await expect.poll(async () => (await context.cookies(ADMIN_ORIGIN)).some((cookie) => (
+    cookie.name === "admin_token"
+  ))).toBe(false);
+});
+
 test("T14 Signal Lens stays bright and supports accessibility fallback contexts", async ({ page, context }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.emulateMedia({ colorScheme: "dark" });

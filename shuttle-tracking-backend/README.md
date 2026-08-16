@@ -88,7 +88,25 @@ Once your `.env` is setup, initialize your application using these commands:
   the Prisma schema.
 - `npm run runtime:validate` - Validates a compiled production runtime environment without
   connecting or migrating.
+- `npm run admin:set-role -- --username <username> --role <ADMIN|SUPER_ADMIN|DEV>` - Reads the
+  current role for one existing admin profile; it does not modify the database unless `--apply` is
+  appended.
 - `npm run test:socket` - Verifies that an unauthenticated Socket.IO viewer cannot emit GPS writes (requires a running backend).
+
+### Managing Admin Roles
+
+Use the same protected backend environment that the deployment uses. Run the command once without
+`--apply`, check the reported username and current role, then repeat the exact command with
+`--apply` only when it targets the intended existing profile. The only accepted roles are `ADMIN`,
+`SUPER_ADMIN`, and `DEV`; the command neither creates users nor accepts passwords.
+
+```bash
+npm run admin:set-role -- --username operations.owner --role SUPER_ADMIN
+npm run admin:set-role -- --username operations.owner --role SUPER_ADMIN --apply
+```
+
+Changing a role is a production database mutation. Take the normal backup/change-control steps and
+have each affected person sign out and sign in again so their authenticated session is refreshed.
 
 ### Local Development
 

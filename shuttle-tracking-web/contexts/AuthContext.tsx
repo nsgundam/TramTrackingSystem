@@ -7,18 +7,42 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import api from "@/services/api";
 
-export type AdminRole = "ADMIN" | "SUPER_ADMIN" | "DEV";
+export const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "DEV"] as const;
 
-interface User {
+export type AdminRole = typeof ADMIN_ROLES[number];
+
+export interface AdminUser {
   id: string;
   username: string;
   role: AdminRole;
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> => (
+  typeof value === "object" && value !== null
+);
+
+export const isAdminRole = (value: unknown): value is AdminRole => (
+  typeof value === "string" && ADMIN_ROLES.some((role) => role === value)
+);
+
+export const isAdminUser = (value: unknown): value is AdminUser => (
+  isRecord(value)
+  && typeof value.id === "string"
+  && value.id.trim().length > 0
+  && typeof value.username === "string"
+  && value.username.trim().length > 0
+  && isAdminRole(value.role)
+);
+
+const userFromAuthResponse = (value: unknown): AdminUser | null => {
+  if (!isRecord(value) || !isAdminUser(value.user)) return null;
+  return value.user;
+};
+
 interface AuthContextType {
-  user: User | null;
+  user: AdminUser | null;
   token: string | null;
-  login: (token: string, userData: User) => void;
+  login: (token: unknown, userData: unknown) => void;
   reauthenticate: (password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -36,7 +60,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AdminUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -49,11 +73,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     router.push("/admin/login");
   }, [router]);
 
-  const setSession = useCallback((newToken: string, userData: User) => {
+  const setSession = useCallback((newToken: unknown, userData: unknown): boolean => {
+    if (
+      typeof newToken !== "string"
+      || newToken.trim().length === 0
+      || !isAdminUser(userData)
+    ) {
+      return false;
+    }
+
     setCookie("admin_token", newToken, { maxAge: 60 * 60 * 24 });
     setToken(newToken);
     setUser(userData);
     axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+    return true;
   }, []);
 
   useEffect(() => {
@@ -62,16 +95,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     if (storedToken) {
       try {
-        const decoded = jwtDecode<{exp: number, userId: string, username: string}>(storedToken);
-        if (decoded.exp * 1000 < Date.now()) {
+        const decoded = jwtDecode<{ exp?: number }>(storedToken);
+        if (typeof decoded.exp !== "number" || decoded.exp * 1000 < Date.now()) {
           setTimeout(() => logout(), 0);
         } else {
           axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
-          void api.get("auth/me")
+          void api.get<unknown>("auth/me")
             .then((response) => {
-              if (active) {
-                setToken(storedToken);
-                setUser(response.data.user as User);
+              if (!active) return;
+
+              const authenticatedUser = userFromAuthResponse(response.data);
+              if (!authenticatedUser || !setSession(storedToken, authenticatedUser)) {
+                logout();
               }
             })
             .catch(() => {
@@ -96,16 +131,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       active = false;
       window.clearTimeout(loadingTimer);
     };
-  }, [logout]);
+  }, [logout, setSession]);
 
-  const login = (newToken: string, userData: User) => {
-    setSession(newToken, userData);
+  const login = (newToken: unknown, userData: unknown) => {
+    if (!setSession(newToken, userData)) {
+      logout();
+      throw new Error("Invalid authentication response");
+    }
     router.push("/admin/dashboard");
   };
 
   const reauthenticate = async (password: string): Promise<void> => {
-    const response = await api.post("auth/reauthenticate", { password });
-    setSession(response.data.token as string, response.data.user as User);
+    const response = await api.post<unknown>("auth/reauthenticate", { password });
+    if (!isRecord(response.data) || !setSession(response.data.token, response.data.user)) {
+      logout();
+      throw new Error("Invalid authentication response");
+    }
   };
 
   return (

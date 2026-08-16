@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { isAdminRole, useAuth } from "@/contexts/AuthContext";
 import { useModalFocus } from "@/hooks/useModalFocus";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -83,7 +83,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   );
   const roleRank = { ADMIN: 1, SUPER_ADMIN: 2, DEV: 3 } as const;
   const canAccess = (minimumRole?: "ADMIN" | "SUPER_ADMIN") =>
-    !minimumRole || (user && roleRank[user.role] >= roleRank[minimumRole]);
+    !minimumRole || Boolean(user && isAdminRole(user.role) && roleRank[user.role] >= roleRank[minimumRole]);
   const isMobileDialogOpen = isMobileViewport && isOpen;
   const isMobileHidden = isMobileViewport && !isOpen;
   const sidebarRef = useModalFocus<HTMLElement>({
@@ -148,7 +148,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       </nav>
 
       <div className="admin-sidebar__footer">
-        {user && (
+        {user && isAdminRole(user.role) && (
           <div className="admin-sidebar__user">
             <p className="admin-sidebar__username">{user.username}</p>
             <p className="admin-sidebar__user-role">{user.role.replaceAll("_", " ")}</p>
