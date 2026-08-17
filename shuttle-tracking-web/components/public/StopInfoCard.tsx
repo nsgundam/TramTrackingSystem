@@ -82,7 +82,7 @@ function StopInfoCard({ targetStop, eta, availabilityReason }: StopInfoCardProps
             ref={dialogRef}
             role="dialog"
             aria-modal="true"
-            aria-label={`${t("closeImage")}: ${stopName}`}
+            aria-label={`${t("enlargedImage")}: ${stopName}`}
             tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
             style={MODAL_CONTENT_STYLE}

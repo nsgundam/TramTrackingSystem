@@ -27,5 +27,9 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci --prefix shuttle-tracking-web
 
+      - name: Install Playwright Chromium
+        working-directory: shuttle-tracking-web
+        run: npx playwright install --with-deps chromium
+
       - name: Run release checks
         run: bash scripts/ci-checks.sh

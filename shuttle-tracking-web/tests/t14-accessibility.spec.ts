@@ -66,10 +66,10 @@ test("T14 Public document, Feedback, and stop-image dialogs support keyboard acc
   await expect(feedbackInvoker).toBeFocused();
 
   await page.getByTitle("Current Location").click();
-  const imageInvoker = page.getByRole("button", { name: "ขยายรูป R01 Start" });
+  const imageInvoker = page.getByRole("button", { name: "คลิกเพื่อขยายรูป: R01 Start" });
   await expect(imageInvoker).toBeVisible();
   await imageInvoker.click();
-  const imageDialog = page.getByRole("dialog", { name: "รูปขยาย R01 Start" });
+  const imageDialog = page.getByRole("dialog", { name: "รูปขยาย: R01 Start" });
   await expect(imageDialog.getByRole("button", { name: "ปิดรูปภาพ" })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(imageDialog).toHaveCount(0);
