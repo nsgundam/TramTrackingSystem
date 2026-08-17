@@ -14,6 +14,7 @@
     "runtime:validate": "node dist/config/validate-runtime.js",
     "check": "npm run test && npm run prisma:validate",
     "dev": "nodemon",
+    "prebuild": "npm run db:generate",
     "build": "tsc",
     "start": "node dist/server.js",
     "db:migrate": "npx prisma migrate dev",
