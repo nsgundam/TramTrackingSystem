@@ -29,27 +29,36 @@ The fastest way to get everything running. One command sets up the entire stack 
    cd TramTrackingSystem
    ```
 
-2. **Create your `.env` file** from the template:
+2. **Create a local Docker Compose environment file** from the template:
    ```bash
    cp env.example .env
    ```
-   Then edit `.env` and set your desired values:
-   ```env
-   POSTGRES_USER=shuttle_user
-   POSTGRES_PASSWORD=your_secure_password
-   POSTGRES_DB=shuttle_tracking_backend
-   JWT_SECRET=your_jwt_secret
-   JWT_EXPIRES_IN=8h
-   SENDER_JWT_EXPIRES_IN=15m
-   TTN_WEBHOOK_SECRET=your_ttn_webhook_secret
-   ```
+   Edit the ignored `.env`; never commit it. The template contains all values used by the local
+   Compose stack. Set them as follows:
 
-3. **Start all services**:
+   | Variable | Set it when | Notes |
+   |---|---|---|
+   | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Always | Local database identity. Change the password from its placeholder. |
+   | `JWT_SECRET` | Always for a usable local stack | Replace the placeholder; it signs admin and sender tokens. |
+   | `TTN_WEBHOOK_SECRET` | Using a TTN webhook or the TTN smoke test | Replace the placeholder; it is separate from `JWT_SECRET`. |
+   | `SEED_ADMIN_PASSWORD` | Needing the seeded `admin` and `transport` accounts | Local development only. Both accounts use this password. |
+   | `TRACKING_SOURCE_SECRET_MOBILE`, `TRACKING_SOURCE_SECRET_ESP32` | Using mobile/ESP32 simulators or active seeded sources | Local development only. Keep both values out of Git and client code. |
+   | `JWT_EXPIRES_IN`, `SENDER_JWT_EXPIRES_IN` | Changing token lifetimes | Optional; the template defaults are normally appropriate. |
+
+   The development seed is the source of truth for the fixture IDs; do not add source or vehicle
+   IDs to `.env` unless a specific test or tool explicitly documents an override.
+
+3. **Validate the Compose configuration** before starting services:
    ```bash
-   docker compose up --build -d
+   docker compose --env-file .env config --quiet
    ```
 
-4. **That's it!** 🎉 The following happens automatically:
+4. **Start all services**:
+   ```bash
+   docker compose --env-file .env up --build -d
+   ```
+
+5. **That's it!** 🎉 The following happens automatically:
    - PostgreSQL + PostGIS database is created
    - Redis cache is started
    - Database migrations are applied
@@ -57,32 +66,39 @@ The fastest way to get everything running. One command sets up the entire stack 
    - Backend API server starts on **http://localhost:3001**
    - Frontend web app starts on **http://localhost:3000**
 
-### Development Admin Accounts
+### Development Accounts and Sender Fixtures
 
-The seed creates the `admin` and `transport` accounts only when you set a non-placeholder
-`SEED_ADMIN_PASSWORD` in your local `.env`. There is no checked-in default password. This is for a
-disposable development environment only; production provisioning must follow the deployment
-runbook and use an access-controlled secret.
+The seed creates the `admin` and `transport` accounts only when `SEED_ADMIN_PASSWORD` is set. It
+activates mobile and ESP32 fixture sources only when both corresponding
+`TRACKING_SOURCE_SECRET_*` values are set. There are no checked-in default credentials. If these
+values change after the stack already exists, rerun the development seed against that local stack:
+
+```bash
+docker compose --env-file .env exec backend npx prisma db seed
+```
+
+This changes only the selected local Compose database. It is not a production provisioning method.
+Production first-admin provisioning and release configuration are covered by the deployment runbook.
 
 ### Useful Docker Commands
 
 ```bash
 # Start all services
-docker compose up -d
+docker compose --env-file .env up -d
 
 # Stop all services
-docker compose down
+docker compose --env-file .env down
 
 # Stop and remove all data (fresh start)
-docker compose down -v
+docker compose --env-file .env down -v
 
 # View logs
-docker compose logs -f              # All services
-docker compose logs -f backend      # Backend only
-docker compose logs -f db           # Database only
+docker compose --env-file .env logs -f              # All services
+docker compose --env-file .env logs -f backend      # Backend only
+docker compose --env-file .env logs -f db           # Database only
 
 # Rebuild after code changes
-docker compose up --build -d
+docker compose --env-file .env up --build -d
 
 # Run Prisma Studio (database GUI)
 docker exec shuttle-backend npx prisma studio
@@ -108,17 +124,8 @@ cd shuttle-tracking-backend
 # Install dependencies
 npm install
 
-# Create .env file with your database connection
-cat > .env << 'EOF'
-DATABASE_URL="postgres://your_user@localhost:5432/shuttle_tracking_backend?schema=public"
-REDIS_URL="redis://localhost:6379"
-NODE_ENV=development
-PORT=3001
-API_URL=http://localhost:3001
-JWT_SECRET=your_jwt_secret
-JWT_EXPIRES_IN=8h
-FRONTEND_URL=http://localhost:3000
-EOF
+# Create your ignored local configuration, then replace the marked database and secret values.
+cp .env.example .env
 
 # Run database migrations
 npm run db:migrate
@@ -138,9 +145,16 @@ cd shuttle-tracking-web
 # Install dependencies
 npm install
 
+# Create the ignored local frontend configuration.
+cp .env.example .env.local
+
 # Start development server
 npm run dev
 ```
+
+For manual development, set the backend database connection and the same local-only credentials
+listed in the Docker table before running the seed. `shuttle-tracking-backend/.env.example` and
+`shuttle-tracking-web/.env.example` document the complete component-specific contracts.
 
 ### Access the Application
 
@@ -149,12 +163,27 @@ npm run dev
 
 ---
 
+## Production Configuration
+
+`env.production.example` is a schema for an access-controlled production environment file; it is
+not a runnable production configuration. Replace every `REPLACE_WITH_...` value with independently
+generated secrets, keep the real file outside Git with restricted permissions, and do not place
+server credentials in `NEXT_PUBLIC_*` variables. The intended deployment uses one HTTPS origin:
+the reverse proxy routes `/` to the frontend and `/api` plus `/socket.io` to the backend, so the
+frontend needs no public backend override. Follow the
+[deployment boundaries](docs/deployment.md) and
+[server/network handoff](docs/operations/university-server-network-handoff.md) before any
+production operation.
+
+---
+
 ## 📁 Project Structure
 
 ```
 TramTrackingSystem/
 ├── docker-compose.yml              # Docker orchestration
-├── .env.example                    # Environment template
+├── env.example                     # Local Docker Compose environment template
+├── env.production.example          # Production configuration schema (no secrets)
 ├── docker/
 │   └── init-postgis.sh             # PostGIS init script
 ├── shuttle-tracking-backend/

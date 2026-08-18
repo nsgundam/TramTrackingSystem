@@ -20,30 +20,30 @@ You must have a PostgreSQL instance running locally. Ensure you create a databas
 
 ### Environment Management
 
-Create a `.env` file at the root of `shuttle-tracking-backend`:
+For a manually run backend, copy the component template. Docker Compose uses the repository-root
+`env.example` instead; it does not read this component file.
 
-```env
-# Connection URL format: postgresql://USER:PASSWORD@HOST:PORT/DATABASE
-DATABASE_URL="postgresql://postgres:password@localhost:5432/shuttle_tracking?schema=public"
-
-# Redis is allowed without authentication only for local development.
-REDIS_URL="redis://localhost:6379"
-
-# The port where Express will listen (default: 3001)
-PORT=3001
-
-# JWT Secret logic for Admin Authentication checks
-JWT_SECRET="YOUR_SUPER_SECRET_STRING"
-JWT_EXPIRES_IN=8h
-SENDER_JWT_EXPIRES_IN=15m
-
-# Required for TTN webhook ingestion
-TTN_WEBHOOK_SECRET="YOUR_TTN_WEBHOOK_SECRET"
-
-# Exact browser origin allowed by HTTP and Socket.IO CORS.
-FRONTEND_URL="http://localhost:3000"
-
+```bash
+cp .env.example .env
 ```
+
+Set the copied file as follows:
+
+| Variable | Required for | Notes |
+|---|---|---|
+| `DATABASE_URL` | Manual database access | Update for the local PostgreSQL user, password, host, port, and database. |
+| `REDIS_URL` | Manual Redis access | The default unauthenticated local URL is valid only for development. |
+| `NODE_ENV`, `PORT`, `API_URL`, `FRONTEND_URL` | Normal local server settings | The template uses development, port `3001`, and the local frontend origin. |
+| `JWT_SECRET`, `TTN_WEBHOOK_SECRET` | Authentication, sender tokens, or TTN ingestion | Replace placeholders and keep the two secrets different. |
+| `JWT_EXPIRES_IN`, `SENDER_JWT_EXPIRES_IN` | Changing token lifetimes | Optional; retain the template defaults unless a local test needs otherwise. |
+| `SEED_ADMIN_PASSWORD` | Seeded `admin` and `transport` users | Development only; blank means no seeded login account. |
+| `TRACKING_SOURCE_SECRET_MOBILE`, `TRACKING_SOURCE_SECRET_ESP32` | Seeded mobile/ESP32 source activation and simulators | Development only; blank leaves the matching source type inactive. |
+
+The development seed owns fixture identities such as `TS_MOB_01` and `sensor-c4`; they are not
+runtime configuration and therefore do not belong in the standard environment template. Test-only
+settings such as `SOCKET_URL`, `REQUEST_BODY_LIMIT`, `SOCKET_MAX_BUFFER_BYTES`, rate-limit
+overrides, and research session IDs are intentionally omitted. They have safe defaults or are
+documented with the specific test/tool that uses them.
 
 Local development defaults to PostgreSQL and Redis on `localhost`, frontend origins
 `http://localhost:3000` and `http://127.0.0.1:3000`, no trusted proxy, and port `3001` when those
@@ -69,8 +69,9 @@ Production (`NODE_ENV=production`) fails closed before `prisma migrate deploy`. 
   wildcard addresses, and broad networks are rejected.
 - `PORT`: optional integer from `1` to `65535`; defaults to `3001`.
 
-Use the repository's `env.production.example` only as a non-secret schema. The deployed environment
-file belongs outside Git and the image with permission `0600`. After building,
+Use the repository-root `env.production.example` only as a non-secret schema. The deployed
+environment file belongs outside Git and the image with permission `0600`. It contains no
+`NEXT_PUBLIC_*` values because the production reverse proxy presents one public origin. After building,
 `npm run runtime:validate` validates the current environment only; use `NODE_ENV=production npm run
 runtime:validate` for a production preflight. It does not connect to dependencies or run a
 migration.

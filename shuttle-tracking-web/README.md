@@ -24,12 +24,25 @@ npm install
 
 ### Environment Variables
 
-If needed, create a `.env.local` or `.env` file in the root directory. Common variables you might define:
+Copy the template to `.env.local` (preferred) or `.env`:
+
+```bash
+cp .env.example .env.local
+```
+
+The template uses the preferred local configuration:
 
 ```env
-# URL for the Node.js API backend (optional if using proxy)
-NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api
+# Node.js API and Socket.IO origin; no `/api` suffix.
+NEXT_PUBLIC_BACKEND_ORIGIN=http://localhost:3001
 ```
+
+`NEXT_PUBLIC_*` values are included in browser JavaScript, so they must never contain a password,
+token, database URL, Redis URL, or webhook/source secret. `NEXT_PUBLIC_BACKEND_URL` and
+`NEXT_PUBLIC_API_BASE_URL` are legacy aliases; use only one form unless their values resolve to the
+same backend origin. In the documented production topology the browser, API, and Socket.IO share
+one HTTPS origin through a reverse proxy, so leave all three public backend variables unset and the
+application uses `/api` and the current browser origin automatically.
 
 ### Running the App Locally
 
