@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 const {
   parseAdminLogin,
   parseDeviceCreate,
+  parseDeviceAssignment,
   parseFeedback,
   parseObservation,
   parseRouteStopCreate,
@@ -77,6 +78,8 @@ assert.deepEqual(parseDeviceCreate({ id: 'TS_ESP_01', name: 'ESP32', type: 'esp3
 });
 assert.throws(() => parseDeviceCreate({ id: 'TS_01', name: 'Bad', type: 'unknown' }), /invalid/);
 assert.throws(() => parseDeviceCreate({ id: 'TS_01', name: 'Bad', type: 'mobile', priority: 1.5 }), /integer/);
+assert.deepEqual(parseDeviceAssignment({ vehicleId: 'VH001' }), { vehicleId: 'VH001' });
+assert.throws(() => parseDeviceAssignment({ vehicleId: null }), /invalid/);
 
 assert.deepEqual(parseRouteStopCreate({ routeId: 'R01', stopId: 'S01', stopOrder: '2' }), {
   routeId: 'R01',

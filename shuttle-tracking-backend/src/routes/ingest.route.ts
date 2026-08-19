@@ -117,8 +117,12 @@ router.post(
       res.locals.ingestionVehicleId = sender?.vehicleId;
       res.locals.ingestionTripId = observation.tripId;
 
-      if (!sender || sender.sourceId !== observation.sourceId) {
-        throw new BoundaryError(403, 'SENDER_OWNERSHIP_MISMATCH', 'Sender cannot submit for this source');
+      if (
+        !sender
+        || sender.sourceId !== observation.sourceId
+        || (observation.vehicleId !== undefined && observation.vehicleId !== sender.vehicleId)
+      ) {
+        throw new BoundaryError(403, 'SENDER_OWNERSHIP_MISMATCH', 'Sender cannot submit for this source or vehicle');
       }
 
       const canonicalState = await processObservation({

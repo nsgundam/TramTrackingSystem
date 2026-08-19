@@ -12,6 +12,7 @@ import type { AdminLoginInput, SenderLoginInput } from '../middleware/validation
 import type { AdminReauthenticationInput } from '../middleware/validation.js';
 import { isAdminRole, type AdminRole } from '../services/admin-role.service.js';
 import type { AdminPrincipal } from '../middleware/auth.js';
+import { findActiveAssignment } from '../services/tracking-assignment.service.js';
 
 const SENDER_JWT_EXPIRES_IN = (
   process.env.SENDER_JWT_EXPIRES_IN || '15m'
@@ -116,10 +117,10 @@ export const loginVehicle = async (req: Request, res: Response) => {
 
     const source = await prisma.trackingSource.findUnique({
       where: { id: sourceId },
-      include: { vehicle: true },
     });
+    const assignment = await findActiveAssignment(sourceId);
 
-    if (!source || source.status !== 'active' || source.type === 'lorawan' || !source.vehicle) {
+    if (!source || source.status !== 'active' || source.type === 'lorawan') {
       throw new BoundaryError(401, 'AUTHENTICATION_FAILED', 'Invalid sender credentials');
     }
 
@@ -127,7 +128,7 @@ export const loginVehicle = async (req: Request, res: Response) => {
       throw new BoundaryError(401, 'AUTHENTICATION_FAILED', 'Invalid sender credentials');
     }
 
-    if (vehicleId && vehicleId !== source.vehicle.id) {
+    if (vehicleId && (!assignment || vehicleId !== assignment.vehicleId)) {
       throw new BoundaryError(403, 'SENDER_OWNERSHIP_MISMATCH', 'Sender is not assigned to this vehicle');
     }
 
@@ -140,8 +141,8 @@ export const loginVehicle = async (req: Request, res: Response) => {
       {
         kind: 'sender',
         sourceId: source.id,
-        vehicleId: source.vehicle.id,
         credentialVersion: source.credentialVersion,
+        assignmentId: assignment?.id ?? null,
       },
       process.env.JWT_SECRET,
       { expiresIn: SENDER_JWT_EXPIRES_IN },
@@ -155,7 +156,7 @@ export const loginVehicle = async (req: Request, res: Response) => {
       source: {
         id: source.id,
         type: source.type,
-        vehicleId: source.vehicle.id,
+        vehicleId: assignment?.vehicleId ?? null,
       },
     });
 

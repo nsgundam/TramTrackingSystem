@@ -67,6 +67,14 @@ export interface DeviceUpdateInput {
   secret?: string;
 }
 
+export interface DeviceAssignmentInput {
+  vehicleId: string;
+}
+
+export interface MobileQrAssignmentInput {
+  qrToken: string;
+}
+
 export interface RouteStopCreateInput {
   routeId: string;
   stopId: string;
@@ -78,7 +86,7 @@ export interface RouteStopReplaceInput {
 }
 
 export interface TripStartInput {
-  vehicleId: string;
+  vehicleId?: string;
 }
 
 export interface ObservationInput {
@@ -298,6 +306,16 @@ export const parseDeviceUpdate = (value: unknown): DeviceUpdateInput => {
   return output;
 };
 
+export const parseDeviceAssignment = (value: unknown): DeviceAssignmentInput => {
+  const input = record(value);
+  return { vehicleId: stringField(input.vehicleId, 'vehicleId') };
+};
+
+export const parseMobileQrAssignment = (value: unknown): MobileQrAssignmentInput => {
+  const input = record(value);
+  return { qrToken: stringField(input.qrToken, 'qrToken', { max: 512 }) };
+};
+
 export const parseRouteStopCreate = (value: unknown): RouteStopCreateInput => {
   const input = record(value);
   return {
@@ -325,7 +343,8 @@ export const parseRouteStopReplace = (value: unknown): RouteStopReplaceInput => 
 
 export const parseTripStart = (value: unknown): TripStartInput => {
   const input = record(value);
-  return { vehicleId: stringField(input.vehicleId, 'vehicleId') };
+  const vehicleId = optionalStringField(input.vehicleId, 'vehicleId');
+  return vehicleId === undefined ? {} : { vehicleId };
 };
 
 export const parseTripId = (value: unknown, field = 'id'): string => {

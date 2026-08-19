@@ -28,9 +28,10 @@ Problem
   → Requirement + Acceptance Criteria
   → Design
   → Implementation Plan
+  → Route Implementation
   → Implement
-  → Test
-  → AI Review
+  → Deterministic Verification
+  → Independent AI Review
   → Human Review
   → Commit / Pull Request
   → CI/CD
@@ -45,19 +46,23 @@ Problem
 4. **Design.** Compare meaningful choices by scope, risk, complexity, testability, and operational
    consequences. The owner chooses when a trade-off is material.
 5. **Plan.** List the smallest implementation and test steps that satisfy the approved design.
-6. **Implement.** Change only the approved scope plus essential supporting code and tests. Stop for
+6. **Route implementation.** Use the implementation-routing rules below. Routing chooses the
+   executor; it does not reopen the requirement, design, plan, or approved scope.
+7. **Implement.** Change only the approved scope plus essential supporting code and tests. Stop for
    an architectural change, dependency update, schema/API contract change, redesign, or unrelated
    cleanup that was not approved.
-7. **Test.** Select tests from risk: happy path, failure path, authorization, input validation,
-   boundary, race/state transition, regression, and integration behavior as applicable.
-8. **AI review.** Review the diff independently for correctness, security, data handling,
-   concurrency, performance, readability, test quality, and scope creep. Findings are advice, not
-   automatic edits.
-9. **Human review.** Present the problem, chosen design, diff, tests, risks, and unresolved items
-   for the owner to accept or redirect.
-10. **Commit / PR and CI/CD.** Git history, PR discussion, tests, and CI are the working record.
+8. **Deterministic verification.** Select checks from risk: happy path, failure path,
+   authorization, input validation, boundary, race/state transition, regression, and integration
+   behavior as applicable.
+9. **Independent AI review.** After checks, a fresh-context, read-only `gpt-5.6-sol` reviewer at
+   `high` reasoning inspects the diff for correctness, security, data handling, concurrency,
+   performance, readability, test quality, and scope creep. The reviewer reports findings and
+   never edits the implementation.
+10. **Human review.** Present the problem, chosen design, diff, tests, independent-review verdict,
+    risks, and unresolved items for the owner to accept or redirect.
+11. **Commit / PR and CI/CD.** Git history, PR discussion, tests, and CI are the working record.
     A commit, PR, push, or deployment needs the owner's explicit authorization.
-11. **Learn.** When useful, discuss the trade-off, missed assumption, production signal, and what
+12. **Learn.** When useful, discuss the trade-off, missed assumption, production signal, and what
     would change at greater scale. This is normally a short conversation, not mandatory paperwork.
 
 The fuller operating reference is [docs/engineering-workflow.md](docs/engineering-workflow.md).
@@ -73,6 +78,57 @@ The fuller operating reference is [docs/engineering-workflow.md](docs/engineerin
 - **Specialists:** backend, frontend, database, security, DevOps, performance, and research
   expertise are a toolbox, not a pipeline. Call the smallest relevant specialist only when the
   change's risk or an unresolved fact requires it.
+
+## Implementation-routing and review hooks
+
+These hooks are orchestration policies within the engineering workflow. They are not claims that a
+native Codex lifecycle hook can launch another agent: current lifecycle hooks execute command
+handlers, while agent routing is performed by the orchestrating agent or an external orchestrator.
+
+### `beforeImplement`
+
+Do not route or implement until the working context contains the problem, requirement, acceptance
+criteria, approved design, allowed scope, forbidden changes, and expected verification. Keep that
+contract in the conversation or PR unless it is durable engineering knowledge.
+
+### `routeImplementation`
+
+- For any frontend implementation—including code, styles, interactions, accessibility, responsive
+  behavior, or frontend tests under `shuttle-tracking-web/`—the orchestrating agent must invoke the
+  installed `agy` CLI and delegate implementation to Antigravity. The primary/SWE agent retains
+  requirement, design, scope, and acceptance authority; Antigravity is the bounded implementer.
+- Send Antigravity an implementation contract containing the problem, requirement, acceptance
+  criteria, approved design, allowed scope, forbidden changes, relevant files, and expected tests.
+  Run it from the repository root with the sandbox enabled. Never use
+  `--dangerously-skip-permissions`.
+- For mixed changes, split the approved plan into ordered, non-overlapping execution units. Route
+  only the frontend unit to Antigravity; do not run concurrent writers in the same checkout.
+- If `agy` is missing, cannot start, requests an unapproved action, or cannot complete the contract,
+  stop and report the blocker. Do not silently substitute the primary agent as frontend implementer.
+- Route backend and other ordinary implementation to the coding agent. Use a database, security,
+  DevOps, performance, or research specialist only when the approved scope or risk calls for it.
+
+### `afterImplementationReview`
+
+- After every implementation and its deterministic checks, spawn a fresh-context reviewer using
+  the project profile `.codex/agents/sol-high-reviewer.toml` (`gpt-5.6-sol`, `high`, requested
+  read-only sandbox).
+- Before spawning, set the parent/runtime permission mode to read-only and verify that the child has
+  an effective read-only sandbox; a profile setting alone is insufficient because live parent
+  overrides can replace it. If the orchestrator cannot verify that boundary, use an isolated
+  ephemeral `codex exec --sandbox read-only` review or return `HUMAN_DECISION_REQUIRED`. Never run
+  the independent reviewer with effective write permission.
+- Give the reviewer the problem, requirement, acceptance criteria, approved design and scope, diff,
+  changed-file list, relevant source, and test results. Do not send the implementer's hidden
+  reasoning or ask the implementer to act as its own final reviewer.
+- Require one verdict: `PASS`, `CHANGES_REQUIRED`, or `HUMAN_DECISION_REQUIRED`. A pass means the
+  independent AI review found no actionable issue; it is not a guarantee that the code has no bugs.
+- The reviewer reports only. Route accepted in-scope fixes back to the original implementer, rerun
+  affected deterministic checks, then request a fresh review.
+- Allow at most two automatic repair cycles. If the next review still does not pass, or a finding
+  requires scope/design/contract expansion, stop for the engineering owner.
+- No implementation is ready for human review, commit, or PR until deterministic evidence and the
+  independent-review verdict are reported. The owner remains the final decision-maker.
 
 ## Documentation
 
@@ -120,6 +176,7 @@ and test results.
 ## Completion
 
 Before reporting implementation work as ready for human review, inspect the diff, run the focused
-checks and relevant repository checks, map each acceptance criterion to evidence, and state any
-skipped check with its reason. If a check fails, investigate and repair only within the approved
-scope; otherwise stop with the evidence and decision needed from the owner.
+checks and relevant repository checks, map each acceptance criterion to evidence, obtain the
+mandatory independent-review verdict, and state any skipped check with its reason. If a check fails
+or the reviewer reports a finding, investigate and repair only within the approved scope; otherwise
+stop with the evidence and decision needed from the owner.

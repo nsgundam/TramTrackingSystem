@@ -36,6 +36,7 @@ Set the copied file as follows:
 | `NODE_ENV`, `PORT`, `API_URL`, `FRONTEND_URL` | Normal local server settings | The template uses development, port `3001`, and the local frontend origin. |
 | `JWT_SECRET`, `TTN_WEBHOOK_SECRET` | Authentication, sender tokens, or TTN ingestion | Replace placeholders and keep the two secrets different. |
 | `JWT_EXPIRES_IN`, `SENDER_JWT_EXPIRES_IN` | Changing token lifetimes | Optional; retain the template defaults unless a local test needs otherwise. |
+| `TRIP_ACTIVITY_MIN_DISPLACEMENT_METERS`, `TRIP_ACTIVITY_MIN_SPEED_MPS` | Tuning meaningful movement detection | Optional; defaults are `25` metres and `2` metres/second. These values keep GPS jitter from resetting Trip inactivity. |
 | `SEED_ADMIN_PASSWORD` | Seeded `admin` and `transport` users | Development only; blank means no seeded login account. |
 | `TRACKING_SOURCE_SECRET_MOBILE`, `TRACKING_SOURCE_SECRET_ESP32` | Seeded mobile/ESP32 source activation and simulators | Development only; blank leaves the matching source type inactive. |
 
@@ -119,22 +120,48 @@ npm run dev
 
 ### Sender Authentication
 
-Vehicle/mobile/ESP32 senders must first exchange a registered source secret for a short-lived
-sender token:
+Mobile/ESP32 senders must first exchange a registered Tracking Source secret for a short-lived
+sender token. The token identifies the source only; the backend resolves the current Vehicle from
+the source's active Tracking Assignment. A submitted `vehicleId` is not an authority and is not
+embedded in the token:
 
 ```http
 POST /api/auth/vehicle-login
 Content-Type: application/json
 
-{"sourceId":"TS_MOB_01","vehicleId":"VH001","secret":"<source-secret>"}
+{"sourceId":"TS_MOB_01","secret":"<source-secret>"}
 ```
+
+An active Mobile source may receive this source-only token before its first assignment and use it
+only for `POST /api/assignments/mobile/scan`. Ingestion and Trip endpoints require the active
+assignment to exist.
 
 Use the returned token as `Authorization: Bearer <token>` for trip start/end and HTTP GPS
 ingestion. Socket.IO senders provide the same token in `auth.token` during the handshake and must
 include the registered `sourceId` in `send-location`. Public viewers may connect to Socket.IO but
 cannot emit GPS writes. Sender sockets revalidate the token on every GPS write, so clients must
-login again after expiry or credential rotation. TTN webhook requests require
+login again after expiry, reassignment, or credential rotation. TTN webhook requests require
 `Authorization: Bearer <TTN_WEBHOOK_SECRET>` and fail closed when the production secret is absent.
+
+### Service and assignment lifecycle
+
+GPS/telemetry is retained as source diagnostics, but it cannot create a Trip, activate a Vehicle,
+or publish a public live vehicle. A sender must explicitly start a Trip first. Source health
+(`online`, `stale`, `offline`) is independent from Trip lifecycle.
+
+Each active Trip stores `lastTripActivityAt` separately from each source's `lastTelemetryAt`.
+Activity comes from an explicit service/mobile heartbeat or meaningful movement. A Trip with no
+activity for 15 minutes is auto-closed as `aborted` with `endReason=inactivity_timeout`; the system
+close time is stored in `closedAt`, and source assignments remain intact.
+
+The assignment API is available to Admins at `GET /api/admin/devices/:id/assignments`,
+`PUT /api/admin/devices/:id/assignment`, and `DELETE /api/admin/devices/:id/assignment`.
+Vehicles expose a signed QR token at `GET /api/admin/vehicles/:id/assignment-qr`. A Mobile client
+submits that token to `POST /api/assignments/mobile/scan`; switching away from a Vehicle with an
+active Trip is rejected until the client explicitly ends service.
+
+Senders can explicitly refresh Trip activity with `POST /api/trips/:id/heartbeat`. This endpoint
+does not create a Trip and rejects a Trip that is no longer active.
 
 The simulator uses the same flow. Set `TRACKING_SOURCE_SECRET_MOBILE` in an ignored environment
 file before running it; do not put a source secret in committed frontend code. The checked-in

@@ -9,8 +9,8 @@ const validToken = jwt.sign(
   {
     kind: 'sender',
     sourceId: 'TS_TEST_01',
-    vehicleId: 'VH001',
     credentialVersion: 1,
+    assignmentId: 'assignment-1',
   },
   process.env.JWT_SECRET,
   { expiresIn: '5m' },
@@ -18,9 +18,32 @@ const validToken = jwt.sign(
 
 assert.deepEqual(parseSenderClaims(validToken), {
   sourceId: 'TS_TEST_01',
-  vehicleId: 'VH001',
   credentialVersion: 1,
+  assignmentId: 'assignment-1',
 });
+
+const unassignedToken = jwt.sign(
+  {
+    kind: 'sender',
+    sourceId: 'TS_TEST_01',
+    credentialVersion: 1,
+    assignmentId: null,
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: '5m' },
+);
+assert.equal(parseSenderClaims(unassignedToken).assignmentId, null);
+
+const legacyToken = jwt.sign(
+  {
+    kind: 'sender',
+    sourceId: 'TS_TEST_01',
+    credentialVersion: 1,
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: '5m' },
+);
+assert.throws(() => parseSenderClaims(legacyToken), /Invalid sender assignment claim/);
 
 const adminToken = jwt.sign(
   { userId: 'admin-user', username: 'admin' },
@@ -34,8 +57,8 @@ const mismatchedClaimsToken = jwt.sign(
   {
     kind: 'sender',
     sourceId: 'TS_TEST_01',
-    vehicleId: 'VH001',
     credentialVersion: '1',
+    assignmentId: 'assignment-1',
   },
   process.env.JWT_SECRET,
   { expiresIn: '5m' },
@@ -47,8 +70,8 @@ const expiredToken = jwt.sign(
   {
     kind: 'sender',
     sourceId: 'TS_TEST_01',
-    vehicleId: 'VH001',
     credentialVersion: 1,
+    assignmentId: 'assignment-1',
   },
   process.env.JWT_SECRET,
   { expiresIn: -1 },
@@ -60,8 +83,8 @@ const invalidSignatureToken = jwt.sign(
   {
     kind: 'sender',
     sourceId: 'TS_TEST_01',
-    vehicleId: 'VH001',
     credentialVersion: 1,
+    assignmentId: 'assignment-1',
   },
   'different-test-secret',
   { expiresIn: '5m' },

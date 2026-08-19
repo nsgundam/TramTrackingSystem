@@ -2,11 +2,20 @@ import { prisma } from '../config/prisma.js';
 import { redisClient } from '../config/redis.js';
 import type { SenderContext } from '../middleware/auth.js';
 import { BoundaryError, logBoundaryFailure } from '../middleware/boundary-errors.js';
-import { emitOperationalSignal } from './operational-signals.js';
+import { emitOperationalSignal, type OperationalSourceType } from './operational-signals.js';
 import {
   recordCanonicalHistory,
+  autoCloseInactiveTrips,
+  recordMeaningfulTripActivity,
   validateActiveTripForVehicle,
 } from './operations.service.js';
+import {
+  findActiveAssignmentsForVehicle,
+} from './tracking-assignment.service.js';
+import {
+  isMeaningfulMovement,
+  type MovementSnapshot,
+} from './trip-activity.service.js';
 import {
   publishCanonicalState,
   publishVehicleStateTransition,
@@ -26,15 +35,16 @@ import {
 
 const THROTTLE_SECONDS = 60;
 export const SOURCE_FRESHNESS_WINDOW_MS = 30_000;
+export const SOURCE_OFFLINE_THRESHOLD_MS = 5 * 60_000;
 
 export const TRACKING_SOURCE_TYPES = ['mobile', 'lorawan', 'esp32', 'simulator'] as const;
 export const TRACKING_SOURCE_STATUSES = ['provisioning', 'active', 'inactive', 'retired'] as const;
 
-export type SourceHealth = 'never_seen' | 'online' | 'stale' | 'disabled';
+export type SourceHealth = 'online' | 'stale' | 'offline' | 'disabled';
 
 export interface SourceHealthInput {
   status: string;
-  lastSeenAt: Date | null;
+  lastTelemetryAt: Date | null;
 }
 
 export const getSourceHealth = (
@@ -45,13 +55,11 @@ export const getSourceHealth = (
     return 'disabled';
   }
 
-  if (!source.lastSeenAt) {
-    return 'never_seen';
-  }
+  if (!source.lastTelemetryAt) return 'offline';
 
-  return now - source.lastSeenAt.getTime() <= SOURCE_FRESHNESS_WINDOW_MS
-    ? 'online'
-    : 'stale';
+  const age = now - source.lastTelemetryAt.getTime();
+  if (age <= SOURCE_FRESHNESS_WINDOW_MS) return 'online';
+  return age <= SOURCE_OFFLINE_THRESHOLD_MS ? 'stale' : 'offline';
 };
 
 export const sourceRequiresCredential = (sourceType: string): boolean => sourceType !== 'lorawan';
@@ -62,13 +70,23 @@ const SOURCE_HEALTH_SWEEP_INTERVAL_MS = 10_000;
 
 type SourceHealthRecord = SourceHealthInput & {
   id: string;
-  vehicleId: string | null;
+  assignments: Array<{ vehicleId: string; id: string }>;
+  vehicleId?: string;
 };
 
 export const sweepSourceHealth = async (): Promise<void> => {
   try {
     const sources = await prisma.trackingSource.findMany({
-      select: { id: true, vehicleId: true, status: true, lastSeenAt: true },
+      select: {
+        id: true,
+        status: true,
+        lastTelemetryAt: true,
+        assignments: {
+          where: { unassignedAt: null },
+          select: { id: true, vehicleId: true },
+          take: 1,
+        },
+      },
     }) as SourceHealthRecord[];
 
     const activeByVehicle = new Map<string, SourceHealthRecord[]>();
@@ -77,7 +95,7 @@ export const sweepSourceHealth = async (): Promise<void> => {
       const previous = sourceHealthStates.get(source.id);
       sourceHealthStates.set(source.id, health);
 
-      if (health === 'stale' || health === 'never_seen') {
+      if (health === 'stale' || health === 'offline') {
         if (previous !== health) {
           emitOperationalSignal({
             event: 'tracking.source_stale',
@@ -85,7 +103,7 @@ export const sweepSourceHealth = async (): Promise<void> => {
             outcome: 'stale',
             transport: 'system',
             sourceId: source.id,
-            reasonCode: health === 'never_seen' ? 'SOURCE_NEVER_SEEN' : 'SOURCE_STALE',
+            reasonCode: health === 'offline' ? 'SOURCE_OFFLINE' : 'SOURCE_STALE',
           });
         }
       } else if (previous && previous !== 'online' && health === 'online') {
@@ -99,16 +117,30 @@ export const sweepSourceHealth = async (): Promise<void> => {
         });
       }
 
-      if (source.status === 'active' && source.vehicleId) {
-        const vehicleSources = activeByVehicle.get(source.vehicleId) ?? [];
-        vehicleSources.push(source);
-        activeByVehicle.set(source.vehicleId, vehicleSources);
+      const vehicleId = source.assignments[0]?.vehicleId ?? null;
+      if (source.status === 'active' && vehicleId) {
+        const vehicleSources = activeByVehicle.get(vehicleId) ?? [];
+        vehicleSources.push({ ...source, vehicleId });
+        activeByVehicle.set(vehicleId, vehicleSources);
       }
     }
 
     for (const [vehicleId, vehicleSources] of activeByVehicle) {
+      const activeTrip = await prisma.trip.findFirst({
+        where: { vehicleId, status: 'in_progress' },
+        select: { id: true },
+      });
+      if (!activeTrip) {
+        vehicleStaleStates.set(vehicleId, false);
+        await publishVehicleStateTransition({
+          vehicleId,
+          serviceState: 'no_service',
+          reasonCode: 'NO_ACTIVE_TRIP',
+        });
+        continue;
+      }
       const allStale = vehicleSources.every((source) => sourceHealthStates.get(source.id) !== 'online');
-      const allNeverSeen = vehicleSources.every((source) => sourceHealthStates.get(source.id) === 'never_seen');
+      const allOffline = vehicleSources.every((source) => sourceHealthStates.get(source.id) === 'offline');
       const previous = vehicleStaleStates.get(vehicleId);
       vehicleStaleStates.set(vehicleId, allStale);
 
@@ -119,14 +151,14 @@ export const sweepSourceHealth = async (): Promise<void> => {
           outcome: 'stale',
           transport: 'system',
           vehicleId,
-          reasonCode: allNeverSeen ? 'SOURCE_NEVER_SEEN' : 'ALL_SOURCES_STALE',
+          reasonCode: allOffline ? 'SOURCE_OFFLINE' : 'ALL_SOURCES_STALE',
           activeSourceCount: vehicleSources.length,
           staleSourceCount: vehicleSources.length,
         });
         await publishVehicleStateTransition({
           vehicleId,
-          serviceState: allNeverSeen ? 'no_service' : 'stale',
-          reasonCode: allNeverSeen ? 'SOURCE_NEVER_SEEN' : 'ALL_SOURCES_STALE',
+          serviceState: allOffline ? 'no_service' : 'stale',
+          reasonCode: allOffline ? 'SOURCE_OFFLINE' : 'ALL_SOURCES_STALE',
         });
       } else if (!allStale && previous === true) {
         emitOperationalSignal({
@@ -142,16 +174,25 @@ export const sweepSourceHealth = async (): Promise<void> => {
       }
     }
 
+    const closedTrips = await autoCloseInactiveTrips();
+    for (const closedTrip of closedTrips) {
+      await refreshCanonicalState(closedTrip.vehicleId);
+    }
+
     const activeVehicles = await prisma.vehicle.findMany({
       where: { status: 'active' },
       select: { id: true },
     });
     for (const vehicle of activeVehicles) {
       if (!activeByVehicle.has(vehicle.id)) {
+        const activeTrip = await prisma.trip.findFirst({
+          where: { vehicleId: vehicle.id, status: 'in_progress' },
+          select: { id: true },
+        });
         await publishVehicleStateTransition({
           vehicleId: vehicle.id,
           serviceState: 'no_service',
-          reasonCode: 'NO_ACTIVE_SOURCE',
+          reasonCode: activeTrip ? 'NO_ACTIVE_SOURCE' : 'NO_ACTIVE_TRIP',
         });
       }
     }
@@ -194,6 +235,41 @@ export interface ObservationData {
   accuracySource?: string;
 }
 
+interface CachedObservation extends MovementSnapshot {
+  assignmentId: string | null;
+  bearing: number | null;
+  accuracy: number | null;
+  station: string | null;
+  sourceType: string;
+}
+
+const readCachedObservation = async (sourceId: string): Promise<CachedObservation | null> => {
+  const raw = await redisClient.get(`source:last_location:${sourceId}`);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<CachedObservation>;
+    if (
+      typeof parsed.lat !== 'number'
+      || typeof parsed.lng !== 'number'
+      || typeof parsed.timestamp !== 'number'
+      || (parsed.speed !== null && typeof parsed.speed !== 'number')
+    ) return null;
+    return {
+      lat: parsed.lat,
+      lng: parsed.lng,
+      speed: parsed.speed ?? null,
+      timestamp: parsed.timestamp,
+      assignmentId: typeof parsed.assignmentId === 'string' ? parsed.assignmentId : null,
+      bearing: parsed.bearing ?? null,
+      accuracy: parsed.accuracy ?? null,
+      station: parsed.station ?? null,
+      sourceType: typeof parsed.sourceType === 'string' ? parsed.sourceType : 'unknown',
+    };
+  } catch {
+    return null;
+  }
+};
+
 /**
  * 1. Ingest Raw Location Observation
  * Validates, authenticates, and records the raw observation from a specific device source.
@@ -222,7 +298,13 @@ export const processObservation = async (data: ObservationData) => {
   // 2. Fetch Device from Registry
   const source = await prisma.trackingSource.findUnique({
     where: { id: sourceId },
-    include: { vehicle: true }
+    include: {
+      assignments: {
+        where: { unassignedAt: null },
+        select: { id: true, vehicleId: true },
+        take: 1,
+      },
+    },
   });
 
   if (!source || source.status !== 'active') {
@@ -241,47 +323,62 @@ export const processObservation = async (data: ObservationData) => {
 
     if (
       data.sender.sourceId !== source.id ||
-      data.sender.vehicleId !== source.vehicleId ||
-      data.sender.credentialVersion !== source.credentialVersion
+      data.sender.vehicleId !== (source.assignments[0]?.vehicleId ?? null) ||
+      data.sender.credentialVersion !== source.credentialVersion ||
+      data.sender.assignmentId !== (source.assignments[0]?.id ?? null)
     ) {
       throw new BoundaryError(403, 'SENDER_OWNERSHIP_MISMATCH', 'Sender cannot submit for this source');
     }
   }
 
+  const assignment = source.assignments[0] ?? null;
+  const vehicleId = assignment?.vehicleId ?? null;
   if (data.tripId) {
-    await validateActiveTripForVehicle(data.tripId, source.vehicleId ?? '');
+    await validateActiveTripForVehicle(data.tripId, vehicleId ?? '');
   }
 
-  // 4. Save Raw Observation to Redis Cache
-  const observation = {
+  // 4. Save the latest telemetry snapshot. It is diagnostic state, not service state.
+  const previousObservation = await readCachedObservation(sourceId);
+  const now = new Date();
+  const observation: CachedObservation = {
     lat: numLat,
     lng: numLng,
     speed: speed !== undefined && speed !== null ? speed : null,
     bearing: bearing !== undefined && bearing !== null ? bearing : null,
     accuracy: accuracy !== undefined && accuracy !== null ? accuracy : null,
     station: station || null,
-    timestamp: Date.now(),
+    timestamp: now.getTime(),
+    assignmentId: assignment?.id ?? null,
     sourceType: source.type
   };
 
   const cacheKey = `source:last_location:${sourceId}`;
   await redisClient.set(cacheKey, JSON.stringify(observation));
 
-  // Throttled lastSeenAt updates to database (once every 10 seconds per device)
-  const now = new Date();
-  const lastSeenKey = `source:last_seen_time:${sourceId}`;
-  const shouldUpdateDB = await redisClient.set(lastSeenKey, '1', { NX: true, EX: 10 });
+  // Throttled lastTelemetryAt updates to database (once every 10 seconds per source).
+  const lastTelemetryKey = `source:last_telemetry_time:${sourceId}`;
+  const shouldUpdateDB = await redisClient.set(lastTelemetryKey, '1', { NX: true, EX: 10 });
   if (shouldUpdateDB) {
     await prisma.trackingSource.update({
       where: { id: sourceId },
-      data: { lastSeenAt: now }
-    }).catch(err => logBoundaryFailure('Tracking source last-seen update', err));
+      data: { lastTelemetryAt: now }
+    }).catch(err => logBoundaryFailure('Tracking source telemetry update', err));
   }
 
-  // 5. Evaluate Canonical Location if device is assigned to a Vehicle
+  // Meaningful movement is trip activity; telemetry alone never starts a Trip.
+  const previousForActivity = previousObservation?.assignmentId === (assignment?.id ?? null)
+    ? previousObservation
+    : null;
+  if (vehicleId && isMeaningfulMovement(previousForActivity, observation)) {
+    await recordMeaningfulTripActivity(vehicleId, now, sourceId, assignment?.id ?? null).catch((error) => {
+      logBoundaryFailure('Trip activity update', error);
+    });
+  }
+
+  // 5. Evaluate canonical service state if the source has an active assignment.
   let canonicalState: CanonicalVehicleStateV1 | null = null;
-  if (source.vehicleId) {
-    canonicalState = await evaluateCanonicalLocation(source.vehicleId, data.tripId, sourceId);
+  if (vehicleId) {
+    canonicalState = await evaluateCanonicalLocation(vehicleId, data.tripId, sourceId);
   }
 
   // T7 raw capture is explicitly session-gated and is best effort. It runs
@@ -293,7 +390,7 @@ export const processObservation = async (data: ObservationData) => {
       runId: process.env.T7_RESEARCH_RUN_ID || 'runtime',
       sourceId,
       sourceType: source.type as ResearchSourceType,
-      vehicleId: source.vehicleId,
+      vehicleId,
       tripId: data.tripId,
       routeId: canonicalState?.routeId,
       transport: data.transport || (source.type === 'lorawan' ? 'ttn_webhook' : 'http'),
@@ -325,13 +422,24 @@ export const evaluateCanonicalLocation = async (
   tripId?: string,
   triggeringSourceId?: string,
 ) => {
-  const sources = await prisma.trackingSource.findMany({
-    where: { vehicleId, status: 'active' },
-    orderBy: [
-      { priority: 'asc' },
-      { id: 'asc' }
-    ] // Priority 1 is highest; ID makes equal priorities deterministic.
+  const activeTrip = await prisma.trip.findFirst({
+    where: { vehicleId, status: 'in_progress' },
+    select: { id: true },
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
   });
+
+  if (!activeTrip) {
+    return publishVehicleStateTransition({
+      vehicleId,
+      serviceState: 'no_service',
+      reasonCode: 'NO_ACTIVE_TRIP',
+    });
+  }
+
+  const assignments = await findActiveAssignmentsForVehicle(vehicleId);
+  const sources = assignments
+    .filter((assignment) => assignment.source.status === 'active')
+    .map((assignment) => ({ ...assignment.source, assignmentId: assignment.id }));
 
   if (sources.length === 0) {
     emitOperationalSignal({
@@ -342,24 +450,28 @@ export const evaluateCanonicalLocation = async (
       vehicleId,
       reasonCode: 'NO_ACTIVE_SOURCE',
     });
-    return null;
+    return publishVehicleStateTransition({
+      vehicleId,
+      serviceState: 'no_service',
+      reasonCode: 'NO_ACTIVE_SOURCE',
+    });
   }
 
-  let selectedObservation: any = null;
+  let selectedObservation: CachedObservation | null = null;
   let selectedSourceId: string | null = null;
   const nowMs = Date.now();
 
   // Evaluate sources in priority order
   for (const src of sources) {
-    const rawData = await redisClient.get(`source:last_location:${src.id}`);
-    if (rawData) {
-      const parsed = JSON.parse(rawData);
-      // Freshness check: data must be recorded within the last 30 seconds
-      if (nowMs - parsed.timestamp <= SOURCE_FRESHNESS_WINDOW_MS) {
-        selectedObservation = parsed;
-        selectedSourceId = src.id;
-        break; // Stop at highest priority fresh source
-      }
+    const parsed = await readCachedObservation(src.id);
+    if (
+      parsed
+      && parsed.assignmentId === src.assignmentId
+      && nowMs - parsed.timestamp <= SOURCE_FRESHNESS_WINDOW_MS
+    ) {
+      selectedObservation = parsed;
+      selectedSourceId = src.id;
+      break;
     }
   }
 
@@ -374,7 +486,13 @@ export const evaluateCanonicalLocation = async (
       activeSourceCount: sources.length,
       staleSourceCount: sources.length,
     });
-    return null;
+    return publishVehicleStateTransition({
+      vehicleId,
+      serviceState: 'stale',
+      reasonCode: 'ALL_SOURCES_STALE',
+      sourceId: sources[0]?.id,
+      sourceType: sources[0]?.type as CanonicalSourceType,
+    });
   }
 
   // Normalize station state
@@ -417,13 +535,13 @@ export const evaluateCanonicalLocation = async (
     transport: 'system',
     sourceId: selectedSourceId,
     vehicleId,
-    sourceType: selectedObservation.sourceType,
+    sourceType: selectedObservation.sourceType as OperationalSourceType,
   });
 
   const canonicalState = await publishCanonicalState({
     vehicleId,
     sourceId: selectedSourceId,
-    sourceType: selectedObservation.sourceType,
+    sourceType: selectedObservation.sourceType as CanonicalSourceType,
     lat: canonicalLocation.lat,
     lng: canonicalLocation.lng,
     speed: canonicalLocation.speed,
@@ -431,23 +549,33 @@ export const evaluateCanonicalLocation = async (
     accuracy: canonicalLocation.accuracy,
     station: canonicalLocation.station,
     recordedAt: canonicalLocation.recordedAt,
-    tripId: tripId ?? null,
+    tripId: activeTrip.id,
     selection: sources[0]?.id === selectedSourceId ? 'canonical' : 'fallback',
   });
 
   // Trigger DB persistence after live publication. T5 history remains best effort.
-  await persistSampledHistory(vehicleId, canonicalLocation, tripId);
+  await persistSampledHistory(vehicleId, canonicalLocation, activeTrip.id);
 
   return canonicalState as CanonicalVehicleStateV1;
 };
 
 /**
  * 3. Persist Sampled History (60s Write Throttling)
- * Ensures coordinates are written to PostGIS database at most once every 60s per trip session.
+ * Ensures coordinates are written to PostGIS database at most once every 60s per active trip.
  */
+interface CanonicalHistoryPoint {
+  lat: number;
+  lng: number;
+  speed: number | null;
+  heading: number | null;
+  station: string | null;
+  sourceId: string;
+  recordedAt: Date;
+}
+
 const persistSampledHistory = async (
   vehicleId: string,
-  canonicalLocation: any,
+  canonicalLocation: CanonicalHistoryPoint,
   tripId?: string,
 ) => {
   const cacheKey = `trip:last_saved:vehicle:${vehicleId}`;
@@ -456,9 +584,7 @@ const persistSampledHistory = async (
   try {
     // Apply Redis admission before the persistence transaction. A vehicle key
     // is equivalent to a trip key while the partial index allows only one
-    // active trip per vehicle, and it also covers virtual trips whose ID is
-    // not known until the transaction runs. The transaction still reconciles
-    // active-trip state when this observation is not the sampled write.
+    // active trip per vehicle.
     wasSet = await redisClient.set(cacheKey, '1', {
       NX: true,
       EX: THROTTLE_SECONDS

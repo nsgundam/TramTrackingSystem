@@ -22,6 +22,8 @@ model User {
 
   assignedFeedback Feedback[] @relation("feedback_assigned_to")
   deletedFeedback  Feedback[] @relation("feedback_deleted_by")
+  trackingAssignments TrackingAssignment[] @relation("tracking_assignment_actor")
+  unassignedTrackingAssignments TrackingAssignment[] @relation("tracking_assignment_unassign_actor")
 
   @@map("users")
 }
@@ -60,7 +62,7 @@ model Vehicle {
   trips           Trip[]
   gpsTracks       GPSTrack[]
   feedbacks       Feedback[]
-  trackingSources TrackingSource[]
+  trackingAssignments TrackingAssignment[]
 
   @@index([status])
   @@index([assignedRouteId])
@@ -114,8 +116,9 @@ model Trip {
   routeId   String    @map("route_id") @db.VarChar(50)
   startTime DateTime  @map("start_time") @db.Timestamp(6)
   endTime   DateTime? @map("end_time") @db.Timestamp(6)
-  // SQL migration constrains this lifecycle to in_progress/completed and
-  // requires endTime only for completed trips.
+  lastTripActivityAt DateTime @map("last_trip_activity_at") @db.Timestamp(6)
+  closedAt DateTime? @map("closed_at") @db.Timestamp(6)
+  endReason String? @map("end_reason") @db.VarChar(50)
   status    String    @default("in_progress") @db.VarChar(50)
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
 
@@ -163,23 +166,45 @@ model TrackingSource {
   id         String    @id @db.VarChar(50)
   name       String    @db.VarChar(255)
   type       String    @db.VarChar(50) // "mobile", "lorawan", "esp32", "simulator"
-  vehicleId  String?   @map("vehicle_id") @db.VarChar(50)
   priority   Int       @default(1)
   status     String    @default("active") @db.VarChar(50)
   secretHash String?   @map("secret_hash") @db.VarChar(255)
   credentialVersion   Int       @default(1) @map("credential_version")
   credentialIssuedAt  DateTime? @map("credential_issued_at") @db.Timestamp(6)
   credentialRotatedAt DateTime? @map("credential_rotated_at") @db.Timestamp(6)
-  lastSeenAt DateTime? @map("last_seen_at") @db.Timestamp(6)
+  lastTelemetryAt DateTime? @map("last_telemetry_at") @db.Timestamp(6)
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
 
   // Relations
-  vehicle   Vehicle?   @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
-  gpsTracks GPSTrack[]
+  assignments TrackingAssignment[]
+  gpsTracks   GPSTrack[]
 
-  @@index([vehicleId, status, priority, id])
-  @@index([status, lastSeenAt(sort: Desc)])
+  @@index([status, priority, id])
+  @@index([status, lastTelemetryAt(sort: Desc)])
   @@map("tracking_sources")
+}
+
+// ============================================
+// 9. TRACKING_ASSIGNMENTS - Source/Vehicle History
+// ============================================
+model TrackingAssignment {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  trackingSourceId String  @map("tracking_source_id") @db.VarChar(50)
+  vehicleId      String    @map("vehicle_id") @db.VarChar(50)
+  assignedAt     DateTime  @default(now()) @map("assigned_at") @db.Timestamp(6)
+  unassignedAt   DateTime? @map("unassigned_at") @db.Timestamp(6)
+  assignedById   String?   @map("assigned_by_id") @db.Uuid
+  unassignedById String?   @map("unassigned_by_id") @db.Uuid
+  method         String    @default("admin") @db.VarChar(30)
+
+  source   TrackingSource @relation(fields: [trackingSourceId], references: [id], onDelete: Restrict)
+  vehicle  Vehicle        @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  assignedBy User?        @relation("tracking_assignment_actor", fields: [assignedById], references: [id], onDelete: SetNull)
+  unassignedBy User?      @relation("tracking_assignment_unassign_actor", fields: [unassignedById], references: [id], onDelete: SetNull)
+
+  @@index([trackingSourceId, assignedAt(sort: Desc)])
+  @@index([vehicleId, assignedAt(sort: Desc)])
+  @@map("tracking_assignments")
 }
 
 // ============================================

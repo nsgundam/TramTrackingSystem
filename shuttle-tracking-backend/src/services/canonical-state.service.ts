@@ -16,6 +16,8 @@ export const CANONICAL_REASON_CODES = [
   'ALL_SOURCES_STALE',
   'SOURCE_NEVER_SEEN',
   'NO_ACTIVE_SOURCE',
+  'NO_ACTIVE_TRIP',
+  'SOURCE_OFFLINE',
   'DEPENDENCY_UNAVAILABLE',
   'RECOVERED',
 ] as const;
@@ -392,6 +394,7 @@ type SourceRecord = {
   id: string;
   type: string;
   priority: number;
+  assignmentId: string;
 };
 
 type SourceCandidate = SourceRecord & {
@@ -404,6 +407,7 @@ type SourceCandidate = SourceRecord & {
     accuracy: number | null;
     station: string | null;
     timestamp: number;
+    assignmentId?: string | null;
     sourceType: string;
   };
 };
@@ -411,14 +415,20 @@ type SourceCandidate = SourceRecord & {
 const readSourceCandidate = async (
   vehicleId: string,
 ): Promise<{ selected: SourceCandidate | null; hasSnapshot: boolean; sourceCount: number }> => {
-  const sources = await prisma.trackingSource.findMany({
-    where: { vehicleId, status: 'active' },
-    select: { id: true, type: true, priority: true },
-    orderBy: [
-      { priority: 'asc' },
-      { id: 'asc' },
-    ],
-  }) as SourceRecord[];
+  const assignments = await prisma.trackingAssignment.findMany({
+    where: {
+      vehicleId,
+      unassignedAt: null,
+      source: { status: 'active' },
+    },
+    select: {
+      id: true,
+      source: { select: { id: true, type: true, priority: true } },
+    },
+  });
+  const sources = assignments
+    .map(({ id, source }) => ({ ...source, assignmentId: id }))
+    .sort((left, right) => left.priority - right.priority || left.id.localeCompare(right.id)) as SourceRecord[];
   let selected: SourceCandidate | null = null;
   let hasSnapshot = false;
   const now = Date.now();
@@ -429,7 +439,11 @@ const readSourceCandidate = async (
     hasSnapshot = true;
     try {
       const observation = JSON.parse(raw) as SourceCandidate['observation'];
-      if (now - observation.timestamp <= CANONICAL_SOURCE_FRESHNESS_WINDOW_MS && !selected) {
+      if (
+        observation.assignmentId === source.assignmentId
+        && now - observation.timestamp <= CANONICAL_SOURCE_FRESHNESS_WINDOW_MS
+        && !selected
+      ) {
         selected = { ...source, rank, observation };
       }
     } catch {
@@ -443,6 +457,15 @@ const readSourceCandidate = async (
 export const refreshCanonicalState = async (
   vehicleId: string,
 ): Promise<CanonicalVehicleStateV1> => {
+  const route = await routeOrUnknown(vehicleId);
+  if (!route.tripId) {
+    return publishVehicleStateTransition({
+      vehicleId,
+      serviceState: 'no_service',
+      reasonCode: 'NO_ACTIVE_TRIP',
+    });
+  }
+
   const { selected, hasSnapshot, sourceCount } = await readSourceCandidate(vehicleId);
   if (selected) {
     const sourceType = asSourceType(selected.observation.sourceType) ?? asSourceType(selected.type);
@@ -475,7 +498,7 @@ export const refreshCanonicalState = async (
       ? 'NO_ACTIVE_SOURCE'
       : hasSnapshot
         ? 'ALL_SOURCES_STALE'
-        : 'SOURCE_NEVER_SEEN',
+        : 'SOURCE_OFFLINE',
   });
 };
 
@@ -483,6 +506,14 @@ export const getCanonicalStateForVehicle = async (
   vehicleId: string,
 ): Promise<CanonicalVehicleStateV1> => {
   const current = await readCurrentState(vehicleId);
+  const activeTrip = await prisma.trip.findFirst({
+    where: { vehicleId, status: 'in_progress' },
+    select: { id: true },
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+  });
+  if (!activeTrip || current?.tripId !== activeTrip.id) {
+    return refreshCanonicalState(vehicleId);
+  }
   if (current) {
     const refreshed = refreshFreshness(current);
     if (refreshed.serviceState === 'live' && refreshed.freshness.bucket === 'stale') {

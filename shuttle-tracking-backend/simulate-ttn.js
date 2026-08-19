@@ -264,19 +264,24 @@ async function runSimulator() {
               vehicleId: resJson.canonicalLocation.vehicleId,
               sourceId: resJson.canonicalLocation.sourceId,
               sourceType: resJson.canonicalLocation.sourceType,
+              serviceState: resJson.canonicalLocation.serviceState,
+              reasonCode: resJson.canonicalLocation.reasonCode,
             }
           : undefined,
       };
 
       if (response.ok) {
-        if (
-          runOnce &&
-          (safeResponse.canonicalLocation?.sourceId !== config.id ||
-            safeResponse.canonicalLocation?.sourceType !== 'lorawan')
-        ) {
-          console.error(`   🔴 Failed: canonical response did not select ${config.id} as lorawan source`);
-          process.exitCode = 1;
-          break;
+        if (runOnce) {
+          const state = safeResponse.canonicalLocation;
+          const validNoService = state?.serviceState === 'no_service' && state.reasonCode === 'NO_ACTIVE_TRIP';
+          const validLive = state?.serviceState === 'live'
+            && state.sourceId === config.id
+            && state.sourceType === 'lorawan';
+          if (!validNoService && !validLive) {
+            console.error(`   🔴 Failed: unexpected canonical state for ${config.id}`, JSON.stringify(state));
+            process.exitCode = 1;
+            break;
+          }
         }
         console.log(`   🟢 Success (HTTP ${response.status}):`, JSON.stringify(safeResponse));
       } else {

@@ -158,7 +158,7 @@ export function AdminStatusBadge({
 }
 
 interface AdminNoticeProps {
-  kind: "read-only" | "privacy";
+  kind: "read-only" | "privacy" | "info";
   title: string;
   icon: ReactNode;
   children: ReactNode;

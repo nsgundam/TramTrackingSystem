@@ -20,6 +20,7 @@ const FOREIGN_MOBILE_SOURCE_ID = process.env.TRACKING_SOURCE_ID_MOBILE_2 || 'TS_
 const FOREIGN_MOBILE_VEHICLE_ID = process.env.TRACKING_VEHICLE_ID_MOBILE_2 || 'VH002';
 const TTN_DEVICE_ID = process.env.TTN_DEVICE_ID || 'sensor-c4';
 const TTN_VEHICLE_ID = process.env.TTN_VEHICLE_ID || (TTN_DEVICE_ID === 'sensor-f2' ? 'VN002' : 'VH003');
+let startedTripId;
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -38,9 +39,18 @@ async function testPipeline() {
     async function assertSeedFixture(sourceId, vehicleId, type) {
       const source = await prisma.trackingSource.findUnique({
         where: { id: sourceId },
-        select: { id: true, type: true, vehicleId: true, status: true },
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          assignments: {
+            where: { unassignedAt: null },
+            select: { vehicleId: true },
+            take: 1,
+          },
+        },
       });
-      if (!source || source.type !== type || source.vehicleId !== vehicleId || source.status !== 'active') {
+      if (!source || source.type !== type || source.assignments[0]?.vehicleId !== vehicleId || source.status !== 'active') {
         throw new Error(`Seed fixture mismatch for ${sourceId}; expected active ${type} source bound to ${vehicleId}`);
       }
     }
@@ -107,11 +117,11 @@ async function testPipeline() {
     const token = loginData.token;
     console.log('   🟢 Admin login successful. Token acquired.\n');
 
-    async function loginSender(sourceId, secret, vehicleId) {
+    async function loginSender(sourceId, secret) {
       const senderRes = await fetch(`${BASE_URL}/auth/vehicle-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sourceId, secret, vehicleId }),
+        body: JSON.stringify({ sourceId, secret }),
       });
       const senderData = await senderRes.json();
       if (!senderRes.ok || !senderData.token) {
@@ -120,8 +130,8 @@ async function testPipeline() {
       return senderData.token;
     }
 
-    const espSenderToken = await loginSender(ESP_SOURCE_ID, ESP32_SECRET, ESP_VEHICLE_ID);
-    const mobileSenderToken = await loginSender(MOBILE_SOURCE_ID, MOBILE_SECRET, MOBILE_VEHICLE_ID);
+    const espSenderToken = await loginSender(ESP_SOURCE_ID, ESP32_SECRET);
+    const mobileSenderToken = await loginSender(MOBILE_SOURCE_ID, MOBILE_SECRET);
     console.log('   🟢 Sender credentials issued.\n');
 
     // ============================================
@@ -141,7 +151,7 @@ async function testPipeline() {
     }
 
     const expiredToken = jwt.sign(
-      { kind: 'sender', sourceId: ESP_SOURCE_ID, vehicleId: ESP_VEHICLE_ID, credentialVersion: 1 },
+      { kind: 'sender', sourceId: ESP_SOURCE_ID, credentialVersion: 1 },
       process.env.JWT_SECRET,
       { expiresIn: -1 },
     );
@@ -181,7 +191,7 @@ async function testPipeline() {
       throw new Error(`FAIL: vehicle ownership mismatch returned ${mismatchedVehicleRes.status}`);
     }
 
-    const foreignSenderToken = await loginSender(FOREIGN_MOBILE_SOURCE_ID, MOBILE_SECRET, FOREIGN_MOBILE_VEHICLE_ID);
+    const foreignSenderToken = await loginSender(FOREIGN_MOBILE_SOURCE_ID, MOBILE_SECRET);
     let foreignTrip = await prisma.trip.findFirst({
       where: { vehicleId: FOREIGN_MOBILE_VEHICLE_ID, status: 'in_progress' },
       select: { id: true },
@@ -234,6 +244,21 @@ async function testPipeline() {
       throw new Error(`FAIL: invalid TTN secret returned ${invalidTtnSecretRes.status}`);
     }
     console.log('   ✅ Invalid, expired, and mismatched sender writes rejected.\n');
+
+    // Start service explicitly. Telemetry alone must not create a Trip.
+    const startRes = await fetch(`${BASE_URL}/trips/start`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${espSenderToken}`,
+      },
+      body: JSON.stringify({}),
+    });
+    const startData = await startRes.json();
+    if (!startRes.ok || !startData.trip?.id) {
+      throw new Error(`FAIL: explicit Trip start returned ${startRes.status}`);
+    }
+    startedTripId = startData.trip.id;
 
     // ============================================
     // 3. Test Ingest ESP32 Location (HTTP REST)
@@ -306,10 +331,10 @@ async function testPipeline() {
     }
     assertSafeAcknowledgement('TTN', ttnData);
     if (
-      ttnData.canonicalLocation.sourceId !== TTN_DEVICE_ID ||
-      ttnData.canonicalLocation.sourceType !== 'lorawan'
+      ttnData.canonicalLocation.serviceState !== 'no_service' ||
+      ttnData.canonicalLocation.sourceId
     ) {
-      throw new Error(`FAIL: TTN acknowledgement did not select ${TTN_DEVICE_ID} as lorawan source`);
+      throw new Error('FAIL: TTN telemetry without an active Trip was published as live');
     }
     console.log('   🟢 TTN Webhook status:', ttnRes.status);
     console.log('   🟢 Canonical Location selected:', ttnData.canonicalLocation.liveLocation?.lat, ttnData.canonicalLocation.liveLocation?.lng);
@@ -382,7 +407,7 @@ async function testPipeline() {
     // ============================================
     // 7. DB History Sample Check
     // ============================================
-    console.log('🗄️ [Database] Verifying auto-created virtual trip...');
+    console.log('🗄️ [Database] Verifying explicit Trip history...');
     const tripRes = await prisma.trip.findMany({
       where: { vehicleId: MOBILE_VEHICLE_ID },
       include: { gpsTracks: true }
@@ -393,11 +418,19 @@ async function testPipeline() {
       console.log(`   🟢 Trip ${trip.id}: startTime=${trip.startTime}, status=${trip.status}, tracksCount=${trip.gpsTracks.length}`);
     }
     
-    const hasActiveVirtualTrip = tripRes.some(t => t.status === 'in_progress');
-    if (!hasActiveVirtualTrip) {
-      throw new Error('FAIL: Auto-Trip did not create a virtual active trip session!');
+    const hasExplicitActiveTrip = tripRes.some(t => t.id === startedTripId && t.status === 'in_progress');
+    if (!hasExplicitActiveTrip) {
+      throw new Error('FAIL: explicit Trip was not the source of the active history session');
     }
-    console.log('   ✅ Auto-Trip and Database History writing verified.\n');
+    console.log('   ✅ Explicit Trip and Database History writing verified.\n');
+
+    const endRes = await fetch(`${BASE_URL}/trips/${startedTripId}/end`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${espSenderToken}` },
+    });
+    if (!endRes.ok) {
+      throw new Error(`FAIL: could not close explicit Trip fixture (${endRes.status})`);
+    }
 
     console.log('🎉 All pipeline integration tests PASSED successfully!');
   } catch (error) {

@@ -1,5 +1,5 @@
 import { JwtPayload } from 'jsonwebtoken';
-import type { SenderContext } from '../middleware/auth.js';
+import type { SenderContext, SenderIdentity } from '../middleware/auth.js';
 import type { AdminPrincipal } from '../middleware/auth.js';
 
 declare global {
@@ -7,6 +7,7 @@ declare global {
     interface Request {
       user?: string | JwtPayload; 
       admin?: AdminPrincipal;
+      senderIdentity?: SenderIdentity;
       sender?: SenderContext;
       requestId?: string;
     }

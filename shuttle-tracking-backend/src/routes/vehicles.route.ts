@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createVehicle, getVehicleById, getVehicles, updateVehicle , deleteVehicle} from "../controllers/vehicles.controller.js";
+import { createVehicle, getVehicleById, getVehicleAssignmentQr, getVehicles, updateVehicle , deleteVehicle} from "../controllers/vehicles.controller.js";
 
 const router = Router();
 
@@ -7,6 +7,7 @@ const router = Router();
 router.get('/', getVehicles);
 
 // GET api/admin/vehicles/:id
+router.get('/:id/assignment-qr', getVehicleAssignmentQr);
 router.get('/:id', getVehicleById);
 
 // POST api/admin/vehicles

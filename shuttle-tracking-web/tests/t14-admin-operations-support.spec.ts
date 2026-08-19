@@ -9,22 +9,59 @@ import {
 
 const ADMIN_ORIGIN = "http://127.0.0.1:13000";
 
+const sources = [
+  {
+    id: "TS_MOB_01",
+    name: "Mobile source",
+    type: "mobile",
+    vehicleId: "VH001",
+    priority: 1,
+    status: "active",
+    lastTelemetryAt: "2026-08-10T01:30:00.000Z",
+    activeAssignment: {
+      id: "assignment-1",
+      vehicleId: "VH001",
+      assignedAt: "2026-08-01T00:00:00.000Z",
+      unassignedAt: null,
+      method: "admin",
+      vehicle: { id: "VH001", name: "Tram 01" },
+    },
+  },
+  {
+    id: "TS_LORA_01",
+    name: "LoRaWAN source",
+    type: "lorawan",
+    vehicleId: null,
+    priority: 2,
+    status: "active",
+    lastTelemetryAt: null,
+    activeAssignment: null,
+  },
+] as const;
+
+const vehicles = [
+  { id: "VH001", name: "Tram 01" },
+  { id: "VH002", name: "Tram 02" },
+] as const;
+
 const sourceHealth = [
   {
+    sourceId: "TS_MOB_01",
     sourceType: "mobile",
     vehicle: { id: "VH001", name: "Tram 01" },
     freshness: "online",
-    lastSeenAt: "2026-08-10T01:30:00.000Z",
+    lastTelemetryAt: "2026-08-10T01:30:00.000Z",
     status: "active",
     errorCategory: "none",
   },
   {
+    sourceId: "TS_LORA_01",
     sourceType: "lorawan",
     vehicle: null,
-    freshness: "never_seen",
-    lastSeenAt: null,
+    freshness: "offline",
+    lastTelemetryAt: null,
     status: "registered",
-    errorCategory: "never_seen",
+    errorCategory: "offline",
   },
 ] as const;
 
@@ -198,49 +235,52 @@ const useFeedbackApi = async (
   });
 };
 
-test("T14 Source Health uses the semantic operations ledger and only safe fields", async ({ page, context }) => {
+test("T14 Tracking Source registry keeps health, assignment, and lifecycle boundaries visible", async ({ page, context }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await authenticateAdmin(context);
   await useRole(page, "ADMIN");
+  await page.route(/\/api\/admin\/devices$/, (route) => fulfillJson(route, sources));
   await page.route(/\/api\/admin\/devices\/health$/, (route) => fulfillJson(route, sourceHealth));
+  await page.route(/\/api\/admin\/vehicles$/, (route) => fulfillJson(route, vehicles));
 
   await page.goto("/admin/devices");
   const sourcePage = page.locator('[data-admin-resource="source-health"]');
   await expect(sourcePage).toBeVisible();
-  await expect(page.getByRole("heading", { level: 1, name: "Source Health" })).toBeVisible();
-  await expect(sourcePage.locator('[data-admin-notice="read-only"]')).toContainText("Read-only");
-  const ledger = sourcePage.locator('[data-admin-operations-ledger="source-health"]');
-  await expect(ledger).toBeVisible();
-  await expect(ledger.locator('[data-admin-signal="online"]')).toContainText("online");
-  const firstRecord = ledger.locator("article").first();
+  await expect(page.getByRole("heading", { level: 1, name: "Tracking Sources" })).toBeVisible();
+  await expect(sourcePage.locator('[data-admin-notice="info"]')).toContainText("Telemetry health never starts or ends service");
+  const registry = sourcePage.locator(".admin-source-registry");
+  await expect(registry).toBeVisible();
+  const firstRecord = registry.locator("article").first();
   await expect(firstRecord).toContainText("mobile");
   await expect(firstRecord).toContainText("Tram 01 (VH001)");
   await expect(firstRecord).toContainText("10 Aug 2026, 08:30 ICT");
-  await expect(firstRecord).toContainText("Error category");
-  await expect(firstRecord).toContainText("Source status");
+  await expect(firstRecord).toContainText("Registry status");
+  await expect(firstRecord).toContainText("Save assignment");
   await expect(firstRecord).not.toContainText(/credential|payload|location|IP address/i);
-  await expectSolidPresentation(sourcePage.locator("[data-admin-resource-panel]"));
+  await expectSolidPresentation(sourcePage.locator("[data-admin-resource-panel]").first());
   await expectMinimumTarget(sourcePage.locator("[data-admin-resource-action]:visible"));
 });
 
-test("T14 Source Health initial failure is distinct from empty and retryable on Mobile", async ({ page, context }) => {
+test("T14 Tracking Source initial failure is distinct from empty and retryable on Mobile", async ({ page, context }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await authenticateAdmin(context);
   await useRole(page, "ADMIN");
   let shouldFail = true;
+  await page.route(/\/api\/admin\/devices$/, (route) => fulfillJson(route, shouldFail ? { error: "Temporarily unavailable" } : [] , shouldFail ? 503 : 200));
   await page.route(/\/api\/admin\/devices\/health$/, (route) => (
     shouldFail
       ? fulfillJson(route, { error: "Temporarily unavailable" }, 503)
       : fulfillJson(route, [])
   ));
+  await page.route(/\/api\/admin\/vehicles$/, (route) => fulfillJson(route, []));
 
   await page.goto("/admin/devices");
   await expect(page.getByRole("alert").filter({
-    hasText: "Unable to load the safe source-health view",
+    hasText: "Unable to load source registry and health state",
   })).toBeVisible();
   await expect(page.getByText("No sources are registered.")).toBeHidden();
   shouldFail = false;
-  await page.getByRole("button", { name: "Retry loading source health" }).click();
+  await page.getByRole("button", { name: "Retry loading source registry" }).click();
   await expect(page.getByText("No sources are registered.")).toBeVisible();
   const overflow = await page.evaluate(() => ({
     viewport: window.innerWidth,

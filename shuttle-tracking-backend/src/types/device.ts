@@ -2,8 +2,17 @@ import type { Prisma } from '@prisma/client';
 import { getSourceHealth, type SourceHealth } from '../services/tracking.service.js';
 
 export type DeviceRecord = Prisma.TrackingSourceGetPayload<{
-  include: { vehicle: true };
+  include: { assignments: { include: { vehicle: true } } };
 }>;
+
+export type DeviceAssignmentResponse = {
+  id: string;
+  vehicleId: string;
+  assignedAt: Date;
+  unassignedAt: Date | null;
+  method: string;
+  vehicle: { id: string; name: string };
+};
 
 export type DeviceResponse = {
   id: string;
@@ -15,7 +24,7 @@ export type DeviceResponse = {
   credentialVersion: number;
   credentialIssuedAt: Date | null;
   credentialRotatedAt: Date | null;
-  lastSeenAt: Date | null;
+  lastTelemetryAt: Date | null;
   createdAt: Date;
   vehicle: {
     id: string;
@@ -25,6 +34,7 @@ export type DeviceResponse = {
     status: string;
     createdAt: Date;
   } | null;
+  activeAssignment: DeviceAssignmentResponse | null;
 };
 
 export type CredentialAction = {
@@ -37,13 +47,17 @@ export type DeviceMutationResponse = DeviceResponse & {
 };
 
 export type DeviceHealthResponse = {
+  sourceId: string;
   sourceType: string;
   vehicle: { id: string; name: string } | null;
   freshness: SourceHealth;
-  lastSeenAt: Date | null;
+  lastTelemetryAt: Date | null;
   status: string;
-  errorCategory: 'none' | 'never_seen' | 'stale' | 'disabled';
+  errorCategory: 'none' | 'stale' | 'offline' | 'disabled';
 };
+
+const activeAssignmentFor = (device: DeviceRecord) =>
+  device.assignments.find((assignment) => assignment.unassignedAt === null) ?? null;
 
 const errorCategoryForHealth = (
   freshness: SourceHealth,
@@ -54,39 +68,54 @@ export const toDeviceHealthResponse = (
   now = Date.now(),
 ): DeviceHealthResponse => {
   const freshness = getSourceHealth(device, now);
+  const assignment = activeAssignmentFor(device);
   return {
+    sourceId: device.id,
     sourceType: device.type,
-    vehicle: device.vehicle ? { id: device.vehicle.id, name: device.vehicle.name } : null,
+    vehicle: assignment ? { id: assignment.vehicle.id, name: assignment.vehicle.name } : null,
     freshness,
-    lastSeenAt: device.lastSeenAt,
+    lastTelemetryAt: device.lastTelemetryAt,
     status: device.status,
     errorCategory: errorCategoryForHealth(freshness),
   };
 };
 
-export const toDeviceResponse = (device: DeviceRecord): DeviceResponse => ({
-  id: device.id,
-  name: device.name,
-  type: device.type,
-  vehicleId: device.vehicleId,
-  priority: device.priority,
-  status: device.status,
-  credentialVersion: device.credentialVersion,
-  credentialIssuedAt: device.credentialIssuedAt,
-  credentialRotatedAt: device.credentialRotatedAt,
-  lastSeenAt: device.lastSeenAt,
-  createdAt: device.createdAt,
-  vehicle: device.vehicle
-    ? {
-        id: device.vehicle.id,
-        name: device.vehicle.name,
-        type: device.vehicle.type,
-        assignedRouteId: device.vehicle.assignedRouteId,
-        status: device.vehicle.status,
-        createdAt: device.vehicle.createdAt,
-      }
-    : null,
-});
+export const toDeviceResponse = (device: DeviceRecord): DeviceResponse => {
+  const assignment = activeAssignmentFor(device);
+  return {
+    id: device.id,
+    name: device.name,
+    type: device.type,
+    vehicleId: assignment?.vehicleId ?? null,
+    priority: device.priority,
+    status: device.status,
+    credentialVersion: device.credentialVersion,
+    credentialIssuedAt: device.credentialIssuedAt,
+    credentialRotatedAt: device.credentialRotatedAt,
+    lastTelemetryAt: device.lastTelemetryAt,
+    createdAt: device.createdAt,
+    vehicle: assignment
+      ? {
+          id: assignment.vehicle.id,
+          name: assignment.vehicle.name,
+          type: assignment.vehicle.type,
+          assignedRouteId: assignment.vehicle.assignedRouteId,
+          status: assignment.vehicle.status,
+          createdAt: assignment.vehicle.createdAt,
+        }
+      : null,
+    activeAssignment: assignment
+      ? {
+          id: assignment.id,
+          vehicleId: assignment.vehicleId,
+          assignedAt: assignment.assignedAt,
+          unassignedAt: assignment.unassignedAt,
+          method: assignment.method,
+          vehicle: { id: assignment.vehicle.id, name: assignment.vehicle.name },
+        }
+      : null,
+  };
+};
 
 export const toDeviceMutationResponse = (
   device: DeviceRecord,

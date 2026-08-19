@@ -1,7 +1,13 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js';
 import { invalidatePublicCache } from '../services/cache.service.js';
-import { logBoundaryFailure } from '../middleware/boundary-errors.js';
+import {
+    BoundaryError,
+    conflict,
+    logBoundaryFailure,
+    sendBoundaryError,
+} from '../middleware/boundary-errors.js';
+import { createVehicleQrToken, vehicleQrUri } from '../services/vehicle-qr.service.js';
 
 // Get All Vehicles
 export const getVehicles = async (req: Request, res: Response) => {
@@ -33,6 +39,22 @@ export const getVehicleById = async (req: Request, res: Response) => {
     }catch (error) {
         logBoundaryFailure('Vehicle read', error);
         res.status(500).json({ error: 'An error occurred while fetching the vehicle' });
+    }
+};
+
+export const getVehicleAssignmentQr = async (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string;
+        const vehicle = await prisma.vehicle.findUnique({ where: { id }, select: { id: true, name: true } });
+        if (!vehicle) {
+            res.status(404).json({ error: 'Vehicle not found' });
+            return;
+        }
+        const token = createVehicleQrToken(vehicle.id);
+        res.json({ vehicle, token, uri: vehicleQrUri(token) });
+    } catch (error) {
+        logBoundaryFailure('Vehicle QR', error);
+        res.status(500).json({ error: 'An error occurred while creating the vehicle QR contract' });
     }
 };
 
@@ -79,6 +101,10 @@ export const updateVehicle = async (req: Request, res: Response) => {
 export const deleteVehicle = async (req: Request, res: Response) => {
     try{
         const id = req.params.id as string;
+        const assignmentCount = await prisma.trackingAssignment.count({ where: { vehicleId: id } });
+        if (assignmentCount > 0) {
+            throw conflict('Vehicles with tracking assignment history cannot be deleted');
+        }
         await prisma.vehicle.delete({
             where: { id }
         });
@@ -87,6 +113,10 @@ export const deleteVehicle = async (req: Request, res: Response) => {
 
     }catch (error) {
         logBoundaryFailure('Vehicle delete', error);
+        if (error instanceof BoundaryError) {
+            sendBoundaryError(res, error);
+            return;
+        }
         res.status(500).json({ error: 'An error occurred while deleting the vehicle' });
     }
 };

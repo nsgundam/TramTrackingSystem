@@ -2,12 +2,19 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../config/prisma.js';
 import { hasMinimumRole, isAdminRole, type AdminRole } from '../services/admin-role.service.js';
+import { findActiveAssignment } from '../services/tracking-assignment.service.js';
 
-export interface SenderContext {
+export interface SenderIdentity {
   sourceId: string;
-  vehicleId: string;
   credentialVersion: number;
+  assignmentId: string | null;
 }
+
+export interface SenderContext extends SenderIdentity {
+  vehicleId: string;
+}
+
+export type SenderClaims = SenderIdentity;
 
 export interface AdminPrincipal {
   id: string;
@@ -42,22 +49,21 @@ export const extractBearerToken = (authorization?: string): string | null => {
   return token;
 };
 
-export const parseSenderClaims = (token: string): SenderContext => {
+export const parseSenderClaims = (token: string): SenderClaims => {
   const decoded = jwt.verify(token, getJwtSecret());
 
   if (typeof decoded !== 'object' || decoded === null || decoded.kind !== 'sender') {
     throw new Error('Invalid sender token type');
   }
 
-  const { sourceId, vehicleId, credentialVersion } = decoded as jwt.JwtPayload & {
+  const { sourceId, credentialVersion, assignmentId } = decoded as jwt.JwtPayload & {
     sourceId?: unknown;
-    vehicleId?: unknown;
     credentialVersion?: unknown;
+    assignmentId?: unknown;
   };
 
   if (
     typeof sourceId !== 'string' ||
-    typeof vehicleId !== 'string' ||
     typeof credentialVersion !== 'number' ||
     !Number.isInteger(credentialVersion) ||
     credentialVersion < 1
@@ -65,14 +71,18 @@ export const parseSenderClaims = (token: string): SenderContext => {
     throw new Error('Invalid sender token claims');
   }
 
+  if (typeof assignmentId !== 'string' && assignmentId !== null) {
+    throw new Error('Invalid sender assignment claim');
+  }
+
   return {
     sourceId,
-    vehicleId,
     credentialVersion,
+    assignmentId,
   };
 };
 
-export const getSenderFromToken = async (token: string): Promise<SenderContext> => {
+export const getSenderIdentityFromToken = async (token: string): Promise<SenderIdentity> => {
   const claims = parseSenderClaims(token);
   let source;
   try {
@@ -80,10 +90,14 @@ export const getSenderFromToken = async (token: string): Promise<SenderContext> 
       where: { id: claims.sourceId },
       select: {
         id: true,
-        vehicleId: true,
         type: true,
         status: true,
         credentialVersion: true,
+        assignments: {
+          where: { unassignedAt: null },
+          select: { id: true },
+          take: 1,
+        },
       },
     });
   } catch {
@@ -94,14 +108,28 @@ export const getSenderFromToken = async (token: string): Promise<SenderContext> 
     !source ||
     source.status !== 'active' ||
     source.type === 'lorawan' ||
-    !source.vehicleId ||
-    source.vehicleId !== claims.vehicleId ||
     source.credentialVersion !== claims.credentialVersion
+    || claims.assignmentId !== (source.assignments[0]?.id ?? null)
   ) {
     throw new Error('Sender credential is inactive or no longer valid');
   }
 
   return claims;
+};
+
+export const getSenderFromToken = async (token: string): Promise<SenderContext> => {
+  const identity = await getSenderIdentityFromToken(token);
+  let assignment;
+  try {
+    assignment = await findActiveAssignment(identity.sourceId);
+  } catch {
+    throw new SenderAuthDependencyError();
+  }
+  if (!assignment || assignment.id !== identity.assignmentId) {
+    throw new Error('Sender credential is inactive or no longer assigned');
+  }
+
+  return { ...identity, vehicleId: assignment.vehicleId };
 };
 
 export const isAdminClaims = (
@@ -244,6 +272,31 @@ export const authenticateSenderToken = async (
     }
 
     res.locals.ingestionReasonCode = 'SENDER_CREDENTIAL_INVALID';
+    res.status(401).json({ code: 'SENDER_CREDENTIAL_INVALID', error: 'Invalid or inactive sender credential' });
+  }
+};
+
+export const authenticateSenderIdentityToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  const token = extractBearerToken(req.headers.authorization);
+
+  if (!token) {
+    res.status(401).json({ code: 'SENDER_AUTH_REQUIRED', error: 'Sender authentication required' });
+    return;
+  }
+
+  try {
+    req.senderIdentity = await getSenderIdentityFromToken(token);
+    next();
+  } catch (error) {
+    if (error instanceof SenderAuthDependencyError) {
+      res.status(503).json({ code: 'DEPENDENCY_UNAVAILABLE', error: 'Sender authentication temporarily unavailable' });
+      return;
+    }
+
     res.status(401).json({ code: 'SENDER_CREDENTIAL_INVALID', error: 'Invalid or inactive sender credential' });
   }
 };

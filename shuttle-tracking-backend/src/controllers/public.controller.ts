@@ -39,7 +39,12 @@ export const getActiveRoutes = async (req: Request, res: Response) => {
 export const getActiveVehicles = async (req: Request, res: Response) => {
     try {
         const vehicles = await prisma.vehicle.findMany({
-            where: { status: 'active' },
+            // Vehicle registry status alone is not service state. Public live
+            // vehicles require an explicitly active Trip as well.
+            where: {
+                status: 'active',
+                trips: { some: { status: 'in_progress' } },
+            },
             include: { route: true },
             orderBy: { id: 'asc' }
         });

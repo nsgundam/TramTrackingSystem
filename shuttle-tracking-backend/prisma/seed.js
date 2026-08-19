@@ -286,18 +286,37 @@ async function main() {
   ];
 
   for (const source of trackingSources) {
+    const { vehicleId, ...sourceData } = source;
     await prisma.trackingSource.upsert({
       where: { id: source.id },
-      create: source,
+      create: sourceData,
       update: {
-        name: source.name,
-        type: source.type,
-        vehicleId: source.vehicleId,
-        priority: source.priority,
+        name: sourceData.name,
+        type: sourceData.type,
+        priority: sourceData.priority,
         status: "active",
-        secretHash: source.secretHash,
+        secretHash: sourceData.secretHash,
       },
     });
+
+    const currentAssignment = await prisma.trackingAssignment.findFirst({
+      where: { trackingSourceId: source.id, unassignedAt: null },
+    });
+    if (currentAssignment && currentAssignment.vehicleId !== vehicleId) {
+      await prisma.trackingAssignment.update({
+        where: { id: currentAssignment.id },
+        data: { unassignedAt: new Date() },
+      });
+    }
+    if (!currentAssignment || currentAssignment.vehicleId !== vehicleId) {
+      await prisma.trackingAssignment.create({
+        data: {
+          trackingSourceId: source.id,
+          vehicleId,
+          method: "admin",
+        },
+      });
+    }
   }
 
   console.log("level=info event=seed.completed environment=development");

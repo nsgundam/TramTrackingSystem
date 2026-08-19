@@ -134,3 +134,6 @@ export const clientAddress = (req: Request): string => {
 
 export const senderKey = (req: Request): string | undefined =>
   req.sender?.sourceId;
+
+export const senderIdentityKey = (req: Request): string | undefined =>
+  req.senderIdentity?.sourceId ?? req.sender?.sourceId;

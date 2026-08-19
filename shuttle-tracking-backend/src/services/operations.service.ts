@@ -1,9 +1,14 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../config/prisma.js';
 import { BoundaryError, conflict, notFound } from '../middleware/boundary-errors.js';
+import { isTripInactive, TRIP_INACTIVITY_TIMEOUT_MS } from './trip-activity.service.js';
+import { lockTrackingSource } from './tracking-assignment.service.js';
 
 export const TRIP_IN_PROGRESS = 'in_progress' as const;
 export const TRIP_COMPLETED = 'completed' as const;
+export const TRIP_ABORTED = 'aborted' as const;
+export const TRIP_END_REASON_EXPLICIT = 'explicit_end' as const;
+export const TRIP_END_REASON_INACTIVITY = 'inactivity_timeout' as const;
 export const VEHICLE_ACTIVE = 'active' as const;
 export const VEHICLE_INACTIVE = 'inactive' as const;
 
@@ -17,6 +22,11 @@ export interface OperationalTripResult {
 export interface EndedTripResult {
   trip: Prisma.TripGetPayload<{}>;
   idempotent: boolean;
+}
+
+export interface TripActivityResult {
+  trip: Prisma.TripGetPayload<{}>;
+  updated: boolean;
 }
 
 export interface CanonicalHistoryInput {
@@ -37,8 +47,8 @@ export interface CanonicalHistoryResult {
 }
 
 /**
- * Locking every lifecycle transition by vehicle gives explicit start, virtual
- * start, end, and history writes one deterministic ordering. The partial
+ * Locking every lifecycle transition by vehicle gives explicit start, activity,
+ * end, timeout, and history writes one deterministic ordering. The partial
  * unique index remains the final database guard if a future writer bypasses
  * this service.
  */
@@ -67,6 +77,51 @@ const findActiveTrip = async (tx: TransactionClient, vehicleId: string) => tx.tr
     { id: 'asc' },
   ],
 });
+
+const ensureSourceAssignedToVehicle = async (
+  tx: TransactionClient,
+  sourceId: string | undefined,
+  vehicleId: string,
+): Promise<void> => {
+  if (!sourceId) return;
+  await lockTrackingSource(tx, sourceId);
+  const assignment = await tx.trackingAssignment.findFirst({
+    where: {
+      trackingSourceId: sourceId,
+      vehicleId,
+      unassignedAt: null,
+    },
+    select: { id: true },
+  });
+  if (!assignment) {
+    throw new BoundaryError(
+      403,
+      'SENDER_OWNERSHIP_MISMATCH',
+      'Sender is no longer assigned to this vehicle',
+    );
+  }
+};
+
+const closeTripAsInactive = async (
+  tx: TransactionClient,
+  trip: Prisma.TripGetPayload<{}>,
+  closedAt: Date,
+): Promise<Prisma.TripGetPayload<{}>> => {
+  const closedTrip = await tx.trip.update({
+    where: { id: trip.id },
+    data: {
+      status: TRIP_ABORTED,
+      endTime: trip.lastTripActivityAt,
+      closedAt,
+      endReason: TRIP_END_REASON_INACTIVITY,
+    },
+  });
+  await tx.vehicle.update({
+    where: { id: trip.vehicleId },
+    data: { status: VEHICLE_INACTIVE },
+  });
+  return closedTrip;
+};
 
 export type CanonicalRouteAuthority = {
   tripId: string | null;
@@ -126,31 +181,28 @@ const ensureVehicleActive = async (tx: TransactionClient, vehicleId: string): Pr
   });
 };
 
-/**
- * Must be called inside a transaction. It locks the vehicle, reuses the one
- * active trip when present, or creates a virtual trip when a route is
- * assigned. This is the only virtual-trip policy in the backend.
- */
-const ensureActiveTripInTransaction = async (
-  tx: TransactionClient,
+/** Explicit sender start is idempotent by vehicle and is the only trip creator. */
+export const startOperationalTrip = async (
   vehicleId: string,
-  startTime: Date,
-): Promise<OperationalTripResult | null> => {
+  startTime = new Date(),
+  sourceId?: string,
+): Promise<OperationalTripResult> => prisma.$transaction(async (tx) => {
+  await ensureSourceAssignedToVehicle(tx, sourceId, vehicleId);
   const vehicle = await lockVehicle(tx, vehicleId);
-  if (!vehicle) {
-    throw notFound('Vehicle not found');
-  }
+  if (!vehicle) throw notFound('Vehicle not found');
 
-  const activeTrip = await findActiveTrip(tx, vehicleId);
+  let activeTrip = await findActiveTrip(tx, vehicleId);
+  if (activeTrip && isTripInactive(activeTrip.lastTripActivityAt, startTime)) {
+    await closeTripAsInactive(tx, activeTrip, startTime);
+    activeTrip = null;
+  }
   if (activeTrip) {
-    if (vehicle.status !== VEHICLE_ACTIVE) {
-      await ensureVehicleActive(tx, vehicleId);
-    }
+    if (vehicle.status !== VEHICLE_ACTIVE) await ensureVehicleActive(tx, vehicleId);
     return { trip: activeTrip, created: false };
   }
 
   if (!vehicle.assignedRouteId) {
-    return null;
+    throw conflict('Vehicle has no assigned route');
   }
 
   const trip = await tx.trip.create({
@@ -158,38 +210,25 @@ const ensureActiveTripInTransaction = async (
       vehicleId,
       routeId: vehicle.assignedRouteId,
       startTime,
+      lastTripActivityAt: startTime,
       status: TRIP_IN_PROGRESS,
     },
   });
 
   await ensureVehicleActive(tx, vehicleId);
   return { trip, created: true };
-};
-
-/**
- * Explicit sender start is idempotent by vehicle: a retry returns the current
- * active trip instead of creating a second lifecycle record. An existing
- * virtual trip is intentionally adopted by the explicit start request; the
- * schema has one active-trip invariant and does not expose origin as a second
- * product state.
- */
-export const startOperationalTrip = async (
-  vehicleId: string,
-  startTime = new Date(),
-): Promise<OperationalTripResult> => prisma.$transaction(async (tx) => {
-  const result = await ensureActiveTripInTransaction(tx, vehicleId, startTime);
-  if (!result) {
-    throw conflict('Vehicle has no assigned route');
-  }
-  return result;
 });
 
 export const ensureActiveTripForVehicle = async (
   vehicleId: string,
-  startTime = new Date(),
-): Promise<OperationalTripResult | null> => prisma.$transaction(
-  (tx) => ensureActiveTripInTransaction(tx, vehicleId, startTime),
-);
+): Promise<OperationalTripResult | null> => prisma.$transaction(async (tx) => {
+  const vehicle = await lockVehicle(tx, vehicleId);
+  if (!vehicle) throw notFound('Vehicle not found');
+  const activeTrip = await findActiveTrip(tx, vehicleId);
+  if (!activeTrip) return null;
+  if (vehicle.status !== VEHICLE_ACTIVE) await ensureVehicleActive(tx, vehicleId);
+  return { trip: activeTrip, created: false };
+});
 
 /**
  * Shared ownership check for ingestion and other sender-bound writes. A
@@ -209,6 +248,88 @@ export const validateActiveTripForVehicle = async (
   }
   return trip;
 };
+
+export const recordTripActivity = async (
+  tripId: string,
+  vehicleId: string,
+  activityAt = new Date(),
+): Promise<TripActivityResult> => prisma.$transaction(async (tx) => {
+  const initialTrip = await tx.trip.findUnique({ where: { id: tripId } });
+  if (!initialTrip || initialTrip.vehicleId !== vehicleId) {
+    throw new BoundaryError(
+      403,
+      'TRIP_OWNERSHIP_MISMATCH',
+      'Trip is invalid or does not belong to the sender vehicle',
+    );
+  }
+
+  await lockVehicle(tx, vehicleId);
+  const trip = await tx.trip.findUnique({ where: { id: tripId } });
+  if (!trip || trip.vehicleId !== vehicleId) {
+    throw new BoundaryError(
+      403,
+      'TRIP_OWNERSHIP_MISMATCH',
+      'Trip is invalid or does not belong to the sender vehicle',
+    );
+  }
+  if (trip.status !== TRIP_IN_PROGRESS) {
+    throw conflict('Trip is no longer in progress');
+  }
+  if (activityAt < trip.startTime) {
+    throw conflict('Trip activity cannot precede its start time');
+  }
+
+  if (isTripInactive(trip.lastTripActivityAt, activityAt)) {
+    const closedTrip = await closeTripAsInactive(tx, trip, activityAt);
+    return { trip: closedTrip, updated: false };
+  }
+
+  if (activityAt <= trip.lastTripActivityAt) {
+    return { trip, updated: false };
+  }
+
+  const updatedTrip = await tx.trip.update({
+    where: { id: tripId },
+    data: { lastTripActivityAt: activityAt },
+  });
+  return { trip: updatedTrip, updated: true };
+});
+
+/** Movement activity is best effort: telemetry with no active trip is diagnostic only. */
+export const recordMeaningfulTripActivity = async (
+  vehicleId: string,
+  activityAt = new Date(),
+  sourceId?: string,
+  assignmentId?: string | null,
+): Promise<TripActivityResult | null> => prisma.$transaction(async (tx) => {
+  if (sourceId) {
+    await lockTrackingSource(tx, sourceId);
+    const assignment = await tx.trackingAssignment.findFirst({
+      where: {
+        id: assignmentId ?? undefined,
+        trackingSourceId: sourceId,
+        vehicleId,
+        unassignedAt: null,
+      },
+      select: { id: true },
+    });
+    if (!assignment) return null;
+  }
+  await lockVehicle(tx, vehicleId);
+  const trip = await findActiveTrip(tx, vehicleId);
+  if (!trip) return null;
+  if (isTripInactive(trip.lastTripActivityAt, activityAt)) {
+    const closedTrip = await closeTripAsInactive(tx, trip, activityAt);
+    return { trip: closedTrip, updated: false };
+  }
+  if (activityAt <= trip.lastTripActivityAt) return { trip, updated: false };
+
+  const updatedTrip = await tx.trip.update({
+    where: { id: trip.id },
+    data: { lastTripActivityAt: activityAt },
+  });
+  return { trip: updatedTrip, updated: true };
+});
 
 /**
  * End is idempotent for an already completed trip. It locks the vehicle first
@@ -247,7 +368,11 @@ export const endOperationalTrip = async (
     );
   }
 
-  if (trip.status === TRIP_COMPLETED && trip.endTime) {
+  if (
+    (trip.status === TRIP_COMPLETED || trip.status === TRIP_ABORTED)
+    && trip.endTime
+    && trip.closedAt
+  ) {
     return { trip, idempotent: true };
   }
 
@@ -263,6 +388,8 @@ export const endOperationalTrip = async (
     where: { id: tripId },
     data: {
       endTime,
+      closedAt: endTime,
+      endReason: TRIP_END_REASON_EXPLICIT,
       status: TRIP_COMPLETED,
     },
   });
@@ -275,10 +402,45 @@ export const endOperationalTrip = async (
   return { trip: endedTrip, idempotent: false };
 });
 
+export const autoCloseInactiveTrips = async (
+  now = new Date(),
+): Promise<Array<{ tripId: string; vehicleId: string }>> => {
+  const cutoff = new Date(now.getTime() - TRIP_INACTIVITY_TIMEOUT_MS);
+  const candidates = await prisma.trip.findMany({
+    where: {
+      status: TRIP_IN_PROGRESS,
+      lastTripActivityAt: { lte: cutoff },
+    },
+    select: { id: true, vehicleId: true },
+  });
+
+  const closed: Array<{ tripId: string; vehicleId: string }> = [];
+  for (const candidate of candidates) {
+    const result = await prisma.$transaction(async (tx) => {
+      await lockVehicle(tx, candidate.vehicleId);
+      const trip = await tx.trip.findUnique({ where: { id: candidate.id } });
+      if (
+        !trip
+        || trip.status !== TRIP_IN_PROGRESS
+        || trip.lastTripActivityAt.getTime() > cutoff.getTime()
+      ) {
+        return null;
+      }
+
+      await closeTripAsInactive(tx, trip, now);
+      return { tripId: trip.id, vehicleId: candidate.vehicleId };
+    });
+
+    if (result) closed.push(result);
+  }
+
+  return closed;
+};
+
 /**
- * Persist a sampled canonical point together with the active-trip lookup or
- * virtual-trip creation and vehicle-state repair. The caller controls the
- * Redis sampling admission; every durable PostgreSQL mutation is atomic here.
+ * Persist a sampled canonical point only when an active Trip exists. The
+ * caller controls the Redis sampling admission; every durable PostgreSQL
+ * mutation is atomic here.
  */
 export const recordCanonicalHistory = async (
   input: CanonicalHistoryInput,
@@ -305,12 +467,12 @@ export const recordCanonicalHistory = async (
       await ensureVehicleActive(tx, input.vehicleId);
     }
   } else {
-    const ensured = await ensureActiveTripInTransaction(tx, input.vehicleId, input.recordedAt);
-    if (!ensured) {
-      return null;
+    const vehicle = await lockVehicle(tx, input.vehicleId);
+    activeTrip = await findActiveTrip(tx, input.vehicleId);
+    if (!activeTrip) return null;
+    if (vehicle && vehicle.status !== VEHICLE_ACTIVE) {
+      await ensureVehicleActive(tx, input.vehicleId);
     }
-    activeTrip = ensured.trip;
-    createdTrip = ensured.created;
   }
 
   if (!persist) {

@@ -17,6 +17,7 @@ import ingestRouter from "./routes/ingest.route.js";
 import devicesRouter from "./routes/devices.route.js";
 import researchRouter from "./routes/research.route.js";
 import feedbackRouter from "./routes/feedback.route.js";
+import assignmentRouter from "./routes/assignment.route.js";
 
 import {
   authenticateToken,
@@ -125,6 +126,7 @@ app.use("/api/research", authenticateToken, researchRouter);
 // Public & Ingest Routes (Open)
 app.use("/api/public", publicRouter);
 app.use("/api/trips", tripsRouter);
+app.use("/api/assignments", assignmentRouter);
 app.use("/api/ingest", ingestRouter);
 
 // Health & Readiness Checks

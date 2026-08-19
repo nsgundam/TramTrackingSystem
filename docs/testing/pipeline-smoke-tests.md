@@ -67,9 +67,10 @@ node shuttle-tracking-backend/simulate-ttn.js sensor-c4 --once
 node shuttle-tracking-backend/simulate-ttn.js sensor-f2 --once
 ```
 
-Expected output includes an HTTP 200 response with `sourceType=lorawan` and the selected seeded
-device ID. The simulator prints only status/message/canonical identity fields, never the webhook
-secret.
+Expected output includes an HTTP 200 response. With no active Trip, the truthful result is
+`serviceState=no_service` and `reasonCode=NO_ACTIVE_TRIP`; when a Trip is already active for the
+seeded vehicle, the response includes `sourceType=lorawan` and the selected seeded device ID. The
+simulator prints only status/message/canonical identity/state fields, never the webhook secret.
 
 ## Full configured pipeline evidence
 

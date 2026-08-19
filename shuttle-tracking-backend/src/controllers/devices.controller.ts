@@ -1,11 +1,13 @@
 import { Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
+import bcrypt from 'bcrypt';
 import { prisma } from '../config/prisma.js';
 import { redisClient } from '../config/redis.js';
-import bcrypt from 'bcrypt';
 import {
   toDeviceMutationResponse,
   toDeviceHealthResponse,
   toDeviceResponse,
+  type DeviceRecord,
 } from '../types/device.js';
 import {
   BoundaryError,
@@ -16,13 +18,56 @@ import {
   unprocessableRequest,
 } from '../middleware/boundary-errors.js';
 import type { DeviceCreateInput, DeviceUpdateInput } from '../middleware/validation.js';
+import {
+  assignTrackingSource,
+  assignTrackingSourceInTransaction,
+  getTrackingAssignmentHistory,
+  invalidateTrackingSourceCache,
+  unassignTrackingSource,
+  unassignTrackingSourceInTransaction,
+} from '../services/tracking-assignment.service.js';
+import { refreshCanonicalState } from '../services/canonical-state.service.js';
 
-// Get all devices
-export const getDevices = async (req: Request, res: Response) => {
+const deviceInclude = {
+  assignments: { include: { vehicle: true } },
+} as const;
+
+const toAssignmentResponse = (assignment: {
+  id: string;
+  trackingSourceId: string;
+  vehicleId: string;
+  assignedAt: Date;
+  unassignedAt: Date | null;
+  assignedById: string | null;
+  unassignedById: string | null;
+  method: string;
+  vehicle: { id: string; name: string };
+}) => ({
+  id: assignment.id,
+  trackingSourceId: assignment.trackingSourceId,
+  vehicleId: assignment.vehicleId,
+  assignedAt: assignment.assignedAt,
+  unassignedAt: assignment.unassignedAt,
+  assignedById: assignment.assignedById,
+  unassignedById: assignment.unassignedById,
+  method: assignment.method,
+  vehicle: { id: assignment.vehicle.id, name: assignment.vehicle.name },
+});
+
+const loadDevice = async (id: string): Promise<DeviceRecord> => {
+  const device = await prisma.trackingSource.findUnique({
+    where: { id },
+    include: deviceInclude,
+  });
+  if (!device) throw notFound('Device not found');
+  return device;
+};
+
+export const getDevices = async (_req: Request, res: Response) => {
   try {
     const devices = await prisma.trackingSource.findMany({
-      include: { vehicle: true },
-      orderBy: { id: 'asc' }
+      include: deviceInclude,
+      orderBy: { id: 'asc' },
     });
     res.json(devices.map(toDeviceResponse));
   } catch (error) {
@@ -31,151 +76,155 @@ export const getDevices = async (req: Request, res: Response) => {
   }
 };
 
-// Get device by ID
 export const getDeviceById = async (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
-    const device = await prisma.trackingSource.findUnique({
-      where: { id },
-      include: { vehicle: true }
-    });
-    if (!device) {
-       throw notFound('Device not found');
-    }
-    res.json(toDeviceResponse(device));
+    res.json(toDeviceResponse(await loadDevice(req.params.id as string)));
   } catch (error) {
     logBoundaryFailure('Device read', error);
     sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to fetch device'));
   }
 };
 
-// T12 read-only, allowlisted source-health view. Management DTOs and all mutation paths remain separate.
-export const getDeviceHealth = async (req: Request, res: Response) => {
+export const getDeviceHealth = async (_req: Request, res: Response) => {
   try {
     const devices = await prisma.trackingSource.findMany({
-      include: { vehicle: true },
+      include: deviceInclude,
       orderBy: { id: 'asc' },
     });
-    res.json(devices.map((device) => toDeviceHealthResponse(device)));
+    res.json(devices.map(toDeviceHealthResponse));
   } catch (error) {
     logBoundaryFailure('Device health list', error);
     sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to fetch device health'));
   }
 };
 
-// Create new device
 export const createDevice = async (req: Request, res: Response) => {
   try {
     const { id, name, type, vehicleId, priority, status, secret } = req.body as DeviceCreateInput;
-
+    if (status === 'active' && type !== 'lorawan' && !secret) {
+      throw unprocessableRequest('Active sender sources require a credential');
+    }
     if (vehicleId) {
       const vehicle = await prisma.vehicle.findUnique({ where: { id: vehicleId }, select: { id: true } });
       if (!vehicle) throw notFound('Vehicle not found');
     }
-
-    if (status === 'active' && type !== 'lorawan' && (!vehicleId || !secret)) {
-      throw unprocessableRequest('Active sender sources require a vehicle and credential');
+    if (await prisma.trackingSource.findUnique({ where: { id } })) {
+      throw conflict('Device ID already exists');
     }
 
-    const existing = await prisma.trackingSource.findUnique({ where: { id } });
-    if (existing) {
-       throw conflict('Device ID already exists');
-    }
+    const now = new Date();
+    const secretHash = secret ? await bcrypt.hash(secret, 12) : null;
+    await prisma.$transaction(async (tx) => {
+      await tx.trackingSource.create({
+        data: {
+          id,
+          name,
+          type,
+          priority,
+          status,
+          secretHash,
+          credentialIssuedAt: secret ? now : null,
+        },
+      });
 
-    let secretHash = null;
-    if (secret) {
-      secretHash = await bcrypt.hash(secret, 12);
-    }
-
-    const device = await prisma.trackingSource.create({
-      data: {
-        id,
-        name,
-        type,
-        vehicleId: vehicleId || null,
-        priority,
-        status,
-        secretHash,
-      },
-      include: { vehicle: true },
+      if (vehicleId) {
+        await assignTrackingSourceInTransaction(tx, {
+          sourceId: id,
+          vehicleId,
+          assignedById: req.admin?.id ?? null,
+          method: 'admin',
+        });
+      }
     });
+    await invalidateTrackingSourceCache(id);
+    if (vehicleId) {
+      await refreshCanonicalState(vehicleId).catch((error: unknown) => {
+        logBoundaryFailure('Device assignment canonical refresh', error);
+      });
+    }
 
-    res.status(201).json(
-      toDeviceMutationResponse(device, secret ? 'provisioned' : 'unchanged'),
-    );
+    const device = await loadDevice(id);
+    res.status(201).json(toDeviceMutationResponse(device, secret ? 'provisioned' : 'unchanged'));
   } catch (error) {
     logBoundaryFailure('Device create', error);
     sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to create device'));
   }
 };
 
-// Update device
 export const updateDevice = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
     const { name, type, vehicleId, priority, status, secret } = req.body as DeviceUpdateInput;
-
     const existing = await prisma.trackingSource.findUnique({ where: { id } });
-    if (!existing) {
-       throw notFound('Device not found');
-    }
+    if (!existing) throw notFound('Device not found');
 
     const effectiveType = type ?? existing.type;
-    const effectiveVehicleId = vehicleId === undefined ? existing.vehicleId : vehicleId;
     const effectiveStatus = status ?? existing.status;
     const effectiveHasCredential = secret !== undefined || Boolean(existing.secretHash);
-
-    if (effectiveVehicleId) {
-      const vehicle = await prisma.vehicle.findUnique({ where: { id: effectiveVehicleId }, select: { id: true } });
-      if (!vehicle) throw notFound('Vehicle not found');
+    if (effectiveStatus === 'active' && effectiveType !== 'lorawan' && !effectiveHasCredential) {
+      throw unprocessableRequest('Active sender sources require a credential');
     }
 
-    if (effectiveStatus === 'active' && effectiveType !== 'lorawan' && (!effectiveVehicleId || !effectiveHasCredential)) {
-      throw unprocessableRequest('Active sender sources require a vehicle and credential');
-    }
-
-    const data: Record<string, unknown> = {};
+    const data: Prisma.TrackingSourceUpdateInput = {};
     if (name !== undefined) data.name = name;
     if (type !== undefined) data.type = type;
-    if (vehicleId !== undefined) data.vehicleId = vehicleId;
     if (priority !== undefined) data.priority = priority;
     if (status !== undefined) data.status = status;
-    
     if (secret) {
       data.secretHash = await bcrypt.hash(secret, 12);
       data.credentialVersion = { increment: 1 };
       data.credentialRotatedAt = new Date();
-      if (!existing.credentialIssuedAt) {
-        data.credentialIssuedAt = new Date();
-      }
+      if (!existing.credentialIssuedAt) data.credentialIssuedAt = new Date();
     }
 
-    const updated = await prisma.trackingSource.update({
-      where: { id },
-      data,
-      include: { vehicle: true },
+    let previousVehicleId: string | null = null;
+    await prisma.$transaction(async (tx) => {
+      await tx.trackingSource.update({ where: { id }, data });
+      if (vehicleId !== undefined) {
+        if (vehicleId === null) {
+          const result = await unassignTrackingSourceInTransaction(tx, {
+            sourceId: id,
+            assignedById: req.admin?.id ?? null,
+          });
+          previousVehicleId = result.previousVehicleId;
+        } else {
+          const result = await assignTrackingSourceInTransaction(tx, {
+            sourceId: id,
+            vehicleId,
+            assignedById: req.admin?.id ?? null,
+            method: 'admin',
+          });
+          previousVehicleId = result.previousVehicleId;
+        }
+      }
     });
+    if (vehicleId !== undefined) {
+      await invalidateTrackingSourceCache(id);
+      await Promise.allSettled([
+        previousVehicleId
+          ? refreshCanonicalState(previousVehicleId)
+          : Promise.resolve(),
+        typeof vehicleId === 'string'
+          ? refreshCanonicalState(vehicleId)
+          : Promise.resolve(),
+      ]);
+    }
 
-    res.json(toDeviceMutationResponse(updated, secret ? 'rotated' : 'unchanged'));
+    const device = await loadDevice(id);
+    res.json(toDeviceMutationResponse(device, secret ? 'rotated' : 'unchanged'));
   } catch (error) {
     logBoundaryFailure('Device update', error);
     sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to update device'));
   }
 };
 
-// Delete device
 export const deleteDevice = async (req: Request, res: Response) => {
   try {
-    const id = typeof req.params.id === 'string' ? req.params.id : undefined;
-    if (!id) {
-      res.status(400).json({ code: 'INVALID_REQUEST', error: 'Invalid or missing device ID' });
-      return;
+    const id = req.params.id as string;
+    const device = await loadDevice(id);
+    if (device.assignments.length > 0) {
+      throw conflict('Tracking sources with assignment history cannot be deleted; retire the source instead');
     }
-    const existing = await prisma.trackingSource.findUnique({ where: { id } });
-    if (!existing) {
-       throw notFound('Device not found');
-    }
-
     await prisma.trackingSource.delete({ where: { id } });
     res.json({ message: 'Device deleted successfully' });
   } catch (error) {
@@ -184,26 +233,79 @@ export const deleteDevice = async (req: Request, res: Response) => {
   }
 };
 
-// Get device selection analytics for developers
-export const getDeviceAnalytics = async (req: Request, res: Response) => {
+export const getDeviceAnalytics = async (_req: Request, res: Response) => {
   try {
-    const vehicles = await prisma.vehicle.findMany({
-      select: { id: true, name: true }
-    });
-
-    const analytics = [];
-    for (const vehicle of vehicles) {
-      const stats = await redisClient.hGetAll(`analytics:vehicle:${vehicle.id}:source_selection`);
-      analytics.push({
-        vehicleId: vehicle.id,
-        vehicleName: vehicle.name,
-        selectionCounts: stats || {}
-      });
-    }
-
+    const vehicles = await prisma.vehicle.findMany({ select: { id: true, name: true } });
+    const analytics = await Promise.all(vehicles.map(async (vehicle) => ({
+      vehicleId: vehicle.id,
+      vehicleName: vehicle.name,
+      selectionCounts: await redisClient.hGetAll(`analytics:vehicle:${vehicle.id}:source_selection`),
+    })));
     res.json(analytics);
   } catch (error) {
     logBoundaryFailure('Device analytics', error);
     sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to fetch device analytics'));
+  }
+};
+
+export const getDeviceAssignments = async (req: Request, res: Response) => {
+  try {
+    const sourceId = req.params.id as string;
+    await loadDevice(sourceId);
+    const assignments = await getTrackingAssignmentHistory(sourceId);
+    res.json(assignments.map((assignment) => ({
+      id: assignment.id,
+      vehicleId: assignment.vehicleId,
+      assignedAt: assignment.assignedAt,
+      unassignedAt: assignment.unassignedAt,
+      method: assignment.method,
+      assignedBy: assignment.assignedBy
+        ? { id: assignment.assignedBy.id, username: assignment.assignedBy.username }
+        : null,
+      unassignedBy: assignment.unassignedBy
+        ? { id: assignment.unassignedBy.id, username: assignment.unassignedBy.username }
+        : null,
+      vehicle: { id: assignment.vehicle.id, name: assignment.vehicle.name },
+    })));
+  } catch (error) {
+    logBoundaryFailure('Device assignment history', error);
+    sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to fetch assignment history'));
+  }
+};
+
+export const assignDevice = async (req: Request, res: Response) => {
+  try {
+    const sourceId = req.params.id as string;
+    const result = await assignTrackingSource({
+      sourceId,
+      vehicleId: req.body.vehicleId as string,
+      assignedById: req.admin?.id ?? null,
+      method: 'admin',
+    });
+    await Promise.allSettled([
+      result.previousVehicleId
+        ? refreshCanonicalState(result.previousVehicleId)
+        : Promise.resolve(),
+      refreshCanonicalState(result.assignment.vehicleId),
+    ]);
+    res.json({
+      source: toDeviceResponse(await loadDevice(sourceId)),
+      assignment: toAssignmentResponse(result.assignment),
+    });
+  } catch (error) {
+    logBoundaryFailure('Device assignment', error);
+    sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to assign tracking source'));
+  }
+};
+
+export const unassignDevice = async (req: Request, res: Response) => {
+  try {
+    const sourceId = req.params.id as string;
+    const result = await unassignTrackingSource({ sourceId, assignedById: req.admin?.id ?? null });
+    if (result.previousVehicleId) await refreshCanonicalState(result.previousVehicleId);
+    res.json({ source: toDeviceResponse(await loadDevice(sourceId)), previousVehicleId: result.previousVehicleId });
+  } catch (error) {
+    logBoundaryFailure('Device unassignment', error);
+    sendBoundaryError(res, error, new BoundaryError(500, 'INTERNAL_ERROR', 'Failed to unassign tracking source'));
   }
 };
