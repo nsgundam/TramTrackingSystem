@@ -89,15 +89,46 @@ Never use `--dangerously-skip-permissions`. A mixed frontend/backend change is e
 non-overlapping units; two agents must not write concurrently in one checkout. If AGY is unavailable
 or asks to exceed the contract, stop for the owner instead of falling back silently.
 
+Every frontend contract must begin by requiring Antigravity to read the vendored community skill at
+`tools/agy-skills/frontend-design/SKILL.md`, sourced unchanged from `anthropics/skills`, and then
+read `DESIGN.md`. Use the explicit path rather than relying on skill auto-discovery. The repository
+design system, approved design, and scope remain authoritative whenever generic community guidance
+offers a different direction.
+
 The non-interactive command shape is:
 
 ```text
-agy --sandbox --mode accept-edits --print "<implementation contract>"
+agy --sandbox --mode accept-edits --print "<community skill path + implementation contract>"
 ```
 
 The existing UX/UI skill rules still run before frontend delegation: use `frontend-design` to shape
-a new surface or behavior-preserving refactor, and `impeccable` for an audit or identity-changing
-redesign. Their output becomes part of the approved design passed to Antigravity.
+a new surface or behavior-preserving refactor, then use `impeccable` to analyze, critique, polish,
+or audit the relevant UI. Run Impeccable in the primary Codex workflow rather than asking AGY to
+execute its Codex-specific tooling. Its concise, approved output becomes part of the implementation
+contract passed to Antigravity.
+
+### Frontend design-analysis sequence
+
+Use this sequence only for a new/refined visual surface, an explicit UI/UX quality request, or a
+frontend audit/redesign. A logic-only frontend repair does not need a design-analysis pass unless
+its approved requirement changes user-facing behavior or visual quality.
+
+```text
+Approved frontend requirement/design
+  → frontend-design: establish direction
+  → impeccable: shape | critique | polish | audit
+  → Owner approval for any material design decision
+  → AGY: implement the bounded contract
+  → Deterministic checks
+  → impeccable: read-only audit/critique when UI changed
+  → Sol High: independent final review
+```
+
+Impeccable is the primary workflow's design-analysis specialist. It produces a scoped brief that
+states the user job, information hierarchy, visual direction, incumbent authority to preserve,
+states, responsive/accessibility requirements, allowed files, and required verification. It never
+authorizes a new identity, content claim, interaction model, design-system change, API change, or
+scope expansion. Those decisions remain with the owner.
 
 ### `afterImplementationReview`
 

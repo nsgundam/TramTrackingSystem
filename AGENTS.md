@@ -99,14 +99,34 @@ contract in the conversation or PR unless it is durable engineering knowledge.
   requirement, design, scope, and acceptance authority; Antigravity is the bounded implementer.
 - Send Antigravity an implementation contract containing the problem, requirement, acceptance
   criteria, approved design, allowed scope, forbidden changes, relevant files, and expected tests.
-  Run it from the repository root with the sandbox enabled. Never use
-  `--dangerously-skip-permissions`.
+  The contract must first require Antigravity to read the vendored community skill at
+  `tools/agy-skills/frontend-design/SKILL.md`, then read `DESIGN.md`. Do not rely on implicit
+  skill discovery. The community skill improves frontend design execution but cannot override the
+  repository design system, approved requirement, design, or scope. Run AGY from the repository
+  root with the sandbox enabled. Never use `--dangerously-skip-permissions`.
 - For mixed changes, split the approved plan into ordered, non-overlapping execution units. Route
   only the frontend unit to Antigravity; do not run concurrent writers in the same checkout.
 - If `agy` is missing, cannot start, requests an unapproved action, or cannot complete the contract,
   stop and report the blocker. Do not silently substitute the primary agent as frontend implementer.
 - Route backend and other ordinary implementation to the coding agent. Use a database, security,
   DevOps, performance, or research specialist only when the approved scope or risk calls for it.
+
+### `frontendDesignAnalysis`
+
+- For a new UI surface, behavior-preserving UI refactor, frontend audit, redesign, or an explicit
+  request to improve visual quality, invoke `frontend-design` first and then use `impeccable` as
+  the design-analysis specialist. Select the smallest applicable Impeccable mode: `shape` before a
+  new/refined surface, `critique` for UX and visual analysis, `polish` for a bounded final-quality
+  pass, and `audit` for technical UI quality.
+- Impeccable runs in the primary Codex workflow, not inside AGY. Its output is a concise, scoped
+  design brief: user job, hierarchy, visual direction, existing authority to preserve, applicable
+  states, accessibility/responsive requirements, allowed files, and verification evidence. Add that
+  brief to the implementation contract sent to AGY.
+- A material identity, content, interaction, design-system, API, or scope change found by
+  Impeccable remains an owner decision. Do not let analysis become an unapproved redesign.
+- After AGY completes a UI-affecting change and deterministic checks pass, run the applicable
+  read-only Impeccable `audit` or `critique` before the mandatory Sol High review. Findings follow
+  the normal review loop; Impeccable does not silently edit AGY's implementation.
 
 ### `afterImplementationReview`
 
@@ -167,8 +187,9 @@ and test results.
 
 - Invoke `frontend-design` before creating a new UX/UI surface or making a behavior-preserving
   UX/UI refactor that retains the incumbent visual identity.
-- Invoke `impeccable` for a frontend UX/UI audit or a redesign that replaces the incumbent visual
-  identity. For combined audit and implementation, audit first.
+- Invoke `impeccable` after `frontend-design` for a frontend UX/UI audit, polish, or redesign that
+  replaces the incumbent visual identity. For combined analysis and implementation, analyze first;
+  translate only approved findings into the AGY implementation contract.
 - Apply accessibility, responsive behavior, semantic state, error/loading/empty states, and
   existing product/design constraints to the approved scope. Do not turn a bounded fix into a UI
   redesign without approval.
