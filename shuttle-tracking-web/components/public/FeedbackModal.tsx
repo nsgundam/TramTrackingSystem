@@ -37,23 +37,38 @@ const FEEDBACK_TYPES = [
   { id: "other", labelKey: "otherType" },
 ];
 
+type FeedbackTarget = "general" | "vehicle";
+
 function FeedbackModal({
   isOpen,
   onClose,
   initialVehicleId,
 }: FeedbackModalProps) {
   const { t } = useLanguage();
+  const [feedbackTarget, setFeedbackTarget] = useState<FeedbackTarget>("general");
   const [type, setType] = useState<string>("suggestion");
-  const [vehicleId, setVehicleId] = useState<string>(initialVehicleId || "");
+  const [vehicleId, setVehicleId] = useState<string>("");
   const [message, setMessage] = useState<string>("");
   const [vehicles, setVehicles] = useState<ActiveVehicle[]>([]);
   const [vehicleLoadState, setVehicleLoadState] = useState<VehicleLoadState>("loading");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const handleClose = useCallback(() => {
+    if (!isSubmitting) {
+      setIsSuccess(false);
+      setErrorMsg(null);
+      setMessage("");
+      setType("suggestion");
+      setFeedbackTarget("general");
+      setVehicleId("");
+    }
+    onClose();
+  }, [isSubmitting, onClose]);
+
   const dialogRef = useModalFocus<HTMLDivElement>({
     active: isOpen,
-    onClose,
+    onClose: handleClose,
     initialFocusSelector: "[data-modal-initial-focus]",
   });
 
@@ -73,7 +88,11 @@ function FeedbackModal({
       if (signal?.aborted) return;
 
       setVehicles(payload);
-      setVehicleId(resolveVerifiedFeedbackVehicleId(initialVehicleId, payload));
+      const verifiedId = resolveVerifiedFeedbackVehicleId(initialVehicleId, payload);
+      setVehicleId(verifiedId);
+      if (verifiedId) {
+        setFeedbackTarget("vehicle");
+      }
       setVehicleLoadState("ready");
     } catch (error) {
       if (signal?.aborted || (error instanceof DOMException && error.name === "AbortError")) return;
@@ -84,21 +103,38 @@ function FeedbackModal({
   }, [initialVehicleId]);
 
   useEffect(() => {
+    if (!isOpen) return;
     const controller = new AbortController();
     queueMicrotask(() => {
       if (!controller.signal.aborted) void loadVehicles(controller.signal);
     });
     return () => controller.abort();
-  }, [loadVehicles]);
+  }, [isOpen, loadVehicles]);
+
+  useEffect(() => {
+    if (!isSuccess || !isOpen) return;
+    const timer = setTimeout(() => {
+      handleClose();
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [isSuccess, isOpen, handleClose]);
+
+  const isVehicleSelected = Boolean(vehicleId && vehicles.some((v) => v.id === vehicleId));
+  const isTargetValid = feedbackTarget === "general" || (feedbackTarget === "vehicle" && isVehicleSelected);
+  const canSubmit = !isSubmitting && Boolean(type && message.trim() && isTargetValid);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (vehicleLoadState !== "ready") {
-      setErrorMsg(t("vehicleVerificationFailed"));
+    if (!type || !message.trim()) {
+      setErrorMsg(t("fillAllFields"));
       return;
     }
-    if (!type || !vehicleId || !message.trim()) {
-      setErrorMsg(t("fillAllFields"));
+
+    const isVehicleTarget = feedbackTarget === "vehicle";
+    const verifiedVehicleId = isVehicleTarget && isVehicleSelected ? vehicleId : null;
+
+    if (isVehicleTarget && !verifiedVehicleId) {
+      setErrorMsg(t("selectVehicleRequired"));
       return;
     }
 
@@ -113,7 +149,7 @@ function FeedbackModal({
         },
         body: JSON.stringify({
           type,
-          vehicleId,
+          vehicleId: isVehicleTarget ? verifiedVehicleId : null,
           message: message.trim(),
         }),
       });
@@ -125,10 +161,6 @@ function FeedbackModal({
       }
 
       setIsSuccess(true);
-      // Auto close after 2 seconds
-      setTimeout(() => {
-        onClose();
-      }, 2000);
     } catch (err: unknown) {
       console.error("Feedback submit error:", err);
       const error = err as Error;
@@ -158,7 +190,7 @@ function FeedbackModal({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             aria-label={t("closeFeedbackDialog")}
             data-modal-initial-focus
             className="p-1.5 text-muted-on-light hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
@@ -212,59 +244,116 @@ function FeedbackModal({
               </div>
             </fieldset>
 
-            {/* Vehicle selection */}
-            <div>
-              <label htmlFor="feedback-vehicle" className="block text-xs font-bold uppercase tracking-wider text-muted-on-light mb-1.5">
-                {t("selectTram")}
-              </label>
-              {vehicleLoadState === "loading" ? (
-                <div className="flex items-center gap-2 text-muted-on-light text-sm py-2" role="status">
-                  <Loader2 size={16} className="animate-spin" aria-hidden="true" />
-                  <span>{t("loadingTramData")}</span>
-                </div>
-              ) : vehicleLoadState === "error" ? (
-                <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">
-                  <div className="flex items-start gap-2">
-                    <TriangleAlert className="mt-0.5 shrink-0" size={17} aria-hidden="true" />
-                    <p>{t("vehicleListUnavailable")}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => void loadVehicles()}
-                    className="mt-3 inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 font-semibold text-red-800 transition-colors hover:bg-red-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
-                  >
-                    <RefreshCw size={15} aria-hidden="true" />
-                    {t("retryVehicleList")}
-                  </button>
-                </div>
-              ) : vehicles.length === 0 ? (
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700" role="status">
-                  <p>{t("noVehicleAvailable")}</p>
-                  <button
-                    type="button"
-                    onClick={() => void loadVehicles()}
-                    className="mt-3 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
-                  >
-                    <RefreshCw size={15} aria-hidden="true" />
-                    {t("retryVehicleList")}
-                  </button>
-                </div>
-              ) : (
-                <select
-                  id="feedback-vehicle"
-                  value={vehicleId}
-                  onChange={(e) => setVehicleId(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-slate-200 text-slate-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+            {/* Selection for Feedback Target */}
+            <fieldset>
+              <legend className="block text-xs font-bold uppercase tracking-wider text-muted-on-light mb-2">
+                {t("feedbackTarget")}
+              </legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFeedbackTarget("general");
+                    setVehicleId("");
+                  }}
+                  aria-pressed={feedbackTarget === "general"}
+                  className={`flex items-center gap-2 p-3 min-h-[44px] text-sm rounded-xl border text-left transition-all cursor-pointer ${
+                    feedbackTarget === "general"
+                      ? "border-primary bg-primary/5 text-primary font-semibold shadow-sm"
+                      : "border-slate-200 hover:border-slate-300 text-slate-600"
+                  }`}
                 >
-                  <option value="" disabled>{t("selectTramPlaceholder")}</option>
-                  {vehicles.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.name || v.id} {v.route ? `(${v.route.name})` : ""}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
+                  <span>{t("targetGeneral")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFeedbackTarget("vehicle")}
+                  aria-pressed={feedbackTarget === "vehicle"}
+                  className={`flex items-center gap-2 p-3 min-h-[44px] text-sm rounded-xl border text-left transition-all cursor-pointer ${
+                    feedbackTarget === "vehicle"
+                      ? "border-primary bg-primary/5 text-primary font-semibold shadow-sm"
+                      : "border-slate-200 hover:border-slate-300 text-slate-600"
+                  }`}
+                >
+                  <span>{t("targetTram")}</span>
+                </button>
+              </div>
+            </fieldset>
+
+            {/* Conditional Vehicle selection region */}
+            {feedbackTarget === "vehicle" && (
+              <fieldset data-testid="feedback-vehicle-region" className="space-y-2">
+                <legend className="block text-xs font-bold uppercase tracking-wider text-muted-on-light mb-1.5">
+                  {t("relatedTram")}
+                </legend>
+                {vehicleLoadState === "loading" ? (
+                  <div className="flex items-center gap-2 text-muted-on-light text-xs p-3 rounded-xl border border-slate-200 bg-slate-50" role="status">
+                    <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+                    <span>{t("loadingTramData")}</span>
+                  </div>
+                ) : vehicleLoadState === "error" ? (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900" role="status">
+                    <div className="flex items-start gap-2">
+                      <TriangleAlert className="mt-0.5 shrink-0" size={15} aria-hidden="true" />
+                      <div>
+                        <p>{t("vehicleListUnavailable")}</p>
+                        <button
+                          type="button"
+                          onClick={() => void loadVehicles()}
+                          className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-2.5 py-1.5 min-h-[44px] text-xs font-semibold text-amber-900 transition-colors hover:bg-amber-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700 cursor-pointer"
+                        >
+                          <RefreshCw size={13} aria-hidden="true" />
+                          {t("retryVehicleList")}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : vehicles.length === 0 ? (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700" role="status">
+                    <div>
+                      <p>{t("noVehicleAvailable")}</p>
+                      <button
+                        type="button"
+                        onClick={() => void loadVehicles()}
+                        className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 min-h-[44px] text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 cursor-pointer"
+                      >
+                        <RefreshCw size={13} aria-hidden="true" />
+                        {t("retryVehicleList")}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-2">
+                    {vehicles.map((v) => {
+                      const isSelected = vehicleId === v.id;
+                      return (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => setVehicleId(v.id)}
+                          aria-pressed={isSelected}
+                          className={`flex items-center justify-between p-3 min-h-[44px] rounded-xl border text-left transition-all cursor-pointer ${
+                            isSelected
+                              ? "border-primary bg-primary/5 text-primary font-semibold shadow-sm"
+                              : "border-slate-200 hover:border-slate-300 text-slate-700"
+                          }`}
+                        >
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold">{v.name || v.id}</span>
+                            <span className="text-xs text-slate-500 font-mono">{v.id}</span>
+                          </div>
+                          {v.route && (
+                            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                              {v.route.name}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </fieldset>
+            )}
 
             {/* Feedback message */}
             <div>
@@ -286,19 +375,14 @@ function FeedbackModal({
             <div className="pt-2 border-t border-slate-100 flex gap-3">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors text-sm font-semibold cursor-pointer text-center"
               >
                 {t("cancelBtn")}
               </button>
               <button
                 type="submit"
-                disabled={
-                  isSubmitting
-                  || vehicleLoadState !== "ready"
-                  || !vehicleId
-                  || !message.trim()
-                }
+                disabled={!canSubmit}
                 className="flex-1 py-3 px-4 rounded-xl bg-primary text-white hover:bg-primary-container hover:shadow-lg active:scale-[0.98] transition-all text-sm font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (

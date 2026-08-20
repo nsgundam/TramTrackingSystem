@@ -15,6 +15,8 @@ const {
   canTransitionFeedback,
   feedbackAuditRecord,
   feedbackRestoreExpiry,
+  feedbackVehicleEligibilityWhere,
+  validateFeedbackVehicleId,
 } = await import('../dist/services/feedback.service.js');
 const {
   FEEDBACK_CONTENT_RETENTION_DAYS,
@@ -191,6 +193,51 @@ const feedbackController = await readFile(
   'utf8',
 );
 assert.equal(feedbackController.includes('req.ip'), false);
+const feedbackRoute = await readFile(
+  new URL('../src/routes/feedback.route.ts', import.meta.url),
+  'utf8',
+);
+assert.match(feedbackRoute, /router\.use\(requireMinimumRole\('ADMIN'\)\)/);
+assert.equal(
+  (feedbackRoute.match(/requireMinimumRole\('SUPER_ADMIN'\)/g) ?? []).length,
+  3,
+  'Every feedback mutation must retain an explicit SUPER_ADMIN authorization guard',
+);
+
+assert.deepEqual(feedbackVehicleEligibilityWhere('VH_ACTIVE'), {
+  id: 'VH_ACTIVE',
+  status: 'active',
+  trips: { some: { status: 'in_progress' } },
+});
+let nullVehicleLookupCount = 0;
+assert.equal(await validateFeedbackVehicleId(null, async () => {
+  nullVehicleLookupCount += 1;
+  return null;
+}), null);
+assert.equal(nullVehicleLookupCount, 0, 'General feedback must not query for a vehicle');
+
+const feedbackVehicleFixtures = [
+  { id: 'VH_INACTIVE', status: 'inactive', hasInProgressTrip: true },
+  { id: 'VH_NO_TRIP', status: 'active', hasInProgressTrip: false },
+  { id: 'VH_ACTIVE', status: 'active', hasInProgressTrip: true },
+];
+const findPublicActiveFeedbackVehicle = async (where) => {
+  const candidate = feedbackVehicleFixtures.find((vehicle) => vehicle.id === where.id);
+  return candidate?.status === where.status && candidate.hasInProgressTrip
+    ? { id: candidate.id }
+    : null;
+};
+for (const vehicleId of ['VH_UNKNOWN', 'VH_INACTIVE', 'VH_NO_TRIP']) {
+  await assert.rejects(
+    () => validateFeedbackVehicleId(vehicleId, findPublicActiveFeedbackVehicle),
+    (error) => error?.status === 404 && error?.code === 'NOT_FOUND' && error?.message === 'Vehicle not found',
+    `${vehicleId} must not be accepted for vehicle-specific feedback`,
+  );
+}
+assert.equal(
+  await validateFeedbackVehicleId('VH_ACTIVE', findPublicActiveFeedbackVehicle),
+  'VH_ACTIVE',
+);
 
 assert.equal(isAdminRole('ADMIN'), true);
 assert.equal(isAdminRole('SUPER_ADMIN'), true);

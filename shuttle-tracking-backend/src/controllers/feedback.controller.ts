@@ -17,7 +17,7 @@ export const submitFeedback = async (req: Request, res: Response) => {
     // controller. Do not persist it with anonymous feedback.
     const feedback = await createFeedback({
       type: type.trim(),
-      vehicleId: vehicleId.trim(),
+      vehicleId: vehicleId === null ? null : vehicleId.trim(),
       message: message.trim(),
     });
 

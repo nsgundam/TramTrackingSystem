@@ -34,7 +34,7 @@ export const isFeedbackCaseStatus = (value: string): value is FeedbackCaseStatus
 
 export interface CreateFeedbackInput {
   type: string;
-  vehicleId: string;
+  vehicleId: string | null;
   message: string;
 }
 
@@ -46,6 +46,34 @@ export interface FeedbackCaseUpdate {
   status?: FeedbackMutableStatus;
   internalNote?: string;
 }
+
+type FeedbackVehicleFinder = (
+  where: Prisma.VehicleWhereInput,
+) => Promise<{ id: string } | null>;
+
+export const feedbackVehicleEligibilityWhere = (
+  vehicleId: string,
+): Prisma.VehicleWhereInput => ({
+  id: vehicleId,
+  status: 'active',
+  trips: { some: { status: 'in_progress' } },
+});
+
+const findFeedbackVehicle: FeedbackVehicleFinder = (where) => prisma.vehicle.findFirst({
+  where,
+  select: { id: true },
+});
+
+export const validateFeedbackVehicleId = async (
+  vehicleId: string | null,
+  findVehicle: FeedbackVehicleFinder = findFeedbackVehicle,
+): Promise<string | null> => {
+  if (vehicleId === null) return null;
+
+  const vehicle = await findVehicle(feedbackVehicleEligibilityWhere(vehicleId));
+  if (!vehicle) throw notFound('Vehicle not found');
+  return vehicle.id;
+};
 
 export const FEEDBACK_RESTORE_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -110,17 +138,13 @@ export const feedbackAuditRecord = (input: {
  * consumes the source address before this service; new feedback never persists an IP address.
  */
 export const createFeedback = async (input: CreateFeedbackInput) => {
-  const vehicle = await prisma.vehicle.findUnique({
-    where: { id: input.vehicleId },
-    select: { id: true },
-  });
-  if (!vehicle) throw notFound('Vehicle not found');
+  const vehicleId = await validateFeedbackVehicleId(input.vehicleId);
 
   return prisma.$transaction(async (tx) => {
     const feedback = await tx.feedback.create({
       data: {
         type: input.type,
-        vehicleId: input.vehicleId,
+        vehicleId,
         message: input.message,
         ipAddress: null,
       },

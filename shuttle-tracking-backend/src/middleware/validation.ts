@@ -26,7 +26,7 @@ export interface SenderLoginInput {
 
 export interface FeedbackInput {
   type: string;
-  vehicleId: string;
+  vehicleId: string | null;
   message: string;
 }
 
@@ -232,9 +232,12 @@ export const parseSenderLogin = (value: unknown): SenderLoginInput => {
 
 export const parseFeedback = (value: unknown): FeedbackInput => {
   const input = record(value);
+  const vehicleId = input.vehicleId === undefined || input.vehicleId === null
+    ? null
+    : stringField(input.vehicleId, 'vehicleId', { max: ID_MAX_LENGTH, allowEmpty: true }) || null;
   return {
     type: stringField(input.type, 'type', { max: 50 }),
-    vehicleId: stringField(input.vehicleId, 'vehicleId'),
+    vehicleId,
     message: stringField(input.message, 'message', { max: 2000 }),
   };
 };

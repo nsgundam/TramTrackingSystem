@@ -66,6 +66,22 @@ assert.deepEqual(parseFeedback({ type: 'late', vehicleId: 'VH001', message: 'The
   vehicleId: 'VH001',
   message: 'The shuttle is late.',
 });
+for (const payload of [
+  { type: 'website', message: 'The timetable page is unavailable.' },
+  { type: 'website', vehicleId: null, message: 'The timetable page is unavailable.' },
+  { type: 'website', vehicleId: '', message: 'The timetable page is unavailable.' },
+  { type: 'website', vehicleId: '   ', message: 'The timetable page is unavailable.' },
+]) {
+  assert.deepEqual(parseFeedback(payload), {
+    type: 'website',
+    vehicleId: null,
+    message: 'The timetable page is unavailable.',
+  });
+}
+assert.throws(
+  () => parseFeedback({ type: 'website', vehicleId: 123, message: 'The timetable page is unavailable.' }),
+  /invalid/,
+);
 assert.throws(() => parseFeedback({ type: 'late', vehicleId: 'VH001', message: 'x'.repeat(2001) }), /invalid/);
 
 assert.deepEqual(parseDeviceCreate({ id: 'TS_ESP_01', name: 'ESP32', type: 'esp32' }), {

@@ -86,6 +86,28 @@ const secondaryActiveCase = {
   internalNote: null,
 } as const;
 
+const generalActiveCase = {
+  id: "feedback-general",
+  type: "suggestion",
+  vehicle: null,
+  message: "The timetable page is missing route details.",
+  status: "new",
+  assignedTo: null,
+  internalNote: null,
+  createdAt: "2026-08-09T08:00:00.000Z",
+  deletedAt: null,
+  deletionReason: null,
+  restoreExpiresAt: null,
+} as const;
+
+const collisionActiveCase = {
+  ...activeCase,
+  id: "feedback-collision",
+  vehicle: { id: "general", name: "Tram General" },
+  message: "The air conditioning in Tram General is offline.",
+  internalNote: null,
+} as const;
+
 const deletedCase = {
   ...activeCase,
   id: "feedback-deleted",
@@ -290,7 +312,7 @@ test("T14 Tracking Source initial failure is distinct from empty and retryable o
   await expectMinimumTarget(page.locator("[data-admin-resource-action]:visible"));
 });
 
-test("T14 Feedback Inbox retains the T12 role boundary", async ({ page, context }) => {
+test("T14 Feedback Inbox allows ADMIN read-only access with static case evidence and no mutations", async ({ page, context }) => {
   await authenticateAdmin(context);
   await useRole(page, "ADMIN");
   let feedbackGets = 0;
@@ -306,12 +328,69 @@ test("T14 Feedback Inbox retains the T12 role boundary", async ({ page, context 
   await useFeedbackApi(page);
 
   await page.goto("/admin/feedback");
-  await expect(page.getByRole("alert").filter({
-    hasText: "Feedback triage is restricted to Super Admin and Dev roles.",
-  })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Feedback Inbox" })).toHaveCount(0);
-  await page.waitForLoadState("networkidle");
-  expect(feedbackGets).toBe(0);
+  await expect(page.getByRole("heading", { name: "Feedback Inbox" })).toBeVisible();
+  await expect(page.locator('[data-admin-notice="read-only"]')).toBeVisible();
+  await expect(page.locator('[data-admin-notice="read-only"]')).toContainText("Admin role has read-only access");
+
+  const ledger = page.locator('[data-admin-operations-ledger="feedback"]');
+  await expect(ledger).toBeVisible();
+  await expect(ledger).toContainText(activeCase.id);
+  await expect(ledger).toContainText("Check with facilities."); // static internal note
+
+  // Verify ADMIN has NO mutation controls
+  await expect(page.locator("textarea.admin-feedback-case__note")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Save note" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Mark acknowledged" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Delete" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Restore" })).toHaveCount(0);
+  expect(feedbackGets).toBe(2);
+});
+
+test("T14 Feedback Inbox filter scopes active and recoverable lists with truthful counts and empty states", async ({ page, context }) => {
+  await authenticateAdmin(context);
+  await useRole(page, "SUPER_ADMIN");
+  await useFeedbackApi(page, {
+    activeResponse: () => ({
+      status: 200,
+      body: [activeCase, generalActiveCase, collisionActiveCase],
+    }),
+  });
+
+  await page.goto("/admin/feedback");
+  const feedbackPage = page.locator('[data-admin-resource="feedback"]');
+  const scopeFilter = page.getByLabel("Feedback scope");
+  await expect(scopeFilter).toBeVisible();
+
+  // All feedback (default)
+  await expect(page.locator(".admin-feedback-section__count")).toContainText("3 active");
+  await expect(feedbackPage.locator(`article:has-text("${activeCase.id}")`)).toBeVisible();
+  await expect(feedbackPage.locator(`article:has-text("${generalActiveCase.id}")`)).toBeVisible();
+  await expect(feedbackPage.locator(`article:has-text("${collisionActiveCase.id}")`)).toBeVisible();
+  await expect(feedbackPage.locator(`article:has-text("${deletedCase.id}")`)).toBeVisible();
+
+  // General feedback sentinel
+  await scopeFilter.selectOption("general");
+  await expect(page.locator(".admin-feedback-section__count")).toContainText("1 active");
+  await expect(feedbackPage.locator(`article:has-text("${generalActiveCase.id}")`)).toBeVisible();
+  await expect(feedbackPage.locator(`article:has-text("${activeCase.id}")`)).toHaveCount(0);
+  await expect(feedbackPage.locator(`article:has-text("${collisionActiveCase.id}")`)).toHaveCount(0);
+  await expect(page.getByText("No feedback is awaiting purge for General feedback.")).toBeVisible();
+
+  // Collision vehicle scope (vehicle:general)
+  await scopeFilter.selectOption("vehicle:general");
+  await expect(page.locator(".admin-feedback-section__count")).toContainText("1 active");
+  await expect(feedbackPage.locator(`article:has-text("${collisionActiveCase.id}")`)).toBeVisible();
+  await expect(feedbackPage.locator(`article:has-text("${generalActiveCase.id}")`)).toHaveCount(0);
+  await expect(feedbackPage.locator(`article:has-text("${activeCase.id}")`)).toHaveCount(0);
+  await expect(page.getByText("No feedback is awaiting purge for Tram General (general).")).toBeVisible();
+
+  // Vehicle scope (Tram 01)
+  await scopeFilter.selectOption(`vehicle:${activeCase.vehicle.id}`);
+  await expect(page.locator(".admin-feedback-section__count")).toContainText("1 active");
+  await expect(feedbackPage.locator(`article:has-text("${activeCase.id}")`)).toBeVisible();
+  await expect(feedbackPage.locator(`article:has-text("${generalActiveCase.id}")`)).toHaveCount(0);
+  await expect(feedbackPage.locator(`article:has-text("${collisionActiveCase.id}")`)).toHaveCount(0);
+  await expect(feedbackPage.locator(`article:has-text("${deletedCase.id}")`)).toBeVisible();
 });
 
 test("T14 Feedback session hydration remains neutral before privileged reads", async ({ page, context }) => {
@@ -350,7 +429,7 @@ test("T14 Feedback session hydration remains neutral before privileged reads", a
     hasText: "Verifying feedback access…",
   });
   const restrictionAlert = page.getByRole("alert").filter({
-    hasText: "Feedback triage is restricted to Super Admin and Dev roles.",
+    hasText: "Feedback triage is restricted",
   });
   try {
     await expect(verificationStatus).toBeVisible();

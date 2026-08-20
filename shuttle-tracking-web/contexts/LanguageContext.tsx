@@ -103,6 +103,12 @@ const translations: Record<Locale, Record<string, string>> = {
     vehicleListUnavailable: "ไม่สามารถโหลดรายชื่อรถได้ จึงยังไม่สามารถผูกข้อเสนอแนะกับรถคันใดได้",
     retryVehicleList: "ลองโหลดรายชื่อรถอีกครั้ง",
     noVehicleAvailable: "ขณะนี้ไม่มีรถที่เปิดให้เลือก กรุณาลองใหม่ภายหลัง",
+    relatedTram: "เลือกรถรางที่เกี่ยวข้อง",
+    generalFeedbackOption: "ข้อเสนอแนะทั่วไป (ไม่ระบุรถ)",
+    feedbackTarget: "เป้าหมายของข้อเสนอแนะ",
+    targetGeneral: "ข้อเสนอแนะทั่วไป",
+    targetTram: "ข้อเสนอแนะเกี่ยวกับรถรางที่กำลังนั่ง",
+    selectVehicleRequired: "กรุณาเลือกรถรางที่ต้องการแจ้งข้อมูล",
   },
   en: {
     welcome: "Welcome",
@@ -197,6 +203,12 @@ const translations: Record<Locale, Record<string, string>> = {
     vehicleListUnavailable: "The vehicle list could not be loaded, so feedback cannot be linked to a vehicle yet.",
     retryVehicleList: "Try loading the vehicle list again",
     noVehicleAvailable: "There are no vehicles available to select. Please try again later.",
+    relatedTram: "Related Tram",
+    generalFeedbackOption: "General feedback (no vehicle)",
+    feedbackTarget: "Feedback Target",
+    targetGeneral: "General feedback",
+    targetTram: "Feedback about the tram I am riding",
+    selectVehicleRequired: "Please select a tram before submitting.",
   },
 };
 

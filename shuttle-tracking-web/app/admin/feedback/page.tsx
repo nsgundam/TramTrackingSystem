@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArchiveRestore,
   Inbox,
@@ -10,7 +10,7 @@ import {
   ShieldCheck,
   Trash2,
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { isAdminRole, useAuth } from "@/contexts/AuthContext";
 import api from "@/services/api";
 import { formatAdminTimestamp } from "@/utils/admin-timestamp";
 import AdminFormModal from "@/components/admin/AdminFormModal";
@@ -76,6 +76,10 @@ const statusTone: Record<
   rejected: "danger",
 };
 
+const SCOPE_ALL = "all";
+const SCOPE_GENERAL = "general";
+const VEHICLE_SCOPE_PREFIX = "vehicle:";
+
 const reasonLabels: Record<DeleteReason, string> = {
   privacy_request: "Privacy request",
   duplicate_submission: "Duplicate submission",
@@ -105,6 +109,7 @@ export default function FeedbackInboxPage() {
   const [caseMutationNotices, setCaseMutationNotices] = useState<
     Record<string, CaseMutationNotice>
   >({});
+  const [selectedScope, setSelectedScope] = useState<string>(SCOPE_ALL);
   const caseUpdatesInFlight = useRef(new Set<string>());
 
   const load = async () => {
@@ -125,12 +130,58 @@ export default function FeedbackInboxPage() {
   };
 
   useEffect(() => {
-    if (isLoading || !user || (user.role !== "SUPER_ADMIN" && user.role !== "DEV")) return;
+    if (isLoading || !user || !isAdminRole(user.role)) return;
     const timer = window.setTimeout(() => {
       void load();
     }, 0);
     return () => window.clearTimeout(timer);
   }, [isLoading, user]);
+
+  const vehicleOptions = useMemo(() => {
+    const map = new Map<string, { id: string; name: string }>();
+    for (const c of [...cases, ...deletedCases]) {
+      if (c.vehicle && c.vehicle.id) {
+        map.set(c.vehicle.id, c.vehicle);
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
+  }, [cases, deletedCases]);
+
+  const filteredCases = useMemo(() => {
+    if (selectedScope === SCOPE_ALL) return cases;
+    if (selectedScope === SCOPE_GENERAL) return cases.filter((c) => !c.vehicle);
+    if (selectedScope.startsWith(VEHICLE_SCOPE_PREFIX)) {
+      const vehicleId = selectedScope.slice(VEHICLE_SCOPE_PREFIX.length);
+      return cases.filter((c) => c.vehicle?.id === vehicleId);
+    }
+    return cases.filter((c) => c.vehicle?.id === selectedScope);
+  }, [cases, selectedScope]);
+
+  const filteredDeletedCases = useMemo(() => {
+    if (selectedScope === SCOPE_ALL) return deletedCases;
+    if (selectedScope === SCOPE_GENERAL) return deletedCases.filter((c) => !c.vehicle);
+    if (selectedScope.startsWith(VEHICLE_SCOPE_PREFIX)) {
+      const vehicleId = selectedScope.slice(VEHICLE_SCOPE_PREFIX.length);
+      return deletedCases.filter((c) => c.vehicle?.id === vehicleId);
+    }
+    return deletedCases.filter((c) => c.vehicle?.id === selectedScope);
+  }, [deletedCases, selectedScope]);
+
+  const selectedScopeLabel = useMemo(() => {
+    if (selectedScope === SCOPE_ALL) return "All feedback";
+    if (selectedScope === SCOPE_GENERAL) return "General feedback";
+    if (selectedScope.startsWith(VEHICLE_SCOPE_PREFIX)) {
+      const vehicleId = selectedScope.slice(VEHICLE_SCOPE_PREFIX.length);
+      const found = vehicleOptions.find((v) => v.id === vehicleId);
+      return found ? `${found.name} (${found.id})` : vehicleId;
+    }
+    const found = vehicleOptions.find((v) => v.id === selectedScope);
+    return found ? `${found.name} (${found.id})` : selectedScope;
+  }, [selectedScope, vehicleOptions]);
+
+  const isReadOnly = user?.role === "ADMIN";
+  const canMutate = user?.role === "SUPER_ADMIN" || user?.role === "DEV";
+  const canUseInbox = user && isAdminRole(user.role);
 
   const updateCase = async (caseItem: FeedbackCase, status?: FeedbackStatus) => {
     const internalNote = noteDrafts[caseItem.id];
@@ -208,8 +259,6 @@ export default function FeedbackInboxPage() {
     }
   };
 
-  const canUseInbox = user?.role === "SUPER_ADMIN" || user?.role === "DEV";
-
   if (isLoading || !user) {
     return (
       <AdminResourcePanel>
@@ -222,7 +271,7 @@ export default function FeedbackInboxPage() {
     return (
       <div className="admin-access-denied" role="alert">
         <ShieldAlert size={20} aria-hidden="true" />
-        <span>Feedback triage is restricted to Super Admin and Dev roles.</span>
+        <span>Feedback triage is restricted to Admin, Super Admin, and Dev roles.</span>
       </div>
     );
   }
@@ -247,6 +296,16 @@ export default function FeedbackInboxPage() {
         Do not add rider contact data or copy feedback content into external tools. Feedback/case
         data is retained for at most 180 days; deletion is recoverable for 30 days.
       </AdminNotice>
+
+      {isReadOnly && (
+        <AdminNotice
+          kind="read-only"
+          title="Read-only access"
+          icon={<ShieldCheck size={19} />}
+        >
+          Admin role has read-only access. Saving internal notes, changing case status, and deleting or restoring cases require Super Admin or Dev permissions.
+        </AdminNotice>
+      )}
 
       {Object.values(caseMutationNotices).map((notice) => (
         <AdminMutationFeedback
@@ -287,6 +346,26 @@ export default function FeedbackInboxPage() {
       ) : (
         <>
           <AdminResourcePanel>
+            <div className="admin-feedback-toolbar">
+              <label htmlFor="feedback-scope-filter" className="admin-field" style={{ margin: 0, maxWidth: "20rem" }}>
+                <span className="admin-field__label">Feedback scope</span>
+                <select
+                  id="feedback-scope-filter"
+                  value={selectedScope}
+                  onChange={(event) => setSelectedScope(event.target.value)}
+                  className="admin-form-control"
+                  aria-label="Feedback scope"
+                >
+                  <option value={SCOPE_ALL}>All feedback</option>
+                  <option value={SCOPE_GENERAL}>General feedback</option>
+                  {vehicleOptions.map((v) => (
+                    <option key={v.id} value={`${VEHICLE_SCOPE_PREFIX}${v.id}`}>
+                      {v.name} ({v.id})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
             <section className="admin-feedback-section" aria-labelledby="active-feedback-title">
               <header className="admin-feedback-section__header">
                 <div>
@@ -295,17 +374,24 @@ export default function FeedbackInboxPage() {
                     Cases requiring review
                   </h2>
                 </div>
-                <span className="admin-feedback-section__count">{cases.length} active</span>
+                <span className="admin-feedback-section__count">{filteredCases.length} active</span>
               </header>
 
-              {cases.length === 0 ? (
-                <AdminResourceState state="empty" message="No active feedback cases." />
+              {filteredCases.length === 0 ? (
+                <AdminResourceState
+                  state="empty"
+                  message={
+                    selectedScope === SCOPE_ALL
+                      ? "No active feedback cases."
+                      : `No active feedback cases for ${selectedScopeLabel}.`
+                  }
+                />
               ) : (
                 <div
                   className="admin-operations-ledger admin-feedback-ledger"
                   data-admin-operations-ledger="feedback"
                 >
-                  {cases.map((caseItem) => {
+                  {filteredCases.map((caseItem) => {
                     const pendingAction = pendingCaseActions[caseItem.id];
                     const casePending = Boolean(pendingAction);
                     return (
@@ -347,60 +433,68 @@ export default function FeedbackInboxPage() {
                           <dt>Responsible</dt>
                           <dd>{caseItem.assignedTo ? caseItem.assignedTo.username : "Unassigned"}</dd>
                         </div>
+                        {caseItem.internalNote && (
+                          <div>
+                            <dt>Internal note</dt>
+                            <dd>{caseItem.internalNote}</dd>
+                          </div>
+                        )}
                       </dl>
 
-                      <div className="admin-feedback-case__work">
-                        <label className="admin-field">
-                          <span className="admin-field__label">Internal note for feedback {caseItem.id}</span>
-                          <textarea
-                            aria-label={`Internal note for feedback ${caseItem.id}`}
-                            value={noteDrafts[caseItem.id] ?? caseItem.internalNote ?? ""}
-                            onChange={(event) => setNoteDrafts((current) => ({
-                              ...current,
-                              [caseItem.id]: event.target.value,
-                            }))}
-                            maxLength={2000}
-                            rows={2}
-                            placeholder="Bounded internal case note"
-                            className="admin-form-control admin-feedback-case__note"
-                            disabled={casePending}
-                          />
-                        </label>
-                        <div className="admin-feedback-case__actions">
-                          <AdminButton
-                            onClick={() => void updateCase(caseItem)}
-                            disabled={casePending}
-                            aria-busy={pendingAction?.kind === "note"}
-                          >
-                            {pendingAction?.kind === "note" ? "Saving note…" : "Save note"}
-                          </AdminButton>
-                          {nextStatuses[caseItem.status].map((status) => (
-                            <AdminButton
-                              key={status}
-                              tone="primary"
-                              onClick={() => void updateCase(caseItem, status)}
+                      {canMutate && (
+                        <div className="admin-feedback-case__work">
+                          <label className="admin-field">
+                            <span className="admin-field__label">Internal note for feedback {caseItem.id}</span>
+                            <textarea
+                              aria-label={`Internal note for feedback ${caseItem.id}`}
+                              value={noteDrafts[caseItem.id] ?? caseItem.internalNote ?? ""}
+                              onChange={(event) => setNoteDrafts((current) => ({
+                                ...current,
+                                [caseItem.id]: event.target.value,
+                              }))}
+                              maxLength={2000}
+                              rows={2}
+                              placeholder="Bounded internal case note"
+                              className="admin-form-control admin-feedback-case__note"
                               disabled={casePending}
-                              aria-busy={pendingAction?.kind === "status" && pendingAction.status === status}
+                            />
+                          </label>
+                          <div className="admin-feedback-case__actions">
+                            <AdminButton
+                              onClick={() => void updateCase(caseItem)}
+                              disabled={casePending}
+                              aria-busy={pendingAction?.kind === "note"}
                             >
-                              {pendingAction?.kind === "status" && pendingAction.status === status
-                                ? `Marking ${status}…`
-                                : `Mark ${status}`}
+                              {pendingAction?.kind === "note" ? "Saving note…" : "Save note"}
                             </AdminButton>
-                          ))}
-                          <AdminButton
-                            tone="danger"
-                            icon={<Trash2 size={16} aria-hidden="true" />}
-                            aria-label={`Delete feedback ${caseItem.id}`}
-                            disabled={casePending}
-                            onClick={() => {
-                              setConfirmation({ action: "delete", caseItem });
-                              setPassword("");
-                            }}
-                          >
-                            Delete
-                          </AdminButton>
+                            {nextStatuses[caseItem.status].map((status) => (
+                              <AdminButton
+                                key={status}
+                                tone="primary"
+                                onClick={() => void updateCase(caseItem, status)}
+                                disabled={casePending}
+                                aria-busy={pendingAction?.kind === "status" && pendingAction.status === status}
+                              >
+                                {pendingAction?.kind === "status" && pendingAction.status === status
+                                  ? `Marking ${status}…`
+                                  : `Mark ${status}`}
+                              </AdminButton>
+                            ))}
+                            <AdminButton
+                              tone="danger"
+                              icon={<Trash2 size={16} aria-hidden="true" />}
+                              aria-label={`Delete feedback ${caseItem.id}`}
+                              disabled={casePending}
+                              onClick={() => {
+                                setConfirmation({ action: "delete", caseItem });
+                               setPassword("");
+                              }}
+                            >
+                              Delete
+                            </AdminButton>
+                          </div>
                         </div>
-                      </div>
+                      )}
                       </article>
                     );
                   })}
@@ -421,11 +515,15 @@ export default function FeedbackInboxPage() {
                 </p>
               </div>
             </header>
-            {deletedCases.length === 0 ? (
-              <p className="admin-feedback-recovery__empty">No feedback is awaiting purge.</p>
+            {filteredDeletedCases.length === 0 ? (
+              <p className="admin-feedback-recovery__empty">
+                {selectedScope === SCOPE_ALL
+                  ? "No feedback is awaiting purge."
+                  : `No feedback is awaiting purge for ${selectedScopeLabel}.`}
+              </p>
             ) : (
               <div className="admin-feedback-recovery__list">
-                {deletedCases.map((caseItem) => (
+                {filteredDeletedCases.map((caseItem) => (
                   <article
                     key={caseItem.id}
                     className="admin-feedback-recovery__item"
@@ -444,16 +542,18 @@ export default function FeedbackInboxPage() {
                           : "unavailable"}
                       </p>
                     </div>
-                    <AdminButton
-                      icon={<ArchiveRestore size={16} aria-hidden="true" />}
-                      aria-label={`Restore feedback ${caseItem.id}`}
-                      onClick={() => {
-                        setConfirmation({ action: "restore", caseItem });
-                        setPassword("");
-                      }}
-                    >
-                      Restore
-                    </AdminButton>
+                    {canMutate && (
+                      <AdminButton
+                        icon={<ArchiveRestore size={16} aria-hidden="true" />}
+                        aria-label={`Restore feedback ${caseItem.id}`}
+                        onClick={() => {
+                          setConfirmation({ action: "restore", caseItem });
+                          setPassword("");
+                        }}
+                      >
+                        Restore
+                      </AdminButton>
+                    )}
                   </article>
                 ))}
               </div>

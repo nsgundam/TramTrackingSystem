@@ -55,7 +55,7 @@ const menuItems: MenuItem[] = [
     title: "Feedback Inbox",
     path: "/admin/feedback",
     icon: MessageSquare,
-    minimumRole: "SUPER_ADMIN",
+    minimumRole: "ADMIN",
   },
 ];
 

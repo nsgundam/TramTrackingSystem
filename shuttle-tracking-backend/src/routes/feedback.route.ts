@@ -23,11 +23,12 @@ const feedbackWriteLimit = rateLimit({
   key: clientAddress,
 });
 
-router.use(requireMinimumRole('SUPER_ADMIN'));
+router.use(requireMinimumRole('ADMIN'));
 router.get('/deleted', getDeletedFeedback);
 router.get('/', getFeedbackInbox);
 router.patch(
   '/:id',
+  requireMinimumRole('SUPER_ADMIN'),
   feedbackWriteLimit,
   validateParam('id', parseFeedbackId),
   validateBody(parseFeedbackCaseUpdate),
@@ -35,6 +36,7 @@ router.patch(
 );
 router.post(
   '/:id/delete',
+  requireMinimumRole('SUPER_ADMIN'),
   feedbackWriteLimit,
   requireRecentReauthentication,
   validateParam('id', parseFeedbackId),
@@ -43,6 +45,7 @@ router.post(
 );
 router.post(
   '/:id/restore',
+  requireMinimumRole('SUPER_ADMIN'),
   feedbackWriteLimit,
   requireRecentReauthentication,
   validateParam('id', parseFeedbackId),

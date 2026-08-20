@@ -1667,6 +1667,11 @@
   font-weight: 700;
 }
 
+.admin-feedback-toolbar {
+  border-bottom: 1px solid var(--admin-border);
+  padding: 0.875rem 1rem;
+}
+
 .admin-feedback-section__header {
   display: flex;
   align-items: center;
