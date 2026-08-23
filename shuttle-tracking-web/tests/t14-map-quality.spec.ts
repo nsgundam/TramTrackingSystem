@@ -4,6 +4,19 @@ const APP_ORIGIN = "http://127.0.0.1:13000";
 
 test.use({ serviceWorkers: "block" });
 
+let pageErrors: Error[] = [];
+
+test.beforeEach(({ page }) => {
+  pageErrors = [];
+  page.on("pageerror", (error) => {
+    pageErrors.push(error);
+  });
+});
+
+test.afterEach(() => {
+  expect(pageErrors).toEqual([]);
+});
+
 const authenticateAdmin = async (context: BrowserContext) => {
   const payload = Buffer.from(JSON.stringify({
     exp: Math.floor(Date.now() / 1000) + 3600,

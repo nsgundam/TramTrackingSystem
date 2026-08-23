@@ -124,10 +124,14 @@ export function useVehicleTracking({
 
         if (!needGlobalSearch) {
           const lastCoord = coords[currentIdx];
-          const distFromLast = L.latLng(rawLat, rawLng).distanceTo(
-            L.latLng(lastCoord[0], lastCoord[1])
-          );
-          if (distFromLast > 150) needGlobalSearch = true;
+          if (!lastCoord || !Number.isFinite(lastCoord[0]) || !Number.isFinite(lastCoord[1])) {
+            needGlobalSearch = true;
+          } else {
+            const distFromLast = L.latLng(rawLat, rawLng).distanceTo(
+              L.latLng(lastCoord[0], lastCoord[1])
+            );
+            if (distFromLast > 150) needGlobalSearch = true;
+          }
         }
 
         if (needGlobalSearch) {
