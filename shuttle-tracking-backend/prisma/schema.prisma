@@ -24,8 +24,33 @@ model User {
   deletedFeedback  Feedback[] @relation("feedback_deleted_by")
   trackingAssignments TrackingAssignment[] @relation("tracking_assignment_actor")
   unassignedTrackingAssignments TrackingAssignment[] @relation("tracking_assignment_unassign_actor")
+  adminAuditEvents AdminAuditEvent[] @relation("admin_audit_actor")
 
   @@map("users")
+}
+
+model AdminAuditEvent {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorUserId     String?  @map("actor_user_id") @db.Uuid
+  actorUsername   String   @map("actor_username") @db.VarChar(50)
+  actorRole       String   @map("actor_role") @db.VarChar(30)
+  action          String   @db.VarChar(50)
+  targetType      String   @map("target_type") @db.VarChar(30)
+  targetId        String?  @map("target_id") @db.VarChar(50)
+  outcome         String   @db.VarChar(20)
+  responseStatus  Int      @map("response_status")
+  requestId       String   @map("request_id") @db.VarChar(50)
+  occurredAt      DateTime @default(now()) @map("occurred_at") @db.Timestamp(6)
+
+  actor User? @relation("admin_audit_actor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([occurredAt(sort: Desc)])
+  @@index([action, occurredAt(sort: Desc)])
+  @@index([targetType, occurredAt(sort: Desc)])
+  @@index([actorUserId, occurredAt(sort: Desc)])
+  @@index([actorUsername, occurredAt(sort: Desc)])
+  @@index([outcome, occurredAt(sort: Desc)])
+  @@map("admin_audit_events")
 }
 
 // ============================================

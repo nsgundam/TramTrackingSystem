@@ -18,6 +18,7 @@ import devicesRouter from "./routes/devices.route.js";
 import feedbackRouter from "./routes/feedback.route.js";
 import assignmentRouter from "./routes/assignment.route.js";
 import adminTripHistoryRouter from './routes/adminTripHistory.route.js';
+import adminHistoryRouter from './routes/adminHistory.route.js';
 
 import {
   authenticateToken,
@@ -43,6 +44,7 @@ import {
 } from "./middleware/boundary-errors.js";
 import { consumeRateLimit, RATE_LIMITS } from "./middleware/rate-limit.js";
 import { parseObservation } from "./middleware/validation.js";
+import { captureAdminAudit } from './middleware/admin-audit.js';
 
 import { connectRedis, redisClient } from "./config/redis.js";
 import { prisma } from "./config/prisma.js";
@@ -114,13 +116,14 @@ app.use(express.json({ limit: configuredBodyLimit }));
 app.use("/api/auth", authRouter);
 
 // Admin Routes (Protected)
-app.use("/api/admin/vehicles", authenticateToken, vehiclesRouter);
-app.use("/api/admin/routes", authenticateToken, routeRouter);
-app.use("/api/admin/stops", authenticateToken, stopRouter);
-app.use("/api/admin/route-stops", authenticateToken, routeStopsRouter);
-app.use("/api/admin/devices", authenticateToken, devicesRouter);
-app.use("/api/admin/feedback", authenticateToken, feedbackRouter);
+app.use("/api/admin/vehicles", authenticateToken, captureAdminAudit, vehiclesRouter);
+app.use("/api/admin/routes", authenticateToken, captureAdminAudit, routeRouter);
+app.use("/api/admin/stops", authenticateToken, captureAdminAudit, stopRouter);
+app.use("/api/admin/route-stops", authenticateToken, captureAdminAudit, routeStopsRouter);
+app.use("/api/admin/devices", authenticateToken, captureAdminAudit, devicesRouter);
+app.use("/api/admin/feedback", authenticateToken, captureAdminAudit, feedbackRouter);
 app.use('/api/admin/trip-history', authenticateToken, adminTripHistoryRouter);
+app.use('/api/admin/admin-history', authenticateToken, adminHistoryRouter);
 
 // Public & Ingest Routes (Open)
 app.use("/api/public", publicRouter);

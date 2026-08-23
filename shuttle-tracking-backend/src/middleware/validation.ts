@@ -147,6 +147,24 @@ export interface ObservationInput {
 
 export type TripHistoryStatus = 'in_progress' | 'completed' | 'aborted';
 
+export const ADMIN_AUDIT_ACTIONS = [
+  'vehicle.create', 'vehicle.update', 'vehicle.delete',
+  'route.create', 'route.update', 'route.delete',
+  'stop.create', 'stop.update', 'stop.delete',
+  'route_stop.create', 'route_stop.replace', 'route_stop.delete',
+  'device.create', 'device.update', 'device.delete', 'device.assign', 'device.unassign',
+  'feedback.update', 'feedback.delete', 'feedback.restore',
+] as const;
+export type AdminAuditAction = typeof ADMIN_AUDIT_ACTIONS[number];
+
+export const ADMIN_AUDIT_TARGET_TYPES = [
+  'vehicle', 'route', 'stop', 'route_stop', 'tracking_source', 'feedback',
+] as const;
+export type AdminAuditTargetType = typeof ADMIN_AUDIT_TARGET_TYPES[number];
+
+export const ADMIN_AUDIT_OUTCOMES = ['success', 'denied', 'failure'] as const;
+export type AdminAuditOutcome = typeof ADMIN_AUDIT_OUTCOMES[number];
+
 export interface BoundedPaginationInput {
   page: number;
   pageSize: number;
@@ -156,6 +174,15 @@ export interface TripHistoryListInput extends BoundedPaginationInput {
   vehicleId?: string;
   routeId?: string;
   status?: TripHistoryStatus;
+  from?: Date;
+  to?: Date;
+}
+
+export interface AdminHistoryListInput extends BoundedPaginationInput {
+  action?: AdminAuditAction;
+  targetType?: AdminAuditTargetType;
+  outcome?: AdminAuditOutcome;
+  actor?: string;
   from?: Date;
   to?: Date;
 }
@@ -547,6 +574,33 @@ export const parseTripHistoryList = (value: unknown): TripHistoryListInput => {
     ...(vehicleId === undefined ? {} : { vehicleId }),
     ...(routeId === undefined ? {} : { routeId }),
     ...(status === undefined ? {} : { status }),
+    ...(from === undefined ? {} : { from }),
+    ...(to === undefined ? {} : { to }),
+  };
+};
+
+export const parseAdminHistoryList = (value: unknown): AdminHistoryListInput => {
+  const input = record(value, 'Query parameters are invalid');
+  const pagination = parseBoundedPagination(input);
+  const action = input.action === undefined
+    ? undefined
+    : enumField(input.action, 'action', ADMIN_AUDIT_ACTIONS);
+  const targetType = input.targetType === undefined
+    ? undefined
+    : enumField(input.targetType, 'targetType', ADMIN_AUDIT_TARGET_TYPES);
+  const outcome = input.outcome === undefined
+    ? undefined
+    : enumField(input.outcome, 'outcome', ADMIN_AUDIT_OUTCOMES);
+  const actor = optionalStringField(input.actor, 'actor', { max: 50 });
+  const from = input.from === undefined ? undefined : utcDateField(input.from, 'from');
+  const to = input.to === undefined ? undefined : utcDateField(input.to, 'to');
+  if (from && to && from > to) throw invalidRequest('Field "from" must not be after "to"');
+  return {
+    ...pagination,
+    ...(action === undefined ? {} : { action }),
+    ...(targetType === undefined ? {} : { targetType }),
+    ...(outcome === undefined ? {} : { outcome }),
+    ...(actor === undefined ? {} : { actor }),
     ...(from === undefined ? {} : { from }),
     ...(to === undefined ? {} : { to }),
   };
