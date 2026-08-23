@@ -84,12 +84,17 @@ test("T14 Public Feedback foregrounds meet their scoped contrast budgets", async
   const dialog = page.getByRole("dialog", { name: "ส่งข้อเสนอแนะ / แจ้งปัญหา" });
   const textTargets = [
     dialog.getByText("ประเภทการติดต่อ", { exact: true }),
-    dialog.getByText("เลือกหมายเลขรถรถราง", { exact: true }),
+    dialog.getByText("เป้าหมายของข้อเสนอแนะ", { exact: true }),
     dialog.getByText("รายละเอียดข้อเสนอแนะ / ปัญหาที่พบ", { exact: true }),
   ];
   for (const target of textTargets) {
     expect(await computedContrast(target, dialog)).toBeGreaterThanOrEqual(4.5);
   }
+
+  await dialog.getByRole("button", { name: "ข้อเสนอแนะเกี่ยวกับรถรางที่กำลังนั่ง" }).click();
+  const tramTarget = dialog.getByText("เลือกรถรางที่เกี่ยวข้อง", { exact: true });
+  expect(await computedContrast(tramTarget, dialog)).toBeGreaterThanOrEqual(4.5);
+
   expect(
     await computedContrast(dialog.getByRole("button", { name: "ปิดหน้าต่างข้อเสนอแนะ" }), dialog),
   ).toBeGreaterThanOrEqual(3);

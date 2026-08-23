@@ -8,7 +8,7 @@ export function usePWAInstall() {
   useEffect(() => {
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").then(
-        (reg) => console.log("SW Registered:", reg.scope),
+        (reg) => console.log("SW Registered:", reg?.scope),
         (err) => console.error("SW Registration Failed:", err)
       );
     }
