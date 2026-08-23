@@ -5,9 +5,14 @@ import {
     BoundaryError,
     conflict,
     logBoundaryFailure,
+    notFound,
     sendBoundaryError,
 } from '../middleware/boundary-errors.js';
 import { createVehicleQrToken, vehicleQrUri } from '../services/vehicle-qr.service.js';
+import type { VehicleCreateInput, VehicleUpdateInput } from '../middleware/validation.js';
+
+const internalVehicleError = (message: string): BoundaryError =>
+    new BoundaryError(500, 'INTERNAL_ERROR', message);
 
 // Get All Vehicles
 export const getVehicles = async (req: Request, res: Response) => {
@@ -19,7 +24,7 @@ export const getVehicles = async (req: Request, res: Response) => {
         res.json(vehicles);
     }catch (error) {
         logBoundaryFailure('Vehicle list', error);
-        res.status(500).json({ error: 'An error occurred while fetching vehicles' });
+        sendBoundaryError(res, error, internalVehicleError('Failed to fetch vehicles'));
     }
 };
 
@@ -32,13 +37,12 @@ export const getVehicleById = async (req: Request, res: Response) => {
             include: { route: true }
         });
         if (!vehicle) {
-            res.status(404).json({ error: 'Vehicle not found' });
-            return;
+            throw notFound('Vehicle not found');
         }
         res.json(vehicle);
     }catch (error) {
         logBoundaryFailure('Vehicle read', error);
-        res.status(500).json({ error: 'An error occurred while fetching the vehicle' });
+        sendBoundaryError(res, error, internalVehicleError('Failed to fetch vehicle'));
     }
 };
 
@@ -47,14 +51,13 @@ export const getVehicleAssignmentQr = async (req: Request, res: Response) => {
         const id = req.params.id as string;
         const vehicle = await prisma.vehicle.findUnique({ where: { id }, select: { id: true, name: true } });
         if (!vehicle) {
-            res.status(404).json({ error: 'Vehicle not found' });
-            return;
+            throw notFound('Vehicle not found');
         }
         const token = createVehicleQrToken(vehicle.id);
         res.json({ vehicle, token, uri: vehicleQrUri(token) });
     } catch (error) {
         logBoundaryFailure('Vehicle QR', error);
-        res.status(500).json({ error: 'An error occurred while creating the vehicle QR contract' });
+        sendBoundaryError(res, error, internalVehicleError('Failed to create vehicle QR contract'));
     }
 };
 
@@ -62,13 +65,13 @@ export const getVehicleAssignmentQr = async (req: Request, res: Response) => {
 // Create Vehicle
 export const createVehicle = async (req: Request, res: Response) => {
     try{
-        const { id, name, type, status, assignedRouteId } = req.body;
+        const { id, name, type, status, assignedRouteId } = req.body as VehicleCreateInput;
         const newVehicle = await prisma.vehicle.create({
             data: {
                 id,
                 name,
                 type,
-                status: status || 'inactive',
+                status,
                 assignedRouteId
             }
         });
@@ -76,7 +79,7 @@ export const createVehicle = async (req: Request, res: Response) => {
         res.status(201).json(newVehicle);
     }catch (error) {
         logBoundaryFailure('Vehicle create', error);
-        res.status(500).json({ error: 'An error occurred while creating the vehicle' });
+        sendBoundaryError(res, error, internalVehicleError('Failed to create vehicle'));
     }
 };
 
@@ -84,16 +87,16 @@ export const createVehicle = async (req: Request, res: Response) => {
 export const updateVehicle = async (req: Request, res: Response) => {
     try{
         const id = req.params.id as string;
-        const data = req.body;
+        const { name, type, status, assignedRouteId } = req.body as VehicleUpdateInput;
         const updatedVehicle = await prisma.vehicle.update({
             where: { id },
-            data
+            data: { name, type, status, assignedRouteId },
         });
         await invalidatePublicCache();
         res.json(updatedVehicle);
     }catch (error) {
         logBoundaryFailure('Vehicle update', error);
-        res.status(500).json({ error: 'An error occurred while updating the vehicle' });
+        sendBoundaryError(res, error, internalVehicleError('Failed to update vehicle'));
     }
 };
 
@@ -113,10 +116,6 @@ export const deleteVehicle = async (req: Request, res: Response) => {
 
     }catch (error) {
         logBoundaryFailure('Vehicle delete', error);
-        if (error instanceof BoundaryError) {
-            sendBoundaryError(res, error);
-            return;
-        }
-        res.status(500).json({ error: 'An error occurred while deleting the vehicle' });
+        sendBoundaryError(res, error, internalVehicleError('Failed to delete vehicle'));
     }
 };

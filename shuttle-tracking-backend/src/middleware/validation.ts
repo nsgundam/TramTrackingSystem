@@ -85,6 +85,50 @@ export interface RouteStopReplaceInput {
   stopIds: string[];
 }
 
+export type VehicleStatus = 'active' | 'inactive' | 'maintenance';
+
+export interface VehicleCreateInput {
+  id: string;
+  name: string;
+  type: string;
+  status: VehicleStatus;
+  assignedRouteId?: string | null;
+}
+
+export interface VehicleUpdateInput {
+  name?: string;
+  type?: string;
+  status?: VehicleStatus;
+  assignedRouteId?: string | null;
+}
+
+export type RouteStatus = 'active' | 'inactive';
+
+export interface RouteCreateInput {
+  id: string;
+  name: string;
+  color: string;
+  status: RouteStatus;
+}
+
+export interface RouteUpdateInput {
+  name?: string;
+  color?: string;
+  status?: RouteStatus;
+}
+
+export interface StopCreateInput {
+  id: string;
+  nameTh: string;
+  nameEn?: string | null;
+  lat: number;
+  lng: number;
+  imageUrl?: string | null;
+}
+
+/** Stop edits are full-form replacements: names and both coordinates are parsed together. */
+export type StopUpdateInput = Omit<StopCreateInput, 'id'>;
+
 export interface TripStartInput {
   vehicleId?: string;
 }
@@ -141,6 +185,17 @@ const nullableStringField = (
 ): string | null | undefined => {
   if (value === undefined) return undefined;
   if (value === null) return null;
+  return stringField(value, field, { max });
+};
+
+const optionalNullableStringField = (
+  value: unknown,
+  field: string,
+  max = ID_MAX_LENGTH,
+): string | null | undefined => {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  if (typeof value === 'string' && value.trim().length === 0) return null;
   return stringField(value, field, { max });
 };
 
@@ -343,6 +398,86 @@ export const parseRouteStopReplace = (value: unknown): RouteStopReplaceInput => 
 
   return { stopIds };
 };
+
+const colorField = (value: unknown): string => {
+  const color = stringField(value, 'color', { max: 7 });
+  if (!/^#[0-9a-fA-F]{6}$/.test(color)) {
+    throw invalidRequest('Field "color" is invalid');
+  }
+  return color;
+};
+
+export const parseVehicleCreate = (value: unknown): VehicleCreateInput => {
+  const input = record(value);
+  const assignedRouteId = optionalNullableStringField(input.assignedRouteId, 'assignedRouteId');
+  return {
+    id: stringField(input.id, 'id'),
+    name: stringField(input.name, 'name', { max: 255 }),
+    type: stringField(input.type, 'type', { max: 50 }),
+    status: input.status === undefined
+      ? 'inactive'
+      : enumField(input.status, 'status', ['active', 'inactive', 'maintenance'] as const),
+    ...(assignedRouteId === undefined ? {} : { assignedRouteId }),
+  };
+};
+
+export const parseVehicleUpdate = (value: unknown): VehicleUpdateInput => {
+  const input = record(value);
+  const output: VehicleUpdateInput = {};
+  if (Object.hasOwn(input, 'name')) output.name = stringField(input.name, 'name', { max: 255 });
+  if (Object.hasOwn(input, 'type')) output.type = stringField(input.type, 'type', { max: 50 });
+  if (Object.hasOwn(input, 'status')) {
+    output.status = enumField(input.status, 'status', ['active', 'inactive', 'maintenance'] as const);
+  }
+  if (Object.hasOwn(input, 'assignedRouteId')) {
+    const assignedRouteId = optionalNullableStringField(input.assignedRouteId, 'assignedRouteId');
+    if (assignedRouteId === undefined) throw invalidRequest('Field "assignedRouteId" is invalid');
+    output.assignedRouteId = assignedRouteId;
+  }
+  if (Object.keys(output).length === 0) throw invalidRequest('At least one vehicle field is required');
+  return output;
+};
+
+export const parseRouteCreate = (value: unknown): RouteCreateInput => {
+  const input = record(value);
+  return {
+    id: stringField(input.id, 'id'),
+    name: stringField(input.name, 'name', { max: 255 }),
+    color: colorField(input.color),
+    status: input.status === undefined
+      ? 'inactive'
+      : enumField(input.status, 'status', ['active', 'inactive'] as const),
+  };
+};
+
+export const parseRouteUpdate = (value: unknown): RouteUpdateInput => {
+  const input = record(value);
+  const output: RouteUpdateInput = {};
+  if (Object.hasOwn(input, 'name')) output.name = stringField(input.name, 'name', { max: 255 });
+  if (Object.hasOwn(input, 'color')) output.color = colorField(input.color);
+  if (Object.hasOwn(input, 'status')) output.status = enumField(input.status, 'status', ['active', 'inactive'] as const);
+  if (Object.keys(output).length === 0) throw invalidRequest('At least one route field is required');
+  return output;
+};
+
+const parseStopFields = (input: Record<string, unknown>): StopUpdateInput => {
+  const nameEn = optionalNullableStringField(input.nameEn, 'nameEn', 255);
+  const imageUrl = optionalNullableStringField(input.imageUrl, 'imageUrl', 500);
+  return {
+    nameTh: stringField(input.nameTh, 'nameTh', { max: 255 }),
+    ...(nameEn === undefined ? {} : { nameEn }),
+    lat: numberField(input.lat, 'lat', { min: -90, max: 90 }),
+    lng: numberField(input.lng, 'lng', { min: -180, max: 180 }),
+    ...(imageUrl === undefined ? {} : { imageUrl }),
+  };
+};
+
+export const parseStopCreate = (value: unknown): StopCreateInput => {
+  const input = record(value);
+  return { id: stringField(input.id, 'id'), ...parseStopFields(input) };
+};
+
+export const parseStopUpdate = (value: unknown): StopUpdateInput => parseStopFields(record(value));
 
 export const parseTripStart = (value: unknown): TripStartInput => {
   const input = record(value);

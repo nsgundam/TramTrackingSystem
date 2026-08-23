@@ -1,12 +1,45 @@
 import { Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../config/prisma.js';
 import { invalidatePublicCache } from '../services/cache.service.js';
-import { logBoundaryFailure } from '../middleware/boundary-errors.js';
+import { BoundaryError, conflict, logBoundaryFailure, notFound, sendBoundaryError } from '../middleware/boundary-errors.js';
+import type { StopCreateInput, StopUpdateInput } from '../middleware/validation.js';
+
+interface StopRow {
+    id: string;
+    nameTh: string;
+    nameEn: string | null;
+    imageUrl: string | null;
+    lat: number | null;
+    lng: number | null;
+}
+
+const internalStopError = (message: string): BoundaryError =>
+    new BoundaryError(500, 'INTERNAL_ERROR', message);
+
+const objectValue = (value: unknown): Record<string, unknown> | undefined =>
+    typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? value as Record<string, unknown>
+        : undefined;
+
+/** Raw Prisma writes use P2010; translate only PostgreSQL's unique-violation signal. */
+export const mapStopRawCreateError = (error: unknown): unknown => {
+    if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2010') {
+        return error;
+    }
+
+    const metadata = objectValue(error.meta);
+    const driverAdapterError = objectValue(metadata?.driverAdapterError);
+    const cause = objectValue(driverAdapterError?.cause);
+    return cause?.originalCode === '23505'
+        ? conflict('Stop ID already exists')
+        : error;
+};
 
 // Get All Stops
 export const getStops = async (req: Request, res: Response) => {
     try {
-        const stops = await prisma.$queryRaw`
+        const stops = await prisma.$queryRaw<StopRow[]>`
             SELECT 
                 id, 
                 name_th as "nameTh", 
@@ -20,7 +53,7 @@ export const getStops = async (req: Request, res: Response) => {
         res.json(stops);
     } catch (error) {
         logBoundaryFailure('Stop list', error);
-        res.status(500).json({ error: 'Failed to fetch stops' });
+        sendBoundaryError(res, error, internalStopError('Failed to fetch stops'));
     }
 };
 
@@ -28,7 +61,7 @@ export const getStops = async (req: Request, res: Response) => {
 export const getStopById = async (req: Request, res: Response) => {
     try{
         const id = req.params.id as string
-        const stops: any[] = await prisma.$queryRaw`
+        const stops = await prisma.$queryRaw<StopRow[]>`
             SELECT 
                 id, 
                 name_th as "nameTh", 
@@ -40,31 +73,26 @@ export const getStopById = async (req: Request, res: Response) => {
             WHERE id = ${id}
         `;
         if (stops.length === 0) {
-            res.status(404).json({ error: 'Stop not found' });
-            return;
+            throw notFound('Stop not found');
         }
         res.json(stops[0]);
     }catch (error) {
         logBoundaryFailure('Stop read', error);
-        res.status(500).json({ error: 'An error occurred while fetching the stop' });
+        sendBoundaryError(res, error, internalStopError('Failed to fetch stop'));
     }
 };
 
 // Create Stop
 export const createStop = async (req: Request, res: Response) => {
     try {
-        const { id, nameTh, nameEn, lat, lng, imageUrl} = req.body;
-        if (!id || !nameTh || !nameEn || !lat || !lng) {
-            res.status(400).json({ error: 'Missing required fields' });
-            return;
-        }
+        const { id, nameTh, nameEn, lat, lng, imageUrl } = req.body as StopCreateInput;
 
         await prisma.$executeRaw`
             INSERT INTO stops (id, name_th, name_en, location, image_url)
-            VALUES (${id}, ${nameTh}, ${nameEn},ST_SetSRID(ST_MakePoint(${parseFloat(lng)}, ${parseFloat(lat)}), 4326)::geography, ${imageUrl})
+            VALUES (${id}, ${nameTh}, ${nameEn ?? null},ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${imageUrl ?? null})
         `;
 
-        const newStops: any[] = await prisma.$queryRaw`
+        const newStops = await prisma.$queryRaw<StopRow[]>`
             SELECT 
                 id, 
                 name_th as "nameTh", 
@@ -76,14 +104,13 @@ export const createStop = async (req: Request, res: Response) => {
             WHERE id = ${id}
         `;
         if (newStops.length === 0) {
-            res.status(404).json({ error: 'Stop not found' });
-            return;
+            throw notFound('Stop not found');
         }
         await invalidatePublicCache();
         res.json(newStops[0]);
     }catch (error) {
         logBoundaryFailure('Stop create', error);
-        res.status(500).json({ error: 'An error occurred while creating the stop' });
+        sendBoundaryError(res, mapStopRawCreateError(error), internalStopError('Failed to create stop'));
     }
 };
 
@@ -91,34 +118,24 @@ export const createStop = async (req: Request, res: Response) => {
 export const updateStop = async (req: Request, res: Response) => {
     try {
         const id  = req.params.id as string;
-        const { nameTh, nameEn, lat, lng, imageUrl } = req.body;
+        const { nameTh, nameEn, lat, lng, imageUrl } = req.body as StopUpdateInput;
 
-        if (lat && lng) {
-            await prisma.$executeRaw`
-                UPDATE stops
-                SET 
-                    name_th = ${nameTh},
-                    name_en = ${nameEn},
-                    image_url = ${imageUrl},
-                    location = ST_SetSRID(ST_MakePoint(${parseFloat(lng)}, ${parseFloat(lat)}), 4326)::geography
-                WHERE id = ${id}
-            `;
-        } else {
-            await prisma.stop.update({
-                where: { id },
-                data: {
-                    nameTh, 
-                    nameEn,
-                    imageUrl
-                }
-            });
-        }
+        const updatedCount = await prisma.$executeRaw`
+            UPDATE stops
+            SET
+                name_th = ${nameTh},
+                name_en = ${nameEn ?? null},
+                image_url = ${imageUrl ?? null},
+                location = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography
+            WHERE id = ${id}
+        `;
+        if (updatedCount === 0) throw notFound('Stop not found');
 
         await invalidatePublicCache();
         res.json({ message: 'Stop updated successfully', id });
     } catch (error) {
         logBoundaryFailure('Stop update', error);
-        res.status(500).json({ error: 'Failed to update stop' });
+        sendBoundaryError(res, error, internalStopError('Failed to update stop'));
     }
 };
 
@@ -133,6 +150,6 @@ export const deleteStop = async (req: Request, res: Response) => {
         res.json({ message: 'Stop deleted successfully' });
     }catch (error) {
         logBoundaryFailure('Stop delete', error);
-        res.status(500).json({ error: 'An error occurred while deleting the stop' });
+        sendBoundaryError(res, error, internalStopError('Failed to delete stop'));
     }
 };

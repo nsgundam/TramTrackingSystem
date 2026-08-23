@@ -1,7 +1,11 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js';
 import { invalidatePublicCache } from '../services/cache.service.js';
-import { logBoundaryFailure } from '../middleware/boundary-errors.js';
+import { BoundaryError, logBoundaryFailure, notFound, sendBoundaryError } from '../middleware/boundary-errors.js';
+import type { RouteCreateInput, RouteUpdateInput } from '../middleware/validation.js';
+
+const internalRouteError = (message: string): BoundaryError =>
+    new BoundaryError(500, 'INTERNAL_ERROR', message);
 
 // Get All Routes
 export const getRoutes = async (req: Request, res: Response) => {
@@ -12,7 +16,7 @@ export const getRoutes = async (req: Request, res: Response) => {
         res.json(routes);
     }catch (error) {
         logBoundaryFailure('Route list', error);
-        res.status(500).json({ error: 'An error occurred while fetching routes' });
+        sendBoundaryError(res, error, internalRouteError('Failed to fetch routes'));
     }
 };
 
@@ -24,26 +28,25 @@ export const getRouteById = async (req: Request, res: Response) => {
             where: { id },
         });
         if (!route) {
-            res.status(404).json({ error: 'Route not found' });
-            return;
+            throw notFound('Route not found');
         }
         res.json(route);
     }catch (error) {
         logBoundaryFailure('Route read', error);
-        res.status(500).json({ error: 'An error occurred while fetching the route' });
+        sendBoundaryError(res, error, internalRouteError('Failed to fetch route'));
     }
 };
 
 // Create Route
 export const createRoute = async (req: Request, res: Response) => {
     try {
-        const { id, name, color, status} = req.body;
+        const { id, name, color, status } = req.body as RouteCreateInput;
         const newRoute = await prisma.route.create({
             data: {
                 id,
                 name,
                 color,
-                status: status || 'inactive',
+                status,
             }
         });
         await invalidatePublicCache();
@@ -51,7 +54,7 @@ export const createRoute = async (req: Request, res: Response) => {
         
     } catch (error) {
         logBoundaryFailure('Route create', error);
-        res.status(500).json({ error: 'An error occurred while creating the route' });
+        sendBoundaryError(res, error, internalRouteError('Failed to create route'));
     }
 };
 
@@ -59,16 +62,16 @@ export const createRoute = async (req: Request, res: Response) => {
 export const updateRoute = async (req: Request, res: Response) => {
     try{
         const id = req.params.id as string;
-        const data = req.body;
+        const { name, color, status } = req.body as RouteUpdateInput;
         const updatedRoute = await prisma.route.update({
             where: { id },
-            data
+            data: { name, color, status },
         });
         await invalidatePublicCache();
         res.json(updatedRoute);
     }catch (error) {
         logBoundaryFailure('Route update', error);
-        res.status(500).json({ error: 'An error occurred while updating the route' });
+        sendBoundaryError(res, error, internalRouteError('Failed to update route'));
     }
 };
 
@@ -83,7 +86,7 @@ export const deleteRoute = async (req: Request, res: Response) => {
         res.json({ message: 'Route deleted successfully' });
     }catch (error) {
         logBoundaryFailure('Route delete', error);
-        res.status(500).json({ error: 'An error occurred while deleting the route' });
+        sendBoundaryError(res, error, internalRouteError('Failed to delete route'));
     }
 };
 
@@ -95,12 +98,11 @@ export const getVehiclesByRouteId = async (req: Request, res: Response) => {
             where: { assignedRouteId: routeId },
         });
         if (vehicles.length === 0) {
-            res.status(404).json({ error: 'No vehicles found for this route' });
-            return;
+            throw notFound('No vehicles found for this route');
         }
         res.json(vehicles);
     }catch (error) {
         logBoundaryFailure('Route vehicle list', error);
-        res.status(500).json({ error: 'An error occurred while fetching vehicles for the route' });
+        sendBoundaryError(res, error, internalRouteError('Failed to fetch vehicles for route'));
     }
 };
