@@ -17,6 +17,7 @@ import ingestRouter from "./routes/ingest.route.js";
 import devicesRouter from "./routes/devices.route.js";
 import feedbackRouter from "./routes/feedback.route.js";
 import assignmentRouter from "./routes/assignment.route.js";
+import adminTripHistoryRouter from './routes/adminTripHistory.route.js';
 
 import {
   authenticateToken,
@@ -119,6 +120,7 @@ app.use("/api/admin/stops", authenticateToken, stopRouter);
 app.use("/api/admin/route-stops", authenticateToken, routeStopsRouter);
 app.use("/api/admin/devices", authenticateToken, devicesRouter);
 app.use("/api/admin/feedback", authenticateToken, feedbackRouter);
+app.use('/api/admin/trip-history', authenticateToken, adminTripHistoryRouter);
 
 // Public & Ingest Routes (Open)
 app.use("/api/public", publicRouter);

@@ -145,6 +145,21 @@ export interface ObservationInput {
   station?: string;
 }
 
+export type TripHistoryStatus = 'in_progress' | 'completed' | 'aborted';
+
+export interface BoundedPaginationInput {
+  page: number;
+  pageSize: number;
+}
+
+export interface TripHistoryListInput extends BoundedPaginationInput {
+  vehicleId?: string;
+  routeId?: string;
+  status?: TripHistoryStatus;
+  from?: Date;
+  to?: Date;
+}
+
 const record = (value: unknown, message = 'Request payload must be a JSON object'): Record<string, unknown> => {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     throw invalidRequest(message);
@@ -239,6 +254,19 @@ const integerField = (
   const parsed = numberField(value, field, bounds);
   if (!Number.isInteger(parsed)) {
     throw invalidRequest(`Field "${field}" must be an integer`);
+  }
+  return parsed;
+};
+
+const utcDateField = (value: unknown, field: string): Date => {
+  const candidate = stringField(value, field, { max: 30 });
+  if (!/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z)?$/.test(candidate)) {
+    throw invalidRequest(`Field "${field}" is invalid`);
+  }
+  const normalized = candidate.length === 10 ? `${candidate}T00:00:00.000Z` : candidate;
+  const parsed = new Date(normalized);
+  if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== candidate.slice(0, 10)) {
+    throw invalidRequest(`Field "${field}" is invalid`);
   }
   return parsed;
 };
@@ -493,6 +521,37 @@ export const parseTripId = (value: unknown, field = 'id'): string => {
   return parsed;
 };
 
+const parseBoundedPagination = (input: Record<string, unknown>): BoundedPaginationInput => ({
+  page: input.page === undefined ? 1 : integerField(input.page, 'page', { min: 1, max: 100000 }),
+  pageSize: input.pageSize === undefined
+    ? 20
+    : integerField(input.pageSize, 'pageSize', { min: 1, max: 100 }),
+});
+
+export const parseTripHistoryPagination = (value: unknown): BoundedPaginationInput =>
+  parseBoundedPagination(record(value, 'Query parameters are invalid'));
+
+export const parseTripHistoryList = (value: unknown): TripHistoryListInput => {
+  const input = record(value, 'Query parameters are invalid');
+  const pagination = parseBoundedPagination(input);
+  const vehicleId = optionalStringField(input.vehicleId, 'vehicleId');
+  const routeId = optionalStringField(input.routeId, 'routeId');
+  const status = input.status === undefined
+    ? undefined
+    : enumField(input.status, 'status', ['in_progress', 'completed', 'aborted'] as const);
+  const from = input.from === undefined ? undefined : utcDateField(input.from, 'from');
+  const to = input.to === undefined ? undefined : utcDateField(input.to, 'to');
+  if (from && to && from > to) throw invalidRequest('Field "from" must not be after "to"');
+  return {
+    ...pagination,
+    ...(vehicleId === undefined ? {} : { vehicleId }),
+    ...(routeId === undefined ? {} : { routeId }),
+    ...(status === undefined ? {} : { status }),
+    ...(from === undefined ? {} : { from }),
+    ...(to === undefined ? {} : { to }),
+  };
+};
+
 export const parseBoundedId = (value: unknown, field = 'id'): string =>
   stringField(value, field);
 
@@ -565,6 +624,19 @@ export const validateParam = (name: string, parser: (value: unknown) => string):
 ): void => {
   try {
     req.params[name] = parser(req.params[name]);
+    next();
+  } catch (error) {
+    next(error instanceof BoundaryError ? error : invalidRequest());
+  }
+};
+
+export const validateQuery = <T>(schema: BoundarySchema<T>): RequestHandler => (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
+  try {
+    res.locals.validatedQuery = schema(req.query);
     next();
   } catch (error) {
     next(error instanceof BoundaryError ? error : invalidRequest());
