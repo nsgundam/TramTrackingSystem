@@ -8,10 +8,9 @@ behavior is not proof of deployed, field, device, or human acceptance.
 
 | Actor | Primary use | Boundary |
 |---|---|---|
-| Public rider | Select routes, inspect stops and live vehicle state, view ETA, submit feedback. | Never receives credentials, raw source data, unrestricted history, research data, or administrative actions. |
+| Public rider | Select routes, inspect stops and live vehicle state, view ETA, submit feedback. | Never receives credentials, raw source data, unrestricted history, or administrative actions. |
 | Admin (`ADMIN`, `SUPER_ADMIN`, `DEV`) | Maintain routes, stops, vehicles, and inspect operational state. | Server authorization is authoritative; sensitive actions need their explicit role/fresh-auth rules. |
 | Sender | Mobile, ESP32, simulator, or LoRaWAN source that sends vehicle observations. | Authenticated and bound to an active source/vehicle; sender credentials are never public. |
-| Research user | Compares source quality through a protected research boundary. | Research observations and metrics stay distinct from public/canonical operational truth. |
 
 ## Current capabilities
 
@@ -29,13 +28,10 @@ behavior is not proof of deployed, field, device, or human acceptance.
 
 - A source observation is not automatically the public vehicle truth. The backend selects one
   current canonical state per vehicle from active fresh sources by priority.
-- Redis keeps latest per-source and current canonical state; it is not an append-only research
-  store. `gps_tracks` is sampled canonical history, not a complete raw observation record.
+- Redis keeps latest per-source and current canonical state. `gps_tracks` is sampled canonical
+  history, not a complete raw observation record.
 - Use receive time as the current freshness authority unless a producer timestamp has its own
   defined semantics. Do not turn receive time into a device-latency or field-accuracy claim.
-- Research data preserves provenance, units, timestamp meaning, selection/rejection semantics, and
-  versioned definitions. Route-conformance, reported accuracy, pairwise disagreement, and
-  ground-truth error are different measures; see [research/device-comparison-scope.md](research/device-comparison-scope.md).
 - Simulators and browser fixtures exercise contracts only. They cannot establish hardware,
   provider, coverage, power, availability, physical accuracy, or production behavior.
 
@@ -46,7 +42,7 @@ behavior is not proof of deployed, field, device, or human acceptance.
 - Public and Admin visual identities remain deliberately separate. The Admin design is governed by
   [DESIGN.md](../DESIGN.md); public UI changes need their own approved requirement.
 - Validate authorization at the server. Protect source credentials, access tokens, payloads, raw
-  locations, research data, and internal errors from public and inappropriate admin surfaces.
+  locations and internal errors from public and inappropriate admin surfaces.
 - Production readiness requires independent evidence for host/network/TLS/secrets, backup/restore,
   monitoring/alerts, capacity, provider/device behavior, and human/assistive-technology use.
 

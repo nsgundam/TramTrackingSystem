@@ -24,14 +24,6 @@ import {
   type CanonicalSourceType,
   type CanonicalVehicleStateV1,
 } from './canonical-state.service.js';
-import {
-  activeResearchSessionId,
-  recordResearchObservation,
-  researchDispositionFor,
-  type ResearchObservationMetadata,
-  type ResearchTransport,
-  type ResearchSourceType,
-} from './research-diagnostics.service.js';
 
 const THROTTLE_SECONDS = 60;
 export const SOURCE_FRESHNESS_WINDOW_MS = 30_000;
@@ -228,11 +220,6 @@ export interface ObservationData {
   bearing?: number;
   accuracy?: number;
   station?: string;
-  transport?: ResearchTransport;
-  researchMetadata?: ResearchObservationMetadata;
-  accuracyUnit?: string;
-  accuracyKind?: string;
-  accuracySource?: string;
 }
 
 interface CachedObservation extends MovementSnapshot {
@@ -379,35 +366,6 @@ export const processObservation = async (data: ObservationData) => {
   let canonicalState: CanonicalVehicleStateV1 | null = null;
   if (vehicleId) {
     canonicalState = await evaluateCanonicalLocation(vehicleId, data.tripId, sourceId);
-  }
-
-  // T7 raw capture is explicitly session-gated and is best effort. It runs
-  // after canonical publication and cannot reject or alter the T6 result.
-  const researchSessionId = activeResearchSessionId();
-  if (researchSessionId) {
-    await recordResearchObservation({
-      sessionId: researchSessionId,
-      runId: process.env.T7_RESEARCH_RUN_ID || 'runtime',
-      sourceId,
-      sourceType: source.type as ResearchSourceType,
-      vehicleId,
-      tripId: data.tripId,
-      routeId: canonicalState?.routeId,
-      transport: data.transport || (source.type === 'lorawan' ? 'ttn_webhook' : 'http'),
-      latitude: numLat,
-      longitude: numLng,
-      speedMps: speed,
-      headingDeg: bearing,
-      accuracy,
-      accuracyUnit: data.accuracyUnit,
-      accuracyKind: data.accuracyKind,
-      accuracySource: data.accuracySource,
-      canonicalDisposition: researchDispositionFor(sourceId, canonicalState),
-      canonicalState,
-      metadata: data.researchMetadata,
-    }).catch((error) => {
-      logBoundaryFailure('Research observation capture', error);
-    });
   }
 
   return canonicalState;

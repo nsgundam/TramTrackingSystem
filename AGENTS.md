@@ -176,9 +176,7 @@ and test results.
   out of logs; return stable safe errors.
 - Add the cheapest deterministic test that can fail for the changed defect or invariant. A diff,
   build, or agent report alone is not acceptance evidence.
-- Keep raw research observations separate from canonical operational state. Preserve provenance,
-  units, timestamps, selection/rejection semantics, versioning, and reproducible analyses. Never
-  present simulator or proxy measurements as field or ground-truth evidence.
+- Never present simulator or proxy measurements as field or ground-truth evidence.
 - Treat migrations, seeds, runtime smoke checks, hardware/provider testing, and deployments as
   stateful operations. Run them only against an explicitly authorized disposable target with a
   defined expected mutation and cleanup or rollback plan.

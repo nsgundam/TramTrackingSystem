@@ -42,9 +42,9 @@ Set the copied file as follows:
 
 The development seed owns fixture identities such as `TS_MOB_01` and `sensor-c4`; they are not
 runtime configuration and therefore do not belong in the standard environment template. Test-only
-settings such as `SOCKET_URL`, `REQUEST_BODY_LIMIT`, `SOCKET_MAX_BUFFER_BYTES`, rate-limit
-overrides, and research session IDs are intentionally omitted. They have safe defaults or are
-documented with the specific test/tool that uses them.
+settings such as `SOCKET_URL`, `REQUEST_BODY_LIMIT`, `SOCKET_MAX_BUFFER_BYTES`, and rate-limit
+overrides are intentionally omitted. They have safe defaults or are documented with the specific
+test/tool that uses them.
 
 Local development defaults to PostgreSQL and Redis on `localhost`, frontend origins
 `http://localhost:3000` and `http://127.0.0.1:3000`, no trusted proxy, and port `3001` when those

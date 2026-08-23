@@ -224,8 +224,8 @@ one. Specialists are a toolbox, not a mandatory pipeline.
 
 Requirements and acceptance criteria may live in the conversation, issue, or pull request; do not
 create a task document just to start ordinary work. Git history, PRs, tests, and CI are the primary
-working record. Keep docs for stable product, architecture, deployment, runbook, research, and
-decision knowledge.
+working record. Keep docs for stable product, architecture, deployment, runbook, and decision
+knowledge.
 
 Agents may discover problems, but discovery does not authorize implementation. Historical audit,
 roadmap, task, and agent-workflow material is retained for provenance in

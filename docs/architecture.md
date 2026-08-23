@@ -37,8 +37,7 @@ Key invariants:
   own public payload or bypass the validation/selection boundary.
 - `live`, `stale`, `no_service`, and `unknown` must retain their truthful semantics. A last-known
   position is not a current location and must not drive ETA.
-- A failure to persist sampled history must not be represented as a failure to publish live state,
-  and live-state success must not become a claim of durable research evidence.
+- A failure to persist sampled history must not be represented as a failure to publish live state.
 
 ## Authority boundaries
 
@@ -48,12 +47,11 @@ Key invariants:
 | Admin | JWT/session authentication is necessary but server-side current-role authorization remains authoritative. |
 | Sender | Short-lived sender credentials are source/vehicle bound and revalidated for writes. |
 | TTN | Webhook bearer secret and registered LoRaWAN source type are required before ingestion. |
-| Research | Protected reads/exports must keep raw observations and uncertainty separate from operational/public DTOs. |
 
 ## Persistent and transient state
 
 - **PostgreSQL/PostGIS:** users, routes, stops, vehicles, trips, feedback, tracking-source
-  registrations, sampled canonical history, and research records.
+  registrations, and sampled canonical history.
 - **Redis:** public-data cache, latest source snapshot, current canonical vehicle state, bounded
   counters/throttles, and the Socket.IO adapter.
 - **Frontend:** presentation and connection state only; it does not define canonical service truth.

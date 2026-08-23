@@ -30,7 +30,6 @@ unsafe authority expansion. Production readiness remains a separate evidence gat
 
 The product combines a public university-shuttle map with an authenticated operational workspace
 that projects one canonical vehicle state across multiple independently authenticated sender types.
-Research observations remain separate from canonical operational truth.
 
 ## Operating Context
 
@@ -74,7 +73,7 @@ Research observations remain separate from canonical operational truth.
 
 ## Evidence on Hand
 
-- Active product, architecture, deployment, research, and runbook documentation under `docs/`, with
+- Active product, architecture, deployment, and runbook documentation under `docs/`, with
   historical evidence retained in `docs/archive/old-ai-workflow/`.
 - Admin implementation and tokens in `shuttle-tracking-web/app/admin/`, shared components in
   `shuttle-tracking-web/components/admin/`, and deterministic browser journeys in

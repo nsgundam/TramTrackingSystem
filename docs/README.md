@@ -15,7 +15,6 @@ temporary work; this directory holds knowledge that should remain useful after t
 Related durable references:
 
 - [Product direction](../PRODUCT.md) and [design system](../DESIGN.md)
-- [Research scope](research/device-comparison-scope.md)
 - [CI checks](testing/ci-checks.md) and [pipeline smoke tests](testing/pipeline-smoke-tests.md)
 - [University server/network handoff](operations/university-server-network-handoff.md)
 
