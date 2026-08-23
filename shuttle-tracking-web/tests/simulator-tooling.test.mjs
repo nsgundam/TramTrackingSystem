@@ -83,3 +83,14 @@ test('Playwright outputs stay out of Git and Docker build context', async () => 
   assert.equal(scripts['test:simulator-tooling'], 'node --test tests/simulator-tooling.test.mjs');
   assert.match(scripts.check, /npm run test:simulator-tooling/);
 });
+
+test('Production build scripts explicitly declare Webpack builder authority', async () => {
+  const packageJson = await readFile(new URL('package.json', webRoot), 'utf8');
+  const scripts = JSON.parse(packageJson).scripts;
+
+  assert.equal(scripts.build, 'next build --webpack');
+  assert.equal(
+    scripts['build:check'],
+    'NEXT_DIST_DIR=.next/e2e NEXT_PUBLIC_BACKEND_ORIGIN= NEXT_PUBLIC_BACKEND_URL= NEXT_PUBLIC_API_BASE_URL= next build --webpack'
+  );
+});
