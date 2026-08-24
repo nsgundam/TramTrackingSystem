@@ -11,6 +11,8 @@ import {
   Bus, 
   Map as MapIcon, 
   MapPin, 
+  History,
+  ShieldCheck,
   MessageSquare,
   Radio,
   LogOut,
@@ -44,6 +46,18 @@ const menuItems: MenuItem[] = [
     title: "Stops",
     path: "/admin/stops",
     icon: MapPin,
+  },
+  {
+    title: "Trip History",
+    path: "/admin/trip-history",
+    icon: History,
+    minimumRole: "ADMIN",
+  },
+  {
+    title: "Admin History",
+    path: "/admin/admin-history",
+    icon: ShieldCheck,
+    minimumRole: "SUPER_ADMIN",
   },
   {
     title: "Source Health",

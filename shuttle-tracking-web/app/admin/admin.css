@@ -2129,6 +2129,182 @@
   text-align: center;
 }
 
+.admin-history-filters-container {
+  padding: 1rem;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-history-filters-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-history-filters-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 40rem) {
+  .admin-history-filters-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .admin-history-filters-grid {
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  }
+}
+
+.admin-field__label-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.admin-history-filters-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-pagination {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-top: 1px solid var(--admin-border);
+  padding: 0.875rem 1rem;
+  background: var(--admin-surface);
+}
+
+@media (min-width: 40rem) {
+  .admin-pagination {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.admin-pagination__summary {
+  color: var(--admin-muted);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.admin-pagination__count {
+  color: var(--admin-ink);
+  font-weight: 750;
+}
+
+.admin-pagination__page-indicator {
+  color: var(--admin-muted);
+}
+
+.admin-pagination__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-back-nav {
+  margin-bottom: 0.25rem;
+}
+
+.admin-back-link {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 0.5rem;
+  background: var(--admin-surface);
+  color: var(--admin-primary);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 750;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.admin-back-link:hover {
+  border-color: #a8bad0;
+  background: var(--admin-surface-subtle);
+  color: var(--admin-primary-hover);
+}
+
+.admin-trip-overview {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-trip-overview__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+@media (min-width: 40rem) {
+  .admin-trip-overview__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .admin-trip-overview__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.admin-trip-overview__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 0.5rem;
+  background: var(--admin-surface-subtle);
+  padding: 0.75rem 0.875rem;
+}
+
+.admin-trip-overview__label {
+  color: var(--admin-muted);
+  font-size: 0.6875rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.admin-trip-overview__value {
+  color: var(--admin-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.admin-resource-table__mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8125rem;
+  color: var(--admin-ink);
+}
+
+.admin-trip-record-card,
+.admin-point-card,
+.admin-audit-record-card {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.admin-trip-record-card__footer {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+
 @media (min-width: 40rem) {
   .admin-shell__content {
     padding: 1.5rem;

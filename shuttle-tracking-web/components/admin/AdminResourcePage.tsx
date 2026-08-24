@@ -4,7 +4,7 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
 
 interface AdminResourcePageProps {
-  resource: "vehicles" | "routes" | "stops" | "source-health" | "feedback";
+  resource: "vehicles" | "routes" | "stops" | "source-health" | "feedback" | "trip-history" | "trip-detail" | "admin-history";
   eyebrow: string;
   title: string;
   description: string;
