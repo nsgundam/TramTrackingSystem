@@ -3,7 +3,12 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import { createRequire } from 'node:module';
+import { createClient } from 'redis';
 dotenv.config();
+
+const require = createRequire(import.meta.url);
+const { io } = require('../../shuttle-tracking-web/node_modules/socket.io-client');
 
 const rawApiUrl = process.env.API_URL || 'http://localhost:3001';
 const BASE_URL = rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl}/api`;
@@ -21,6 +26,32 @@ const FOREIGN_MOBILE_VEHICLE_ID = process.env.TRACKING_VEHICLE_ID_MOBILE_2 || 'V
 const TTN_DEVICE_ID = process.env.TTN_DEVICE_ID || 'sensor-c4';
 const TTN_VEHICLE_ID = process.env.TTN_VEHICLE_ID || (TTN_DEVICE_ID === 'sensor-f2' ? 'VN002' : 'VH003');
 let startedTripId;
+
+const SOCKET_URL = process.env.SOCKET_URL || rawApiUrl.replace(/\/api$/, '');
+
+const sendSocketLocation = (senderToken, payload) => new Promise((resolve, reject) => {
+  const socket = io(SOCKET_URL, {
+    auth: { token: senderToken },
+    autoConnect: false,
+    reconnection: false,
+    transports: ['websocket'],
+  });
+  const timeout = setTimeout(() => {
+    socket.close();
+    reject(new Error('Socket.IO sender write timed out'));
+  }, 10000);
+  const finish = (error, acknowledgement) => {
+    clearTimeout(timeout);
+    socket.close();
+    if (error) reject(error);
+    else resolve(acknowledgement);
+  };
+  socket.once('connect_error', (error) => finish(error));
+  socket.once('connect', () => {
+    socket.timeout(5000).emit('send-location', payload, finish);
+  });
+  socket.connect();
+});
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -261,34 +292,51 @@ async function testPipeline() {
     startedTripId = startData.trip.id;
 
     // ============================================
-    // 3. Test Ingest ESP32 Location (HTTP REST)
+    // 3. Test Ingest ESP32 Location (Socket.IO only)
     // ============================================
-    console.log('📡 [Ingest] Sending ESP32 location (Priority 2)...');
-    const espRes = await fetch(`${BASE_URL}/ingest/http`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${espSenderToken}`,
-      },
-      body: JSON.stringify({
-        sourceId: ESP_SOURCE_ID,
-        lat: 13.964139,
-        lng: 100.587520,
-        speed: 5.5,
-        bearing: 180.0,
-        station: 'Building 2'
-      })
-    });
+    console.log('📡 [Ingest] Verifying ESP32 HTTP ingestion is rejected...');
+    const redis = createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
+    await redis.connect();
+    try {
+      const espCacheKey = `source:last_location:${ESP_SOURCE_ID}`;
+      await redis.del(espCacheKey);
+      const espHttpRes = await fetch(`${BASE_URL}/ingest/http`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${espSenderToken}`,
+        },
+        body: JSON.stringify({ sourceId: ESP_SOURCE_ID, lat: 13.964139, lng: 100.587520 }),
+      });
+      const espHttpData = await espHttpRes.json();
+      if (espHttpRes.status !== 403 || espHttpData.code !== 'TRANSPORT_NOT_ALLOWED') {
+        throw new Error(`FAIL: ESP32 HTTP ingestion returned ${espHttpRes.status} ${espHttpData.code}`);
+      }
+      if (await redis.exists(espCacheKey)) {
+        throw new Error('FAIL: rejected ESP32 HTTP ingestion wrote a telemetry snapshot');
+      }
+    } finally {
+      await redis.quit();
+    }
+    console.log('   ✅ ESP32 HTTP ingestion rejected with TRANSPORT_NOT_ALLOWED and no telemetry write.');
 
-    const espData = await espRes.json();
-    if (!espRes.ok) {
-      throw new Error(`ESP32 Ingestion failed with status ${espRes.status}`);
+    console.log('📡 [Ingest] Sending ESP32 location over Socket.IO (Priority 2)...');
+    const espData = await sendSocketLocation(espSenderToken, {
+      sourceId: ESP_SOURCE_ID,
+      lat: 13.964139,
+      lng: 100.587520,
+      speed: 5.5,
+      bearing: 180.0,
+      station: 'Building 2'
+    });
+    if (espData?.ok !== true) {
+      throw new Error(`ESP32 Socket.IO ingestion failed with code ${espData?.code}`);
     }
     assertSafeAcknowledgement('ESP32', espData);
     if (espData.canonicalLocation.sourceType !== 'esp32') {
       throw new Error(`FAIL: ESP32 acknowledgement selected ${espData.canonicalLocation.sourceType}`);
     }
-    console.log('   🟢 ESP32 Ingestion status:', espRes.status);
+    console.log('   🟢 ESP32 Socket.IO acknowledgement: ok');
     console.log('   🟢 Canonical Location selected:', espData.canonicalLocation.liveLocation?.lat, espData.canonicalLocation.liveLocation?.lng);
     console.log('   🟢 Selected Device Type:', espData.canonicalLocation.sourceType, '\n');
 

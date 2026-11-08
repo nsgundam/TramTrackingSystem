@@ -70,6 +70,7 @@ try {
 
   // Telemetry without an explicit Trip is diagnostic only.
   const noTripState = await processObservation({
+    transport: 'socket',
     sourceId: mobileSource,
     sender: senderFor(mobileSource, vehicleA),
     lat: 13.964139,
@@ -85,6 +86,7 @@ try {
 
   // A missing mobile source does not close the Trip while another source moves.
   const movingObservation = await processObservation({
+    transport: 'socket',
     sourceId: movingSource,
     sender: senderFor(movingSource, vehicleA),
     lat: 13.965,
@@ -95,7 +97,7 @@ try {
   const activeAfterMovement = await prisma.trip.findUnique({ where: { id: activeTripA.id } });
   assert.ok(activeAfterMovement);
   assert.ok(activeAfterMovement.lastTripActivityAt.getTime() > startA.getTime());
-  assert.equal(
+  assert.deepEqual(
     await autoCloseInactiveTrips(new Date(activeAfterMovement.lastTripActivityAt.getTime() + TRIP_INACTIVITY_TIMEOUT_MS - 1)),
     [],
   );
@@ -109,6 +111,7 @@ try {
   // A stationary IoT source can send continuously without keeping a Trip alive.
   activeTripB = (await startOperationalTrip(vehicleB)).trip;
   await processObservation({
+    transport: 'socket',
     sourceId: stationarySource,
     sender: senderFor(stationarySource, vehicleB),
     lat: 13.97,
@@ -116,6 +119,7 @@ try {
     speed: 0,
   });
   await processObservation({
+    transport: 'socket',
     sourceId: stationarySource,
     sender: senderFor(stationarySource, vehicleB),
     lat: 13.970001,
@@ -123,14 +127,21 @@ try {
     speed: 0,
   });
   await processObservation({
+    transport: 'socket',
     sourceId: stationarySource,
     sender: senderFor(stationarySource, vehicleB),
     lat: 13.97,
     lng: 100.59,
     speed: 0,
   });
+  // autoCloseInactiveTrips is global and Trip A began earlier; keep A active at the simulated times
+  // below so only Trip B's inactivity is under test.
+  await prisma.trip.update({
+    where: { id: activeTripA.id },
+    data: { lastTripActivityAt: new Date(activeTripB.lastTripActivityAt.getTime() + 1000) },
+  });
   const stationaryBeforeTimeout = new Date(activeTripB.lastTripActivityAt.getTime() + TRIP_INACTIVITY_TIMEOUT_MS - 1);
-  assert.equal(await autoCloseInactiveTrips(stationaryBeforeTimeout), []);
+  assert.deepEqual(await autoCloseInactiveTrips(stationaryBeforeTimeout), []);
   const closedB = await autoCloseInactiveTrips(
     new Date(activeTripB.lastTripActivityAt.getTime() + TRIP_INACTIVITY_TIMEOUT_MS),
   );
@@ -143,6 +154,7 @@ try {
 
   // Telemetry after auto-close remains diagnostic and never reactivates the vehicle.
   const postCloseState = await processObservation({
+    transport: 'socket',
     sourceId: stationarySource,
     sender: senderFor(stationarySource, vehicleB),
     lat: 13.971,

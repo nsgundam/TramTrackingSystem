@@ -75,12 +75,17 @@ simulator prints only status/message/canonical identity/state fields, never the 
 ## Full configured pipeline evidence
 
 After the two focused checks, run the existing backend pipeline test. It verifies the configured
-seed rows, rejected unauthenticated/invalid/mismatched writes, ESP32 and mobile HTTP ingestion,
+seed rows, rejected unauthenticated/invalid/mismatched writes, rejection of ESP32 HTTP ingestion
+(`403 TRANSPORT_NOT_ALLOWED`, no telemetry write), ESP32 Socket.IO ingestion, mobile HTTP ingestion,
 TTN ingestion, priority selection, analytics, database history, and credential-free acknowledgements:
 
 ```bash
 node shuttle-tracking-backend/tests/test_pipeline.js
 ```
+
+The script reads Redis at `REDIS_URL` (default `redis://localhost:6379`) to prove the rejected
+ESP32 HTTP write left no telemetry snapshot, and loads `socket.io-client` from
+`shuttle-tracking-web/node_modules`, so install the web dependencies first.
 
 The script fails early when required credentials are absent or when the database rows do not match
 the fixture contract. Its output contains statuses and identifiers only; it does not print source

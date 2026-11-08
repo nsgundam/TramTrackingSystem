@@ -92,7 +92,7 @@ const ingestionSignal = (
 };
 
 /**
- * Ingest location from ESP32 or Mobile fallback via HTTP POST.
+ * Ingest location from a Mobile sender via HTTP POST. ESP32 sources must use Socket.IO.
  * Path: POST /api/ingest/http
  */
 router.post(
@@ -119,6 +119,7 @@ router.post(
 
       const canonicalState = await processObservation({
         ...observation,
+        transport: 'http',
         sender,
       });
 
@@ -252,6 +253,7 @@ router.post(
 
       const canonicalState = await processObservation({
         ...observation,
+        transport: 'ttn',
         expectedSourceType: 'lorawan',
       });
 
