@@ -10,9 +10,11 @@ const {
 const { BoundaryError, mapBoundaryError } = await import('../dist/middleware/boundary-errors.js');
 const {
   TRIP_HISTORY_CSV_HEADER,
+  TRIP_HISTORY_LIST_ISOLATION,
   TRIP_HISTORY_COMPLETENESS,
   TRIP_HISTORY_TRACK_SEMANTICS,
   buildTripHistoryListQuery,
+  buildTripSourceBreakdown,
   csvCell,
   streamTripHistoryCsv,
   toTripHistorySummary,
@@ -52,6 +54,10 @@ for (const query of [
   { page: 100001 },
   { pageSize: 101 },
   { status: 'deleted' },
+  { sourceType: 'gps' },
+  { sourceType: 'SIMULATOR' },
+  { sourceType: '' },
+  { sourceType: ['mobile', 'esp32'] },
   { vehicleId: 'x'.repeat(51) },
   { from: '08/01/2026' },
   { from: '2026-02-30' },
@@ -69,6 +75,48 @@ assert.deepEqual(query.where, {
   status: 'completed',
   startTime: { gte: listInput.from, lte: listInput.to },
 });
+assert.equal(Object.hasOwn(query.where, 'gpsTracks'), false);
+
+for (const sourceType of ['mobile', 'lorawan', 'esp32', 'simulator']) {
+  const sourceInput = parseTripHistoryList({ sourceType: ` ${sourceType} ` });
+  assert.deepEqual(sourceInput, { page: 1, pageSize: 20, sourceType });
+  assert.deepEqual(buildTripHistoryListQuery(sourceInput).where, {
+    gpsTracks: { some: { source: { type: sourceType } } },
+  });
+}
+assert.deepEqual(
+  buildTripHistoryListQuery(parseTripHistoryList({ sourceType: 'simulator', status: 'completed' })).where,
+  { status: 'completed', gpsTracks: { some: { source: { type: 'simulator' } } } },
+);
+assert.deepEqual(buildTripHistoryListQuery(parseTripHistoryList({})).where, {});
+
+const breakdown = buildTripSourceBreakdown([
+  { tripId: 'trip-a', sourceType: 'mobile', trackCount: 3 },
+  { tripId: 'trip-a', sourceType: 'lorawan', trackCount: 7 },
+  { tripId: 'trip-a', sourceType: null, trackCount: 2 },
+  { tripId: 'trip-a', sourceType: 'legacy-type', trackCount: 1 },
+  { tripId: 'trip-b', sourceType: 'simulator', trackCount: 5 },
+  { tripId: 'trip-b', sourceType: 'esp32', trackCount: 5 },
+]);
+assert.deepEqual(breakdown.get('trip-a'), [
+  { sourceType: 'lorawan', trackCount: 7 },
+  { sourceType: 'mobile', trackCount: 3 },
+  { sourceType: 'unknown', trackCount: 3 },
+]);
+assert.deepEqual(breakdown.get('trip-b'), [
+  { sourceType: 'esp32', trackCount: 5 },
+  { sourceType: 'simulator', trackCount: 5 },
+]);
+assert.equal(breakdown.has('trip-c'), false);
+assert.equal(buildTripSourceBreakdown([]).size, 0);
+assert.equal(TRIP_HISTORY_LIST_ISOLATION, 'RepeatableRead');
+const serviceSource = await readFile(new URL('../src/services/trip-history.service.ts', import.meta.url), 'utf8');
+const listBody = serviceSource.slice(serviceSource.indexOf('export const listTripHistory'));
+assert.match(
+  listBody,
+  /prisma\.\$transaction\(async \(tx\) => \{[\s\S]*tx\.trip\.count[\s\S]*tx\.trip\.findMany[\s\S]*readTripSourceCounts\(tx,[\s\S]*isolationLevel: TRIP_HISTORY_LIST_ISOLATION/,
+);
+
 assert.equal(Object.hasOwn(query.select, 'gpsTracks'), false);
 assert.equal(Object.hasOwn(query.select, 'location'), false);
 assert.deepEqual(query.select._count, { select: { gpsTracks: true } });

@@ -276,8 +276,23 @@ test.describe("Admin History and Trip History Suite", () => {
       const url = new URL(route.request().url());
       requestedQueries.push(url.searchParams);
       return fulfillJson(route, {
-        data: [mockTripSummary],
-        pagination: { page: 1, pageSize: 20, total: 1, totalPages: 1 },
+        data: [
+          {
+            ...mockTripSummary,
+            sourceBreakdown: [
+              { sourceType: "lorawan", trackCount: 30 },
+              { sourceType: "simulator", trackCount: 10 },
+              { sourceType: "unknown", trackCount: 2 },
+            ],
+          },
+          {
+            ...mockTripSummary,
+            id: "550e8400-e29b-41d4-a716-446655440002",
+            trackCount: 0,
+            sourceBreakdown: [],
+          },
+        ],
+        pagination: { page: 1, pageSize: 20, total: 2, totalPages: 1 },
         trackSemantics: "sampled_canonical",
         completeness: "sampled_not_ground_truth",
         coordinatesIncluded: false,
@@ -288,6 +303,19 @@ test.describe("Admin History and Trip History Suite", () => {
     await useRole(page, "SUPER_ADMIN");
 
     await page.goto("/admin/trip-history");
+
+    // Source breakdown renders with text labels in the visible view
+    const breakdown = page
+      .getByRole("list", { name: "Sampled points by source type" })
+      .filter({ visible: true })
+      .first();
+    await expect(breakdown.getByText("LoRaWAN · 30")).toBeVisible();
+    await expect(breakdown.getByText("Simulator · 10")).toBeVisible();
+    await expect(breakdown.getByText("Simulator · 10")).toHaveAttribute("data-tone", "warning");
+    await expect(breakdown.getByText("LoRaWAN · 30")).toHaveAttribute("data-tone", "info");
+    await expect(breakdown.getByText("Unknown · 2")).toHaveAttribute("data-tone", "neutral");
+    await expect(page.getByText("No tracks").filter({ visible: true }).first()).toBeVisible();
+    expect(requestedQueries[0].has("sourceType")).toBe(false);
 
     // Detail link is visible for SUPER_ADMIN
     await expect(page.getByRole("link", { name: "View detail" }).first()).toBeVisible();
@@ -304,6 +332,7 @@ test.describe("Admin History and Trip History Suite", () => {
     // Apply valid filters
     await page.locator("#filter-vehicle").selectOption("VH01");
     await page.locator("#filter-status").selectOption("completed");
+    await page.locator("#filter-source-type").selectOption("simulator");
     await page.locator("#filter-from").fill("2026-08-01");
     await page.locator("#filter-to").fill("2026-08-24");
     await page.getByRole("button", { name: "Apply filters" }).click();
@@ -311,6 +340,7 @@ test.describe("Admin History and Trip History Suite", () => {
     const lastQuery = requestedQueries[requestedQueries.length - 1];
     expect(lastQuery.get("vehicleId")).toBe("VH01");
     expect(lastQuery.get("status")).toBe("completed");
+    expect(lastQuery.get("sourceType")).toBe("simulator");
     expect(lastQuery.get("from")).toBe("2026-07-31T17:00:00.000Z");
     expect(lastQuery.get("to")).toBe("2026-08-24T16:59:59.999Z");
 
@@ -318,6 +348,8 @@ test.describe("Admin History and Trip History Suite", () => {
     await page.getByRole("button", { name: "Reset" }).click();
     await expect(page.locator("#filter-vehicle")).toHaveValue("");
     await expect(page.locator("#filter-status")).toHaveValue("");
+    await expect(page.locator("#filter-source-type")).toHaveValue("");
+    await expect.poll(() => requestedQueries[requestedQueries.length - 1].has("sourceType")).toBe(false);
 
     expect(pageErrors).toHaveLength(0);
   });
@@ -430,7 +462,16 @@ test.describe("Admin History and Trip History Suite", () => {
 
     await page.route(/\/api\/admin\/trip-history(?:\?|$)/, (route) => {
       return fulfillJson(route, {
-        data: [mockTripSummary],
+        data: [{
+          ...mockTripSummary,
+          sourceBreakdown: [
+            { sourceType: "lorawan", trackCount: 20 },
+            { sourceType: "mobile", trackCount: 12 },
+            { sourceType: "esp32", trackCount: 6 },
+            { sourceType: "simulator", trackCount: 3 },
+            { sourceType: "unknown", trackCount: 1 },
+          ],
+        }],
         pagination: { page: 1, pageSize: 20, total: 1, totalPages: 1 },
         trackSemantics: "sampled_canonical",
         completeness: "sampled_not_ground_truth",
@@ -461,6 +502,13 @@ test.describe("Admin History and Trip History Suite", () => {
     // 1. Trip History list on mobile
     await page.goto("/admin/trip-history");
     await expect(page.locator(".admin-trip-record-card")).toBeVisible();
+    const cardSources = page
+      .locator(".admin-trip-record-card")
+      .getByRole("list", { name: "Sampled points by source type" });
+    await expect(cardSources).toBeVisible();
+    await expect(cardSources.getByRole("listitem")).toHaveCount(5);
+    await expect(cardSources.getByText("Simulator · 3")).toHaveAttribute("data-tone", "warning");
+    await expect(cardSources.getByText("Unknown · 1")).toBeVisible();
     await expectNoHorizontalOverflow(page);
     await expectMinimumTarget(page.locator(".admin-history-filters-actions button"));
 

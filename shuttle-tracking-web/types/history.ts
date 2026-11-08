@@ -1,5 +1,12 @@
 export type TripHistoryStatus = "in_progress" | "completed" | "aborted";
 
+export type TripSourceType = "mobile" | "lorawan" | "esp32" | "simulator" | "unknown";
+
+export interface TripHistorySourceBreakdownEntry {
+  sourceType: TripSourceType;
+  trackCount: number;
+}
+
 export interface TripHistoryVehicle {
   id: string;
   name: string;
@@ -26,6 +33,8 @@ export interface TripHistorySummary {
   vehicle: TripHistoryVehicle | null;
   route: TripHistoryRoute | null;
   trackCount: number;
+  /** Present on list responses only; the detail endpoint omits it. */
+  sourceBreakdown?: TripHistorySourceBreakdownEntry[];
 }
 
 export interface PaginationInfo {
@@ -87,6 +96,7 @@ export interface TripHistoryFilterValues {
   vehicleId: string;
   routeId: string;
   status: string;
+  sourceType: string;
   from: string;
   to: string;
 }

@@ -1,7 +1,12 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../config/prisma.js';
 import { notFound } from '../middleware/boundary-errors.js';
-import type { BoundedPaginationInput, TripHistoryListInput } from '../middleware/validation.js';
+import {
+  TRACKING_SOURCE_TYPES,
+  type BoundedPaginationInput,
+  type TrackingSourceType,
+  type TripHistoryListInput,
+} from '../middleware/validation.js';
 
 export const TRIP_HISTORY_TRACK_SEMANTICS = 'sampled_canonical' as const;
 export const TRIP_HISTORY_COMPLETENESS = 'sampled_not_ground_truth' as const;
@@ -39,6 +44,9 @@ export const buildTripHistoryWhere = (input: TripHistoryListInput): Prisma.TripW
   ...(input.vehicleId === undefined ? {} : { vehicleId: input.vehicleId }),
   ...(input.routeId === undefined ? {} : { routeId: input.routeId }),
   ...(input.status === undefined ? {} : { status: input.status }),
+  ...(input.sourceType === undefined
+    ? {}
+    : { gpsTracks: { some: { source: { type: input.sourceType } } } }),
   ...(input.from === undefined && input.to === undefined
     ? {}
     : {
@@ -62,14 +70,86 @@ export const toTripHistorySummary = (trip: TripHistoryMetadataRecord) => {
   return { ...metadata, trackCount: _count.gpsTracks };
 };
 
+export type TripSourceType = TrackingSourceType | 'unknown';
+
+export interface TripSourceCountRow {
+  tripId: string;
+  sourceType: string | null;
+  trackCount: number;
+}
+
+export interface TripSourceBreakdownEntry {
+  sourceType: TripSourceType;
+  trackCount: number;
+}
+
+const toTripSourceType = (value: string | null): TripSourceType =>
+  TRACKING_SOURCE_TYPES.find((type) => type === value) ?? 'unknown';
+
+/**
+ * Groups per-trip track counts by source type. Tracks whose source was deleted
+ * (source_id set to NULL) or whose type is unrecognised are reported as "unknown".
+ * Entries are ordered by track count descending, then source type ascending.
+ */
+export const buildTripSourceBreakdown = (
+  rows: readonly TripSourceCountRow[],
+): Map<string, TripSourceBreakdownEntry[]> => {
+  const totals = new Map<string, Map<TripSourceType, number>>();
+  for (const row of rows) {
+    const perTrip = totals.get(row.tripId) ?? new Map<TripSourceType, number>();
+    const sourceType = toTripSourceType(row.sourceType);
+    perTrip.set(sourceType, (perTrip.get(sourceType) ?? 0) + row.trackCount);
+    totals.set(row.tripId, perTrip);
+  }
+  const breakdown = new Map<string, TripSourceBreakdownEntry[]>();
+  for (const [tripId, perTrip] of totals) {
+    breakdown.set(
+      tripId,
+      [...perTrip.entries()]
+        .map(([sourceType, trackCount]) => ({ sourceType, trackCount }))
+        .sort((left, right) => right.trackCount - left.trackCount || left.sourceType.localeCompare(right.sourceType)),
+    );
+  }
+  return breakdown;
+};
+
+const readTripSourceCounts = async (
+  tx: Prisma.TransactionClient,
+  tripIds: readonly string[],
+): Promise<TripSourceCountRow[]> => {
+  if (tripIds.length === 0) return [];
+  return tx.$queryRaw<TripSourceCountRow[]>`
+    SELECT
+      g.trip_id::text AS "tripId",
+      s.type AS "sourceType",
+      COUNT(*)::int AS "trackCount"
+    FROM gps_tracks g
+    LEFT JOIN tracking_sources s ON s.id = g.source_id
+    WHERE g.trip_id IN (${Prisma.join(tripIds.map((id) => Prisma.sql`${id}::uuid`))})
+    GROUP BY g.trip_id, s.type
+  `;
+};
+
+/**
+ * The filtered total, page, per-trip trackCount, and source breakdown are read in one
+ * REPEATABLE READ snapshot so concurrent GPS ingestion cannot make them disagree.
+ */
+export const TRIP_HISTORY_LIST_ISOLATION = Prisma.TransactionIsolationLevel.RepeatableRead;
+
 export const listTripHistory = async (input: TripHistoryListInput) => {
   const query = buildTripHistoryListQuery(input);
-  const [total, trips] = await Promise.all([
-    prisma.trip.count({ where: query.where }),
-    prisma.trip.findMany(query),
-  ]);
+  const { total, trips, sourceCounts } = await prisma.$transaction(async (tx) => {
+    const total = await tx.trip.count({ where: query.where });
+    const trips = await tx.trip.findMany(query);
+    const sourceCounts = await readTripSourceCounts(tx, trips.map((trip) => trip.id));
+    return { total, trips, sourceCounts };
+  }, { isolationLevel: TRIP_HISTORY_LIST_ISOLATION });
+  const sourceBreakdown = buildTripSourceBreakdown(sourceCounts);
   return {
-    data: trips.map(toTripHistorySummary),
+    data: trips.map((trip) => ({
+      ...toTripHistorySummary(trip),
+      sourceBreakdown: sourceBreakdown.get(trip.id) ?? [],
+    })),
     pagination: {
       page: input.page,
       pageSize: input.pageSize,

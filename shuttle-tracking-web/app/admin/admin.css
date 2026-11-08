@@ -2157,6 +2157,15 @@
   }
 }
 
+.admin-trip-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .admin-field__label-with-icon {
   display: inline-flex;
   align-items: center;

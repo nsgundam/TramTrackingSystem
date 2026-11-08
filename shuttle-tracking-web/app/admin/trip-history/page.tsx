@@ -19,6 +19,11 @@ import {
   toEndOfDayIso,
   validateDateRange,
 } from "@/utils/history-filters";
+import {
+  TRIP_SOURCE_FILTER_OPTIONS,
+  formatTripSourceType,
+  tripSourceTone,
+} from "@/utils/trip-source";
 import type {
   TripHistoryFilterValues,
   TripHistoryListResponse,
@@ -45,6 +50,7 @@ const emptyFilters: TripHistoryFilterValues = {
   vehicleId: "",
   routeId: "",
   status: "",
+  sourceType: "",
   from: "",
   to: "",
 };
@@ -57,6 +63,29 @@ const tripStatusTone = (
   if (status === "aborted") return "danger";
   return "neutral";
 };
+
+function TripSourceBreakdown({ trip }: { trip: TripHistorySummary }) {
+  const breakdown = trip.sourceBreakdown ?? [];
+  if (breakdown.length === 0) {
+    return <span className="admin-resource-table__muted">No tracks</span>;
+  }
+  return (
+    <ul
+      className="admin-trip-sources"
+      role="list"
+      aria-label="Sampled points by source type"
+    >
+      {breakdown.map((entry) => (
+        <li key={entry.sourceType}>
+          <AdminStatusBadge
+            label={`${formatTripSourceType(entry.sourceType)} · ${entry.trackCount}`}
+            tone={tripSourceTone(entry.sourceType)}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 const formatTripStatus = (status: string): string => {
   if (status === "in_progress") return "In Progress";
@@ -116,6 +145,9 @@ export default function TripHistoryPage() {
       }
       if (activeFilters.status.trim()) {
         params.status = activeFilters.status.trim();
+      }
+      if (activeFilters.sourceType.trim()) {
+        params.sourceType = activeFilters.sourceType.trim();
       }
 
       const fromIso = toStartOfDayIso(activeFilters.from);
@@ -284,6 +316,25 @@ export default function TripHistoryPage() {
               </div>
 
               <div className="admin-field">
+                <label htmlFor="filter-source-type">Source type</label>
+                <select
+                  id="filter-source-type"
+                  className="admin-form-control"
+                  value={filters.sourceType}
+                  onChange={(event) =>
+                    setFilters({ ...filters, sourceType: event.target.value })
+                  }
+                >
+                  <option value="">All source types</option>
+                  {TRIP_SOURCE_FILTER_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="admin-field">
                 <label htmlFor="filter-from">
                   <span className="admin-field__label-with-icon">
                     <Calendar size={14} aria-hidden="true" />
@@ -434,6 +485,12 @@ export default function TripHistoryPage() {
                         <strong>{trip.trackCount}</strong> points
                       </dd>
                     </div>
+                    <div>
+                      <dt>Sources</dt>
+                      <dd>
+                        <TripSourceBreakdown trip={trip} />
+                      </dd>
+                    </div>
                   </dl>
 
                   {canViewDetail && (
@@ -464,6 +521,7 @@ export default function TripHistoryPage() {
                     <th scope="col">End / Activity Time</th>
                     <th scope="col">End Reason</th>
                     <th scope="col">Sampled Points</th>
+                    <th scope="col">Sources</th>
                     {canViewDetail && (
                       <th scope="col" className="admin-resource-table__actions">
                         Actions
@@ -515,6 +573,9 @@ export default function TripHistoryPage() {
                       </td>
                       <td>
                         <strong>{trip.trackCount}</strong> pts
+                      </td>
+                      <td>
+                        <TripSourceBreakdown trip={trip} />
                       </td>
                       {canViewDetail && (
                         <td className="admin-resource-table__actions">

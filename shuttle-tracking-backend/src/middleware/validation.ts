@@ -7,6 +7,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3
 const STRICT_NUMBER_PATTERN = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
 
 export type TrackingSourceType = 'mobile' | 'lorawan' | 'esp32' | 'simulator';
+export const TRACKING_SOURCE_TYPES = ['mobile', 'lorawan', 'esp32', 'simulator'] as const satisfies readonly TrackingSourceType[];
 export type TrackingSourceStatus = 'provisioning' | 'active' | 'inactive' | 'retired';
 
 export interface AdminLoginInput {
@@ -174,6 +175,7 @@ export interface TripHistoryListInput extends BoundedPaginationInput {
   vehicleId?: string;
   routeId?: string;
   status?: TripHistoryStatus;
+  sourceType?: TrackingSourceType;
   from?: Date;
   to?: Date;
 }
@@ -566,6 +568,9 @@ export const parseTripHistoryList = (value: unknown): TripHistoryListInput => {
   const status = input.status === undefined
     ? undefined
     : enumField(input.status, 'status', ['in_progress', 'completed', 'aborted'] as const);
+  const sourceType = input.sourceType === undefined
+    ? undefined
+    : enumField(input.sourceType, 'sourceType', TRACKING_SOURCE_TYPES);
   const from = input.from === undefined ? undefined : utcDateField(input.from, 'from');
   const to = input.to === undefined ? undefined : utcDateField(input.to, 'to');
   if (from && to && from > to) throw invalidRequest('Field "from" must not be after "to"');
@@ -574,6 +579,7 @@ export const parseTripHistoryList = (value: unknown): TripHistoryListInput => {
     ...(vehicleId === undefined ? {} : { vehicleId }),
     ...(routeId === undefined ? {} : { routeId }),
     ...(status === undefined ? {} : { status }),
+    ...(sourceType === undefined ? {} : { sourceType }),
     ...(from === undefined ? {} : { from }),
     ...(to === undefined ? {} : { to }),
   };
