@@ -7,7 +7,7 @@ flowchart LR
   Rider["Public rider browser"] --> Web["Next.js web app"]
   Admin["Admin browser"] --> Web
   Web -->|"public/admin REST"| API["Express API + Socket.IO"]
-  Sender["Mobile / ESP32 sender"] -->|"authenticated HTTP or Socket.IO"| API
+  Sender["Mobile / ESP32 sender"] -->|"authenticated Socket.IO (Mobile also HTTP)"| API
   TTN["TTN webhook"] -->|"bearer-authenticated webhook"| API
   API <--> PG["PostgreSQL + PostGIS"]
   API <--> Redis["Redis"]
@@ -21,8 +21,8 @@ TTN-webhook REST boundaries, plus Socket.IO for viewers and senders.
 ## Canonical live-state flow
 
 1. A sender authenticates and, where applicable, starts a trip.
-2. An HTTP, Socket.IO, or TTN adapter validates its boundary and passes the observation to the
-   tracking service.
+2. An HTTP, Socket.IO, or TTN adapter validates its boundary and passes the observation, with its
+   transport, to the tracking service. ESP32 sources are accepted only over Socket.IO.
 3. The service validates the source, coordinates, assigned vehicle, sender context, and optional
    trip ownership.
 4. Redis stores the latest source snapshot. The service selects the first active fresh source for
@@ -45,7 +45,7 @@ Key invariants:
 |---|---|
 | Public | Reads safe route/stop/live-state data and submits bounded feedback; no credentials, raw source metadata, or protected history. |
 | Admin | JWT/session authentication is necessary but server-side current-role authorization remains authoritative. |
-| Sender | Short-lived sender credentials are source/vehicle bound and revalidated for writes. |
+| Sender | Short-lived sender credentials are source/vehicle bound and revalidated for writes. ESP32 GPS writes must use Socket.IO. |
 | TTN | Webhook bearer secret and registered LoRaWAN source type are required before ingestion. |
 
 ## Persistent and transient state

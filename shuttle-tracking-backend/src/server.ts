@@ -347,6 +347,7 @@ io.on("connection", (socket) => {
 
       const canonicalState = await processObservation({
         sourceId: observation.sourceId,
+        transport: 'socket',
         sender,
         tripId: observation.tripId,
         lat: observation.lat,

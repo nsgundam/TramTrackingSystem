@@ -21,7 +21,7 @@ behavior is not proof of deployed, field, device, or human acceptance.
 - Express REST and Socket.IO backend with separate public, admin, sender, and TTN ingress paths.
 - PostgreSQL/PostGIS for durable relational and spatial data, and Redis for cache, latest-source
   state, canonical live state, rate/throttle data, and Socket.IO fan-out.
-- Authenticated mobile/ESP32 HTTP and Socket.IO ingestion plus a TTN webhook, with deterministic
+- Authenticated mobile HTTP/Socket.IO and ESP32 Socket.IO-only ingestion plus a TTN webhook, with deterministic
   local simulators and pipeline checks.
 
 ## Truth and data semantics

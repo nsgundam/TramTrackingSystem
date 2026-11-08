@@ -24,6 +24,7 @@ import {
   type CanonicalSourceType,
   type CanonicalVehicleStateV1,
 } from './canonical-state.service.js';
+import { isTransportAllowedForSource, type IngestionTransport } from './ingestion-transport.js';
 
 const THROTTLE_SECONDS = 60;
 export const SOURCE_FRESHNESS_WINDOW_MS = 30_000;
@@ -211,6 +212,7 @@ const LNG_MAX = 180;
 
 export interface ObservationData {
   sourceId: string;
+  transport: IngestionTransport;
   sender?: SenderContext;
   expectedSourceType?: 'lorawan';
   tripId?: string;
@@ -300,6 +302,11 @@ export const processObservation = async (data: ObservationData) => {
 
   if (data.expectedSourceType && source.type !== data.expectedSourceType) {
     throw new BoundaryError(422, 'SOURCE_TYPE_MISMATCH', 'Tracking source type is invalid');
+  }
+
+  // Reject before any telemetry write so a disallowed transport leaves no state behind.
+  if (!isTransportAllowedForSource(source.type, data.transport)) {
+    throw new BoundaryError(403, 'TRANSPORT_NOT_ALLOWED', 'Tracking source must use the Socket.IO sender transport');
   }
 
   // 3. Authenticate the source and bind it to the credential claims.

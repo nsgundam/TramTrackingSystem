@@ -136,9 +136,14 @@ An active Mobile source may receive this source-only token before its first assi
 only for `POST /api/assignments/mobile/scan`. Ingestion and Trip endpoints require the active
 assignment to exist.
 
-Use the returned token as `Authorization: Bearer <token>` for trip start/end and HTTP GPS
-ingestion. Socket.IO senders provide the same token in `auth.token` during the handshake and must
-include the registered `sourceId` in `send-location`. Public viewers may connect to Socket.IO but
+Use the returned token as `Authorization: Bearer <token>` for trip start/end and Mobile HTTP GPS
+ingestion. Socket.IO senders provide the same token in `auth.token` (or the `Authorization` header)
+during the handshake and must include the registered `sourceId` in `send-location`. ESP32 sources
+must send GPS over Socket.IO: `POST /api/ingest/http` rejects them with `403 TRANSPORT_NOT_ALLOWED`
+before any telemetry is recorded. Because the sender token expires (`SENDER_JWT_EXPIRES_IN`, 15
+minutes by default) and the first `send-location` after expiry is rejected with
+`SENDER_CREDENTIAL_INVALID` and the socket is then disconnected, ESP32 firmware should log in again
+and reconnect before expiry. Public viewers may connect to Socket.IO but
 cannot emit GPS writes. Sender sockets revalidate the token on every GPS write, so clients must
 login again after expiry, reassignment, or credential rotation. TTN webhook requests require
 `Authorization: Bearer <TTN_WEBHOOK_SECRET>` and fail closed when the production secret is absent.
