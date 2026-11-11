@@ -98,9 +98,9 @@ function VehicleInfoCard({
           <button
             onClick={() => onFeedbackClick(vehicleId)}
             className="px-2.5 py-1 text-[11px] sm:text-[12px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-all duration-200 cursor-pointer flex items-center gap-1 border border-primary/20 shadow-sm shrink-0"
-            title={t("reportIssueTitle")}
+            title={locale === "en" ? "Report issue with this tram" : "แจ้งปัญหาเกี่ยวกับรถคันนี้"}
           >
-            <span>{t("reportIssue")}</span>
+            <span>{locale === "en" ? "Report Tram" : "แจ้งปัญหารถคันนี้"}</span>
           </button>
         )}
       </div>

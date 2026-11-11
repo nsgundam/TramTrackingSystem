@@ -37,16 +37,14 @@ const FEEDBACK_TYPES = [
   { id: "other", labelKey: "otherType" },
 ];
 
-type FeedbackTarget = "general" | "vehicle";
-
 function FeedbackModal({
   isOpen,
   onClose,
   initialVehicleId,
 }: FeedbackModalProps) {
-  const { t } = useLanguage();
-  const [feedbackTarget, setFeedbackTarget] = useState<FeedbackTarget>("general");
-  const [type, setType] = useState<string>("suggestion");
+  const { t, locale } = useLanguage();
+  const isDirectVehicleReport = Boolean(initialVehicleId);
+  const [type, setType] = useState<string>(initialVehicleId ? "complaint" : "suggestion");
   const [vehicleId, setVehicleId] = useState<string>("");
   const [message, setMessage] = useState<string>("");
   const [vehicles, setVehicles] = useState<ActiveVehicle[]>([]);
@@ -59,12 +57,11 @@ function FeedbackModal({
       setIsSuccess(false);
       setErrorMsg(null);
       setMessage("");
-      setType("suggestion");
-      setFeedbackTarget("general");
+      setType(initialVehicleId ? "complaint" : "suggestion");
       setVehicleId("");
     }
     onClose();
-  }, [isSubmitting, onClose]);
+  }, [isSubmitting, onClose, initialVehicleId]);
 
   const dialogRef = useModalFocus<HTMLDivElement>({
     active: isOpen,
@@ -90,9 +87,6 @@ function FeedbackModal({
       setVehicles(payload);
       const verifiedId = resolveVerifiedFeedbackVehicleId(initialVehicleId, payload);
       setVehicleId(verifiedId);
-      if (verifiedId) {
-        setFeedbackTarget("vehicle");
-      }
       setVehicleLoadState("ready");
     } catch (error) {
       if (signal?.aborted || (error instanceof DOMException && error.name === "AbortError")) return;
@@ -103,13 +97,13 @@ function FeedbackModal({
   }, [initialVehicleId]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !isDirectVehicleReport) return;
     const controller = new AbortController();
     queueMicrotask(() => {
       if (!controller.signal.aborted) void loadVehicles(controller.signal);
     });
     return () => controller.abort();
-  }, [isOpen, loadVehicles]);
+  }, [isOpen, isDirectVehicleReport, loadVehicles]);
 
   useEffect(() => {
     if (!isSuccess || !isOpen) return;
@@ -120,7 +114,7 @@ function FeedbackModal({
   }, [isSuccess, isOpen, handleClose]);
 
   const isVehicleSelected = Boolean(vehicleId && vehicles.some((v) => v.id === vehicleId));
-  const isTargetValid = feedbackTarget === "general" || (feedbackTarget === "vehicle" && isVehicleSelected);
+  const isTargetValid = !isDirectVehicleReport || isVehicleSelected;
   const canSubmit = !isSubmitting && Boolean(type && message.trim() && isTargetValid);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -130,10 +124,7 @@ function FeedbackModal({
       return;
     }
 
-    const isVehicleTarget = feedbackTarget === "vehicle";
-    const verifiedVehicleId = isVehicleTarget && isVehicleSelected ? vehicleId : null;
-
-    if (isVehicleTarget && !verifiedVehicleId) {
+    if (isDirectVehicleReport && !isVehicleSelected) {
       setErrorMsg(t("selectVehicleRequired"));
       return;
     }
@@ -149,7 +140,7 @@ function FeedbackModal({
         },
         body: JSON.stringify({
           type,
-          vehicleId: isVehicleTarget ? verifiedVehicleId : null,
+          vehicleId: isDirectVehicleReport ? vehicleId : null,
           message: message.trim(),
         }),
       });
@@ -186,7 +177,11 @@ function FeedbackModal({
         <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-2">
             <MessageSquarePlus className="text-primary" size={22} aria-hidden="true" />
-            <h3 id="feedback-dialog-title" className="text-lg font-bold text-slate-800">{t("reportIssueTitle")}</h3>
+            <h3 id="feedback-dialog-title" className="text-lg font-bold text-slate-800">
+              {isDirectVehicleReport
+                ? (locale === "en" ? "Report Tram Issue" : "แจ้งปัญหารถราง")
+                : t("reportIssueTitle")}
+            </h3>
           </div>
           <button
             type="button"
@@ -244,48 +239,12 @@ function FeedbackModal({
               </div>
             </fieldset>
 
-            {/* Selection for Feedback Target */}
-            <fieldset>
-              <legend className="block text-xs font-bold uppercase tracking-wider text-muted-on-light mb-2">
-                {t("feedbackTarget")}
-              </legend>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFeedbackTarget("general");
-                    setVehicleId("");
-                  }}
-                  aria-pressed={feedbackTarget === "general"}
-                  className={`flex items-center gap-2 p-3 min-h-[44px] text-sm rounded-xl border text-left transition-all cursor-pointer ${
-                    feedbackTarget === "general"
-                      ? "border-primary bg-primary/5 text-primary font-semibold shadow-sm"
-                      : "border-slate-200 hover:border-slate-300 text-slate-600"
-                  }`}
-                >
-                  <span>{t("targetGeneral")}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFeedbackTarget("vehicle")}
-                  aria-pressed={feedbackTarget === "vehicle"}
-                  className={`flex items-center gap-2 p-3 min-h-[44px] text-sm rounded-xl border text-left transition-all cursor-pointer ${
-                    feedbackTarget === "vehicle"
-                      ? "border-primary bg-primary/5 text-primary font-semibold shadow-sm"
-                      : "border-slate-200 hover:border-slate-300 text-slate-600"
-                  }`}
-                >
-                  <span>{t("targetTram")}</span>
-                </button>
-              </div>
-            </fieldset>
-
-            {/* Conditional Vehicle selection region */}
-            {feedbackTarget === "vehicle" && (
-              <fieldset data-testid="feedback-vehicle-region" className="space-y-2">
-                <legend className="block text-xs font-bold uppercase tracking-wider text-muted-on-light mb-1.5">
-                  {t("relatedTram")}
-                </legend>
+            {/* Target Display or Selection */}
+            {isDirectVehicleReport && (
+              <div className="space-y-1.5">
+                <span className="block text-xs font-bold uppercase tracking-wider text-muted-on-light">
+                  {locale === "en" ? "Target Tram" : "รถรางที่แจ้ง"}
+                </span>
                 {vehicleLoadState === "loading" ? (
                   <div className="flex items-center gap-2 text-muted-on-light text-xs p-3 rounded-xl border border-slate-200 bg-slate-50" role="status">
                     <Loader2 size={14} className="animate-spin" aria-hidden="true" />
@@ -300,7 +259,7 @@ function FeedbackModal({
                         <button
                           type="button"
                           onClick={() => void loadVehicles()}
-                          className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-2.5 py-1.5 min-h-[44px] text-xs font-semibold text-amber-900 transition-colors hover:bg-amber-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700 cursor-pointer"
+                          className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-2.5 py-1.5 min-h-[44px] text-xs font-semibold text-amber-900 transition-colors hover:bg-amber-100 cursor-pointer"
                         >
                           <RefreshCw size={13} aria-hidden="true" />
                           {t("retryVehicleList")}
@@ -308,51 +267,41 @@ function FeedbackModal({
                       </div>
                     </div>
                   </div>
-                ) : vehicles.length === 0 ? (
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700" role="status">
-                    <div>
-                      <p>{t("noVehicleAvailable")}</p>
-                      <button
-                        type="button"
-                        onClick={() => void loadVehicles()}
-                        className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 min-h-[44px] text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 cursor-pointer"
-                      >
-                        <RefreshCw size={13} aria-hidden="true" />
-                        {t("retryVehicleList")}
-                      </button>
-                    </div>
+                ) : !isVehicleSelected ? (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900" role="status">
+                    <p>{locale === "en" ? "This tram is currently not detected as active in service." : "ไม่พบสถานะให้บริการสดของรถคันนี้ในระบบขณะนี้"}</p>
+                    <button
+                      type="button"
+                      onClick={() => void loadVehicles()}
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-2.5 py-1.5 min-h-[44px] text-xs font-semibold text-amber-900 transition-colors hover:bg-amber-100 cursor-pointer"
+                    >
+                      <RefreshCw size={13} aria-hidden="true" />
+                      {t("retryVehicleList")}
+                    </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-2">
-                    {vehicles.map((v) => {
-                      const isSelected = vehicleId === v.id;
-                      return (
-                        <button
-                          key={v.id}
-                          type="button"
-                          onClick={() => setVehicleId(v.id)}
-                          aria-pressed={isSelected}
-                          className={`flex items-center justify-between p-3 min-h-[44px] rounded-xl border text-left transition-all cursor-pointer ${
-                            isSelected
-                              ? "border-primary bg-primary/5 text-primary font-semibold shadow-sm"
-                              : "border-slate-200 hover:border-slate-300 text-slate-700"
-                          }`}
-                        >
-                          <div className="flex flex-col">
-                            <span className="text-sm font-semibold">{v.name || v.id}</span>
-                            <span className="text-xs text-slate-500 font-mono">{v.id}</span>
-                          </div>
-                          {v.route && (
-                            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                              {v.route.name}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
+                  <div className="flex items-center justify-between p-3 rounded-xl border border-primary/20 bg-primary/5 text-slate-800 shadow-xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-base shrink-0">
+                        🚊
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-slate-800">
+                          {vehicles.find((v) => v.id === vehicleId)?.name || initialVehicleId}
+                        </span>
+                        <span className="text-xs text-slate-500 font-mono">
+                          {vehicleId || initialVehicleId}
+                        </span>
+                      </div>
+                    </div>
+                    {vehicles.find((v) => v.id === vehicleId)?.route && (
+                      <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-white text-slate-700 border border-slate-200 shadow-xs">
+                        {vehicles.find((v) => v.id === vehicleId)?.route?.name}
+                      </span>
+                    )}
                   </div>
                 )}
-              </fieldset>
+              </div>
             )}
 
             {/* Feedback message */}
@@ -364,7 +313,11 @@ function FeedbackModal({
                 id="feedback-message"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder={t("feedbackPlaceholder")}
+                placeholder={
+                  isDirectVehicleReport
+                    ? (locale === "en" ? "Please describe the issue with this tram (e.g. driving behavior, AC, noise)..." : "ระบุรายละเอียดปัญหาของรถคันนี้ เช่น พฤติกรรมการขับขี่, แอร์, เสียงดัง...")
+                    : t("feedbackPlaceholder")
+                }
                 rows={4}
                 required
                 className="w-full p-3 rounded-xl border border-slate-200 text-slate-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm resize-none"

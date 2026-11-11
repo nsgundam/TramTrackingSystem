@@ -117,10 +117,10 @@ function AvailabilityCard({
             />
           </span>
           <div className="flex min-w-0 flex-col select-none">
-            <span className="font-body-sm text-[12px] md:text-[13px] text-on-surface-variant leading-tight">
+            <span className="font-body-sm text-[12px] md:text-[13px] text-on-surface-variant leading-tight whitespace-nowrap">
               {availabilityText.label}
             </span>
-            <span className="font-headline-md text-[16px] md:text-[18px] text-on-surface leading-tight">
+            <span className="font-headline-md text-[16px] md:text-[18px] text-on-surface leading-tight whitespace-nowrap">
               {availabilityText.value}
             </span>
           </div>
@@ -129,12 +129,12 @@ function AvailabilityCard({
         {(availabilityText.detail || lastUpdateText) && (
           <div className="flex flex-col gap-0.5 border-t border-outline-variant/30 pt-1.5">
             {availabilityText.detail && (
-              <span className="font-body-sm text-[10px] md:text-[11px] leading-snug text-on-surface-variant">
+              <span className="font-body-sm text-[10px] md:text-[11px] leading-snug text-on-surface-variant whitespace-nowrap">
                 {availabilityText.detail}
               </span>
             )}
             {lastUpdateText && (
-              <span className="font-body-sm text-[10px] md:text-[11px] leading-snug text-on-surface-variant">
+              <span className="font-body-sm text-[10px] md:text-[11px] leading-snug text-on-surface-variant whitespace-nowrap">
                 {lastUpdateText}
               </span>
             )}
