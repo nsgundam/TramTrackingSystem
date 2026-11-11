@@ -109,6 +109,10 @@ const translations: Record<Locale, Record<string, string>> = {
     targetGeneral: "ข้อเสนอแนะทั่วไป",
     targetTram: "ข้อเสนอแนะเกี่ยวกับรถรางที่กำลังนั่ง",
     selectVehicleRequired: "กรุณาเลือกรถรางที่ต้องการแจ้งข้อมูล",
+    settings: "การตั้งค่า",
+    routeSetting: "สายรถราง",
+    languageSetting: "ภาษา",
+    feedbackSetting: "ข้อเสนอแนะ",
   },
   en: {
     welcome: "Welcome",
@@ -209,6 +213,10 @@ const translations: Record<Locale, Record<string, string>> = {
     targetGeneral: "General feedback",
     targetTram: "Feedback about the tram I am riding",
     selectVehicleRequired: "Please select a tram before submitting.",
+    settings: "Settings",
+    routeSetting: "Tram Route",
+    languageSetting: "Language",
+    feedbackSetting: "Feedback",
   },
 };
 

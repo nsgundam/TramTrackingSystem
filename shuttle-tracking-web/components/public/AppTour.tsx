@@ -43,8 +43,8 @@ export default function AppTour({ onInstallClick, isPwaAvailable = false }: AppT
       placement: 'left',
     },
     {
-      target: '.rsu-feedback-btn', 
-      title: t("feedbackTitle"),
+      target: '.rsu-settings-btn', 
+      title: t("settings") || "Settings",
       content: t("feedbackDesc"),
       placement: 'left',
     },

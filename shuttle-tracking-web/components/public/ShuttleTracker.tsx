@@ -9,8 +9,7 @@ import { getPublicAvailabilityReason } from "@/utils/truthful-ui-state";
 import BrandingHeader from "@/components/public/BrandingHeader";
 import AvailabilityCard from "@/components/public/AvailabilityCard";
 import RouteSelector from "@/components/public/RouteSelector";
-import FeedbackButton from "@/components/public/FeedbackButton";
-import LanguageSelector from "@/components/public/LanguageSelector";
+import SettingsMenu from "@/components/public/SettingsMenu";
 import BottomDock from "@/components/public/BottomDock";
 import MapControls from "@/components/public/MapControls";
 import Preloader from "@/components/public/Preloader";
@@ -99,8 +98,8 @@ export default function ShuttleTracker() {
   }, [setIsRouteMenuOpen]);
 
   const handleFeedbackClick = useCallback(() => {
-    handleOpenFeedback(selectedVehicleId);
-  }, [handleOpenFeedback, selectedVehicleId]);
+    handleOpenFeedback(null);
+  }, [handleOpenFeedback]);
 
   const handleCloseFeedback = useCallback(() => {
     setIsFeedbackOpen(false);
@@ -125,8 +124,8 @@ export default function ShuttleTracker() {
         {/* Top Left: Branding */}
         <BrandingHeader />
 
-        {/* Top Right: Status & Toggles */}
-        <div className="absolute top-4 right-4 md:top-10 md:right-10 z-10 flex w-[152px] flex-col items-stretch gap-3 sm:w-40 md:w-45">
+        {/* Top Right: Status & Controls */}
+        <div className="absolute top-4 right-4 md:top-6 md:right-6 z-10 flex flex-col items-end gap-2.5 max-w-[calc(100vw-32px)]">
           <AvailabilityCard
             counts={vehicleStateCounts}
             connectionState={realtimeConnectionState}
@@ -144,8 +143,7 @@ export default function ShuttleTracker() {
             onSelect={handleRouteChange}
             menuRef={routeMenuRef}
           />
-          <FeedbackButton onClick={handleFeedbackClick} />
-          <LanguageSelector />
+          <SettingsMenu onFeedbackClick={handleFeedbackClick} />
         </div>
 
         {/* Bottom Left: Info Cards */}
