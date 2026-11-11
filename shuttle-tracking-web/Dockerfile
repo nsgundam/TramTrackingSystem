@@ -1,5 +1,5 @@
 # --- Base Stage ---
-FROM node:22-alpine AS base
+FROM node:22.23.4-alpine AS base
 WORKDIR /app
 RUN npm install -g npm@11.11.0
 COPY package.json package-lock.json ./
@@ -19,7 +19,7 @@ ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 RUN npm run build
 
 # --- Production Target ---
-FROM node:22-alpine AS production
+FROM node:22.23.4-alpine AS production
 WORKDIR /app
 RUN npm install -g npm@11.11.0
 ENV NODE_ENV=production
